@@ -1,0 +1,136 @@
+rules_version = '2';
+
+// Verth Firestore security rules.
+// Principles:
+//  - Only signed-in users with a confirmed email can use data.
+//  - You can only see circles you are a member of.
+//  - A check can only be answered by the person it was sent to, only once, and only before it expires.
+//  - Plans can't be changed from the app (only by the payment backend later).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function me() { return request.auth.uid; }
+    function circlePath(cid) { return /databases/$(database)/documents/circles/$(cid); }
+    function memberPath(cid, uid) { return /databases/$(database)/documents/circles/$(cid)/members/$(uid); }
+    function isMember(cid) { return signedIn() && exists(memberPath(cid, me())); }
+    function isAdmin(cid) { return isMember(cid) && get(memberPath(cid, me())).data.role == 'admin'; }
+    function maxMembers(plan) { return plan == 'team' ? 500 : (plan == 'family' ? 10 : 5); }
+    function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+    function shortText(v, n) { return v is string && v.size() > 0 && v.size() <= n; }
+
+    // Your own profile. Nobody else can read it; the plan field is locked.
+    match /users/{uid} {
+      allow read: if signedIn() && me() == uid;
+      allow create: if signedIn() && me() == uid
+        && request.resource.data.plan == 'free'
+        && shortText(request.resource.data.name, 80);
+      allow update: if signedIn() && me() == uid
+        && request.resource.data.plan == resource.data.plan;
+    }
+
+    // Invite codes: anyone signed in can look up one code they were given,
+    // but nobody can list all codes.
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && getAfter(circlePath(request.resource.data.circleId)).data.ownerUid == me()
+        && getAfter(circlePath(request.resource.data.circleId)).data.inviteCode == code;
+      allow delete: if signedIn() && get(circlePath(resource.data.circleId)).data.ownerUid == me();
+    }
+
+    match /circles/{cid} {
+      allow read: if isMember(cid);
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == me()
+        && request.resource.data.plan == 'free'
+        && request.resource.data.memberCount == 1
+        && request.resource.data.type in ['org', 'family']
+        && shortText(request.resource.data.name, 60)
+        && existsAfter(memberPath(cid, me()));
+
+      // Joining: add exactly one person (yourself), within the plan's limit.
+      allow update: if signedIn()
+        && onlyChanges(['memberCount'])
+        && request.resource.data.memberCount == resource.data.memberCount + 1
+        && request.resource.data.memberCount <= maxMembers(resource.data.plan)
+        && !exists(memberPath(cid, me()))
+        && existsAfter(memberPath(cid, me()));
+
+      // Leaving: remove exactly one person (yourself).
+      allow update: if signedIn()
+        && onlyChanges(['memberCount'])
+        && request.resource.data.memberCount == resource.data.memberCount - 1
+        && exists(memberPath(cid, me()))
+        && !existsAfter(memberPath(cid, me()));
+
+      // Admins can rename the circle.
+      allow update: if isAdmin(cid) && onlyChanges(['name']) && shortText(request.resource.data.name, 60);
+
+      match /members/{uid} {
+        allow read: if isMember(cid);
+
+        allow create: if signedIn() && uid == me()
+          && request.resource.data.uid == me()
+          && shortText(request.resource.data.name, 80)
+          && request.resource.data.codeSecret is string
+          && (
+            // the owner creating the circle
+            (request.resource.data.role == 'admin'
+              && getAfter(circlePath(cid)).data.ownerUid == me()
+              && !exists(circlePath(cid)))
+            ||
+            // someone joining with the right invite code, counted against the plan limit
+            (request.resource.data.role == 'member'
+              && request.resource.data.inviteCode == get(circlePath(cid)).data.inviteCode
+              && getAfter(circlePath(cid)).data.memberCount == get(circlePath(cid)).data.memberCount + 1)
+          );
+
+        allow update: if signedIn() && uid == me() && isMember(cid) && onlyChanges(['name', 'title']);
+        allow delete: if (signedIn() && uid == me()) || isAdmin(cid);
+      }
+
+      match /checks/{checkId} {
+        allow read: if isMember(cid);
+
+        allow create: if isMember(cid)
+          && request.resource.data.fromUid == me()
+          && request.resource.data.toUid != me()
+          && exists(memberPath(cid, request.resource.data.toUid))
+          && shortText(request.resource.data.summary, 300)
+          && (
+            (request.resource.data.kind == 'push'
+              && request.resource.data.status == 'pending'
+              && request.resource.data.expiresAt is timestamp
+              && request.resource.data.expiresAt > request.time
+              && request.resource.data.expiresAt < request.time + duration.value(10, 'm'))
+            ||
+            (request.resource.data.kind == 'code'
+              && request.resource.data.status in ['code-match', 'code-mismatch'])
+          );
+
+        // Only the named person answers, once, before expiry.
+        allow update: if isMember(cid) && (
+          (resource.data.toUid == me()
+            && resource.data.kind == 'push'
+            && resource.data.status == 'pending'
+            && request.time < resource.data.expiresAt
+            && request.resource.data.status in ['confirmed', 'denied']
+            && onlyChanges(['status', 'answeredAt']))
+          ||
+          // The person who asked can flag a denied request as reported.
+          (resource.data.fromUid == me()
+            && onlyChanges(['reported'])
+            && request.resource.data.reported == true)
+        );
+
+        allow delete: if false;
+      }
+    }
+  }
+}

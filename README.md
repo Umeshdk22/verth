@@ -1,10 +1,10 @@
 # Verth: two-factor authentication for people
 
-**Live demo:** https://umeshdk22.github.io/verth/
+**Website:** https://umeshdk22.github.io/verth/ · **App:** https://umeshdk22.github.io/verth/app.html · **Demo:** https://umeshdk22.github.io/verth/demo.html
 
 Verth is a prototype that stops **fake-CEO and deepfake payment fraud**. Before an employee pays, changes bank details or resets a password, one tap asks the real person, on their own registered phone, whether they really sent the request.
 
-> Concept prototype. All people, companies and data in the demo are fictional.
+> Early product (v0.1). All people and companies in the demo are fictional.
 
 ---
 
@@ -46,13 +46,44 @@ You play both people. The left phone is **Priya (Accounts)**, the right phone is
 - **Fail-safe defaults:** unanswered checks expire, and the result is "don't act".
 - **Mapped threats:** MITRE ATT&CK T1656 (Impersonation) and T1566 (Phishing), and business email compromise.
 
-### Prototype limitations
+## The product (v0.1)
 
-This is a single-page demo that simulates both phones in one browser. It has no backend, real push notifications, enrolment or authentication. A production build would need device enrolment, signed push messages, TOTP secret management, and Slack/Teams integration.
+- **Landing page** (`index.html`): what Verth is, when to use it, examples for organisations and families, plans and FAQ.
+- **App** (`app.html`): real accounts and real checks between people.
+  - Sign up with email (confirmation link required) or Google.
+  - Welcome tour, then create an **organisation** or **family** circle, or join one with an invite code.
+  - **Push checks**: the request goes to the named person's signed-in device, and they answer Yes or No in real time. Checks expire after 3 minutes.
+  - **Rolling codes**: each person's app shows an RFC 6238 TOTP code; anyone in the circle can check a code read out on a call.
+  - **Verification log** shared with the circle, scam reporting, and plan limits (Free: 5 people, 20 checks a month).
+- **Demo** (`demo.html`): the original interactive simulation, no account needed.
 
-## Tech
+### Architecture
 
-A single self-contained `index.html` (HTML, CSS and vanilla JavaScript) with no build step, hosted on GitHub Pages.
+| Part | Choice |
+|---|---|
+| Hosting | GitHub Pages (static) |
+| Auth | Firebase Authentication (email/password with email verification, Google) |
+| Data and real-time updates | Cloud Firestore with snapshot listeners |
+| Access control | `firestore.rules`: circle-scoped reads, only the named recipient can answer a check (once, before expiry), plan field locked, invite-code joins counted against plan limits |
+| Codes | TOTP (HMAC-SHA1, 30 s step, ±1 window) with Web Crypto |
+| Build | esbuild bundles `src/` into `assets/app.js` |
+
+### Run it locally
+
+```bash
+npm install
+npm run build          # writes assets/app.js
+```
+
+Put your Firebase web config in `src/config.js`, then serve the folder with any static server.
+
+`test/e2e.js` drives two browser tabs (an employee and the CEO) through sign-up, email confirmation, the tour, creating and joining a circle, a denied check, a confirmed check, code checks and expiry. It runs against `test/fake-firebase.js`, an in-browser stand-in for the Firebase SDK.
+
+### Roadmap
+
+- Razorpay subscriptions for Family and Team plans (server-side payment confirmation).
+- Background push notifications (Firebase Cloud Messaging) so checks arrive when the app is closed.
+- Per-pair code secrets verified server-side, so members never hold each other's secrets.
 
 ## Author
 
