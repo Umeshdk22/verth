@@ -4,44 +4,29 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%230E6B6B%27/%3E%3Cpath d=%27M12 4.5l6 2.6v4.3c0 3.8-2.6 7-6 8.6-3.4-1.6-6-4.8-6-8.6V7.1z%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27/%3E%3Cpath d=%27M9.2 12l2 2 3.6-4%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23FFB224%27/%3E%3Cpath d=%27M12 4.5l6 2.6v4.3c0 3.8-2.6 7-6 8.6-3.4-1.6-6-4.8-6-8.6V7.1z%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27/%3E%3Cpath d=%27M9.2 12l2 2 3.6-4%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Verth: two-factor authentication for people. A prototype that stops deepfake and fake-CEO payment fraud with out-of-band verification.">
 <title>Verth</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Kalam:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 :root{
-  --bg:#EEF1EF; --surface:#FFFFFF; --ink:#141A1F; --muted:#56626B; --line:#D5DCD9;
-  --accent:#0E6B6B; --accent-ink:#FFFFFF; --accent-soft:#DDEDEC;
-  --ok:#1C7548; --ok-bg:#E1F2E8; --bad:#B02E27; --bad-bg:#FAE6E3; --wait:#8F5C0F; --wait-bg:#FAEFD9;
-  --phone:#10161B; --screen:#F6F8F7; --bubble:#E4F4EA;
-  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0E1316; --surface:#162027; --ink:#E6ECEA; --muted:#95A3A1; --line:#29363C;
-    --accent:#45B8B0; --accent-ink:#04201E; --accent-soft:#16312F;
-    --ok:#4FC48C; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1917; --wait:#E3AD4E; --wait-bg:#33260E;
-    --phone:#04070A; --screen:#111A1F; --bubble:#173427;
-  }
-}
-:root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#0E1316; --surface:#162027; --ink:#E6ECEA; --muted:#95A3A1; --line:#29363C;
-  --accent:#45B8B0; --accent-ink:#04201E; --accent-soft:#16312F;
-  --ok:#4FC48C; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1917; --wait:#E3AD4E; --wait-bg:#33260E;
-  --phone:#04070A; --screen:#111A1F; --bubble:#173427;
+  --bg:#0B0E18; --surface:#141A28; --ink:#EEF1F6; --muted:#A3AEC2; --line:#2A3550;
+  --accent:#FFB224; --accent-ink:#1B1204; --accent-soft:rgba(255,178,36,.14);
+  --ok:#43D6A2; --ok-bg:rgba(67,214,162,.13); --bad:#FF6259; --bad-bg:rgba(255,98,89,.13); --wait:#FFC857; --wait-bg:rgba(255,200,87,.12);
+  --phone:#05070D; --screen:#101624; --bubble:#1F3A2E;
+  --display:"Big Shoulders Display","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 56px}
+body{background:linear-gradient(rgba(11,14,24,.82),rgba(11,14,24,.9)),url(assets/bg-contours.webp) center top/cover fixed,var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 56px}
 .wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-0.01em}
 p{margin:0}
@@ -52,9 +37,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px}
 .brand{display:flex;flex-direction:column;gap:8px;max-width:640px}
 .logo{display:flex;align-items:center;gap:10px}
-.mark{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--accent);transform:rotate(-4deg);display:grid;place-items:center}
 .mark svg{width:20px;height:20px}
-.logo h1{font-size:30px}
+.logo h1{font-size:40px;font-weight:800;letter-spacing:.02em}
 .tag{font-size:17px;color:var(--muted);max-width:60ch}
 .chip{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--wait);background:var(--wait-bg);padding:5px 10px;border-radius:999px;white-space:nowrap}
 
@@ -90,8 +75,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .btn{border:0;border-radius:12px;padding:12px 14px;font-weight:600;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-primary{background:var(--accent);color:var(--accent-ink)}
 .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn-ok{background:var(--ok);color:var(--surface)}
-.btn-bad{background:var(--bad);color:var(--surface)}
+.btn-ok{background:var(--ok);color:#06140E}
+.btn-bad{background:var(--bad);color:#1A0503}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hint{font-size:12px;color:var(--muted);text-align:center}
 
@@ -185,7 +170,7 @@ tr.new td{animation:flash 1.6s ease-out}
   <header class="top">
     <div class="brand">
       <div class="logo">
-        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#1B1204" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
         <h1>Verth</h1>
       </div>
       <p class="tag">Two-factor for people. Before you pay, share data or reset a password, check that the request really came from your boss. One tap asks the real person on their own phone.</p>

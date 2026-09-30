@@ -234,3 +234,45 @@ test('the log can never be deleted', async () => {
   await assertFails(deleteDoc(doc(db('rajesh'), 'circles/c1/checks/open')));
   await assertFails(deleteDoc(doc(db('priya'), 'circles/c1/checks/open')));
 });
+
+/* ---------- scam checks: daily limit ---------- */
+const today = () => String(Math.floor((Date.now() + 19800000) / 86400000));
+test('free accounts get two scam checks a day, then the database refuses', async () => {
+  const f = db('priya'), ref = doc(f, 'users/priya/usage', today());
+  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+});
+test('the scan counter can’t be reset, skipped, or written for another day', async () => {
+  const f = db('priya');
+  await assertFails(setDoc(doc(f, 'users/priya/usage', String(Number(today()) + 1)), { scans: 1, at: serverTimestamp() }));
+  await assertFails(setDoc(doc(f, 'users/priya/usage', today()), { scans: 0, at: serverTimestamp() }));
+  await assertSucceeds(setDoc(doc(f, 'users/priya/usage', today()), { scans: 1, at: serverTimestamp() }));
+  await assertFails(setDoc(doc(f, 'users/priya/usage', today()), { scans: 1, at: serverTimestamp() }));
+  await assertFails(updateDoc(doc(f, 'users/priya/usage', today()), { scans: 1, at: serverTimestamp() }));
+  await assertFails(deleteDoc(doc(f, 'users/priya/usage', today())));
+});
+test('nobody can use or read someone else’s scan counter', async () => {
+  await assertFails(setDoc(doc(db('priya'), 'users/rajesh/usage', today()), { scans: 1, at: serverTimestamp() }));
+  await assertFails(getDoc(doc(db('priya'), 'users/rajesh/usage', today())));
+});
+test('paid accounts can scan without the daily cap', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/rajesh'), { plan: 'personal' }));
+  const f = db('rajesh'), ref = doc(f, 'users/rajesh/usage', today());
+  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+  for (let i = 0; i < 3; i++) await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+});
+
+/* ---------- community scam reports ---------- */
+const FP = 'a'.repeat(64);
+test('a signed-in user can report once, and anyone signed in can count reports', async () => {
+  await assertSucceeds(setDoc(doc(db('priya'), 'reports', FP, 'by', 'priya'), { kind: 'phone', at: serverTimestamp() }));
+  await assertFails(setDoc(doc(db('priya'), 'reports', FP, 'by', 'priya'), { kind: 'link', at: serverTimestamp() }));
+  await assertSucceeds(getDocs(collection(db('outsider'), 'reports', FP, 'by')));
+});
+test('reports can’t be faked for others, carry content, or use a non-fingerprint id', async () => {
+  await assertFails(setDoc(doc(db('priya'), 'reports', FP, 'by', 'rajesh'), { kind: 'phone', at: serverTimestamp() }));
+  await assertFails(setDoc(doc(db('priya'), 'reports', FP, 'by', 'priya'), { kind: 'phone', at: serverTimestamp(), number: '+919876543210' }));
+  await assertFails(setDoc(doc(db('priya'), 'reports', '9876543210', 'by', 'priya'), { kind: 'phone', at: serverTimestamp() }));
+  await assertFails(getDocs(collection(anon(), 'reports', FP, 'by')));
+});

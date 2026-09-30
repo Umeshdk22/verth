@@ -108,6 +108,8 @@ export function onSnapshot(ref, cb) {
 const users = () => { try { return JSON.parse(LS.getItem('fakeauth') || '{}'); } catch { return {}; } };
 const saveUsers = (u) => LS.setItem('fakeauth', JSON.stringify(u));
 const authCbs = new Set();
+// Each frame can be signed in as a different person (the video shows two phones in one page).
+const CUR = 'fakecur:' + (window.name || '');
 function mkUser(rec) {
   if (!rec) return null;
   return {
@@ -117,11 +119,11 @@ function mkUser(rec) {
 }
 const auth = { currentUser: null };
 function setCurrent(email) {
-  if (email) sessionStorage.setItem('fakecur', email); else sessionStorage.removeItem('fakecur');
+  if (email) sessionStorage.setItem(CUR, email); else sessionStorage.removeItem(CUR);
   auth.currentUser = email ? mkUser(users()[email]) : null;
   authCbs.forEach((cb) => cb(auth.currentUser));
 }
-export const getAuth = () => { auth.currentUser = mkUser(users()[sessionStorage.getItem('fakecur')]); return auth; };
+export const getAuth = () => { auth.currentUser = mkUser(users()[sessionStorage.getItem(CUR)]); return auth; };
 export const connectAuthEmulator = () => {};
 export function onAuthStateChanged(_a, cb) { authCbs.add(cb); setTimeout(() => cb(auth.currentUser), 0); return () => authCbs.delete(cb); }
 const err = (code) => Object.assign(new Error(code), { code });
@@ -150,3 +152,5 @@ window.__fakeVerify = (email) => { const u = users(); if (u[email]) { u[email].v
 
 export const initializeAppCheck = () => {};
 export class ReCaptchaEnterpriseProvider {}
+
+export async function getCountFromServer(col) { return { data: () => ({ count: runQuery({ path: col.path, c: [] }).docs.length }) }; }

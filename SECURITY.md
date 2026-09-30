@@ -39,6 +39,12 @@ Verth protects decisions about money, bank details and account access, so it is 
 - **Pairwise codes.** Rolling codes are TOTP (RFC 6238) derived through ECDH + HKDF from the two people's device keys, bound to the circle and to the direction. Only those two devices can compute the code. No code secret is stored in the database.
 - **New devices are visible.** Registering a new device bumps a counter that can only go up. Everyone sees a "new device" warning for 7 days, and non-admin members go back to *pending* until an admin re-approves them.
 
+### Scam check
+- Analysis runs entirely in the browser; pasted text is never uploaded.
+- Community reports store only a SHA-256 fingerprint of the normalised item under `reports/{fingerprint}/by/{uid}`: one report per person, no content, no editing. Reporter IDs are opaque random account IDs.
+- The free daily limit is enforced by the rules: the counter document must be named after today's date (India time), can only start at 1 and go up by exactly 1, and stops at 2 unless the account's plan (which only the server can change) is paid.
+- Limits: someone determined can run the open-source analysis code offline, and many fake accounts could inflate a report count. Report counts are shown as a signal, never as a verdict.
+
 ### Web security
 - A strict **Content Security Policy** on every page: scripts only from Verth itself and Google's sign-in and App Check services, no plugins, no `<base>` changes, no form submissions, and HTTPS only.
 - Verth refuses to run inside another site's frame (clickjacking).

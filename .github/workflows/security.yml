@@ -36,6 +36,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Scam check unit tests (real-world examples)
+        run: npm run test:unit
       - run: npx playwright install --with-deps chromium
       - name: Run browser test (employee, CEO and attacker scenarios)
         run: bash test/run-e2e.sh test-output

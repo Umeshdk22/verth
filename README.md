@@ -46,9 +46,20 @@ You play both people. The left phone is **Priya (Accounts)**, the right phone is
 - **Fail-safe defaults:** unanswered checks expire, and the result is "don't act".
 - **Mapped threats:** MITRE ATT&CK T1656 (Impersonation) and T1566 (Phishing), and business email compromise.
 
-## The product (v0.1)
+## Scam check (new)
 
-- **Landing page** (`index.html`): what Verth is, when to use it, examples for organisations and families, plans and FAQ.
+Paste a suspicious **SMS, WhatsApp message, email, link or phone number** and Verth explains the red flags it finds, in plain words:
+
+- **Links:** look-alike bank and government domains (checked against official domains), look-alike letters (punycode), bare IP addresses, `@` tricks, shorteners, cheap TLDs, app downloads (`.apk`), bait words.
+- **Phone numbers:** TRAI's 1600 (banks and financial firms), 1601 (service calls) and 140 (marketing) series, international numbers, invalid or spoofed-looking numbers.
+- **Messages and emails:** requests for OTP/PIN (but not genuine "do not share" OTP SMS), "digital arrest" and police threats, screen-sharing apps, "scan QR to receive money", "new number" family scams, KYC updates, prizes and refunds, task-job and investment scams, parcel and electricity threats, spoofed email senders and reply-to tricks. Links and numbers inside the message are checked too.
+- Every result links to **Sanchar Saathi (Chakshu)**, the **1930** helpline and **cybercrime.gov.in**.
+- Checks run on the device. **Community reports** store only a SHA-256 fingerprint, never the content.
+- Free accounts get **2 checks a day**, enforced by the database rules (the counter is keyed to today's date in India time and can only go up by one).
+
+## The product (v0.2)
+
+- **Landing page** (`index.html`): what Verth is, Scam check, a wall of real-world scam examples, the demo video, examples for organisations and families, guidelines, plans and FAQ. Optional piano soundtrack (never autoplays).
 - **App** (`app.html`): real accounts and real checks between people.
   - Sign up with email (confirmation link required) or Google.
   - Welcome tour, then create an **organisation** or **family** circle, or join one with an invite code.
@@ -83,6 +94,7 @@ npm run build          # writes assets/app.js
 
 Put your Firebase web config in `src/config.js`, then serve the folder with any static server.
 
+- `npm run test:unit` runs 22 real-world scam-check examples (`test/scamcheck.test.mjs`).
 - `npm run test:rules` runs the attacker scenarios in `test/rules.test.mjs` against the Firestore emulator.
 - `npm run test:e2e` drives two browsers (an employee and the CEO) plus attacker actions through the whole app, using `test/fake-firebase.js`, an in-browser stand-in for the Firebase SDK.
 - Both run on every push in GitHub Actions.

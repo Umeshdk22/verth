@@ -48,6 +48,7 @@ service cloud.firestore {
       return d is map && d.keys().hasOnly(['dh', 'sig', 'n', 'at', 'label']) && d.keys().hasAll(['dh', 'sig', 'n', 'at', 'label'])
         && validPub(d.dh) && validPub(d.sig) && d.n == n && d.at == request.time && text(d.label, 40);
     }
+    function todayIST() { return string(int((request.time.toMillis() + 19800000) / 86400000)); }
     function channels() { return ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other', 'Call']; }
 
     // ---------- your profile ----------
@@ -67,6 +68,38 @@ service cloud.firestore {
         && request.resource.data.circles is list && request.resource.data.circles.size() <= 20
         && request.resource.data.onboarded is bool;
       allow delete: if false;
+
+      // Daily scam-check counter. The document name must be today's date (India time), so it
+      // can't be reset by writing a different day, and free accounts stop at 2 a day.
+      match /usage/{day} {
+        allow get: if signedIn() && me() == uid;
+        allow create: if signedIn() && me() == uid && day == todayIST()
+          && request.resource.data.keys().hasOnly(['scans', 'at'])
+          && request.resource.data.scans == 1
+          && request.resource.data.at == request.time;
+        allow update: if signedIn() && me() == uid && day == todayIST()
+          && onlyChanges(['scans', 'at'])
+          && request.resource.data.scans == resource.data.scans + 1
+          && request.resource.data.at == request.time
+          && (request.resource.data.scans <= 2
+              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free');
+      }
+    }
+
+    // ---------- community scam reports ----------
+    // Only a SHA-256 fingerprint of the reported link, number or message is stored, never the
+    // content itself. One report per person per item; anyone signed in can see the count.
+    match /reports/{fp} {
+      match /by/{uid} {
+        allow read: if signedIn();
+        allow create: if signedIn() && uid == me()
+          && fp.matches('^[a-f0-9]{64}$')
+          && request.resource.data.keys().hasOnly(['kind', 'at'])
+          && request.resource.data.kind in ['link', 'phone', 'message']
+          && request.resource.data.at == request.time;
+        allow delete: if signedIn() && uid == me();
+        allow update: if false;
+      }
     }
 
     // ---------- invite codes ----------

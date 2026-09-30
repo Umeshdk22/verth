@@ -178,8 +178,52 @@ const SLOW = process.env.CI ? 3 : 1;
     const out = await A.evaluate(() => { const v = '=HYPERLINK("http://x")'; let s = v; if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return s; });
     if (!out.startsWith("'=")) throw new Error('not neutralised');
   });
-  await step('Dark mode renders', async () => {
-    await A.emulateMedia({ colorScheme: 'dark' }); await A.click('nav >> text=Home'); await shot(A, '09-A-home-dark');
+  await step('Scam check: a KYC scam SMS is flagged high risk', async () => {
+    await B.click('nav >> text=Scan');
+    await B.getByText('2 of 2 free checks left today').waitFor({ timeout: 5000 * SLOW });
+    await B.fill('#s-message', 'Dear Customer, your SBI YONO account will be blocked today. Update PAN KYC immediately: http://sbi-yono-kyc.xyz/update');
+    await B.click('button:has-text("Check it")');
+    await B.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 5000 * SLOW });
+    await B.getByText('Pretends to be State Bank of India', { exact: false }).first().waitFor();
+    await shot(B, '10-B-scan-danger');
+  });
+  await step('Scam check: reporting counts once and never stores the content', async () => {
+    await B.click('button:has-text("Report this message as a scam")');
+    await B.getByText('Reported as a scam by 1 Verth user').waitFor({ timeout: 5000 * SLOW });
+    const db = JSON.stringify(await fs(B));
+    if (db.includes('sbi-yono-kyc')) throw new Error('reported content stored in database');
+  });
+  await step('Scam check: phone number analysis', async () => {
+    await B.click('text=Check something else');
+    await B.click('.seg >> text=Phone number');
+    await B.fill('#s-phone', '+91 1401234567');
+    await B.click('button:has-text("Check it")');
+    await B.getByText('Marketing number', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
+    await shot(B, '11-B-scan-phone');
+  });
+  await step('Scam check: third check of the day hits the free limit', async () => {
+    await B.click('text=Check something else');
+    await B.getByRole('heading', { name: 'You’ve used today’s free checks' }).waitFor({ timeout: 5000 * SLOW });
+    await shot(B, '12-B-scan-limit');
+  });
+  await step('Scan-only account: someone can sign up just to check a message', async () => {
+    const C = await ctx.newPage();
+    C.on('pageerror', (e) => errors.push('C pageerror: ' + e.message));
+    await C.goto(URL);
+    await C.evaluate(() => { window.__googleEmail = 'kamla@family.in'; window.__googleName = 'Kamla Devi'; });
+    await C.click('text=Continue with Google');
+    await C.click('text=Skip the tour');
+    await C.click('text=Just check something suspicious');
+    await C.getByRole('heading', { name: 'Scam check', exact: true }).waitFor({ timeout: 5000 * SLOW });
+    await C.click('.seg >> text=Link');
+    await C.fill('#s-link', 'https://www.onlinesbi.sbi/');
+    await C.click('button:has-text("Check it")');
+    await C.getByRole('heading', { name: 'No obvious red flags' }).waitFor({ timeout: 5000 * SLOW });
+    await shot(C, '13-C-scan-only');
+    await C.close();
+  });
+  await step('Home screen renders', async () => {
+    await A.click('nav >> text=Home'); await shot(A, '09-A-home');
   });
   console.log('errors:', JSON.stringify(errors));
   if (process.env.CI && errors.length) console.log(`::error title=Page errors::${JSON.stringify(errors).slice(0, 600)}`);

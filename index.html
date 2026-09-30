@@ -2,109 +2,181 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%230E6B6B%27/%3E%3Cpath d=%27M12 4.5l6 2.6v4.3c0 3.8-2.6 7-6 8.6-3.4-1.6-6-4.8-6-8.6V7.1z%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27/%3E%3Cpath d=%27M9.2 12l2 2 3.6-4%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23FFB224%27/%3E%3Cpath d=%27M12 4.5l6 2.6v4.3c0 3.8-2.6 7-6 8.6-3.4-1.6-6-4.8-6-8.6V7.1z%27 fill=%27none%27 stroke=%27%231B1204%27 stroke-width=%271.8%27/%3E%3Cpath d=%27M9.2 12l2 2 3.6-4%27 fill=%27none%27 stroke=%27%231B1204%27 stroke-width=%271.8%27/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Verth is two-factor authentication for people. One tap asks the real person, on their own phone, before you pay, change bank details or share an OTP.">
-<meta name="theme-color" content="#0E6B6B">
+<meta name="description" content="Verth checks suspicious messages, links and phone numbers, and asks the real person on their own phone before you pay, change bank details or share an OTP.">
+<meta name="theme-color" content="#0B0E18">
 <title>Verth</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Kalam:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="assets/verth.css">
 <style>
-.page{max-width:1080px;margin:0 auto;padding-inline:16px}
-.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px}
-.nav .links{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:flex-end}
-.nav .links a{font-weight:600;text-decoration:none}
-.nav .links a.plainlink{color:var(--muted)}
-section.band{padding-block:48px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:24px}
-.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:center;padding-block:32px 56px}
-@media (max-width:820px){.hero{grid-template-columns:1fr}}
-.hero h1{font-size:clamp(34px,5.4vw,56px);line-height:1.05}
-.hero .sub{font-size:18px;color:var(--muted);max-width:52ch}
-.cta{display:flex;gap:12px;flex-wrap:wrap}
-.hero .fine{font-size:13px;color:var(--muted)}
-.mock{background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 60px -40px rgba(10,30,30,.55);max-width:380px;justify-self:center;width:100%}
-.mock .msg{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:14px}
-.mock .msg b{display:block;font-size:13px}
-.mock .msg span{color:var(--bad);font-size:12px}
-.mock .incoming{box-shadow:none}
-.mock .row2 .btn{min-height:40px;padding:8px}
-.eyebrow-l{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-.band h2{font-size:clamp(24px,3.4vw,34px)}
-.band .intro{color:var(--muted);max-width:62ch;font-size:16px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:820px){.grid3,.grid2{grid-template-columns:1fr}}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px}
+body{background:var(--bg) url(assets/bg-contours.webp) center top/cover fixed}
+.page{max-width:1140px;margin:0 auto;padding-inline:20px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px;flex-wrap:wrap}
+.nav .links{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.nav .links a{font-weight:600;text-decoration:none;color:var(--muted)}
+.nav .links a:hover{color:var(--ink)}
+.nav .links a.btn{color:var(--accent-ink)}
+.nav .btn{min-height:40px;padding:8px 14px}
+.sound{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(20,26,40,.7);color:var(--ink);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13px}
+.sound .bars{display:inline-flex;gap:2px;align-items:flex-end;height:12px}
+.sound .bars i{width:3px;height:4px;background:var(--accent);border-radius:1px}
+.sound[aria-pressed="true"] .bars i{animation:eq 0.9s ease-in-out infinite}
+.sound[aria-pressed="true"] .bars i:nth-child(2){animation-delay:.2s}.sound[aria-pressed="true"] .bars i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:3px}50%{height:12px}}
+@media (prefers-reduced-motion:reduce){.sound .bars i{animation:none!important}}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:48px;align-items:center;padding-block:40px 72px}
+@media (max-width:880px){.hero{grid-template-columns:1fr;gap:56px}}
+.kicker{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.hero h1{font-size:clamp(56px,9vw,112px);line-height:.88;text-transform:uppercase;letter-spacing:.005em}
+.hero h1 .mark{position:relative;white-space:nowrap;color:var(--accent)}
+.hero h1 .mark svg{position:absolute;left:-2%;bottom:-.12em;width:104%;height:.3em;overflow:visible}
+.hero .sub{font-size:19px;color:var(--muted);max-width:50ch;margin-top:22px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;align-items:center}
+.cta .btn{min-height:52px;padding:12px 22px;font-size:16px}
+.note-hand{font-family:var(--hand);font-size:20px;color:var(--accent);display:inline-flex;align-items:center;gap:6px;transform:rotate(-3deg);margin-top:14px}
+.note-hand svg{width:54px;height:34px}
+
+.stage{position:relative;justify-self:center;width:100%;max-width:380px}
+.paper{position:absolute;left:-96px;top:-40px;width:240px;background:#F4EEDC;color:#23201A;padding:16px 16px 18px;border-radius:3px;transform:rotate(-7deg);box-shadow:0 18px 30px -12px rgba(0,0,0,.6);font-size:14px;line-height:1.4;z-index:1}
+.paper b{display:block;font-size:12px;color:#6B6456;margin-bottom:6px;font-family:var(--mono)}
+.paper .circle{position:absolute;inset:-10px -12px;pointer-events:none}
+.paper .stamp{position:absolute;left:-14px;bottom:-26px;font-family:var(--hand);font-weight:700;font-size:30px;color:#E0453C;transform:rotate(-10deg)}
+.tape{position:absolute;top:-12px;left:50%;width:84px;height:24px;background:rgba(255,236,180,.55);transform:translateX(-50%) rotate(3deg);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.phone{position:relative;z-index:2;margin-left:60px;margin-top:70px;background:#05070D;border:1px solid #2A3550;border-radius:34px;padding:12px;box-shadow:0 40px 80px -30px rgba(0,0,0,.8),0 0 0 8px rgba(255,178,36,.06)}
+.phone .scr{background:var(--surface);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.phone .bar{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--mono)}
+@media (max-width:520px){.paper{left:-6px;width:210px;font-size:13px}.phone{margin-left:26px}}
+
+section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
+.band h2{font-size:clamp(34px,5vw,60px);text-transform:uppercase;line-height:.95}
+.band .intro{color:var(--muted);max-width:62ch;font-size:17px}
+.eyebrow-l{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:880px){.grid2,.grid3{grid-template-columns:1fr}}
+.tile{background:rgba(20,26,40,.88);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:10px;backdrop-filter:blur(6px)}
 .tile p{color:var(--muted)}
-.tile .quote{font-family:var(--mono);font-size:13px;background:var(--surface-2);border-radius:10px;padding:10px;color:var(--ink)}
-.steps{counter-reset:s;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-@media (max-width:820px){.steps{grid-template-columns:1fr}}
-.steps .tile{counter-increment:s}
-.steps .tile::before{content:counter(s);font-family:var(--display);font-weight:700;font-size:15px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
-.usecol h3{font-size:20px}
+
+/* scam check teaser */
+.scanner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:880px){.scanner{grid-template-columns:1fr}}
+.pasted{background:#F4EEDC;color:#23201A;border-radius:4px;padding:18px;font-size:15px;transform:rotate(-1.2deg);box-shadow:0 18px 30px -14px rgba(0,0,0,.6);position:relative}
+.pasted .from{font-family:var(--mono);font-size:12px;color:#6B6456;display:block;margin-bottom:6px}
+.pasted u{text-decoration-color:#E0453C;text-decoration-thickness:2px}
+
+/* wall of scams */
+.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:34px 26px;padding-top:12px}
+.wall .paper{position:relative;left:auto;top:auto;width:auto}
+.wall .paper:nth-child(2){transform:rotate(3deg)} .wall .paper:nth-child(3){transform:rotate(-2deg)} .wall .paper:nth-child(4){transform:rotate(4deg)} .wall .paper:nth-child(5){transform:rotate(-4deg)}
+.wall .scribble{display:block;font-family:var(--hand);font-size:18px;color:#C2382F;margin-top:10px;line-height:1.2}
+
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:880px){.steps{grid-template-columns:1fr}}
+.steps .tile .n{font-family:var(--display);font-weight:900;font-size:64px;line-height:.8;color:var(--accent)}
+
+.video-wrap{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:#05070D;box-shadow:0 40px 80px -40px rgba(0,0,0,.9);aspect-ratio:16/9;max-width:100%}
+.video-wrap video{width:100%;height:100%;display:block;object-fit:cover}
+.video-note{font-family:var(--hand);font-size:19px;color:var(--accent);transform:rotate(-2deg);align-self:flex-end}
+
 .usecol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.usecol li{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px}
-.usecol li b{display:block}
-.usecol li span{color:var(--muted);font-size:14px}
-.usecol .setup{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
-.usecol .setup ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px}
-.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;list-style:none;margin:0;padding:0}
-.rules li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
-.rules li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:8px}
-.plans3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-@media (max-width:820px){.plans3{grid-template-columns:1fr}}
-.plans3 .plan .btn{align-self:stretch}
-.faq{display:flex;flex-direction:column;gap:8px}
-.faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.usecol ul li{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.usecol ul li b{display:block}
+.usecol ul li span{color:var(--muted);font-size:14px}
+.usecol .setup{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.usecol .setup ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;list-style:none;margin:0;padding:0}
+.rules li{background:rgba(20,26,40,.88);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.rules li::before{content:"";flex:none;width:9px;height:9px;border-radius:2px;background:var(--accent);margin-top:7px;transform:rotate(45deg)}
+.plans4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:980px){.plans4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.plans4{grid-template-columns:1fr}}
+.plans4 .plan{background:rgba(20,26,40,.9)}
+.plans4 .plan .btn{align-self:stretch;margin-top:auto}
+.plan.pick{border:2px solid var(--accent);position:relative}
+.plan.pick::after{content:"most popular";position:absolute;top:-14px;right:14px;font-family:var(--hand);font-size:17px;background:var(--accent);color:var(--accent-ink);padding:0 10px;border-radius:6px;transform:rotate(3deg)}
+.faq{display:flex;flex-direction:column;gap:10px}
+.faq details{background:rgba(20,26,40,.88);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
 .faq summary{font-weight:600;cursor:pointer}
 .faq details p{color:var(--muted);margin-top:8px}
-.footer{border-top:1px solid var(--line);padding-block:28px 40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+.footer{border-top:1px solid var(--line);padding-block:30px 44px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:14px;align-items:center}
+.footer .sig{font-family:var(--hand);font-size:22px;color:var(--ink)}
+.footer a{color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="page">
   <header class="nav">
-    <a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Verth</span></a>
+    <a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>VERTH</span></a>
     <nav class="links" aria-label="Main">
-      <a class="plainlink" href="#how">How it works</a>
-      <a class="plainlink" href="#plans">Plans</a>
-      <a href="app.html">Sign in</a>
+      <a href="#scam-check">Scam check</a>
+      <a href="#how">How it works</a>
+      <a href="#demo">Demo</a>
+      <a href="#plans">Plans</a>
+      <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Play soundtrack"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span id="sound-label">Soundtrack</span></button>
+      <a class="btn primary" href="app.html">Sign in</a>
     </nav>
   </header>
+  <audio id="theme" src="assets/verth-theme.mp3" loop preload="none"></audio>
 
   <section class="hero">
-    <div class="stack" style="gap:20px">
-      <span class="eyebrow-l">Two-factor authentication for people</span>
-      <h1>Is it really them? Check before you pay.</h1>
-      <p class="sub">Scammers can now copy a boss’s WhatsApp photo, a son’s voice, even a face on a video call. Verth asks the real person, on their own phone, before you send money, change bank details or share an OTP.</p>
+    <div>
+      <span class="kicker">Two-factor authentication for people</span>
+      <h1 style="margin-top:14px">Is it <span class="mark">really<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M2 14 C 40 4, 80 18, 120 9 S 180 6, 198 12" stroke="#FFB224" stroke-width="5" fill="none" stroke-linecap="round"/></svg></span> them?</h1>
+      <p class="sub">Scammers copy your boss’s WhatsApp photo, your son’s voice, even a face on a video call. Verth checks suspicious messages, links and numbers, and asks the real person on their own phone before you pay, change bank details or share an OTP.</p>
       <div class="cta">
         <a class="btn primary" href="app.html?mode=signup">Create a free account</a>
-        <a class="btn ghost" href="demo.html">Try the demo, no sign-up</a>
+        <a class="btn ghost" href="#demo">Watch the 2-minute demo</a>
       </div>
-      <p class="fine">Free for up to 5 people. Works in any browser, on phone or laptop.</p>
+      <div class="note-hand"><svg viewBox="0 0 60 36" aria-hidden="true"><path d="M4 30 C 18 34, 34 26, 44 12" stroke="#FFB224" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M36 12 L45 10 L44 20" stroke="#FFB224" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>free for up to 5 people · 2 scam checks a day</div>
     </div>
-    <div class="mock" aria-label="Example of a Verth check">
-      <div class="msg"><b>“Rajesh Sir” · WhatsApp · new number</b>Transfer ₹4,80,000 to Sharma Traders before 3 pm. Keep this between us.<br><span>Not in your contacts</span></div>
-      <div class="incoming">
-        <div class="eyebrow">On Rajesh’s real phone</div>
-        <div class="q">Did you ask Priya to pay ₹4,80,000 to Sharma Traders?</div>
-        <div class="row2"><span class="btn bad">No, not me</span><span class="btn ok">Yes, I asked</span></div>
-      </div>
-      <div class="result bad" style="padding:12px"><b style="color:var(--bad)">Rajesh didn’t send this. Payment stopped.</b></div>
+    <div class="stage" aria-label="Example: a fake WhatsApp message, and the real CEO saying no on his own phone">
+      <div class="paper"><span class="tape"></span><b>“Rajesh Sir” · WhatsApp · new number</b>I’m in a board meeting, can’t talk. Transfer ₹4,80,000 to Sharma Traders before 3 pm. Keep this between us.
+        <svg class="circle" viewBox="0 0 270 170" preserveAspectRatio="none" aria-hidden="true"><path d="M20 90 C 10 30, 120 5, 200 20 S 280 100, 220 150 S 40 170, 22 110" stroke="#E0453C" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+        <span class="stamp">FAKE!</span></div>
+      <div class="phone"><div class="scr">
+        <div class="bar"><span>12:52</span><span>Rajesh’s real phone</span></div>
+        <div class="incoming"><div class="eyebrow">Verth check · WhatsApp</div>
+          <div class="q">Did you ask Priya to pay ₹4,80,000 to Sharma Traders?</div>
+          <div class="row2"><span class="btn bad">No, not me</span><span class="btn ghost">Yes, I asked…</span></div></div>
+        <div class="result bad" style="padding:12px"><b style="color:var(--bad)">Rajesh didn’t send this. Payment stopped.</b></div>
+      </div></div>
     </div>
   </section>
 
-  <section class="band" aria-labelledby="threats">
+  <section class="band" id="scam-check" aria-labelledby="sc-h">
+    <span class="eyebrow-l">New · Scam check</span>
+    <h2 id="sc-h">Got a weird SMS, email or call? Paste it.</h2>
+    <p class="intro">Verth reads the message, link or phone number and tells you exactly which red flags it found, in plain words. It knows India’s common scams: fake KYC updates, “digital arrest” calls, parcel and electricity threats, task jobs, and QR codes that take money instead of sending it.</p>
+    <div class="scanner">
+      <div class="pasted"><span class="tape"></span><span class="from">SMS · VM-SBIYNO · 10:42</span>Dear Customer, your SBI YONO account will be <u>blocked today</u>. Update your <u>PAN KYC</u> immediately: <u>http://sbi-yono-kyc.xyz/update</u></div>
+      <div class="result verdict bad">
+        <div class="split"><div class="state-icon bad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="meter"><span style="width:92%"></span></div></div>
+        <h2>High risk: this looks like a scam</h2>
+        <ul class="flags">
+          <li class="lv3"><b>Suspicious link: sbi-yono-kyc.xyz</b><span>Pretends to be State Bank of India. Cheap “.xyz” web address. Not a secure (https) link.</span></li>
+          <li class="lv2"><b>KYC, PAN or Aadhaar “update”</b><span>Banks don’t ask you to update KYC through a link. Use the official app or branch.</span></li>
+          <li class="lv2"><b>Threatens to block you, and rushes you</b><span>Pressure like “blocked today” is designed to stop you thinking.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="cta" style="margin-top:0"><a class="btn primary" href="app.html?mode=signup">Check a message free</a><span class="muted">2 checks a day free · unlimited from ₹29/month</span></div>
+  </section>
+
+  <section class="band" aria-labelledby="wall-h">
     <span class="eyebrow-l">The problem</span>
-    <h2 id="threats">Scammers can copy everything except the real phone</h2>
-    <div class="grid3">
-      <div class="tile"><h3>Fake boss on WhatsApp</h3><p>A new number with the owner’s photo asks Accounts for an urgent, secret payment.</p><div class="quote">“I’m in a meeting, can’t talk. Pay this vendor now.”</div></div>
-      <div class="tile"><h3>Cloned voices</h3><p>A few seconds of audio is enough to clone a voice and call a parent or an employee.</p><div class="quote">“Mummy, it’s me. I’m in trouble, send money.”</div></div>
-      <div class="tile"><h3>Deepfake video calls</h3><p>A familiar face on a video call pushes staff to approve transfers or new bank details.</p><div class="quote">“Approve the new account details. Auditors are waiting.”</div></div>
+    <h2 id="wall-h">Scammers can copy everything except the real phone</h2>
+    <div class="wall">
+      <div class="paper"><span class="tape"></span><b>WhatsApp · +92 30•• ••••••</b>This is CBI. Your Aadhaar is linked to money laundering. Stay on video call, you are under digital arrest.<span class="scribble">real police never do this ✗</span></div>
+      <div class="paper"><span class="tape"></span><b>SMS · 98••• •••21</b>Hi Papa, this is my new number. Phone broke. Please send ₹20,000 urgently, will explain later.<span class="scribble">call his old number first!</span></div>
+      <div class="paper"><span class="tape"></span><b>Call · “Bank support”</b>Sir, to stop this transaction please share the OTP you just received.<span class="scribble">NO bank asks for OTP</span></div>
+      <div class="paper"><span class="tape"></span><b>Telegram · “HR Riya”</b>Part-time job! Earn ₹3,000 daily rating hotels. Small registration fee only.<span class="scribble">you pay them = scam</span></div>
+      <div class="paper"><span class="tape"></span><b>SMS · AD-ELCBIL</b>Your electricity will be disconnected tonight at 9:30 pm. Call 98•••••••• immediately.<span class="scribble">utilities don’t text threats</span></div>
     </div>
   </section>
 
@@ -112,16 +184,24 @@ section.band{padding-block:48px;border-top:1px solid var(--line);display:flex;fl
     <span class="eyebrow-l">How it works</span>
     <h2 id="how-h">A second check, from the one device a scammer doesn’t have</h2>
     <div class="steps">
-      <div class="tile"><h3>A request arrives</h3><p>On WhatsApp, a call, email or video, claiming to be from your boss, colleague or family member.</p></div>
-      <div class="tile"><h3>You tap Verify</h3><p>Pick who it claims to be from and describe what they asked for. Verth sends a check to their own signed-in phone.</p></div>
-      <div class="tile"><h3>They answer Yes or No</h3><p>You see the answer in seconds. No answer within 3 minutes means don’t act.</p></div>
+      <div class="tile"><span class="n">1</span><h3>A request arrives</h3><p>On WhatsApp, a call, email or video, claiming to be from your boss, colleague or family member.</p></div>
+      <div class="tile"><span class="n">2</span><h3>You tap Verify</h3><p>Pick who it claims to be from. Verth asks them on their own registered phone, not the number that contacted you.</p></div>
+      <div class="tile"><span class="n">3</span><h3>They answer, signed</h3><p>Their Yes or No is signed by their device, so a stolen password can’t fake it. No answer in 3 minutes means don’t act.</p></div>
     </div>
-    <div class="tile"><h3>On a live call? Ask for their Verth code</h3><p>Every person’s app shows a 6-digit code that changes every 30 seconds, like the codes in Google Authenticator. Ask the caller to read it out and check it in Verth. A deepfake can copy a face and a voice, but not a code on someone else’s phone.</p></div>
+    <div class="tile"><h3>On a live call? Ask for their Verth code</h3><p>Each pair of people shares a 6-digit code that changes every 30 seconds, like Google Authenticator. A deepfake can copy a face and a voice, but not a code on someone else’s phone.</p></div>
+  </section>
+
+  <section class="band" id="demo" aria-labelledby="demo-h">
+    <span class="eyebrow-l">Demo</span>
+    <h2 id="demo-h">See it in two minutes</h2>
+    <div class="video-wrap"><video id="demo-video" controls preload="metadata" playsinline poster="assets/verth-demo-poster.jpg" src="assets/verth-demo.mp4"><a href="assets/verth-demo.mp4">Watch the Verth demo video</a></video></div>
+    <p class="video-note">turn the sound on, there’s a voice-over ↑</p>
+    <div class="cta" style="margin-top:0"><a class="btn ghost" href="demo.html">Or try the clickable demo, no sign-up</a></div>
   </section>
 
   <section class="band" aria-labelledby="uses-h">
     <span class="eyebrow-l">Who it’s for</span>
-    <h2 id="uses-h">Use it at work and at home</h2>
+    <h2 id="uses-h">At work and at home</h2>
     <div class="grid2">
       <div class="tile usecol"><h3>Organisations</h3>
         <ul>
@@ -130,16 +210,16 @@ section.band{padding-block:48px;border-top:1px solid var(--line);display:flex;fl
           <li><b>IT help desk</b><span>A caller wants a password or MFA reset. Ask for their Verth code.</span></li>
           <li><b>Vendor payments</b><span>A supplier sends “new bank details”. Verify with the colleague who owns that supplier.</span></li>
         </ul>
-        <div class="setup"><b>Setting it up in your office</b><ol><li>Create an organisation circle.</li><li>Share the invite code with finance, HR, IT and managers.</li><li>Agree one rule: no Verth check, no payment above an amount you choose.</li></ol></div>
+        <div class="setup"><b>Setting it up in your office</b><ol><li>Create an organisation circle.</li><li>Share the invite code with finance, HR, IT and managers, and approve each person.</li><li>Agree one rule: no Verth check, no payment above an amount you choose.</li></ol></div>
       </div>
       <div class="tile usecol"><h3>Families and households</h3>
         <ul>
           <li><b>“New number” scams</b><span>“Hi Papa, this is my new number, send ₹20,000.” Verify with your son before paying.</span></li>
           <li><b>“Digital arrest” calls</b><span>A fake officer says a relative is in trouble. Check with that relative first.</span></li>
-          <li><b>OTP requests</b><span>Someone asks a child or grandparent for an OTP “for the family”. Verify first.</span></li>
+          <li><b>Suspicious SMS and links</b><span>Parents paste strange messages into Scam check before tapping anything.</span></li>
           <li><b>Deepfake video calls</b><span>A familiar face asks for money on video. Ask for their Verth code.</span></li>
         </ul>
-        <div class="setup"><b>Setting it up at home</b><ol><li>Create a family circle.</li><li>Share the code in your family WhatsApp group and help elders join.</li><li>Practise once together so everyone knows what a check looks like.</li></ol></div>
+        <div class="setup"><b>Setting it up at home</b><ol><li>Create a family circle.</li><li>Share the code in your family WhatsApp group, help elders join, and approve them.</li><li>Practise once together so everyone knows what a check looks like.</li></ol></div>
       </div>
     </div>
   </section>
@@ -147,44 +227,47 @@ section.band{padding-block:48px;border-top:1px solid var(--line);display:flex;fl
   <section class="band" aria-labelledby="rules-h">
     <span class="eyebrow-l">Guidelines</span>
     <h2 id="rules-h">When to use Verth</h2>
-    <p class="intro">Use a check whenever a message asks you to move money, change where money goes, or hand over access, especially when it’s urgent or secret.</p>
+    <p class="intro">Check before you move money, change where money goes, or hand over access, especially when someone is rushing you or asking you to keep it secret.</p>
     <ul class="rules">
       <li>Before sending money or paying an invoice someone asked for</li>
       <li>Before changing bank details for a vendor, salary or rent</li>
       <li>Before sharing an OTP, password or reset link</li>
       <li>When a family member says they’re in an emergency</li>
-      <li>When someone asks you to keep a request secret</li>
-      <li>Before sharing confidential files or customer data</li>
+      <li>When an SMS, email or link threatens, rushes or rewards you</li>
+      <li>When an unknown number claims to be a bank, police or courier</li>
     </ul>
   </section>
 
   <section class="band" id="plans" aria-labelledby="plans-h">
     <span class="eyebrow-l">Plans</span>
-    <h2 id="plans-h">Start free. Upgrade when your circle grows.</h2>
-    <div class="plans3">
-      <div class="plan"><h3>Free</h3><div class="price">₹0</div><ul><li>Up to 5 people</li><li>20 checks a month</li><li>Push checks and rolling codes</li><li>Shared verification log</li></ul><a class="btn primary" href="app.html?mode=signup">Start free</a></div>
-      <div class="plan current"><h3>Family</h3><div class="price">₹49 <small>/ month</small></div><ul><li>Up to 10 people</li><li>Unlimited checks</li><li>Help elders join and practise</li><li>Log export</li></ul><a class="btn primary" href="app.html?mode=signup">Start free, upgrade anytime</a></div>
-      <div class="plan"><h3>Team</h3><div class="price">₹99 <small>/ person / month</small></div><ul><li>Your whole organisation</li><li>Unlimited checks</li><li>Log export for auditors</li><li>Admin controls and priority support</li></ul><a class="btn primary" href="app.html?mode=signup">Start free, upgrade anytime</a></div>
+    <h2 id="plans-h">Start free. Upgrade when you need more.</h2>
+    <div class="plans4">
+      <div class="plan"><h3>Free</h3><div class="price">₹0</div><ul><li>Up to 5 people</li><li>20 verification checks a month</li><li>2 scam checks a day</li><li>Signed checks and rolling codes</li></ul><a class="btn ghost" href="app.html?mode=signup">Start free</a></div>
+      <div class="plan"><h3>Personal</h3><div class="price">₹29 <small>/ month</small></div><ul><li>Unlimited scam checks</li><li>Messages, emails, links and numbers</li><li>Community scam reports</li><li>Everything in Free</li></ul><a class="btn primary" href="app.html?mode=signup">Start free, upgrade anytime</a></div>
+      <div class="plan pick"><h3>Family</h3><div class="price">₹49 <small>/ month</small></div><ul><li>Up to 10 people</li><li>Unlimited checks</li><li>Unlimited scam checks for everyone</li><li>Log export</li></ul><a class="btn primary" href="app.html?mode=signup">Start free, upgrade anytime</a></div>
+      <div class="plan"><h3>Team</h3><div class="price">₹99 <small>/ person / month</small></div><ul><li>Your whole organisation</li><li>Unlimited checks and scam checks</li><li>Log export for auditors</li><li>Admin controls, priority support</li></ul><a class="btn primary" href="app.html?mode=signup">Start free, upgrade anytime</a></div>
     </div>
-    <p class="muted small">Paid plans open with online payment soon. Everything in the Free plan works today.</p>
+    <p class="muted small">Paid plans open with online payment soon. Everything in Free works today.</p>
   </section>
 
   <section class="band" aria-labelledby="faq-h">
     <span class="eyebrow-l">Questions</span>
     <h2 id="faq-h">Good to know</h2>
     <div class="faq">
-      <details><summary>Does Verth read my WhatsApp, calls or email?</summary><p>No. Verth never connects to your messages. You tell it what came in, and it asks the real person.</p></details>
-      <details><summary>Does the other person need Verth too?</summary><p>Yes. Checks go only to people in your circle, on the phone or laptop where they’re signed in. That’s what makes the answer trustworthy.</p></details>
-      <details><summary>What if they don’t answer?</summary><p>A check expires after 3 minutes. No answer means don’t act. Try again or reach them another way you already trust.</p></details>
-      <details><summary>Who can join my circle?</summary><p>Anyone you give the invite code to, so share it only with people you trust. You can see everyone in the circle at any time.</p></details>
-      <details><summary>Is my data safe?</summary><p>Accounts use Google’s Firebase with email confirmation. Security rules make sure only people in your circle can see its checks, and only the named person can answer a check.</p></details>
+      <details><summary>Does Verth read my WhatsApp, SMS, calls or email?</summary><p>No. Verth never connects to your messages. You paste what you want checked, and the check runs on your own device.</p></details>
+      <details><summary>Can Scam check be wrong?</summary><p>Yes. It explains red flags it can see, but no tool catches every scam, and “no red flags” doesn’t prove something is safe. If a message asks for money, codes or personal details, check with the real person or company first.</p></details>
+      <details><summary>Does the other person need Verth too?</summary><p>For verification checks, yes: they go only to people in your circle, on the phone where they’re signed in. Scam check works on its own.</p></details>
+      <details><summary>What if they don’t answer?</summary><p>A check expires after 3 minutes. No answer means don’t act. Reach them another way you already trust.</p></details>
+      <details><summary>Is my data safe?</summary><p>Answers are signed by a key that never leaves the person’s phone, new members need admin approval, and the log can’t be edited or deleted. Scam reports store only a scrambled fingerprint, never what you pasted. Read the full <a href="https://github.com/Umeshdk22/verth/blob/main/SECURITY.md" style="color:var(--accent)">security notes</a>.</p></details>
+      <details><summary>I’ve already lost money. What now?</summary><p>Call <b>1930</b> (National Cyber Crime Helpline) or report at cybercrime.gov.in straight away, and tell your bank. The faster you report, the better the chance of stopping the money.</p></details>
     </div>
   </section>
 
   <footer class="footer">
-    <span>Verth · built by <a href="https://github.com/Umeshdk22">@Umeshdk22</a></span>
-    <span><a href="demo.html">Demo</a> · <a href="app.html">Sign in</a> · <a href="https://github.com/Umeshdk22/verth">Source code</a></span>
+    <span class="sig">made in India by Umesh ✦</span>
+    <span><a href="demo.html">Clickable demo</a> · <a href="app.html">Sign in</a> · <a href="https://github.com/Umeshdk22/verth">Source code</a></span>
   </footer>
 </div>
+<script src="assets/site.js"></script>
 </body>
 </html>

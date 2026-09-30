@@ -12,9 +12,10 @@ export const firebaseConfig = {
 // Plans. Limits on the free plan are checked in the app; paid plans unlock once
 // Razorpay subscriptions are connected.
 export const PLANS = {
-  free: { name: 'Free', maxMembers: 5, checksPerMonth: 20 },
-  family: { name: 'Family', price: '₹49 / month', maxMembers: 10, checksPerMonth: Infinity },
-  team: { name: 'Team', price: '₹99 / person / month', maxMembers: 500, checksPerMonth: Infinity },
+  free: { name: 'Free', maxMembers: 5, checksPerMonth: 20, scansPerDay: 2 },
+  personal: { name: 'Personal', price: '₹29 / month', maxMembers: 5, checksPerMonth: 20, scansPerDay: Infinity },
+  family: { name: 'Family', price: '₹49 / month', maxMembers: 10, checksPerMonth: Infinity, scansPerDay: Infinity },
+  team: { name: 'Team', price: '₹99 / person / month', maxMembers: 500, checksPerMonth: Infinity, scansPerDay: Infinity },
 };
 
 export const CHECK_TTL_SECONDS = 180;
