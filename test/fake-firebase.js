@@ -16,6 +16,7 @@ const SERVER_TS = { __s: 'ts' };
 export const serverTimestamp = () => SERVER_TS;
 export const increment = (n) => ({ __s: 'inc', n });
 export const arrayUnion = (...v) => ({ __s: 'union', v });
+export const arrayRemove = (...v) => ({ __s: 'remove', v });
 
 function load() { try { return JSON.parse(LS.getItem('fakefs') || '{}'); } catch { return {}; } }
 function revive(v) {
@@ -37,16 +38,20 @@ function freeze(v) {
 }
 function save(db) { LS.setItem('fakefs', JSON.stringify(db)); }
 function notify() { listeners.forEach((l) => l()); }
-bc.onmessage = () => notify();
+bc.onmessage = () => { notify(); setTimeout(notify, 120); };
+// localStorage changes reach other tabs asynchronously; the storage event fires once they have.
+window.addEventListener('storage', (e) => { if (e.key === 'fakefs' || e.key === 'fakeauth') notify(); });
 function commitOps(ops) {
   const db = load();
   for (const op of ops) {
     const cur = db[op.path];
+    if (op.type === 'delete') { delete db[op.path]; continue; }
     if (op.type === 'update' && !cur) throw Object.assign(new Error('No document to update: ' + op.path), { code: 'not-found' });
     let next = op.type === 'set' ? {} : { ...cur };
     for (const [k, v] of Object.entries(op.data)) {
       if (v && v.__s === 'inc') next[k] = (cur?.[k] || 0) + v.n;
       else if (v && v.__s === 'union') next[k] = Array.from(new Set([...(cur?.[k] || []), ...v.v]));
+      else if (v && v.__s === 'remove') next[k] = (cur?.[k] || []).filter((x) => !v.v.includes(x));
       else next[k] = freeze(v);
     }
     db[op.path] = next;
@@ -91,7 +96,7 @@ export async function setDoc(ref, data) { commitOps([{ type: 'set', path: ref.pa
 export async function updateDoc(ref, data) { commitOps([{ type: 'update', path: ref.path, data }]); }
 export function writeBatch() {
   const ops = [];
-  return { set: (r, d) => ops.push({ type: 'set', path: r.path, data: d }), update: (r, d) => ops.push({ type: 'update', path: r.path, data: d }), commit: async () => commitOps(ops) };
+  return { set: (r, d) => ops.push({ type: 'set', path: r.path, data: d }), update: (r, d) => ops.push({ type: 'update', path: r.path, data: d }), delete: (r) => ops.push({ type: 'delete', path: r.path, data: {} }), commit: async () => commitOps(ops) };
 }
 export function onSnapshot(ref, cb) {
   const run = () => cb(ref.kind === 'doc' ? snapDoc(ref.path) : runQuery(ref.kind === 'col' ? { path: ref.path, c: [] } : ref));
@@ -142,3 +147,6 @@ export async function signInWithPopup() {
 export async function signOut() { setCurrent(null); }
 export const initializeApp = () => ({});
 window.__fakeVerify = (email) => { const u = users(); if (u[email]) { u[email].verified = true; saveUsers(u); } };
+
+export const initializeAppCheck = () => {};
+export class ReCaptchaEnterpriseProvider {}

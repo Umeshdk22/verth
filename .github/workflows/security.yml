@@ -1,0 +1,41 @@
+name: Security tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rules:
+    name: Database security rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - name: Run rules tests against the Firestore emulator
+        run: npx --yes firebase-tools@15.32.0 emulators:exec --only firestore --project demo-verth "node --test test/rules.test.mjs"
+
+  app:
+    name: Two-person app test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run browser test (employee, CEO and attacker scenarios)
+        run: bash test/run-e2e.sh test-output

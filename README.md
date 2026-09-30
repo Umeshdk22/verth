@@ -42,7 +42,7 @@ You play both people. The left phone is **Priya (Accounts)**, the right phone is
 
 - **Threat model:** the attacker controls the inbound channel (WhatsApp, email, phone, video) and can convincingly imitate a person's face, voice and writing style. They do not control the victim's registered device.
 - **Out-of-band confirmation:** verification is always sent to a device enrolled in advance, never to a number or address supplied in the suspicious message.
-- **Rolling codes:** the prototype derives a code from a shared secret and the current 30-second time window, and accepts the previous window to tolerate clock drift. A production version would use standard TOTP (RFC 6238) with per-pair secrets stored in the device's secure enclave.
+- **Rolling codes:** RFC 6238 TOTP codes derived per pair of people from device keys (ECDH + HKDF), bound to the circle and direction, accepting one window either side for clock drift.
 - **Fail-safe defaults:** unanswered checks expire, and the result is "don't act".
 - **Mapped threats:** MITRE ATT&CK T1656 (Impersonation) and T1566 (Phishing), and business email compromise.
 
@@ -53,9 +53,15 @@ You play both people. The left phone is **Priya (Accounts)**, the right phone is
   - Sign up with email (confirmation link required) or Google.
   - Welcome tour, then create an **organisation** or **family** circle, or join one with an invite code.
   - **Push checks**: the request goes to the named person's signed-in device, and they answer Yes or No in real time. Checks expire after 3 minutes.
-  - **Rolling codes**: each person's app shows an RFC 6238 TOTP code; anyone in the circle can check a code read out on a call.
+  - **Rolling codes**: pairwise RFC 6238 codes that only the two people's devices can compute.
+  - **Signed answers**: each Yes/No is signed by the answering device and verified by the requester.
+  - **Admin approval** for new members and for members who move to a new device.
   - **Verification log** shared with the circle, scam reporting, and plan limits (Free: 5 people, 20 checks a month).
 - **Demo** (`demo.html`): the original interactive simulation, no account needed.
+
+### Security
+
+Verth is designed on the assumption that attackers will try hard. New members need admin approval; names on checks are bound to real member records; every Yes/No is signed by a key that never leaves the person's device; rolling codes are pairwise (ECDH + HKDF + TOTP), so no shared secret exists in the database; and the log can't be edited or deleted. Rules and attacker scenarios are tested on every push. See [SECURITY.md](SECURITY.md) for the threat model, controls, known limits and the Firebase hardening checklist.
 
 ### Architecture
 
@@ -65,7 +71,7 @@ You play both people. The left phone is **Priya (Accounts)**, the right phone is
 | Auth | Firebase Authentication (email/password with email verification, Google) |
 | Data and real-time updates | Cloud Firestore with snapshot listeners |
 | Access control | `firestore.rules`: circle-scoped reads, only the named recipient can answer a check (once, before expiry), plan field locked, invite-code joins counted against plan limits |
-| Codes | TOTP (HMAC-SHA1, 30 s step, ±1 window) with Web Crypto |
+| Device keys | Non-extractable P-256 keys in IndexedDB: ECDSA signs answers, ECDH + HKDF derive pairwise TOTP codes |
 | Build | esbuild bundles `src/` into `assets/app.js` |
 
 ### Run it locally
@@ -77,13 +83,16 @@ npm run build          # writes assets/app.js
 
 Put your Firebase web config in `src/config.js`, then serve the folder with any static server.
 
-`test/e2e.js` drives two browser tabs (an employee and the CEO) through sign-up, email confirmation, the tour, creating and joining a circle, a denied check, a confirmed check, code checks and expiry. It runs against `test/fake-firebase.js`, an in-browser stand-in for the Firebase SDK.
+- `npm run test:rules` runs the attacker scenarios in `test/rules.test.mjs` against the Firestore emulator.
+- `npm run test:e2e` drives two browsers (an employee and the CEO) plus attacker actions through the whole app, using `test/fake-firebase.js`, an in-browser stand-in for the Firebase SDK.
+- Both run on every push in GitHub Actions.
 
 ### Roadmap
 
 - Razorpay subscriptions for Family and Team plans (server-side payment confirmation).
 - Background push notifications (Firebase Cloud Messaging) so checks arrive when the app is closed.
-- Per-pair code secrets verified server-side, so members never hold each other's secrets.
+- Hardware-backed passkeys (WebAuthn) for answering checks.
+- Server-side rate limiting and "sign out everywhere".
 
 ## Author
 

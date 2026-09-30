@@ -18,3 +18,7 @@ export const PLANS = {
 };
 
 export const CHECK_TTL_SECONDS = 180;
+
+// Firebase App Check (reCAPTCHA Enterprise) site key. When set, Firebase only accepts
+// requests coming from the real Verth site, which blocks scripts and bots.
+export const appCheckSiteKey = '';

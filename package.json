@@ -5,12 +5,16 @@
   "description": "Verth: two-factor authentication for people",
   "scripts": {
     "build": "esbuild src/app.js --bundle --format=esm --minify --target=es2020 --outfile=assets/app.js",
-    "watch": "esbuild src/app.js --bundle --format=esm --sourcemap --target=es2020 --outfile=assets/app.js --watch"
+    "watch": "esbuild src/app.js --bundle --format=esm --sourcemap --target=es2020 --outfile=assets/app.js --watch",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-verth \"node --test test/rules.test.mjs\"",
+    "test:e2e": "bash test/run-e2e.sh"
   },
   "dependencies": {
     "firebase": "12.19.0"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "esbuild": "0.28.2",
+    "playwright": "^1.63.0"
   }
 }

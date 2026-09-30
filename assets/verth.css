@@ -148,3 +148,10 @@ input.big{font-size:24px;text-align:center}
 .toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:500;max-width:calc(100vw - 32px);transition:opacity .25s,transform .25s;z-index:20;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.ok{background:var(--ok);color:#fff} .toast.bad{background:var(--bad);color:#fff} .toast.accent{background:var(--accent);color:var(--accent-ink)}
+.warn{background:var(--wait-bg);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.warn.strong{border:1px solid var(--wait)}
+.warn-inline{color:var(--wait);font-weight:500}
+.incoming .warn-inline{color:var(--ink);background:var(--wait-bg);padding:8px 10px;border-radius:8px}
+.confirm-yes{display:flex;flex-direction:column;gap:10px;background:var(--ok-bg);padding:12px;border-radius:12px}
+.card.attention{border:2px solid var(--accent)}
+.list.people li{flex-wrap:wrap}

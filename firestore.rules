@@ -1,129 +1,222 @@
 rules_version = '2';
 
-// Verth Firestore security rules.
-// Principles:
-//  - Only signed-in users with a confirmed email can use data.
-//  - You can only see circles you are a member of.
-//  - A check can only be answered by the person it was sent to, only once, and only before it expires.
-//  - Plans can't be changed from the app (only by the payment backend later).
+// Verth Firestore security rules (v2, hardened).
+//
+// Principles
+//  - Only signed-in users with a confirmed email can touch data.
+//  - New members join as "pending" and see nothing until an admin approves them.
+//  - Only active members can read a circle, its members and its checks.
+//  - Names on checks must match the real member records (no spoofing "the CEO").
+//  - A check can only be answered by the named person, once, before it expires,
+//    with a device signature attached (the requester's app verifies it).
+//  - Every write is limited to known fields with checked formats and sizes.
+//  - Nothing can be deleted from the verification log. Plans can't be changed from the app.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- helpers ----------
     function signedIn() {
       return request.auth != null && request.auth.token.email_verified == true;
     }
     function me() { return request.auth.uid; }
     function circlePath(cid) { return /databases/$(database)/documents/circles/$(cid); }
     function memberPath(cid, uid) { return /databases/$(database)/documents/circles/$(cid)/members/$(uid); }
-    function isMember(cid) { return signedIn() && exists(memberPath(cid, me())); }
+    function activeMember(cid, uid) {
+      return exists(memberPath(cid, uid)) && get(memberPath(cid, uid)).data.status == 'active';
+    }
+    function isMember(cid) { return signedIn() && activeMember(cid, me()); }
     function isAdmin(cid) { return isMember(cid) && get(memberPath(cid, me())).data.role == 'admin'; }
-    function maxMembers(plan) { return plan == 'team' ? 500 : (plan == 'family' ? 10 : 5); }
-    function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
-    function shortText(v, n) { return v is string && v.size() > 0 && v.size() <= n; }
+    function isAdminAfter(cid) {
+      return signedIn()
+        && getAfter(memberPath(cid, me())).data.role == 'admin'
+        && getAfter(memberPath(cid, me())).data.status == 'active';
+    }
+    function withinLimit(plan, n) {
+      return (plan == 'team' && n <= 500) || (plan == 'family' && n <= 10) || (plan == 'free' && n <= 5);
+    }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function onlyChanges(keys) { return changed().hasOnly(keys); }
+    function text(v, n) { return v is string && v.size() > 0 && v.size() <= n; }
+    function validInvite(code) { return code is string && code.matches('^[A-HJKMNP-Z2-9]{8}$'); }
+    function validPub(p) {
+      return p is map && p.keys().hasOnly(['x', 'y']) && p.keys().hasAll(['x', 'y'])
+        && p.x is string && p.x.matches('^[A-Za-z0-9_-]{43}$')
+        && p.y is string && p.y.matches('^[A-Za-z0-9_-]{43}$');
+    }
+    function validDevice(d, n) {
+      return d is map && d.keys().hasOnly(['dh', 'sig', 'n', 'at', 'label']) && d.keys().hasAll(['dh', 'sig', 'n', 'at', 'label'])
+        && validPub(d.dh) && validPub(d.sig) && d.n == n && d.at == request.time && text(d.label, 40);
+    }
+    function channels() { return ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other', 'Call']; }
 
-    // Your own profile. Nobody else can read it; the plan field is locked.
+    // ---------- your profile ----------
     match /users/{uid} {
       allow read: if signedIn() && me() == uid;
       allow create: if signedIn() && me() == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'plan', 'circles', 'activeCircle', 'onboarded', 'createdAt'])
+        && text(request.resource.data.name, 60)
+        && request.resource.data.email == request.auth.token.email
         && request.resource.data.plan == 'free'
-        && shortText(request.resource.data.name, 80);
+        && request.resource.data.circles == []
+        && request.resource.data.onboarded == false
+        && request.resource.data.createdAt == request.time;
       allow update: if signedIn() && me() == uid
-        && request.resource.data.plan == resource.data.plan;
+        && onlyChanges(['name', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest'])
+        && text(request.resource.data.name, 60)
+        && request.resource.data.circles is list && request.resource.data.circles.size() <= 20
+        && request.resource.data.onboarded is bool;
+      allow delete: if false;
     }
 
-    // Invite codes: anyone signed in can look up one code they were given,
-    // but nobody can list all codes.
+    // ---------- invite codes ----------
+    // Look up one code you were given; listing all codes is impossible.
     match /invites/{code} {
       allow get: if signedIn();
       allow list: if false;
-      allow create: if signedIn()
-        && getAfter(circlePath(request.resource.data.circleId)).data.ownerUid == me()
-        && getAfter(circlePath(request.resource.data.circleId)).data.inviteCode == code;
-      allow delete: if signedIn() && get(circlePath(resource.data.circleId)).data.ownerUid == me();
+      allow create: if validInvite(code)
+        && request.resource.data.keys().hasOnly(['circleId', 'circleName', 'type', 'createdBy', 'createdAt'])
+        && request.resource.data.createdBy == me()
+        && request.resource.data.createdAt == request.time
+        && getAfter(circlePath(request.resource.data.circleId)).data.inviteCode == code
+        && isAdminAfter(request.resource.data.circleId);
+      allow delete: if isAdmin(resource.data.circleId);
+      allow update: if false;
     }
 
+    // ---------- circles ----------
     match /circles/{cid} {
       allow read: if isMember(cid);
 
       allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'type', 'ownerUid', 'inviteCode', 'joinOpen', 'plan', 'memberCount', 'createdAt'])
         && request.resource.data.ownerUid == me()
+        && text(request.resource.data.name, 60)
+        && request.resource.data.type in ['org', 'family']
+        && validInvite(request.resource.data.inviteCode)
+        && request.resource.data.joinOpen == true
         && request.resource.data.plan == 'free'
         && request.resource.data.memberCount == 1
-        && request.resource.data.type in ['org', 'family']
-        && shortText(request.resource.data.name, 60)
+        && request.resource.data.createdAt == request.time
         && existsAfter(memberPath(cid, me()));
 
-      // Joining: add exactly one person (yourself), within the plan's limit.
+      // Joining (as pending): exactly one more person, yourself, within the plan limit, while joining is open.
       allow update: if signedIn()
         && onlyChanges(['memberCount'])
         && request.resource.data.memberCount == resource.data.memberCount + 1
-        && request.resource.data.memberCount <= maxMembers(resource.data.plan)
+        && withinLimit(resource.data.plan, request.resource.data.memberCount)
+        && resource.data.joinOpen == true
         && !exists(memberPath(cid, me()))
         && existsAfter(memberPath(cid, me()));
 
-      // Leaving: remove exactly one person (yourself).
+      // Leaving, or an admin removing someone: exactly one fewer.
       allow update: if signedIn()
         && onlyChanges(['memberCount'])
         && request.resource.data.memberCount == resource.data.memberCount - 1
-        && exists(memberPath(cid, me()))
-        && !existsAfter(memberPath(cid, me()));
+        && (isAdmin(cid) || (exists(memberPath(cid, me())) && !existsAfter(memberPath(cid, me()))));
 
-      // Admins can rename the circle.
-      allow update: if isAdmin(cid) && onlyChanges(['name']) && shortText(request.resource.data.name, 60);
+      // Admins: rename, change the invite code, open or close joining.
+      allow update: if isAdmin(cid)
+        && onlyChanges(['name', 'inviteCode', 'joinOpen'])
+        && text(request.resource.data.name, 60)
+        && validInvite(request.resource.data.inviteCode)
+        && request.resource.data.joinOpen is bool;
 
+      allow delete: if false;
+
+      // ---------- members ----------
       match /members/{uid} {
-        allow read: if isMember(cid);
+        allow read: if isMember(cid) || (signedIn() && uid == me());
 
         allow create: if signedIn() && uid == me()
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'title', 'email', 'role', 'status', 'device', 'inviteCode', 'joinedAt'])
           && request.resource.data.uid == me()
-          && shortText(request.resource.data.name, 80)
-          && request.resource.data.codeSecret is string
+          && text(request.resource.data.name, 60)
+          && text(request.resource.data.title, 40)
+          && request.resource.data.email == request.auth.token.email
+          && validDevice(request.resource.data.device, 1)
+          && request.resource.data.joinedAt == request.time
           && (
-            // the owner creating the circle
-            (request.resource.data.role == 'admin'
-              && getAfter(circlePath(cid)).data.ownerUid == me()
-              && !exists(circlePath(cid)))
+            // the owner, while creating the circle
+            (request.resource.data.role == 'admin' && request.resource.data.status == 'active'
+              && !exists(circlePath(cid))
+              && getAfter(circlePath(cid)).data.ownerUid == me())
             ||
-            // someone joining with the right invite code, counted against the plan limit
-            (request.resource.data.role == 'member'
+            // someone joining with the current invite code: pending until approved
+            (request.resource.data.role == 'member' && request.resource.data.status == 'pending'
+              && get(circlePath(cid)).data.joinOpen == true
               && request.resource.data.inviteCode == get(circlePath(cid)).data.inviteCode
               && getAfter(circlePath(cid)).data.memberCount == get(circlePath(cid)).data.memberCount + 1)
           );
 
-        allow update: if signedIn() && uid == me() && isMember(cid) && onlyChanges(['name', 'title']);
-        allow delete: if (signedIn() && uid == me()) || isAdmin(cid);
+        // You can change your title, or register a new device. The device counter always goes up,
+        // so everyone sees the change, and non-admins go back to "pending" until an admin re-approves
+        // them (so a stolen password alone can't produce trusted answers).
+        allow update: if signedIn() && uid == me()
+          && onlyChanges(['title', 'device', 'status'])
+          && text(request.resource.data.title, 40)
+          && (
+            (request.resource.data.device == resource.data.device
+              && request.resource.data.status == resource.data.status)
+            ||
+            (validDevice(request.resource.data.device, resource.data.device.n + 1)
+              && ((resource.data.role == 'admin' && request.resource.data.status == resource.data.status)
+                  || (resource.data.role != 'admin' && request.resource.data.status == 'pending')))
+          );
+
+        // Admins approve pending members.
+        allow update: if isAdmin(cid) && uid != me()
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'active'
+          && onlyChanges(['status', 'approvedBy', 'approvedAt'])
+          && request.resource.data.approvedBy == me()
+          && request.resource.data.approvedAt == request.time;
+
+        // Leave, or be removed by an admin. Admins can't be removed or leave (so a circle is never orphaned).
+        allow delete: if signedIn() && resource.data.role != 'admin' && (uid == me() || isAdmin(cid));
       }
 
+      // ---------- checks (the verification log) ----------
       match /checks/{checkId} {
         allow read: if isMember(cid);
 
         allow create: if isMember(cid)
           && request.resource.data.fromUid == me()
+          && request.resource.data.toUid is string
           && request.resource.data.toUid != me()
-          && exists(memberPath(cid, request.resource.data.toUid))
-          && shortText(request.resource.data.summary, 300)
+          && activeMember(cid, request.resource.data.toUid)
+          && request.resource.data.fromName == get(memberPath(cid, me())).data.name
+          && request.resource.data.toName == get(memberPath(cid, request.resource.data.toUid)).data.name
+          && request.resource.data.channel in channels()
+          && text(request.resource.data.summary, 200)
+          && request.resource.data.createdAt == request.time
           && (
             (request.resource.data.kind == 'push'
+              && request.resource.data.keys().hasOnly(['kind', 'fromUid', 'fromName', 'toUid', 'toName', 'channel', 'summary', 'status', 'createdAt', 'expiresAt'])
               && request.resource.data.status == 'pending'
               && request.resource.data.expiresAt is timestamp
               && request.resource.data.expiresAt > request.time
-              && request.resource.data.expiresAt < request.time + duration.value(10, 'm'))
+              && request.resource.data.expiresAt <= request.time + duration.value(10, 'm'))
             ||
             (request.resource.data.kind == 'code'
+              && request.resource.data.keys().hasOnly(['kind', 'fromUid', 'fromName', 'toUid', 'toName', 'channel', 'summary', 'status', 'createdAt'])
               && request.resource.data.status in ['code-match', 'code-mismatch'])
           );
 
-        // Only the named person answers, once, before expiry.
         allow update: if isMember(cid) && (
-          (resource.data.toUid == me()
-            && resource.data.kind == 'push'
+          // Only the named person answers, once, before expiry, with a device signature.
+          (resource.data.kind == 'push'
+            && resource.data.toUid == me()
             && resource.data.status == 'pending'
             && request.time < resource.data.expiresAt
             && request.resource.data.status in ['confirmed', 'denied']
-            && onlyChanges(['status', 'answeredAt']))
+            && onlyChanges(['status', 'answeredAt', 'sig', 'sigN'])
+            && request.resource.data.answeredAt == request.time
+            && request.resource.data.sig is string
+            && request.resource.data.sig.size() >= 80 && request.resource.data.sig.size() <= 100
+            && request.resource.data.sigN == get(memberPath(cid, me())).data.device.n)
           ||
-          // The person who asked can flag a denied request as reported.
+          // The person who asked can flag it as reported.
           (resource.data.fromUid == me()
             && onlyChanges(['reported'])
             && request.resource.data.reported == true)

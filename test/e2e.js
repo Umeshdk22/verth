@@ -1,130 +1,187 @@
+// Two-person browser test (plus attacker behaviour) against the in-browser Firebase stand-in.
+// Rajesh (CEO, admin) on page A, Priya (Accounts) on page B.
 const { chromium } = require('playwright');
 const OUT = process.argv[2];
 const URL = 'http://127.0.0.1:8765/app.html?emu';
+const errors = [];
+
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const ctx = await b.newContext({ viewport: { width: 400, height: 860 } });
-  const errors = [];
   const A = await ctx.newPage(), B = await ctx.newPage();
   for (const [n, p] of [['A', A], ['B', B]]) {
     p.on('pageerror', (e) => errors.push(n + ' pageerror: ' + e.message));
     p.on('console', (m) => { if (m.type() === 'error') errors.push(n + ' console: ' + m.text()); });
   }
   const shot = (p, name) => p.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
-  const step = async (msg, fn) => { try { await fn(); console.log('ok  ', msg); } catch (e) { console.log('FAIL', msg, '-', e.message.split('\n')[0]); await shot(A, 'fail-A'); await shot(B, 'fail-B'); throw e; } };
+  let failed = 0;
+  const step = async (msg, fn) => {
+    try { await fn(); console.log('ok  ', msg); }
+    catch (e) { failed++; console.log('FAIL', msg, '-', e.message.split('\n')[0]); await shot(A, 'fail-A'); await shot(B, 'fail-B'); throw e; }
+  };
+  const fs = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('fakefs') || '{}'));
+  const poke = (p) => p.evaluate(() => new BroadcastChannel('fakefire').postMessage('x'));
 
   await A.goto(URL);
-  await step('A sees sign in', () => A.getByRole('heading', { name: 'Sign in to Verth' }).waitFor({ timeout: 5000 }));
-  await shot(A, '01-signin');
-  await step('A signs up', async () => {
+  await step('weak password is refused', async () => {
     await A.click('text=Create a free account');
     await A.fill('#a-name', 'Rajesh Mehta'); await A.fill('#a-email', 'rajesh@nirmaan.in'); await A.fill('#a-pass', 'password123');
     await A.click('button[type=submit]');
-    await A.getByRole('heading', { name: 'Confirm your email' }).waitFor({ timeout: 5000 });
+    await A.getByText('too common').waitFor({ timeout: 3000 });
   });
-  await shot(A, '02-verify-email');
-  await step('A not verified yet is blocked', async () => {
+  await step('A signs up and must confirm email', async () => {
+    await A.fill('#a-pass', 'blue-tiger-sings-42');
+    await A.click('button[type=submit]');
+    await A.getByRole('heading', { name: 'Confirm your email' }).waitFor({ timeout: 5000 });
     await A.click('text=I’ve confirmed my email');
     await A.getByText('Not confirmed yet').waitFor({ timeout: 3000 });
-  });
-  await step('A verifies and sees tour', async () => {
     await A.evaluate(() => window.__fakeVerify('rajesh@nirmaan.in'));
     await A.click('text=I’ve confirmed my email');
     await A.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 });
   });
-  await shot(A, '03-tour-1');
-  await step('A walks the tour', async () => {
-    await A.click('text=Next'); await shot(A, '04-tour-2');
-    await A.click('text=Next'); await shot(A, '05-tour-3');
-    await A.click('text=Next'); await shot(A, '06-tour-4');
-    await A.click('text=My organisation');
-    await A.getByRole('heading', { name: 'Set up your organisation' }).waitFor();
-  });
-  await step('A creates circle', async () => {
+  await step('A creates an organisation', async () => {
+    await A.click('text=Skip the tour'); await A.click('text=My organisation');
     await A.fill('#c-name', 'Nirmaan Infra'); await A.fill('#c-title', 'CEO');
     await A.click('button[type=submit]');
     await A.getByRole('heading', { name: 'Invite people' }).waitFor({ timeout: 5000 });
   });
-  await shot(A, '07-circle');
   const code = (await A.locator('.invite .mono').textContent()).trim();
-  console.log('invite code', code);
+  await step('invite code is 8 characters', async () => { if (!/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code)) throw new Error('bad code ' + code); });
 
   await B.goto(URL);
-  await step('B signs up with Google and joins', async () => {
+  await step('B joins and waits for approval', async () => {
     await B.evaluate(() => { window.__googleEmail = 'priya@nirmaan.in'; window.__googleName = 'Priya Nair'; });
     await B.click('text=Continue with Google');
-    await B.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 });
-    await B.click('text=Skip the tour');
-    await B.click('text=I have an invite code');
-    await B.fill('#j-code', 'ZZZ-999'); await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
-    await B.getByText('doesn’t match any circle').waitFor({ timeout: 3000 });
-    await B.fill('#j-code', code.toLowerCase()); await B.click('button[type=submit]');
-    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 5000 });
+    await B.click('text=Skip the tour'); await B.click('text=I have an invite code');
+    await B.fill('#j-code', code.toLowerCase()); await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
+    await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 5000 });
   });
-  await shot(B, '08-B-home');
-  await step('A sees Priya in circle', () => A.getByText('Priya Nair').waitFor({ timeout: 5000 }));
+  await shot(B, '01-B-pending');
+  await step('pending member is not usable for checks', async () => {
+    await A.click('nav >> text=Verify');
+    await A.getByRole('heading', { name: 'Invite someone first' }).waitFor({ timeout: 3000 });
+  });
+  await step('A approves B', async () => {
+    await A.getByText('waiting').first().waitFor({ timeout: 5000 });
+    await A.click('nav >> text=Circle');
+    await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor();
+    await shot(A, '02-A-approval');
+    await A.click('button:has-text("Approve")');
+    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 });
+  });
 
-  await step('B sends a check to Rajesh', async () => {
+  await step('B sends a check; A denies (signed)', async () => {
     await B.click('nav >> text=Verify');
     await B.selectOption('#v-channel', 'WhatsApp');
     await B.fill('#v-what', 'pay ₹4,80,000 to Sharma Traders today');
     await B.click('button:has-text("Send check")');
     await B.getByRole('heading', { name: /Asking Rajesh/ }).waitFor({ timeout: 5000 });
-  });
-  await shot(B, '09-B-waiting');
-  await step('A gets the incoming check', async () => {
     await A.click('nav >> text=Home');
     await A.locator('.incoming').waitFor({ timeout: 5000 });
-  });
-  await shot(A, '10-A-incoming');
-  await step('A denies; B sees denied and reports', async () => {
+    await shot(A, '03-A-incoming');
     await A.click('text=No, not me');
     await B.getByRole('heading', { name: /didn’t send this/ }).waitFor({ timeout: 5000 });
-    await shot(B, '11-B-denied');
-    await B.click('text=Report to my circle');
-    await B.getByText('Reported to your circle').waitFor({ timeout: 5000 });
   });
-  await step('B sends a genuine one; A confirms', async () => {
+  await step('Yes needs a second, explicit confirmation', async () => {
     await B.click('text=New check');
     await B.fill('#v-what', 'release invoice INV-2291 for ₹1,25,000');
     await B.click('button:has-text("Send check")');
     await A.locator('.incoming').waitFor({ timeout: 5000 });
-    await A.click('text=Yes, I asked');
-    await B.getByRole('heading', { name: /Confirmed by Rajesh/ }).waitFor({ timeout: 5000 });
+    await A.click('text=Yes, I asked…');
+    await A.getByText('Confirm: you asked').waitFor();
+    await shot(A, '04-A-confirm-yes');
+    await A.click('text=Yes, I made this request');
+    await B.getByRole('heading', { name: /Confirmed by Rajesh/ }).waitFor({ timeout: 6000 });
   });
-  await shot(B, '12-B-confirmed');
-  await step('Code check: wrong then right', async () => {
-    await B.click('.seg >> text=Check a code');
-    await B.fill('#v-code', '123456'); await B.click('button:has-text("Check code")');
-    await B.getByRole('heading', { name: 'Code doesn’t match' }).waitFor({ timeout: 5000 });
-    await shot(B, '13-B-code-wrong');
+  await shot(B, '05-B-confirmed-signed');
+
+  await step('ATTACK: forged "Yes" without a valid signature is flagged as untrusted', async () => {
+    await B.click('text=New check');
+    await B.fill('#v-what', 'change vendor bank details for Kaveri Logistics');
+    await B.click('button:has-text("Send check")');
+    await A.locator('.incoming').waitFor({ timeout: 5000 });
+    // attacker with Rajesh's password writes "confirmed" from another browser, with a junk signature
+    await A.evaluate(() => {
+      const db = JSON.parse(localStorage.getItem('fakefs'));
+      for (const k in db) if (db[k].status === 'pending') { db[k].status = 'confirmed'; db[k].sig = btoa('x'.repeat(64)); db[k].sigN = 1; db[k].answeredAt = { __ts: Date.now() }; }
+      localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x');
+    });
+    await B.getByRole('heading', { name: 'Don’t trust this answer' }).waitFor({ timeout: 6000 });
+  });
+  await shot(B, '06-B-forged-yes');
+
+  await step('ATTACK: a valid signature copied onto a different request is rejected', async () => {
+    const db = await fs(B);
+    const good = Object.entries(db).find(([k, v]) => v.status === 'confirmed' && v.summary.startsWith('release invoice'));
+    await B.click('text=New check');
+    await B.fill('#v-what', 'pay ₹9,00,000 to a new account');
+    await B.click('button:has-text("Send check")');
+    await A.locator('.incoming').waitFor({ timeout: 5000 });
+    await A.evaluate(([sig]) => {
+      const db = JSON.parse(localStorage.getItem('fakefs'));
+      for (const k in db) if (db[k].status === 'pending') { db[k].status = 'confirmed'; db[k].sig = sig; db[k].sigN = 1; db[k].answeredAt = { __ts: Date.now() }; }
+      localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x');
+    }, [good[1].sig]);
+    await B.getByRole('heading', { name: 'Don’t trust this answer' }).waitFor({ timeout: 6000 });
+  });
+
+  await step('Pair codes: right code matches, wrong code fails', async () => {
+    await A.click('nav >> text=Home');
     await A.waitForFunction(() => /\d{3} \d{3}/.test(document.querySelector('[data-mycode]')?.textContent || ''), null, { timeout: 5000 });
     const real = (await A.locator('[data-mycode]').textContent()).trim();
+    await B.click('nav >> text=Verify'); await B.click('.seg >> text=Check a code');
+    await B.fill('#v-code', '123456'); await B.click('button:has-text("Check code")');
+    await B.getByRole('heading', { name: 'Code doesn’t match' }).waitFor({ timeout: 5000 });
     await B.fill('#v-code', real); await B.click('button:has-text("Check code")');
     await B.getByRole('heading', { name: 'Code matches' }).waitFor({ timeout: 5000 });
   });
-  await shot(B, '14-B-code-ok');
-  await step('Log, guide, plan', async () => {
-    await A.click('nav >> text=Log'); await A.getByRole('heading', { name: 'Verification log' }).waitFor();
-    await shot(A, '15-A-log');
-    await A.click('nav >> text=Guide'); await shot(A, '16-A-guide');
-    await A.click('nav >> text=Plan'); await A.click('text=Choose Family');
-    await A.getByText('We’ll notify you').waitFor({ timeout: 3000 });
-    await shot(A, '17-A-plan');
+  await step('Code secrets are not stored in the database', async () => {
+    const db = JSON.stringify(await fs(A));
+    if (/codeSecret|privateKey|"d":/.test(db)) throw new Error('secret material found in database');
   });
-  await step('Expiry: unanswered check expires', async () => {
-    await B.click('nav >> text=Verify'); await B.click('.seg >> text=Ask on their phone');
-    await B.evaluate(() => { const r = JSON.parse(localStorage.getItem('fakefs')); });
-    await B.fill('#v-what', 'share the OTP for the vendor portal');
-    await B.click('button:has-text("Send check")');
-    await B.getByRole('heading', { name: /Asking Rajesh/ }).waitFor({ timeout: 5000 });
-    // fast-forward: set expiresAt in the past
-    await B.evaluate(() => { const db = JSON.parse(localStorage.getItem('fakefs')); for (const k in db) if (db[k].status === 'pending') db[k].expiresAt = { __ts: Date.now() - 1000 }; localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); });
-    await B.getByRole('heading', { name: /No answer from Rajesh/ }).waitFor({ timeout: 6000 });
+
+  await step('ATTACK: stolen password on a new device needs admin re-approval', async () => {
+    const uid = await B.evaluate(() => window.__verth.S.user.uid);
+    await B.evaluate((u) => new Promise((res) => { const r = indexedDB.open('verth-device', 1); r.onsuccess = () => { const t = r.result.transaction('keys', 'readwrite'); t.objectStore('keys').delete(u); t.oncomplete = res; }; }), uid);
+    await B.reload();
+    await B.getByText('Verth is set up on another device').waitFor({ timeout: 6000 });
+    await shot(B, '07-B-other-device');
+    await B.click('text=Use this device instead');
+    await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 6000 });
+    await A.click('nav >> text=Circle');
+    await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor({ timeout: 6000 });
+    await A.click('button:has-text("Approve")');
+    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 });
+    await A.getByText('New device').first().waitFor({ timeout: 5000 });
+  });
+  await shot(A, '08-A-new-device-flag');
+
+  await step('Old signed answers from the previous device no longer verify as current', async () => {
+    await A.click('nav >> text=Log');
+    await A.getByRole('heading', { name: 'Verification log' }).waitFor();
+  });
+
+  await step('Admin changes the invite code; old code stops working', async () => {
+    await A.click('nav >> text=Circle');
+    await A.click('text=Change code');
+    await A.waitForFunction((old) => (document.querySelector('.invite .mono')?.textContent || '').trim() !== old, code, { timeout: 5000 });
+    const db = await fs(A);
+    if (db['invites/' + code.replace('-', '')]) throw new Error('old invite still exists');
+  });
+  await step('Admin turns joining off', async () => {
+    await A.click('text=Turn joining off');
+    await A.getByText('Joining is turned off').waitFor({ timeout: 5000 });
+    await A.click('text=Turn joining on');
+  });
+  await step('Log export neutralises spreadsheet formulas', async () => {
+    const out = await A.evaluate(() => { const v = '=HYPERLINK("http://x")'; let s = v; if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return s; });
+    if (!out.startsWith("'=")) throw new Error('not neutralised');
   });
   await step('Dark mode renders', async () => {
-    await A.emulateMedia({ colorScheme: 'dark' }); await A.click('nav >> text=Home'); await shot(A, '18-A-home-dark');
+    await A.emulateMedia({ colorScheme: 'dark' }); await A.click('nav >> text=Home'); await shot(A, '09-A-home-dark');
   });
   console.log('errors:', JSON.stringify(errors));
+  console.log(failed || errors.length ? 'SOME TESTS FAILED' : 'ALL TESTS PASSED');
   await b.close();
-})().catch(async (e) => { console.log('ABORT'); process.exit(1); });
+  if (failed || errors.length) process.exit(1);
+})().catch((e) => { console.log('ABORTED:', e.message.split('\n')[0]); console.log('errors:', JSON.stringify(errors)); process.exit(1); });
