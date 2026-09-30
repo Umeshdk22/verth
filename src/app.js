@@ -393,7 +393,7 @@ function viewVerify() {
       <p class="muted">On a call or video? Ask them to open Verth, choose <b>your</b> name under “Show my code for”, and read the code out. An impostor or deepfake can’t produce it.</p>
       ${thisDeviceActive() ? `<form data-form="code" class="stack" novalidate>
         <label>Who is the caller claiming to be?<select id="v-code-who" required>${memberOptions()}</select></label>
-        <label>Code they read out<input id="v-code" inputmode="numeric" maxlength="7" placeholder="000 000" class="mono big" data-keep="no" autocomplete="off"></label>
+        <label>Code they read out<input id="v-code" inputmode="numeric" maxlength="7" placeholder="000 000" class="mono big" autocomplete="off"></label>
         <p class="err" id="v-err" role="alert"></p>
         <button class="btn primary" type="submit">Check code</button></form>` : '<p class="muted">Code checks work on your registered device.</p>'}</section>
       ${r ? `<div class="result ${r.ok ? 'ok' : 'bad'}"><div class="state-icon ${r.ok ? 'ok' : 'bad'}">${r.ok ? ICON.ok : ICON.bad}</div>
@@ -848,6 +848,7 @@ const forms = {
       });
     } catch {}
     renderMain();
+    const input = document.getElementById('v-code'); if (input) input.value = '';
   },
 };
 
