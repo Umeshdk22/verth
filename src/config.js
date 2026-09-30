@@ -1,12 +1,12 @@
 // Firebase web config. These values are public by design (they ship to every browser);
 // the Firestore security rules in firestore.rules are what protect the data.
 export const firebaseConfig = {
-  apiKey: 'REPLACE_ME',
-  authDomain: 'REPLACE_ME.firebaseapp.com',
-  projectId: 'REPLACE_ME',
-  storageBucket: 'REPLACE_ME.firebasestorage.app',
-  messagingSenderId: 'REPLACE_ME',
-  appId: 'REPLACE_ME',
+  apiKey: 'AIzaSyCqS-lrEdRU5H0Vu8DCSQFfNhn38JxM7iA',
+  authDomain: 'verth-ece65.firebaseapp.com',
+  projectId: 'verth-ece65',
+  storageBucket: 'verth-ece65.firebasestorage.app',
+  messagingSenderId: '747557317741',
+  appId: '1:747557317741:web:eef962faa5e4964e06e364',
 };
 
 // Plans. Limits on the free plan are checked in the app; paid plans unlock once
