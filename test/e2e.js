@@ -4,6 +4,7 @@ const { chromium } = require('playwright');
 const OUT = process.argv[2];
 const URL = 'http://127.0.0.1:8765/app.html?emu';
 const errors = [];
+const SLOW = process.env.CI ? 3 : 1;
 
 (async () => {
   const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
@@ -17,7 +18,7 @@ const errors = [];
   let failed = 0;
   const step = async (msg, fn) => {
     try { await fn(); console.log('ok  ', msg); }
-    catch (e) { failed++; console.log('FAIL', msg, '-', e.message.split('\n')[0]); await shot(A, 'fail-A'); await shot(B, 'fail-B'); throw e; }
+    catch (e) { failed++; console.log('FAIL', msg, '-', e.message.split('\n')[0]); if (process.env.CI) console.log(`::error title=E2E failed::${msg}: ${e.message.split('\n')[0]} | page errors: ${JSON.stringify(errors).slice(0, 400)}`); await shot(A, 'fail-A'); await shot(B, 'fail-B'); throw e; }
   };
   const fs = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('fakefs') || '{}'));
   const poke = (p) => p.evaluate(() => new BroadcastChannel('fakefire').postMessage('x'));
@@ -27,23 +28,23 @@ const errors = [];
     await A.click('text=Create a free account');
     await A.fill('#a-name', 'Rajesh Mehta'); await A.fill('#a-email', 'rajesh@nirmaan.in'); await A.fill('#a-pass', 'password123');
     await A.click('button[type=submit]');
-    await A.getByText('too common').waitFor({ timeout: 3000 });
+    await A.getByText('too common').waitFor({ timeout: 3000 * SLOW });
   });
   await step('A signs up and must confirm email', async () => {
     await A.fill('#a-pass', 'blue-tiger-sings-42');
     await A.click('button[type=submit]');
-    await A.getByRole('heading', { name: 'Confirm your email' }).waitFor({ timeout: 5000 });
+    await A.getByRole('heading', { name: 'Confirm your email' }).waitFor({ timeout: 5000 * SLOW });
     await A.click('text=I’ve confirmed my email');
-    await A.getByText('Not confirmed yet').waitFor({ timeout: 3000 });
+    await A.getByText('Not confirmed yet').waitFor({ timeout: 3000 * SLOW });
     await A.evaluate(() => window.__fakeVerify('rajesh@nirmaan.in'));
     await A.click('text=I’ve confirmed my email');
-    await A.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 });
+    await A.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 * SLOW });
   });
   await step('A creates an organisation', async () => {
     await A.click('text=Skip the tour'); await A.click('text=My organisation');
     await A.fill('#c-name', 'Nirmaan Infra'); await A.fill('#c-title', 'CEO');
     await A.click('button[type=submit]');
-    await A.getByRole('heading', { name: 'Invite people' }).waitFor({ timeout: 5000 });
+    await A.getByRole('heading', { name: 'Invite people' }).waitFor({ timeout: 5000 * SLOW });
   });
   const code = (await A.locator('.invite .mono').textContent()).trim();
   await step('invite code is 8 characters', async () => { if (!/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code)) throw new Error('bad code ' + code); });
@@ -54,20 +55,20 @@ const errors = [];
     await B.click('text=Continue with Google');
     await B.click('text=Skip the tour'); await B.click('text=I have an invite code');
     await B.fill('#j-code', code.toLowerCase()); await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
-    await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 5000 });
+    await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 5000 * SLOW });
   });
   await shot(B, '01-B-pending');
   await step('pending member is not usable for checks', async () => {
     await A.click('nav >> text=Verify');
-    await A.getByRole('heading', { name: 'Invite someone first' }).waitFor({ timeout: 3000 });
+    await A.getByRole('heading', { name: 'Invite someone first' }).waitFor({ timeout: 3000 * SLOW });
   });
   await step('A approves B', async () => {
-    await A.getByText('waiting').first().waitFor({ timeout: 5000 });
+    await A.getByText('waiting').first().waitFor({ timeout: 5000 * SLOW });
     await A.click('nav >> text=Circle');
     await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor();
     await shot(A, '02-A-approval');
     await A.click('button:has-text("Approve")');
-    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 });
+    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 * SLOW });
   });
 
   await step('B sends a check; A denies (signed)', async () => {
@@ -75,23 +76,23 @@ const errors = [];
     await B.selectOption('#v-channel', 'WhatsApp');
     await B.fill('#v-what', 'pay ₹4,80,000 to Sharma Traders today');
     await B.click('button:has-text("Send check")');
-    await B.getByRole('heading', { name: /Asking Rajesh/ }).waitFor({ timeout: 5000 });
+    await B.getByRole('heading', { name: /Asking Rajesh/ }).waitFor({ timeout: 5000 * SLOW });
     await A.click('nav >> text=Home');
-    await A.locator('.incoming').waitFor({ timeout: 5000 });
+    await A.locator('.incoming').waitFor({ timeout: 5000 * SLOW });
     await shot(A, '03-A-incoming');
     await A.click('text=No, not me');
-    await B.getByRole('heading', { name: /didn’t send this/ }).waitFor({ timeout: 5000 });
+    await B.getByRole('heading', { name: /didn’t send this/ }).waitFor({ timeout: 5000 * SLOW });
   });
   await step('Yes needs a second, explicit confirmation', async () => {
     await B.click('text=New check');
     await B.fill('#v-what', 'release invoice INV-2291 for ₹1,25,000');
     await B.click('button:has-text("Send check")');
-    await A.locator('.incoming').waitFor({ timeout: 5000 });
+    await A.locator('.incoming').waitFor({ timeout: 5000 * SLOW });
     await A.click('text=Yes, I asked…');
     await A.getByText('Confirm: you asked').waitFor();
     await shot(A, '04-A-confirm-yes');
     await A.click('text=Yes, I made this request');
-    await B.getByRole('heading', { name: /Confirmed by Rajesh/ }).waitFor({ timeout: 6000 });
+    await B.getByRole('heading', { name: /Confirmed by Rajesh/ }).waitFor({ timeout: 6000 * SLOW });
   });
   await shot(B, '05-B-confirmed-signed');
 
@@ -99,14 +100,14 @@ const errors = [];
     await B.click('text=New check');
     await B.fill('#v-what', 'change vendor bank details for Kaveri Logistics');
     await B.click('button:has-text("Send check")');
-    await A.locator('.incoming').waitFor({ timeout: 5000 });
+    await A.locator('.incoming').waitFor({ timeout: 5000 * SLOW });
     // attacker with Rajesh's password writes "confirmed" from another browser, with a junk signature
     await A.evaluate(() => {
       const db = JSON.parse(localStorage.getItem('fakefs'));
       for (const k in db) if (db[k].status === 'pending') { db[k].status = 'confirmed'; db[k].sig = btoa('x'.repeat(64)); db[k].sigN = 1; db[k].answeredAt = { __ts: Date.now() }; }
       localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x');
     });
-    await B.getByRole('heading', { name: 'Don’t trust this answer' }).waitFor({ timeout: 6000 });
+    await B.getByRole('heading', { name: 'Don’t trust this answer' }).waitFor({ timeout: 6000 * SLOW });
   });
   await shot(B, '06-B-forged-yes');
 
@@ -116,24 +117,24 @@ const errors = [];
     await B.click('text=New check');
     await B.fill('#v-what', 'pay ₹9,00,000 to a new account');
     await B.click('button:has-text("Send check")');
-    await A.locator('.incoming').waitFor({ timeout: 5000 });
+    await A.locator('.incoming').waitFor({ timeout: 5000 * SLOW });
     await A.evaluate(([sig]) => {
       const db = JSON.parse(localStorage.getItem('fakefs'));
       for (const k in db) if (db[k].status === 'pending') { db[k].status = 'confirmed'; db[k].sig = sig; db[k].sigN = 1; db[k].answeredAt = { __ts: Date.now() }; }
       localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x');
     }, [good[1].sig]);
-    await B.getByRole('heading', { name: 'Don’t trust this answer' }).waitFor({ timeout: 6000 });
+    await B.getByRole('heading', { name: 'Don’t trust this answer' }).waitFor({ timeout: 6000 * SLOW });
   });
 
   await step('Pair codes: right code matches, wrong code fails', async () => {
     await A.click('nav >> text=Home');
-    await A.waitForFunction(() => /\d{3} \d{3}/.test(document.querySelector('[data-mycode]')?.textContent || ''), null, { timeout: 5000 });
+    await A.waitForFunction(() => /\d{3} \d{3}/.test(document.querySelector('[data-mycode]')?.textContent || ''), null, { timeout: 5000 * SLOW });
     const real = (await A.locator('[data-mycode]').textContent()).trim();
     await B.click('nav >> text=Verify'); await B.click('.seg >> text=Check a code');
     await B.fill('#v-code', '123456'); await B.click('button:has-text("Check code")');
-    await B.getByRole('heading', { name: 'Code doesn’t match' }).waitFor({ timeout: 5000 });
+    await B.getByRole('heading', { name: 'Code doesn’t match' }).waitFor({ timeout: 5000 * SLOW });
     await B.fill('#v-code', real); await B.click('button:has-text("Check code")');
-    await B.getByRole('heading', { name: 'Code matches' }).waitFor({ timeout: 5000 });
+    await B.getByRole('heading', { name: 'Code matches' }).waitFor({ timeout: 5000 * SLOW });
   });
   await step('Code secrets are not stored in the database', async () => {
     const db = JSON.stringify(await fs(A));
@@ -144,15 +145,15 @@ const errors = [];
     const uid = await B.evaluate(() => window.__verth.S.user.uid);
     await B.evaluate((u) => new Promise((res) => { const r = indexedDB.open('verth-device', 1); r.onsuccess = () => { const t = r.result.transaction('keys', 'readwrite'); t.objectStore('keys').delete(u); t.oncomplete = res; }; }), uid);
     await B.reload();
-    await B.getByText('Verth is set up on another device').waitFor({ timeout: 6000 });
+    await B.getByText('Verth is set up on another device').waitFor({ timeout: 6000 * SLOW });
     await shot(B, '07-B-other-device');
     await B.click('text=Use this device instead');
-    await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 6000 });
+    await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 6000 * SLOW });
     await A.click('nav >> text=Circle');
-    await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor({ timeout: 6000 });
+    await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor({ timeout: 6000 * SLOW });
     await A.click('button:has-text("Approve")');
-    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 });
-    await A.getByText('New device').first().waitFor({ timeout: 5000 });
+    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 * SLOW });
+    await A.getByText('New device').first().waitFor({ timeout: 5000 * SLOW });
   });
   await shot(A, '08-A-new-device-flag');
 
@@ -164,13 +165,13 @@ const errors = [];
   await step('Admin changes the invite code; old code stops working', async () => {
     await A.click('nav >> text=Circle');
     await A.click('text=Change code');
-    await A.waitForFunction((old) => (document.querySelector('.invite .mono')?.textContent || '').trim() !== old, code, { timeout: 5000 });
+    await A.waitForFunction((old) => (document.querySelector('.invite .mono')?.textContent || '').trim() !== old, code, { timeout: 5000 * SLOW });
     const db = await fs(A);
     if (db['invites/' + code.replace('-', '')]) throw new Error('old invite still exists');
   });
   await step('Admin turns joining off', async () => {
     await A.click('text=Turn joining off');
-    await A.getByText('Joining is turned off').waitFor({ timeout: 5000 });
+    await A.getByText('Joining is turned off').waitFor({ timeout: 5000 * SLOW });
     await A.click('text=Turn joining on');
   });
   await step('Log export neutralises spreadsheet formulas', async () => {
@@ -181,7 +182,8 @@ const errors = [];
     await A.emulateMedia({ colorScheme: 'dark' }); await A.click('nav >> text=Home'); await shot(A, '09-A-home-dark');
   });
   console.log('errors:', JSON.stringify(errors));
+  if (process.env.CI && errors.length) console.log(`::error title=Page errors::${JSON.stringify(errors).slice(0, 600)}`);
   console.log(failed || errors.length ? 'SOME TESTS FAILED' : 'ALL TESTS PASSED');
   await b.close();
   if (failed || errors.length) process.exit(1);
-})().catch((e) => { console.log('ABORTED:', e.message.split('\n')[0]); console.log('errors:', JSON.stringify(errors)); process.exit(1); });
+})().catch((e) => { console.log('ABORTED:', e.message.split('\n')[0]); console.log('errors:', JSON.stringify(errors)); if (process.env.CI) console.log(`::error title=E2E aborted::${e.message.split('\n')[0]} | ${JSON.stringify(errors).slice(0, 400)}`); process.exit(1); });
