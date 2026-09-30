@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Asli: two-factor authentication for people. A prototype that stops deepfake and fake-CEO payment fraud with out-of-band verification.">
+<title>Asli Verify</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#EEF1EF; --surface:#FFFFFF; --ink:#141A1F; --muted:#56626B; --line:#D5DCD9;
+  --accent:#0E6B6B; --accent-ink:#FFFFFF; --accent-soft:#DDEDEC;
+  --ok:#1C7548; --ok-bg:#E1F2E8; --bad:#B02E27; --bad-bg:#FAE6E3; --wait:#8F5C0F; --wait-bg:#FAEFD9;
+  --phone:#10161B; --screen:#F6F8F7; --bubble:#E4F4EA;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1316; --surface:#162027; --ink:#E6ECEA; --muted:#95A3A1; --line:#29363C;
+    --accent:#45B8B0; --accent-ink:#04201E; --accent-soft:#16312F;
+    --ok:#4FC48C; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1917; --wait:#E3AD4E; --wait-bg:#33260E;
+    --phone:#04070A; --screen:#111A1F; --bubble:#173427;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1316; --surface:#162027; --ink:#E6ECEA; --muted:#95A3A1; --line:#29363C;
+  --accent:#45B8B0; --accent-ink:#04201E; --accent-soft:#16312F;
+  --ok:#4FC48C; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1917; --wait:#E3AD4E; --wait-bg:#33260E;
+  --phone:#04070A; --screen:#111A1F; --bubble:#173427;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 56px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-0.01em}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px}
+.brand{display:flex;flex-direction:column;gap:8px;max-width:640px}
+.logo{display:flex;align-items:center;gap:10px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center}
+.mark svg{width:20px;height:20px}
+.logo h1{font-size:30px}
+.tag{font-size:17px;color:var(--muted);max-width:60ch}
+.chip{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--wait);background:var(--wait-bg);padding:5px 10px;border-radius:999px;white-space:nowrap}
+
+/* scenario tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:10px;font-weight:500;display:flex;gap:8px;align-items:center}
+.tab small{color:var(--muted);font-weight:400}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] small{color:inherit;opacity:.75}
+
+/* stage */
+.stage{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,340px);gap:24px;align-items:start;justify-content:center}
+@media (max-width:900px){.stage{grid-template-columns:minmax(0,380px);justify-content:center}}
+.who{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
+.phone{background:var(--phone);border-radius:34px;padding:10px;box-shadow:0 18px 40px -22px rgba(10,20,25,.55)}
+.screen{background:var(--screen);border-radius:26px;min-height:560px;display:flex;flex-direction:column;overflow:hidden}
+.sbar{display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:10px 20px 4px;font-variant-numeric:tabular-nums}
+.appbar{display:flex;align-items:center;gap:10px;padding:8px 16px 12px;border-bottom:1px solid var(--line)}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--accent-soft);color:var(--accent);flex:none}
+.appbar b{display:block;font-size:14px}
+.appbar span{font-size:12px;color:var(--muted)}
+.body{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1}
+
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg-h{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+.msg-from{font-weight:600;color:var(--ink);font-size:13px}
+.bubble{background:var(--bubble);border-radius:4px 12px 12px 12px;padding:10px 12px;font-size:14px}
+.flag{font-size:12px;color:var(--bad);font-weight:500}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:500;font-variant-numeric:tabular-nums}
+
+.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:600;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-ok{background:var(--ok);color:var(--surface)}
+.btn-bad{background:var(--bad);color:var(--surface)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hint{font-size:12px;color:var(--muted);text-align:center}
+
+.state{border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.state h3{font-size:20px}
+.state.ok{background:var(--ok-bg);color:var(--ok)}
+.state.bad{background:var(--bad-bg);color:var(--bad)}
+.state.wait{background:var(--wait-bg);color:var(--wait)}
+.state p{color:var(--ink);font-size:14px}
+.state .icon{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:currentColor}
+.state .icon svg{width:22px;height:22px;stroke:var(--surface)}
+
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:spin 0.9s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+
+/* code card */
+.codecard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:14px}
+.codecard .lbl{font-size:12px;color:var(--muted)}
+.code{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.code.big{font-size:40px}
+.ring{width:44px;height:44px;flex:none}
+.ring circle{fill:none;stroke-width:4}
+.ring .track{stroke:var(--line)}
+.ring .prog{stroke:var(--accent);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .9s linear}
+.ring text{font-family:var(--mono);font-size:13px;fill:var(--ink);font-weight:600}
+
+.notif{background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.notif .q{font-family:var(--display);font-size:19px;font-weight:600;line-height:1.25}
+.fp{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted)}
+.fp svg{width:16px;height:16px;stroke:var(--muted)}
+.idle{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);text-align:center;font-size:14px}
+
+.codein{display:flex;gap:8px}
+.codein input{flex:1;min-width:0;font-family:var(--mono);font-size:22px;letter-spacing:.12em;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.codein .btn{width:auto;padding-inline:16px}
+.said{font-size:13px;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.said button{border:0;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:4px 8px;font-size:12px;font-weight:600}
+
+/* rail */
+.rail{display:flex;flex-direction:column;gap:16px;padding-top:28px}
+@media (max-width:900px){.rail{padding-top:0;order:0}}
+.guide{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.guide .eyebrow{font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--accent)}
+.guide h2{font-size:22px}
+.guide p{color:var(--muted)}
+.path{display:flex;flex-direction:column;gap:0;margin-top:4px}
+.step{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:13px;color:var(--muted);padding-block:6px;position:relative}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);margin-top:4px;margin-left:5px;background:var(--surface)}
+.step.done{color:var(--ink)}
+.step.done .dot{background:var(--accent);border-color:var(--accent)}
+.step.now{color:var(--ink);font-weight:600}
+.step.now .dot{border-color:var(--accent)}
+.reset{align-self:flex-start;border:0;background:none;color:var(--accent);font-weight:600;padding:0}
+
+/* log */
+.section-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 16px;margin-bottom:12px}
+.section-h h2{font-size:24px}
+.section-h p{color:var(--muted);font-size:14px}
+.stats{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:14px}
+.stat b{font-family:var(--display);font-size:26px;display:block;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px}
+th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line)}
+td{padding:11px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;vertical-align:top}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.wait{background:var(--wait-bg);color:var(--wait)}
+.sample{font-size:11px;color:var(--muted);margin-left:6px}
+tr.new td{animation:flash 1.6s ease-out}
+@keyframes flash{from{background:var(--accent-soft)}to{background:transparent}}
+
+/* plans */
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.plan.pick{border-color:var(--accent);border-width:2px}
+.plan h3{font-size:18px}
+.price{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.price small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:400}
+.plan ul{margin:4px 0 0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:3px}
+.foot{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+        <h1>Asli</h1>
+      </div>
+      <p class="tag">Two-factor for people. Before you pay, share data or reset a password, check that the request really came from your boss. One tap asks the real person on their own phone.</p>
+    </div>
+    <span class="chip">Prototype · all people and data are made up</span>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Scenario">
+    <button class="tab" role="tab" id="tab-wa" data-s="wa" aria-selected="true">Fake CEO on WhatsApp <small>scam</small></button>
+    <button class="tab" role="tab" id="tab-teams" data-s="teams" aria-selected="false">Real request on Teams <small>genuine</small></button>
+    <button class="tab" role="tab" id="tab-call" data-s="call" aria-selected="false">Deepfake video call <small>code check</small></button>
+  </div>
+
+  <section class="stage">
+    <div>
+      <div class="who"><span>Employee</span><span>Priya · Accounts</span></div>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="clock">12:52</span><span>5G ▮▮▮</span></div>
+        <div class="appbar"><div class="avatar">PN</div><div><b>Priya Nair</b><span>Nirmaan Infra · Accounts</span></div></div>
+        <div class="body" id="emp"></div>
+      </div></div>
+    </div>
+
+    <aside class="rail">
+      <div class="guide" id="guide"></div>
+    </aside>
+
+    <div>
+      <div class="who"><span>The real boss</span><span>Rajesh · CEO</span></div>
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="clock">12:52</span><span>5G ▮▮▮</span></div>
+        <div class="appbar"><div class="avatar">RM</div><div><b>Rajesh Mehta</b><span>Registered phone ·••• 4417</span></div></div>
+        <div class="body" id="exec"></div>
+      </div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-h">
+      <h2>Verification log</h2>
+      <p>Every check is recorded. Admins and auditors see who asked, what for, and who confirmed.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="st-checks">14</b><span>checks this month</span></div>
+      <div class="stat"><b id="st-stopped">3</b><span>scams stopped</span></div>
+      <div class="stat"><b id="st-saved">₹11.6 L</b><span>payments protected</span></div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Time</th><th>Checked by</th><th>Claimed sender</th><th>Channel</th><th>Request</th><th>Result</th></tr></thead>
+        <tbody id="log">
+          <tr><td>Today 10:14</td><td>Arjun S. (HR)</td><td>Kavita Rao, CFO</td><td>Phone call</td><td>Change salary bank account<span class="sample">sample</span></td><td><span class="pill bad">Denied by Kavita</span></td></tr>
+          <tr><td>Yesterday 17:40</td><td>Priya N. (Accounts)</td><td>Rajesh Mehta, CEO</td><td>Email</td><td>Pay INV-2284 · ₹3,40,000<span class="sample">sample</span></td><td><span class="pill ok">Confirmed</span></td></tr>
+          <tr><td>26 Sep 15:02</td><td>IT help desk</td><td>Vikram D. (Sales)</td><td>Phone call</td><td>Reset password and MFA<span class="sample">sample</span></td><td><span class="pill wait">No answer · not done</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-h">
+      <h2>Draft plans</h2>
+      <p>Free for small teams to start, paid per person as a company grows.</p>
+    </div>
+    <div class="plans">
+      <div class="plan"><h3>Starter</h3><div class="price">Free <small>up to 5 people</small></div><ul><li>Push checks and rolling codes</li><li>30-day log</li></ul></div>
+      <div class="plan pick"><h3>Team</h3><div class="price">₹99 <small>per person / month</small></div><ul><li>Slack and Teams <code>/verify</code></li><li>Full log with export for auditors</li><li>Scam reports to the security team</li></ul></div>
+      <div class="plan"><h3>Business</h3><div class="price">Custom</div><ul><li>Rules like "any payment over ₹1 L must be verified"</li><li>Help-desk caller checks</li><li>SSO and admin controls</li></ul></div>
+    </div>
+  </section>
+
+  <p class="foot">Built by <a href="https://github.com/Umeshdk22" style="color:var(--accent)">@Umeshdk22</a> as a concept prototype. This page simulates both phones in one browser so you can try the flow; the real product would send the check to the boss's own registered phone. <a href="https://github.com/Umeshdk22/asli" style="color:var(--accent)">Source on GitHub</a>.</p>
+</div>
+
+<script>
+(function(){
+  var SECRET = "nirmaan-rajesh-4417";
+  var FAKE_CODE = "417209";
+  var S = {
+    wa:{channel:"WhatsApp", from:"Rajesh Mehta (CEO)", handle:"+91 98204 5••61 · not in your contacts",
+        text:"Priya, I'm in a board meeting and can't talk. Transfer ₹4,80,000 to Sharma Traders today before 3 pm. Keep this between us for now, I'll explain later.",
+        flag:"New number using the CEO's photo", amount:"₹4,80,000", request:"Pay Sharma Traders · ₹4,80,000", payee:"Sharma Traders", genuine:false},
+    teams:{channel:"Microsoft Teams", from:"Rajesh Mehta", handle:"rajesh.mehta@nirmaan.in",
+        text:"Hi Priya, please release the Q3 payment to Kaveri Logistics, invoice INV-2291 for ₹1,25,000. Thanks.",
+        flag:"", amount:"₹1,25,000", request:"Pay Kaveri Logistics · ₹1,25,000", payee:"Kaveri Logistics", genuine:true},
+    call:{channel:"Zoom video call", from:"Rajesh Mehta", handle:"Joined from an outside meeting link",
+        text:"“Priya, approve the new bank details for Sharma Traders right now. The auditors are waiting on me.”",
+        flag:"Face and voice look right. That is no longer proof.", amount:"", request:"Change vendor bank details", payee:"Sharma Traders", genuine:false}
+  };
+  var st = {s:"wa", phase:"incoming", left:90, answer:null};
+  var emp = document.getElementById("emp"), ex = document.getElementById("exec"), guide = document.getElementById("guide");
+  var checks=14, stopped=3, protectedL=11.6;
+
+  function code(win){
+    var str = SECRET + ":" + win, h = 2166136261;
+    for (var i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    var n = (h >>> 0) % 1000000;
+    return ("000000" + n).slice(-6);
+  }
+  function win(){ return Math.floor(Date.now()/30000); }
+  function secsLeft(){ return 30 - Math.floor((Date.now()%30000)/1000); }
+  function fmt(c){ return c.slice(0,3) + " " + c.slice(3); }
+  function now(){ var d=new Date(); return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2); }
+  function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  var ICON = {
+    ok:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    bad:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    wait:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8"/></svg>',
+    fp:'<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 11v3a6 6 0 01-1.2 3.6"/><path d="M8.5 9.5a3.5 3.5 0 017 1.5v2"/><path d="M6 12a6 6 0 0112 0v1.5"/><path d="M15.5 16.5a9 9 0 01-1 3"/></svg>'
+  };
+
+  function ring(){
+    var left = secsLeft(), C = 2*Math.PI*18, off = C*(1-left/30);
+    return '<svg class="ring" viewBox="0 0 44 44" aria-label="'+left+' seconds until new code"><circle class="track" cx="22" cy="22" r="18"/><circle class="prog" cx="22" cy="22" r="18" stroke-dasharray="'+C.toFixed(2)+'" stroke-dashoffset="'+off.toFixed(2)+'"/><text x="22" y="26.5" text-anchor="middle">'+left+'</text></svg>';
+  }
+
+  function msgCard(sc){
+    return '<div class="msg"><div class="msg-h"><span class="msg-from">'+esc(sc.from)+'</span><span>'+esc(sc.channel)+'</span></div>'+
+      '<div style="font-size:12px;color:var(--muted)">'+esc(sc.handle)+'</div>'+
+      '<div class="bubble">'+esc(sc.text)+'</div>'+
+      (sc.flag ? '<div class="flag">'+esc(sc.flag)+'</div>' : '')+'</div>';
+  }
+
+  function renderEmp(){
+    var sc = S[st.s], p = st.phase, h = "";
+    if (st.s === "call" && (p === "incoming" || p === "codebad" || p === "codeok")) {
+      h += msgCard(sc);
+      if (p === "incoming") {
+        h += '<div style="font-weight:600;font-size:14px">Ask the caller for their Asli code</div>'+
+             '<div class="said"><span>Caller reads out: <b style="font-family:var(--mono)">'+fmt(FAKE_CODE)+'</b></span><button type="button" id="usefake">Enter it</button></div>'+
+             '<form class="codein" id="codeform"><input id="codeinput" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="off" aria-label="Code the caller read out"><button class="btn btn-primary" type="submit">Check</button></form>'+
+             '<p class="hint">Tip: type the code from Rajesh’s phone on the right to see a real match.</p>';
+      } else if (p === "codebad") {
+        h += '<div class="state bad"><div class="icon">'+ICON.bad+'</div><h3>Code doesn’t match</h3><p>The person on this call doesn’t have Rajesh’s phone. Treat it as a deepfake. Leave the call and don’t change any bank details.</p></div>'+
+             '<button class="btn btn-bad" type="button" id="report">Report to security team</button>';
+      } else {
+        h += '<div class="state ok"><div class="icon">'+ICON.ok+'</div><h3>Code matches</h3><p>The caller has Rajesh’s registered phone. Continue with your normal approval steps.</p></div>';
+      }
+    } else if (p === "incoming") {
+      h += msgCard(sc)+'<button class="btn btn-primary" type="button" id="verify">Verify with Asli</button><p class="hint">Asks Rajesh on his registered phone, not on this chat.</p>';
+    } else if (p === "pending") {
+      h += msgCard(sc)+'<div class="state wait"><h3><span class="spin"></span> Asking Rajesh…</h3><p>Sent to his registered phone ending 4417. Don’t act on the request yet.</p><p style="font-family:var(--mono);font-size:13px">Expires in '+st.left+'s</p></div>';
+    } else if (p === "ok") {
+      h += '<div class="state ok"><div class="icon">'+ICON.ok+'</div><h3>Confirmed by Rajesh</h3><p>He approved this at '+now()+' with his fingerprint. Go ahead with the payment through your normal approval.</p></div>'+
+           '<dl class="kv"><dt>Request</dt><dd>'+esc(sc.request)+'</dd><dt>Channel</dt><dd>'+esc(sc.channel)+'</dd></dl>';
+    } else if (p === "bad") {
+      h += '<div class="state bad"><div class="icon">'+ICON.bad+'</div><h3>Rajesh didn’t send this</h3><p>Don’t pay and don’t reply to the sender. Someone is pretending to be him.</p></div>'+
+           '<button class="btn btn-bad" type="button" id="report">Report to security team</button>';
+    } else if (p === "expired") {
+      h += '<div class="state wait"><div class="icon">'+ICON.wait+'</div><h3>No answer from Rajesh</h3><p>The check expired. Don’t act on the request until he confirms.</p></div>'+
+           '<button class="btn btn-ghost" type="button" id="verify">Ask again</button>';
+    } else if (p === "reported") {
+      h += '<div class="state ok"><div class="icon">'+ICON.ok+'</div><h3>Reported</h3><p>The security team has the message, the sender’s number and this check. Thanks for stopping it.</p></div>';
+    }
+    emp.innerHTML = h;
+    bindEmp();
+  }
+
+  function renderExec(){
+    var sc = S[st.s], p = st.phase, c = code(win()), h = "";
+    if (p === "pending") {
+      h += '<div class="notif"><div style="font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase">Asli check</div>'+
+           '<div class="q">Did you ask Priya to '+esc(sc.request.charAt(0).toLowerCase()+sc.request.slice(1).replace(" · "," "))+'?</div>'+
+           '<dl class="kv"><dt>Asked by</dt><dd>Priya Nair, Accounts</dd><dt>Came via</dt><dd>'+esc(sc.channel)+'</dd><dt>Sender</dt><dd>'+esc(sc.handle)+'</dd></dl>'+
+           '<div class="row2"><button class="btn btn-bad" type="button" id="no">No, not me</button><button class="btn btn-ok" type="button" id="yes">Yes, I sent it</button></div>'+
+           '<div class="fp">'+ICON.fp+'Confirm with fingerprint</div></div>';
+    } else {
+      if (p === "bad" || p === "reported" && st.answer === "no") {
+        h += '<div class="state bad" style="padding:12px"><p style="color:var(--bad);font-weight:600">You denied a request made in your name.</p><p>Priya has been told to stop. The security team gets the details.</p></div>';
+      } else if (p === "ok") {
+        h += '<div class="state ok" style="padding:12px"><p style="color:var(--ok);font-weight:600">You confirmed Priya’s request.</p></div>';
+      } else {
+        h += '<div class="idle"><b style="color:var(--ink)">No checks waiting</b><span>You’ll get a notification when someone verifies a request in your name.</span></div>';
+      }
+      h += '<div class="codecard">'+ring()+'<div><div class="lbl">Your Asli code</div><div class="code'+(st.s==="call"?" big":"")+'">'+fmt(c)+'</div></div></div>'+
+           (st.s==="call" ? '<p class="hint">If Priya asks on a call, read this out. It changes every 30 seconds.</p>' : '');
+    }
+    ex.innerHTML = h;
+    var y = document.getElementById("yes"), n = document.getElementById("no");
+    if (y) y.onclick = function(){ answer("yes"); };
+    if (n) n.onclick = function(){ answer("no"); };
+  }
+
+  var STEPS = {
+    push:["A request arrives in Rajesh’s name","Priya taps Verify","Rajesh’s own phone asks him","Priya gets a clear answer"],
+    code:["A video call arrives from “Rajesh”","Priya asks for his Asli code","She checks the code","Priya gets a clear answer"]
+  };
+  function stepIndex(){
+    var p = st.phase;
+    if (st.s === "call") return p === "incoming" ? 1 : 4;
+    if (p === "incoming") return 1;
+    if (p === "pending") return 2;
+    return 4;
+  }
+  function renderGuide(){
+    var sc = S[st.s], p = st.phase, e = "", t = "", d = "";
+    if (st.s === "wa") {
+      e = "Scenario 1 · the classic Indian office scam";
+      if (p==="incoming"){t="A “CEO” messages from a new number";d="The photo and name look right, and the message pushes urgency and secrecy. On Priya’s phone, tap Verify with Asli.";}
+      else if (p==="pending"){t="Now play the real Rajesh";d="The real Rajesh never sent this. On his phone, tap “No, not me”.";}
+      else if (p==="bad"||p==="reported"){t="Scam stopped before any money moved";d="One tap from Rajesh was enough. Priya didn’t have to question her boss herself. The app did it for her.";}
+      else if (p==="ok"){t="You approved a scam";d="In this scenario the message was fake, so the real Rajesh would tap “No”. Try again and deny it.";}
+      else {t="The check expired";d="With no confirmation, Priya is told not to act. Silence is never a yes.";}
+    } else if (st.s === "teams") {
+      e = "Scenario 2 · a genuine request";
+      if (p==="incoming"){t="Rajesh really does need this paid";d="Verification should be quick for real requests too. Tap Verify with Asli on Priya’s phone.";}
+      else if (p==="pending"){t="Confirm it as Rajesh";d="He did send this one. Tap “Yes, I sent it” on his phone.";}
+      else if (p==="ok"){t="Verified in seconds";d="Priya pays with confidence, and the log shows exactly who approved what. Auditors love that trail.";}
+      else if (p==="bad"||p==="reported"){t="Rajesh denied it";d="In this scenario the request was real. When the boss says no, Priya stops, so the system fails safe either way.";}
+      else {t="The check expired";d="No answer means no payment. Priya can ask again.";}
+    } else {
+      e = "Scenario 3 · live deepfake call";
+      if (p==="incoming"){t="The face and voice are perfect";d="A cloned voice needs only a few seconds of audio. So Priya asks for the rolling code, which only Rajesh’s real phone shows. Enter what the caller read out.";}
+      else if (p==="codebad"||p==="reported"){t="The deepfake can’t know the code";d="It copied his face, not his phone. The code changes every 30 seconds, so a guess or an old code fails.";}
+      else {t="Real Rajesh, real code";d="The code on the call matched his phone. That’s what a genuine check looks like.";}
+    }
+    var steps = STEPS[st.s==="call"?"code":"push"], idx = stepIndex(), path = "";
+    for (var i=0;i<steps.length;i++){
+      var cls = i < idx ? "done" : (i === idx ? "now" : "");
+      if (idx >= steps.length && i === steps.length-1) cls = "done";
+      path += '<div class="step '+cls+'"><span class="dot"></span><span>'+steps[i]+'</span></div>';
+    }
+    guide.innerHTML = '<div class="eyebrow">'+e+'</div><h2>'+t+'</h2><p>'+d+'</p><div class="path">'+path+'</div>'+
+      (p!=="incoming" && p!=="pending" ? '<button class="reset" type="button" id="again">Run this scenario again</button>' : '');
+    var a = document.getElementById("again"); if (a) a.onclick = function(){ go(st.s); };
+  }
+
+  function addLog(result, cls){
+    var sc = S[st.s], tb = document.getElementById("log"), tr = document.createElement("tr");
+    tr.className = "new";
+    tr.innerHTML = '<td>Today '+now()+'</td><td>Priya N. (Accounts)</td><td>Rajesh Mehta, CEO</td><td>'+esc(sc.channel)+'</td><td>'+esc(sc.request)+'</td><td><span class="pill '+cls+'">'+result+'</span></td>';
+    tb.insertBefore(tr, tb.firstChild);
+    checks++; document.getElementById("st-checks").textContent = checks;
+    if (cls === "bad") { stopped++; document.getElementById("st-stopped").textContent = stopped; }
+    var amt = sc.amount ? parseInt(sc.amount.replace(/[^\d]/g,""),10) : 0;
+    if (amt) { protectedL = Math.round((protectedL + amt/100000)*10)/10; document.getElementById("st-saved").textContent = "₹" + protectedL + " L"; }
+  }
+
+  function bindEmp(){
+    var v = document.getElementById("verify");
+    if (v) v.onclick = function(){ st.phase="pending"; st.left=90; render(); };
+    var r = document.getElementById("report");
+    if (r) r.onclick = function(){ st.phase="reported"; render(); };
+    var f = document.getElementById("codeform");
+    if (f) f.onsubmit = function(ev){
+      ev.preventDefault();
+      var val = document.getElementById("codeinput").value.replace(/\D/g,"");
+      if (val.length !== 6) { document.getElementById("codeinput").focus(); return; }
+      var w = win(), okc = (val === code(w) || val === code(w-1));
+      st.phase = okc ? "codeok" : "codebad";
+      addLog(okc ? "Code matched" : "Code mismatch · stopped", okc ? "ok" : "bad");
+      render();
+    };
+    var uf = document.getElementById("usefake");
+    if (uf) uf.onclick = function(){ var i=document.getElementById("codeinput"); i.value = fmt(FAKE_CODE); i.focus(); };
+  }
+
+  function answer(a){
+    st.answer = a;
+    if (a === "yes") { st.phase = "ok"; addLog("Confirmed", "ok"); }
+    else { st.phase = "bad"; addLog("Denied by Rajesh", "bad"); }
+    render();
+  }
+
+  function render(){ renderEmp(); renderExec(); renderGuide(); }
+
+  function go(s){
+    st.s = s; st.phase = "incoming"; st.left = 90; st.answer = null;
+    var tabs = document.querySelectorAll(".tab");
+    for (var i=0;i<tabs.length;i++) tabs[i].setAttribute("aria-selected", tabs[i].getAttribute("data-s")===s ? "true" : "false");
+    render();
+  }
+  var tabs = document.querySelectorAll(".tab");
+  for (var i=0;i<tabs.length;i++) tabs[i].onclick = function(){ go(this.getAttribute("data-s")); };
+
+  setInterval(function(){
+    var clocks = document.querySelectorAll(".clock");
+    for (var i=0;i<clocks.length;i++) clocks[i].textContent = now();
+    if (st.phase === "pending") {
+      st.left--;
+      if (st.left <= 0) { st.phase = "expired"; addLog("No answer · not done", "wait"); render(); return; }
+      var w = emp.querySelector(".state.wait p:last-child"); if (w) w.textContent = "Expires in " + st.left + "s";
+    } else {
+      var cc = ex.querySelector(".codecard");
+      if (cc) cc.outerHTML = '<div class="codecard">'+ring()+'<div><div class="lbl">Your Asli code</div><div class="code'+(st.s==="call"?" big":"")+'">'+fmt(code(win()))+'</div></div></div>';
+    }
+  }, 1000);
+
+  go("wa");
+})();
+</script>
+</body>
+</html>
