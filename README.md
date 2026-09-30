@@ -1,6 +1,6 @@
 # Verth: two-factor authentication for people
 
-**Live demo:** https://umeshdk22.github.io/asli/
+**Live demo:** https://umeshdk22.github.io/verth/
 
 Verth is a prototype that stops **fake-CEO and deepfake payment fraud**. Before an employee pays, changes bank details or resets a password, one tap asks the real person, on their own registered phone, whether they really sent the request.
 
