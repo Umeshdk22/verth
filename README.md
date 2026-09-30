@@ -1,8 +1,8 @@
-# Asli: two-factor authentication for people
+# Verth: two-factor authentication for people
 
 **Live demo:** https://umeshdk22.github.io/asli/
 
-Asli ("real" in Hindi) is a prototype that stops **fake-CEO and deepfake payment fraud**. Before an employee pays, changes bank details or resets a password, one tap asks the real person, on their own registered phone, whether they really sent the request.
+Verth is a prototype that stops **fake-CEO and deepfake payment fraud**. Before an employee pays, changes bank details or resets a password, one tap asks the real person, on their own registered phone, whether they really sent the request.
 
 > Concept prototype. All people, companies and data in the demo are fictional.
 
@@ -18,7 +18,7 @@ Attackers no longer need to hack systems when they can impersonate the people wh
 
 Real-time deepfake detection is not reliable enough for ordinary businesses, and mainstream meeting platforms don't provide it. The control that security guidance consistently recommends is **out-of-band verification**: confirm the request through a separate, trusted channel. In practice, that advice lives in policy documents that nobody remembers under pressure, and employees feel awkward questioning a senior person.
 
-## What Asli does
+## What Verth does
 
 | Feature | How it works | Why it matters |
 |---|---|---|
@@ -34,7 +34,7 @@ It also removes the social pressure: *"Company policy: the app has to verify it"
 
 You play both people. The left phone is **Priya (Accounts)**, the right phone is **Rajesh (the real CEO)**.
 
-1. **Fake CEO on WhatsApp:** tap *Verify with Asli* on Priya's phone, then *No, not me* on Rajesh's phone. The payment is blocked.
+1. **Fake CEO on WhatsApp:** tap *Verify with Verth* on Priya's phone, then *No, not me* on Rajesh's phone. The payment is blocked.
 2. **Real request on Teams:** the same flow, but Rajesh taps *Yes*. The request is verified in seconds.
 3. **Deepfake video call:** enter the code the caller reads out. It doesn't match Rajesh's rolling code, so the fake is caught. Type the code shown on Rajesh's phone to see a genuine match.
 

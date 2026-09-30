@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Asli: two-factor authentication for people. A prototype that stops deepfake and fake-CEO payment fraud with out-of-band verification.">
-<title>Asli Verify</title>
+<meta name="description" content="Verth: two-factor authentication for people. A prototype that stops deepfake and fake-CEO payment fraud with out-of-band verification.">
+<title>Verth</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -183,7 +183,7 @@ tr.new td{animation:flash 1.6s ease-out}
     <div class="brand">
       <div class="logo">
         <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
-        <h1>Asli</h1>
+        <h1>Verth</h1>
       </div>
       <p class="tag">Two-factor for people. Before you pay, share data or reset a password, check that the request really came from your boss. One tap asks the real person on their own phone.</p>
     </div>
@@ -312,7 +312,7 @@ tr.new td{animation:flash 1.6s ease-out}
     if (st.s === "call" && (p === "incoming" || p === "codebad" || p === "codeok")) {
       h += msgCard(sc);
       if (p === "incoming") {
-        h += '<div style="font-weight:600;font-size:14px">Ask the caller for their Asli code</div>'+
+        h += '<div style="font-weight:600;font-size:14px">Ask the caller for their Verth code</div>'+
              '<div class="said"><span>Caller reads out: <b style="font-family:var(--mono)">'+fmt(FAKE_CODE)+'</b></span><button type="button" id="usefake">Enter it</button></div>'+
              '<form class="codein" id="codeform"><input id="codeinput" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="off" aria-label="Code the caller read out"><button class="btn btn-primary" type="submit">Check</button></form>'+
              '<p class="hint">Tip: type the code from Rajesh’s phone on the right to see a real match.</p>';
@@ -323,7 +323,7 @@ tr.new td{animation:flash 1.6s ease-out}
         h += '<div class="state ok"><div class="icon">'+ICON.ok+'</div><h3>Code matches</h3><p>The caller has Rajesh’s registered phone. Continue with your normal approval steps.</p></div>';
       }
     } else if (p === "incoming") {
-      h += msgCard(sc)+'<button class="btn btn-primary" type="button" id="verify">Verify with Asli</button><p class="hint">Asks Rajesh on his registered phone, not on this chat.</p>';
+      h += msgCard(sc)+'<button class="btn btn-primary" type="button" id="verify">Verify with Verth</button><p class="hint">Asks Rajesh on his registered phone, not on this chat.</p>';
     } else if (p === "pending") {
       h += msgCard(sc)+'<div class="state wait"><h3><span class="spin"></span> Asking Rajesh…</h3><p>Sent to his registered phone ending 4417. Don’t act on the request yet.</p><p style="font-family:var(--mono);font-size:13px">Expires in '+st.left+'s</p></div>';
     } else if (p === "ok") {
@@ -345,7 +345,7 @@ tr.new td{animation:flash 1.6s ease-out}
   function renderExec(){
     var sc = S[st.s], p = st.phase, c = code(win()), h = "";
     if (p === "pending") {
-      h += '<div class="notif"><div style="font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase">Asli check</div>'+
+      h += '<div class="notif"><div style="font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase">Verth check</div>'+
            '<div class="q">Did you ask Priya to '+esc(sc.request.charAt(0).toLowerCase()+sc.request.slice(1).replace(" · "," "))+'?</div>'+
            '<dl class="kv"><dt>Asked by</dt><dd>Priya Nair, Accounts</dd><dt>Came via</dt><dd>'+esc(sc.channel)+'</dd><dt>Sender</dt><dd>'+esc(sc.handle)+'</dd></dl>'+
            '<div class="row2"><button class="btn btn-bad" type="button" id="no">No, not me</button><button class="btn btn-ok" type="button" id="yes">Yes, I sent it</button></div>'+
@@ -358,7 +358,7 @@ tr.new td{animation:flash 1.6s ease-out}
       } else {
         h += '<div class="idle"><b style="color:var(--ink)">No checks waiting</b><span>You’ll get a notification when someone verifies a request in your name.</span></div>';
       }
-      h += '<div class="codecard">'+ring()+'<div><div class="lbl">Your Asli code</div><div class="code'+(st.s==="call"?" big":"")+'">'+fmt(c)+'</div></div></div>'+
+      h += '<div class="codecard">'+ring()+'<div><div class="lbl">Your Verth code</div><div class="code'+(st.s==="call"?" big":"")+'">'+fmt(c)+'</div></div></div>'+
            (st.s==="call" ? '<p class="hint">If Priya asks on a call, read this out. It changes every 30 seconds.</p>' : '');
     }
     ex.innerHTML = h;
@@ -369,7 +369,7 @@ tr.new td{animation:flash 1.6s ease-out}
 
   var STEPS = {
     push:["A request arrives in Rajesh’s name","Priya taps Verify","Rajesh’s own phone asks him","Priya gets a clear answer"],
-    code:["A video call arrives from “Rajesh”","Priya asks for his Asli code","She checks the code","Priya gets a clear answer"]
+    code:["A video call arrives from “Rajesh”","Priya asks for his Verth code","She checks the code","Priya gets a clear answer"]
   };
   function stepIndex(){
     var p = st.phase;
@@ -382,14 +382,14 @@ tr.new td{animation:flash 1.6s ease-out}
     var sc = S[st.s], p = st.phase, e = "", t = "", d = "";
     if (st.s === "wa") {
       e = "Scenario 1 · the classic Indian office scam";
-      if (p==="incoming"){t="A “CEO” messages from a new number";d="The photo and name look right, and the message pushes urgency and secrecy. On Priya’s phone, tap Verify with Asli.";}
+      if (p==="incoming"){t="A “CEO” messages from a new number";d="The photo and name look right, and the message pushes urgency and secrecy. On Priya’s phone, tap Verify with Verth.";}
       else if (p==="pending"){t="Now play the real Rajesh";d="The real Rajesh never sent this. On his phone, tap “No, not me”.";}
       else if (p==="bad"||p==="reported"){t="Scam stopped before any money moved";d="One tap from Rajesh was enough. Priya didn’t have to question her boss herself. The app did it for her.";}
       else if (p==="ok"){t="You approved a scam";d="In this scenario the message was fake, so the real Rajesh would tap “No”. Try again and deny it.";}
       else {t="The check expired";d="With no confirmation, Priya is told not to act. Silence is never a yes.";}
     } else if (st.s === "teams") {
       e = "Scenario 2 · a genuine request";
-      if (p==="incoming"){t="Rajesh really does need this paid";d="Verification should be quick for real requests too. Tap Verify with Asli on Priya’s phone.";}
+      if (p==="incoming"){t="Rajesh really does need this paid";d="Verification should be quick for real requests too. Tap Verify with Verth on Priya’s phone.";}
       else if (p==="pending"){t="Confirm it as Rajesh";d="He did send this one. Tap “Yes, I sent it” on his phone.";}
       else if (p==="ok"){t="Verified in seconds";d="Priya pays with confidence, and the log shows exactly who approved what. Auditors love that trail.";}
       else if (p==="bad"||p==="reported"){t="Rajesh denied it";d="In this scenario the request was real. When the boss says no, Priya stops, so the system fails safe either way.";}
@@ -468,7 +468,7 @@ tr.new td{animation:flash 1.6s ease-out}
       var w = emp.querySelector(".state.wait p:last-child"); if (w) w.textContent = "Expires in " + st.left + "s";
     } else {
       var cc = ex.querySelector(".codecard");
-      if (cc) cc.outerHTML = '<div class="codecard">'+ring()+'<div><div class="lbl">Your Asli code</div><div class="code'+(st.s==="call"?" big":"")+'">'+fmt(code(win()))+'</div></div></div>';
+      if (cc) cc.outerHTML = '<div class="codecard">'+ring()+'<div><div class="lbl">Your Verth code</div><div class="code'+(st.s==="call"?" big":"")+'">'+fmt(code(win()))+'</div></div></div>';
     }
   }, 1000);
 
