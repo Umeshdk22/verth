@@ -66,6 +66,18 @@ Built from a real story: the founder paid ₹1,500 "exam fee" to a fake company 
 - **Look-alike company websites** (e.g. `tcs-careers-india.in`).
 - **Other hiring red flags:** surprise "selection", WhatsApp/Telegram interviews, Aadhaar/PAN/bank documents up front, too-good-to-be-true pay.
 
+## Demo videos (English and हिन्दी)
+
+Four short demo videos on the home page, with a topic switch and a language switch: **Scam check** and **For organisations**, each in **English** (British male voice) and **Hindi** (male voice), with burned-in subtitles in the same language. They're recorded from the real app, timed to the narration, and encoded as H.264 at a steady 30 fps with fast start. How they're made: [`tools/video/`](tools/video/README.md).
+
+## For organisations: how employees join
+
+1. The admin signs up, taps **My organisation**, and names the company. Verth creates a private 8-character invite code.
+2. The admin taps **Copy invite message** in the Circle tab and sends it to the office group.
+3. Each employee signs in, taps **I have an invite code**, enters it with their role, and Verth binds their account to their own phone.
+4. The admin approves each person; a leaked code alone can't get anyone in.
+5. The team agrees: **no Verth check, no payment** above a set amount.
+
 ## Photo & screenshot check
 
 Not everyone can copy and paste. In Scam check, tap **Photo or screenshot**, take a photo of the message or pick a screenshot (or on Android, **Share → Verth** straight from WhatsApp or the Gallery).

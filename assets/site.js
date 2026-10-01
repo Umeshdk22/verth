@@ -20,3 +20,31 @@
   if (btn) btn.addEventListener('click', function () { if (!deferred) return; deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; btn.hidden = true; }); });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
 })();
+
+// Demo videos: Scam check or For organisations, in English or Hindi.
+(function () {
+  var video = document.getElementById('demo-video'), note = document.getElementById('video-note');
+  if (!video) return;
+  var state = { topic: 'scam', lang: /^hi/i.test(navigator.language || '') ? 'hi' : 'en' };
+  var NOTE = {
+    'scam-en': 'Scam check, in English · turn the sound on', 'scam-hi': 'स्कैम चेक, हिन्दी में · आवाज़ चालू करें',
+    'org-en': 'For organisations, in English · turn the sound on', 'org-hi': 'कंपनियों के लिए, हिन्दी में · आवाज़ चालू करें',
+  };
+  function show(play) {
+    var id = state.topic + '-' + state.lang;
+    document.querySelectorAll('[data-vtopic]').forEach(function (b) { var on = b.dataset.vtopic === state.topic; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+    document.querySelectorAll('[data-vlang]').forEach(function (b) { var on = b.dataset.vlang === state.lang; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+    if (video.getAttribute('src') !== 'assets/videos/verth-' + id + '.mp4') {
+      video.pause();
+      video.poster = 'assets/videos/verth-' + id + '.jpg';
+      video.src = 'assets/videos/verth-' + id + '.mp4';
+      video.load();
+    }
+    if (note) { note.textContent = NOTE[id]; note.lang = state.lang; }
+    if (play) video.play().catch(function () {});
+  }
+  document.querySelectorAll('[data-vtopic]').forEach(function (b) { b.addEventListener('click', function () { state.topic = b.dataset.vtopic; show(true); }); });
+  document.querySelectorAll('[data-vlang]').forEach(function (b) { b.addEventListener('click', function () { state.lang = b.dataset.vlang; show(true); }); });
+  document.querySelectorAll('a[data-video]').forEach(function (a) { a.addEventListener('click', function () { state.topic = a.dataset.video; show(false); }); });
+  show(false);
+})();

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verth video stage</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--ink:#FFF3E2;--muted:#D3C8DE;--accent:#FFB45E;--line:#3E3566;--surface:#1A1736;--teal:#8FE3D6}
+*{box-sizing:border-box}
+html,body{margin:0;width:1600px;height:900px;overflow:hidden}
+body{background:linear-gradient(180deg,rgba(9,9,28,.70),rgba(9,9,28,.38) 50%,rgba(9,8,20,.62)),url(assets/bg-dusk.webp) center bottom/cover,#120F2A;color:var(--ink);font-family:"Hind",system-ui,sans-serif}
+.brand{position:absolute;left:70px;top:52px;display:flex;align-items:center;gap:14px;font-family:"Rozha One",serif;font-size:42px;letter-spacing:.03em}
+.brand svg{width:56px;height:56px;padding:8px;border-radius:12px;background:var(--accent);color:#2A1400;transform:rotate(-4deg)}
+.panel{position:absolute;left:70px;top:160px;width:var(--pw,560px);display:flex;flex-direction:column;gap:18px}
+.kicker{font-size:25px;font-weight:600;color:#FFD3A1;min-height:28px}
+h1{font-family:"Rozha One",serif;font-weight:400;font-size:var(--h1,52px);line-height:1.08;margin:0;text-wrap:balance}
+.cap{font-size:var(--capsize,25px);line-height:1.45;color:#F2EAF6;background:rgba(18,15,42,.72);border:1px solid rgba(255,180,94,.35);border-radius:18px;padding:18px 22px;min-height:120px;transition:opacity .25s}
+.cap:empty{opacity:0}
+html[lang=hi] .cap{line-height:1.6}
+.phones{position:absolute;right:70px;top:22px;display:flex;gap:34px;align-items:flex-start}
+.ph{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ph .who{font-weight:600;font-size:21px;color:#FFD3A1;background:rgba(18,15,42,.75);padding:3px 14px;border-radius:999px;border:1px solid rgba(255,180,94,.35)}
+.frame{width:410px;height:800px;border-radius:46px;padding:10px;background:#0A0818;border:1px solid #3E3566;box-shadow:0 30px 70px -20px rgba(0,0,0,.85),0 0 0 7px rgba(255,180,94,.07);overflow:hidden;position:relative}
+.frame iframe{width:390px;height:780px;border:0;border-radius:36px;background:#120F2A;display:block}
+.ripple{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:4px solid rgba(255,196,110,.95);background:rgba(255,180,94,.28);pointer-events:none;z-index:50;animation:rip .6s ease-out forwards}
+@keyframes rip{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.25);opacity:0}}
+.bubble{position:absolute;z-index:40;width:400px;background:#ECE5DD;color:#111;border-radius:16px;box-shadow:0 24px 50px -16px rgba(0,0,0,.8);overflow:hidden;font-size:20px;line-height:1.4;transform:translateY(16px) scale(.96);opacity:0;transition:all .45s cubic-bezier(.2,.8,.2,1)}
+.bubble.show{transform:none;opacity:1}
+.bubble .hd{background:#075E54;color:#fff;padding:10px 14px;font-weight:600;font-size:16px;display:flex;gap:10px;align-items:center}
+.bubble .hd i{width:30px;height:30px;border-radius:50%;background:#9DB8B4;display:grid;place-items:center;font-style:normal;color:#063;font-weight:700}
+.bubble .bd{margin:12px;background:#fff;border-radius:10px;padding:10px 12px}
+.bubble .bd small{display:block;color:#888;font-size:13px;margin-top:4px;text-align:right}
+.bubble .warn{color:#B3261E;font-size:14px;font-weight:600;padding:0 14px 12px}
+.cover{position:absolute;inset:0;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;background:linear-gradient(180deg,rgba(9,9,28,.82),rgba(9,9,28,.55) 55%,rgba(9,8,20,.75)),url(assets/bg-dusk.webp) center bottom/cover;transition:opacity .6s}
+.cover.hide{opacity:0;pointer-events:none}
+.cover svg{width:104px;height:104px;padding:14px;border-radius:22px;background:var(--accent);color:#2A1400;transform:rotate(-4deg)}
+.cover h2{font-family:"Rozha One",serif;font-weight:400;font-size:84px;margin:0;line-height:1.05}
+.cover p{font-size:34px;color:#FFD3A1;margin:0;max-width:1150px}
+.cover .url{font-size:32px;color:var(--ink);background:rgba(18,15,42,.7);border:1px solid rgba(255,180,94,.45);padding:8px 22px;border-radius:999px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>Verth</div>
+<div class="panel"><div class="kicker" id="kicker"></div><h1 id="title"></h1><div class="cap" id="cap"></div></div>
+<div class="phones" id="phones"></div>
+<div class="bubble" id="bubble"></div>
+<div class="cover" id="cover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><h2 id="cover-h"></h2><p id="cover-p"></p><span class="url" id="cover-u" hidden></span></div>
+<script>
+const q = new URLSearchParams(location.search);
+document.documentElement.lang = q.get('lang') || 'en';
+// phones: "name|label|scale,name|label|scale"
+const phones = (q.get('phones') || 'a|Phone|0.78').split(',').map((p) => p.split('|'));
+document.getElementById('phones').innerHTML = phones.map(([name, label, s]) =>
+  `<div class="ph"><span class="who">${label}</span><div class="frame" style="--s:${s}"><iframe name="${name}" src="app.html?emu" allow="clipboard-read; clipboard-write"></iframe></div></div>`).join('');
+if (q.get('pw')) document.documentElement.style.setProperty('--pw', q.get('pw') + 'px');
+if (q.get('h1')) document.documentElement.style.setProperty('--h1', q.get('h1') + 'px');
+if (q.get('capsize')) document.documentElement.style.setProperty('--capsize', q.get('capsize') + 'px');
+window.stage = {
+  scene(kicker, title, cap) {
+    document.getElementById('kicker').textContent = kicker || '';
+    document.getElementById('title').textContent = title || '';
+    document.getElementById('cap').textContent = cap || '';
+  },
+  ripple(x, y) {
+    const r = document.createElement('div'); r.className = 'ripple'; r.style.left = x + 'px'; r.style.top = y + 'px';
+    document.body.appendChild(r); setTimeout(() => r.remove(), 700);
+  },
+  bubble(html, x, y) {
+    const b = document.getElementById('bubble');
+    if (!html) { b.classList.remove('show'); return; }
+    b.innerHTML = html; b.style.left = x + 'px'; b.style.top = y + 'px';
+    requestAnimationFrame(() => b.classList.add('show'));
+  },
+  cover(show, h, p, url) {
+    const c = document.getElementById('cover');
+    if (h !== undefined) document.getElementById('cover-h').textContent = h;
+    if (p !== undefined) document.getElementById('cover-p').textContent = p;
+    const u = document.getElementById('cover-u'); u.hidden = !url; u.textContent = url || '';
+    c.classList.toggle('hide', !show);
+  },
+};
+</script>
+</body>
+</html>

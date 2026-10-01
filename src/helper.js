@@ -33,8 +33,14 @@ export const TOPICS = [
   },
   {
     id: 'circle', q: 'How do I set up my family or team?',
-    keys: ['create circle', 'new circle', 'make circle', 'family circle', 'set up family', 'setup family', 'organisation', 'organization', 'office', 'company team', 'team setup', 'add family', 'add members', 'add people', 'invite', 'invite code', 'share code', 'parivar', 'add', 'mom', 'mother', 'father', 'dad', 'papa', 'mummy', 'parents', 'wife', 'husband', 'grandparents', 'employee', 'employees', 'colleague', 'staff'],
+    keys: ['create circle', 'new circle', 'make circle', 'family circle', 'set up family', 'setup family', 'team setup', 'add family', 'add members', 'add people', 'invite', 'invite code', 'share code', 'parivar', 'add', 'mom', 'mother', 'father', 'dad', 'papa', 'mummy', 'parents', 'wife', 'husband', 'grandparents', 'employee', 'employees', 'colleague', 'staff'],
     a: 'A circle is your family or team on Verth.\n• Create one: choose “Family circle” or “Organisation” and give it a name.\n• Invite: open the Circle tab and share the 8-character invite code (for example in your family WhatsApp group).\n• Approve: each person who uses the code waits until you approve them in the Circle tab. This stops strangers who get hold of the code.\n• Free circles hold up to 5 people.',
+    go: [['Open Circle', 'circle']],
+  },
+  {
+    id: 'org', q: 'How do employees join my organisation?',
+    keys: ['employee', 'employees', 'staff join', 'team join', 'organisation join', 'organization join', 'company', 'office', 'link employees', 'add employees', 'add staff', 'how employee', 'colleagues', 'my team', 'business', 'company account'],
+    a: 'For a company or office:\n• Admin: sign up, choose My organisation and type the company name. You get an 8-character invite code.\n• Admin: open the Circle tab, tap Copy invite message, and send it to your office WhatsApp group or email.\n• Each employee: open the link, sign in, tap I have an invite code, and enter the code with their role (like Accounts).\n• Admin: approve each person in the Circle tab. Nobody gets in without approval.\n• Free for up to 5 people; the Team plan is ₹99 per person per month.',
     go: [['Open Circle', 'circle']],
   },
   {
@@ -181,6 +187,7 @@ const START = [
   ['🔗 Someone sent me a link', 'scan-link'],
   ['💸 Someone I know is asking for money', 'ask:verify'],
   ['😟 I already lost money', 'ask:lost'],
+  ['🏢 Set up Verth for my office', 'ask:org'],
   ['❓ How do I use Verth?', 'ask:howto'],
 ];
 

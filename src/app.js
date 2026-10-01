@@ -523,7 +523,12 @@ function viewGuide() {
       <li><b>HR and payroll</b><span>An employee emails asking to change their salary account. Verify with the employee.</span></li>
       <li><b>IT help desk</b><span>A caller wants a password or MFA reset. Ask for their Verth code.</span></li>
       <li><b>Vendor payments</b><span>A supplier sends “new bank details”. Verify with the colleague who owns that supplier.</span></li></ul>
-    <h3>Set it up in your office</h3><ol class="how small-how"><li>Create an organisation circle.</li><li>Share the invite code with finance, HR, IT and managers, and approve each person.</li><li>Agree one rule: <b>no Verth check, no payment</b> above an amount you choose.</li></ol></section>`;
+    <h3>How your team joins</h3><ol class="how small-how">
+      <li><b>Admin:</b> create an organisation circle (you did this if you see the Circle tab as admin).</li>
+      <li><b>Admin:</b> in the Circle tab, tap <b>Copy invite message</b> and send it to your office WhatsApp group or by email.</li>
+      <li><b>Each employee:</b> opens the link, signs in, taps <b>I have an invite code</b>, enters the code and their role (like “Accounts”).</li>
+      <li><b>Admin:</b> approve each person in the Circle tab. Nobody gets in without your approval.</li>
+      <li><b>Everyone:</b> agree one rule: <b>no Verth check, no payment</b> above an amount you choose.</li></ol></section>`;
   const home = `<section class="card"><h2>For families and households</h2><ul class="cases">
       <li><b>“New number” scams</b><span>“Hi Papa, this is my new number, send ₹20,000.” Verify with your son before paying.</span></li>
       <li><b>“Digital arrest” calls</b><span>A fake officer says a relative is in trouble. Check with that relative, or ask for their code.</span></li>

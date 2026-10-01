@@ -86,10 +86,18 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
 
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 @media (max-width:880px){.steps{grid-template-columns:1fr}}
+.join-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.join-steps .tile .n{font-family:var(--display);font-size:52px;line-height:.8;color:var(--accent)}
+.join-steps .tile p{font-size:15px}
 .steps .tile .n{font-family:var(--display);font-weight:900;font-size:64px;line-height:.8;color:var(--accent)}
 
 .video-wrap{position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--line);background:#05070D;box-shadow:0 40px 80px -40px rgba(0,0,0,.9);aspect-ratio:16/9;max-width:100%}
 .video-wrap video{width:100%;height:100%;display:block;object-fit:cover}
+.vpick{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg2{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:rgba(26,23,54,.8);border:1px solid var(--line)}
+.seg2 button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;font-size:16px;padding:9px 18px;border-radius:999px;min-height:42px}
+.seg2 button.on{background:linear-gradient(180deg,#FFC277,#F59E2E);color:var(--accent-ink)}
+.seg2 button[lang=hi]{font-size:17px}
 .video-note{font-size:16px;color:#FFD3A1;align-self:flex-end}
 
 .usecol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
@@ -238,11 +246,35 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
     <div class="tile"><h3>On a live call? Ask for their Verth code</h3><p>Each pair of people shares a 6-digit code that changes every 30 seconds, like Google Authenticator. A deepfake can copy a face and a voice, but not a code on someone else’s phone.</p></div>
   </section>
 
+  <section class="band" id="teams" aria-labelledby="teams-h">
+    <span class="eyebrow-l">For organisations</span>
+    <h2 id="teams-h">How your team joins Verth</h2>
+    <p class="intro">One person sets it up, everyone else joins with a code, and nobody gets in without the admin’s approval. It takes about five minutes for a whole office.</p>
+    <ol class="join-steps">
+      <li class="tile"><span class="n">1</span><h3>Create your organisation</h3><p>The admin (owner, finance head or HR) signs up, taps <b>My organisation</b> and types the company name. Verth gives a private 8-character invite code, like <span class="mono">FXP4-HT24</span>.</p></li>
+      <li class="tile"><span class="n">2</span><h3>Share the code</h3><p>In the <b>Circle</b> tab, tap <b>Copy invite message</b> and send it to the office WhatsApp group or by email. It has the link and the code.</p></li>
+      <li class="tile"><span class="n">3</span><h3>Employees join</h3><p>Each person opens the link, signs in, taps <b>I have an invite code</b>, and enters it with their role, like “Accounts”. Verth links their account to their own phone.</p></li>
+      <li class="tile"><span class="n">4</span><h3>The admin approves</h3><p>The admin sees who asked to join and taps <b>Approve</b> for each person. A leaked code alone can’t get anyone in.</p></li>
+      <li class="tile"><span class="n">5</span><h3>Agree one rule</h3><p><b>No Verth check, no payment</b> above an amount you choose. Remove people who leave, and change the code any time.</p></li>
+    </ol>
+    <div class="cta" style="margin-top:0"><a class="btn primary" href="app.html?mode=signup">Set up your organisation free</a><a class="btn ghost" href="#demo" data-video="org">Watch the organisation demo</a></div>
+  </section>
+
   <section class="band" id="demo" aria-labelledby="demo-h">
-    <span class="eyebrow-l">Demo</span>
-    <h2 id="demo-h">See it in two minutes</h2>
-    <div class="video-wrap"><video id="demo-video" controls preload="metadata" playsinline poster="assets/verth-demo-poster.jpg" src="assets/verth-demo.mp4"><a href="assets/verth-demo.mp4">Watch the Verth demo video</a></video></div>
-    <p class="video-note">turn the sound on, there’s a voice-over ↑</p>
+    <span class="eyebrow-l">Demo videos</span>
+    <h2 id="demo-h">See Verth in about a minute</h2>
+    <div class="vpick">
+      <div class="seg2" role="group" aria-label="Choose a video">
+        <button type="button" class="on" data-vtopic="scam" aria-pressed="true">Scam check</button>
+        <button type="button" data-vtopic="org" aria-pressed="false">For organisations</button>
+      </div>
+      <div class="seg2" role="group" aria-label="Choose a language">
+        <button type="button" class="on" data-vlang="en" aria-pressed="true" lang="en">English</button>
+        <button type="button" data-vlang="hi" aria-pressed="false" lang="hi">हिन्दी</button>
+      </div>
+    </div>
+    <div class="video-wrap"><video id="demo-video" controls preload="metadata" playsinline poster="assets/videos/verth-scam-en.jpg" src="assets/videos/verth-scam-en.mp4"><a href="assets/videos/verth-scam-en.mp4">Watch the Verth demo video</a></video></div>
+    <p class="video-note" id="video-note">Scam check, in English · turn the sound on</p>
     <div class="cta" style="margin-top:0"><a class="btn ghost" href="demo.html">Or try the clickable demo, no sign-up</a></div>
   </section>
 
