@@ -12,3 +12,11 @@
   // The demo video has its own voice-over, so pause the soundtrack while it plays.
   if (video) video.addEventListener('play', function () { if (!audio.paused) { audio.pause(); set(false); } });
 })();
+
+// "Install Verth" button (Android Chrome and desktop Chrome/Edge).
+(function () {
+  var btn = document.getElementById('install-btn'), deferred = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; if (btn) btn.hidden = false; });
+  if (btn) btn.addEventListener('click', function () { if (!deferred) return; deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; btn.hidden = true; }); });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+})();

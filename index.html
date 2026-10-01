@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23FFB224%27/%3E%3Cpath d=%27M12 4.5l6 2.6v4.3c0 3.8-2.6 7-6 8.6-3.4-1.6-6-4.8-6-8.6V7.1z%27 fill=%27none%27 stroke=%27%231B1204%27 stroke-width=%271.8%27/%3E%3Cpath d=%27M9.2 12l2 2 3.6-4%27 fill=%27none%27 stroke=%27%231B1204%27 stroke-width=%271.8%27/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Verth checks suspicious messages, links and phone numbers, and asks the real person on their own phone before you pay, change bank details or share an OTP.">
 <meta name="theme-color" content="#0B0E18">
@@ -71,9 +73,9 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
 .pasted u{text-decoration-color:#E0453C;text-decoration-thickness:2px}
 
 /* wall of scams */
-.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:34px 26px;padding-top:12px}
+.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:34px 26px;padding-top:12px}
 .wall .paper{position:relative;left:auto;top:auto;width:auto}
-.wall .paper:nth-child(2){transform:rotate(3deg)} .wall .paper:nth-child(3){transform:rotate(-2deg)} .wall .paper:nth-child(4){transform:rotate(4deg)} .wall .paper:nth-child(5){transform:rotate(-4deg)}
+.wall .paper:nth-child(2){transform:rotate(3deg)} .wall .paper:nth-child(3){transform:rotate(-2deg)} .wall .paper:nth-child(4){transform:rotate(4deg)} .wall .paper:nth-child(5){transform:rotate(-4deg)} .wall .paper:nth-child(6){transform:rotate(2deg)}
 .wall .scribble{display:block;font-family:var(--hand);font-size:18px;color:#C2382F;margin-top:10px;line-height:1.2}
 
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
@@ -104,6 +106,13 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
 .faq details{background:rgba(20,26,40,.88);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
 .faq summary{font-weight:600;cursor:pointer}
 .faq details p{color:var(--muted);margin-top:8px}
+.story .letter{max-width:760px;background:#F4EEDC;color:#23201A;border-radius:4px;padding:34px 38px 30px;transform:rotate(-.6deg);box-shadow:0 30px 60px -30px rgba(0,0,0,.8);position:relative;display:flex;flex-direction:column;gap:14px}
+.story .letter::before{content:"";position:absolute;top:-12px;left:60px;width:110px;height:26px;background:rgba(255,236,180,.6);transform:rotate(-4deg)}
+.story h2{font-size:clamp(30px,4.4vw,48px);color:#23201A}
+.story p{font-size:17px;line-height:1.6;max-width:62ch}
+.story .sign{font-family:var(--hand);font-size:28px;color:#C2382F;transform:rotate(-3deg);align-self:flex-start}
+.plainol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.plainol b{color:var(--ink)}
 .footer{border-top:1px solid var(--line);padding-block:30px 44px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:14px;align-items:center}
 .footer .sig{font-family:var(--hand);font-size:22px;color:var(--ink)}
 .footer a{color:var(--accent)}
@@ -115,6 +124,7 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
     <a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>VERTH</span></a>
     <nav class="links" aria-label="Main">
       <a href="#scam-check">Scam check</a>
+      <a href="#job-check">Job offers</a>
       <a href="#how">How it works</a>
       <a href="#demo">Demo</a>
       <a href="#plans">Plans</a>
@@ -149,6 +159,17 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
     </div>
   </section>
 
+  <section class="band story" aria-labelledby="story-h">
+    <span class="eyebrow-l">Why I built Verth</span>
+    <div class="letter">
+      <h2 id="story-h">I paid ₹1,500 to a company that didn’t exist.</h2>
+      <p>One day an email told me I’d been selected for an online exam with a well-known company. The website looked exactly like the real one: same logo, same colours, same careers page. To “confirm my exam slot” they asked for ₹1,500. It looked genuine, so I paid.</p>
+      <p>There was no exam, and there was no job. The company was fake, and so was the website.</p>
+      <p>I work in cybersecurity, and it still happened to me. That’s why I built Verth: so the next student or job-seeker can check an offer in seconds, before they pay anyone anything.</p>
+      <p class="sign">— Umesh</p>
+    </div>
+  </section>
+
   <section class="band" id="scam-check" aria-labelledby="sc-h">
     <span class="eyebrow-l">New · Scam check</span>
     <h2 id="sc-h">Got a weird SMS, email or call? Paste it.</h2>
@@ -168,6 +189,25 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
     <div class="cta" style="margin-top:0"><a class="btn primary" href="app.html?mode=signup">Check a message free</a><span class="muted">2 checks a day free · unlimited from ₹29/month</span></div>
   </section>
 
+  <section class="band" id="job-check" aria-labelledby="job-h">
+    <span class="eyebrow-l">New · Job & exam offer check</span>
+    <h2 id="job-h">Got a job or exam offer? Check the company first.</h2>
+    <p class="intro">Paste the email or message and tell Verth which company it claims to be from. It checks whether the email really came from that company, spots look-alike websites, and flags the trap that caught me: <b>real employers never charge you for an exam, interview, training or laptop.</b> TCS and Infosys both say so publicly.</p>
+    <div class="scanner">
+      <div class="pasted"><span class="tape"></span><span class="from">From: TCS Recruitment &lt;hr.tcs.careers@gmail.com&gt;</span>Congratulations! You have been shortlisted for the TCS online exam. To confirm your exam slot, pay the <u>refundable exam fee of ₹1,500</u> within 24 hours: <u>tcs-careers-india.in/slot</u></div>
+      <div class="result verdict bad">
+        <div class="split"><div class="state-icon bad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="meter"><span style="width:96%"></span></div></div>
+        <h2>High risk: this looks like a scam</h2>
+        <ul class="flags">
+          <li class="lv3"><b>Asks you to pay for a job, exam, interview or training</b><span>Real employers never charge candidates.</span></li>
+          <li class="lv3"><b>Recruiter uses a free email address</b><span>Real TCS recruitment emails come only from @tcs.com.</span></li>
+          <li class="lv3"><b>Look-alike TCS website: tcs-careers-india.in</b><span>Copying a real website is easy; the address gives it away.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="cta" style="margin-top:0"><a class="btn primary" href="app.html?mode=signup">Check an offer free</a><span class="muted">Works for TCS, Infosys, Wipro, Accenture, Cognizant, HCLTech, banks and more</span></div>
+  </section>
+
   <section class="band" aria-labelledby="wall-h">
     <span class="eyebrow-l">The problem</span>
     <h2 id="wall-h">Scammers can copy everything except the real phone</h2>
@@ -175,6 +215,7 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
       <div class="paper"><span class="tape"></span><b>WhatsApp · +92 30•• ••••••</b>This is CBI. Your Aadhaar is linked to money laundering. Stay on video call, you are under digital arrest.<span class="scribble">real police never do this ✗</span></div>
       <div class="paper"><span class="tape"></span><b>SMS · 98••• •••21</b>Hi Papa, this is my new number. Phone broke. Please send ₹20,000 urgently, will explain later.<span class="scribble">call his old number first!</span></div>
       <div class="paper"><span class="tape"></span><b>Call · “Bank support”</b>Sir, to stop this transaction please share the OTP you just received.<span class="scribble">NO bank asks for OTP</span></div>
+      <div class="paper"><span class="tape"></span><b>Email · hr.tcs.careers@gmail.com</b>Congratulations! Shortlisted for online exam. Pay ₹1,500 exam fee to confirm your slot.<span class="scribble">real companies never charge!</span></div>
       <div class="paper"><span class="tape"></span><b>Telegram · “HR Riya”</b>Part-time job! Earn ₹3,000 daily rating hotels. Small registration fee only.<span class="scribble">you pay them = scam</span></div>
       <div class="paper"><span class="tape"></span><b>SMS · AD-ELCBIL</b>Your electricity will be disconnected tonight at 9:30 pm. Call 98•••••••• immediately.<span class="scribble">utilities don’t text threats</span></div>
     </div>
@@ -197,6 +238,18 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
     <div class="video-wrap"><video id="demo-video" controls preload="metadata" playsinline poster="assets/verth-demo-poster.jpg" src="assets/verth-demo.mp4"><a href="assets/verth-demo.mp4">Watch the Verth demo video</a></video></div>
     <p class="video-note">turn the sound on, there’s a voice-over ↑</p>
     <div class="cta" style="margin-top:0"><a class="btn ghost" href="demo.html">Or try the clickable demo, no sign-up</a></div>
+  </section>
+
+  <section class="band" id="install" aria-labelledby="inst-h">
+    <span class="eyebrow-l">On your phone</span>
+    <h2 id="inst-h">Put Verth on your home screen</h2>
+    <p class="intro">Install Verth like an app. On Android you can then share any SMS, WhatsApp message, email or link straight to Verth from the app you’re in.</p>
+    <div class="grid2">
+      <div class="tile"><h3>Android (Chrome)</h3><ol class="plainol"><li>Open <b>umeshdk22.github.io/verth</b> in Chrome.</li><li>Tap <b>Install Verth</b> below, or the <b>⋮ menu → Install app</b>.</li><li>In WhatsApp, Messages or Gmail, long-press a message → <b>Share → Verth</b>. It opens ready to check.</li></ol>
+        <button class="btn primary" id="install-btn" type="button" hidden>Install Verth</button></div>
+      <div class="tile"><h3>iPhone (Safari)</h3><ol class="plainol"><li>Open <b>umeshdk22.github.io/verth</b> in Safari.</li><li>Tap <b>Share → Add to Home Screen</b>.</li><li>To check something, copy it and paste it into Verth’s Scam check.</li></ol>
+        <p class="muted small">iPhone doesn’t let websites appear in the share menu yet.</p></div>
+    </div>
   </section>
 
   <section class="band" aria-labelledby="uses-h">
@@ -256,6 +309,7 @@ section.band{padding-block:64px;display:flex;flex-direction:column;gap:26px}
     <div class="faq">
       <details><summary>Does Verth read my WhatsApp, SMS, calls or email?</summary><p>No. Verth never connects to your messages. You paste what you want checked, and the check runs on your own device.</p></details>
       <details><summary>Can Scam check be wrong?</summary><p>Yes. It explains red flags it can see, but no tool catches every scam, and “no red flags” doesn’t prove something is safe. If a message asks for money, codes or personal details, check with the real person or company first.</p></details>
+      <details><summary>Can Verth tell me if a job offer is real?</summary><p>It checks the warning signs: whether the email really came from the company’s own domain, look-alike websites, requests for money, WhatsApp interviews and requests for documents. It can’t see inside a company, so always confirm the job on the company’s official Careers page too.</p></details>
       <details><summary>Does the other person need Verth too?</summary><p>For verification checks, yes: they go only to people in your circle, on the phone where they’re signed in. Scam check works on its own.</p></details>
       <details><summary>What if they don’t answer?</summary><p>A check expires after 3 minutes. No answer means don’t act. Reach them another way you already trust.</p></details>
       <details><summary>Is my data safe?</summary><p>Answers are signed by a key that never leaves the person’s phone, new members need admin approval, and the log can’t be edited or deleted. Scam reports store only a scrambled fingerprint, never what you pasted. Read the full <a href="https://github.com/Umeshdk22/verth/blob/main/SECURITY.md" style="color:var(--accent)">security notes</a>.</p></details>

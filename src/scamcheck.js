@@ -283,6 +283,106 @@ export function checkMessage(input) {
   return { kind: 'message', verdict: verdict(score, flags), score, flags, good, links, phones, normalized };
 }
 
+/* ---------- job and exam offers ---------- */
+// Official recruitment domains of large employers in India. Their recruiters write only from these.
+export const COMPANIES = {
+  'TCS (Tata Consultancy Services)': { domains: ['tcs.com', 'tcsion.com'], site: 'tcs.com', words: ['tcs', 'tata consultancy'] },
+  'Infosys': { domains: ['infosys.com', 'infosysbpm.com'], site: 'infosys.com', words: ['infosys'] },
+  'Wipro': { domains: ['wipro.com'], site: 'wipro.com', words: ['wipro'] },
+  'HCLTech': { domains: ['hcltech.com', 'hcl.com'], site: 'hcltech.com', words: ['hcltech', 'hcl technologies', 'hcl'] },
+  'Tech Mahindra': { domains: ['techmahindra.com'], site: 'techmahindra.com', words: ['tech mahindra', 'techmahindra'] },
+  'Accenture': { domains: ['accenture.com'], site: 'accenture.com', words: ['accenture'] },
+  'Cognizant': { domains: ['cognizant.com'], site: 'cognizant.com', words: ['cognizant'] },
+  'Capgemini': { domains: ['capgemini.com'], site: 'capgemini.com', words: ['capgemini'] },
+  'LTIMindtree': { domains: ['ltimindtree.com'], site: 'ltimindtree.com', words: ['ltimindtree', 'lti mindtree'] },
+  'IBM': { domains: ['ibm.com'], site: 'ibm.com', words: ['ibm'] },
+  'Deloitte': { domains: ['deloitte.com'], site: 'deloitte.com', words: ['deloitte'] },
+  'KPMG': { domains: ['kpmg.com'], site: 'kpmg.com', words: ['kpmg'] },
+  'EY': { domains: ['ey.com'], site: 'ey.com', words: ['ernst & young', 'ernst and young'] },
+  'PwC': { domains: ['pwc.com', 'pwc.in'], site: 'pwc.in', words: ['pwc', 'pricewaterhouse'] },
+  'Genpact': { domains: ['genpact.com'], site: 'genpact.com', words: ['genpact'] },
+  'Mphasis': { domains: ['mphasis.com'], site: 'mphasis.com', words: ['mphasis'] },
+  'Oracle': { domains: ['oracle.com'], site: 'oracle.com', words: ['oracle'] },
+  'Zoho': { domains: ['zohocorp.com', 'zoho.com'], site: 'zoho.com', words: ['zoho'] },
+  'Amazon': { domains: ['amazon.com', 'amazon.in', 'amazon.jobs'], site: 'amazon.jobs', words: ['amazon'] },
+  'Google': { domains: ['google.com'], site: 'google.com', words: ['google'] },
+  'Microsoft': { domains: ['microsoft.com'], site: 'microsoft.com', words: ['microsoft'] },
+  'Flipkart': { domains: ['flipkart.com'], site: 'flipkart.com', words: ['flipkart'] },
+  'HDFC Bank': { domains: ['hdfcbank.com'], site: 'hdfcbank.com', words: ['hdfc bank', 'hdfc'] },
+  'ICICI Bank': { domains: ['icicibank.com'], site: 'icicibank.com', words: ['icici'] },
+  'Airtel': { domains: ['airtel.com', 'airtel.in'], site: 'airtel.in', words: ['airtel'] },
+  'Reliance / Jio': { domains: ['ril.com', 'jio.com'], site: 'ril.com', words: ['reliance', 'jio'] },
+};
+const FREE_MAIL = /@(gmail|googlemail|yahoo|ymail|outlook|hotmail|live|rediffmail|rediff|proton|protonmail|aol|zoho\.in|yandex|mail)\.(com|in|co\.in|me)\b/i;
+const GOV_EXAM = /\b(ssc|upsc|ibps|rrb|railway\s+recruitment|nta|public\s+service\s+commission|psc|sbi\s+po|government\s+(job|exam|recruitment)|sarkari)\b/i;
+const officialFor = (dom, c) => c.domains.some((d) => dom === d || dom.endsWith('.' + d));
+const wordRe = (w) => new RegExp('(^|[^a-z])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+') + '([^a-z]|$)', 'i');
+
+export function findCompany(text, claimed) {
+  const t = String(claimed || '').trim().toLowerCase();
+  if (t) {
+    for (const [name, c] of Object.entries(COMPANIES)) if (name.toLowerCase().includes(t) || c.words.some((w) => t.includes(w) || w.includes(t) && t.length >= 3)) return { name, ...c };
+  }
+  const body = String(text || '');
+  for (const [name, c] of Object.entries(COMPANIES)) if (c.words.some((w) => wordRe(w).test(body))) return { name, ...c };
+  return null;
+}
+
+export function checkJob(input, claimed = '') {
+  const text = String(input || '');
+  const base = checkMessage(text);
+  const flags = [...base.flags], good = [...base.good];
+  const add = (level, title, why) => { if (!flags.some((f) => f.title === title)) flags.push(flag(level, title, why)); };
+  const company = findCompany(text, claimed);
+  const gov = GOV_EXAM.test(text);
+
+  // 1. Money for a job, exam, interview or training.
+  const fee = /((pay|deposit|transfer|fee|fees|charges?|amount|rs\.?|₹|inr)\W+(\w+\W+){0,8}(exam|test|assessment|interview|training|registration|onboarding|joining|laptop|kit|id\s*card|uniform|background\s*verification|bgv|document\s*verification|security\s*deposit|refundable|slot|seat|offer\s*letter|appointment\s*letter))|((exam|test|assessment|interview|training|registration|joining|onboarding|laptop|security|refundable|slot|seat|processing)\s*(fee|fees|charges?|deposit|amount))/i;
+  if (fee.test(text)) {
+    if (gov) add(MED, 'Asks for an exam fee', 'Government exam fees are paid only on the official .gov.in or .nic.in portal, never by UPI to a person or through a link in a message.');
+    else add(HIGH, 'Asks you to pay for a job, exam, interview or training', 'Real employers never charge candidates. TCS and Infosys both state publicly that they never ask for any fee or deposit at any stage of hiring.');
+  }
+  // 2. Who really sent it.
+  const emails = [...new Set((text.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi) || []).map((e) => e.toLowerCase()))];
+  const fromLine = (text.match(/^\s*from:\s*(.*)$/im) || [])[1] || '';
+  const sender = ((fromLine.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i) || [])[0] || '').toLowerCase();
+  const free = emails.filter((e) => FREE_MAIL.test(e));
+  if (free.length) add(HIGH, `Recruiter uses a free email address (${free[0]})`, 'Real companies hire from their own domain. TCS, for example, says it never recruits from Gmail, Yahoo, Rediffmail or Hotmail.');
+  if (company) {
+    const wrong = emails.filter((e) => !FREE_MAIL.test(e) && !officialFor(e.split('@')[1], company));
+    if (wrong.length) add(HIGH, `Email isn’t from ${company.name}`, `${wrong[0].split('@')[1]} is not a ${company.name} domain. Real ${company.name} recruitment emails come only from ${company.domains.map((d) => '@' + d).join(' or ')}.`);
+    if (sender && officialFor(sender.split('@')[1], company) && !wrong.length && !free.length) good.push(`Sent from an official ${company.name} address. The “From” line can still be faked, so confirm the offer on ${company.site} yourself.`);
+    for (const l of base.links) {
+      const h = l.host || '';
+      if (!h) continue;
+      if (officialFor(h, company)) { good.push(`Link to ${h} is an official ${company.name} website.`); continue; }
+      const hostWords = h.replace(/[^a-z0-9.-]/g, '').split(/[.-]/).join(' ');
+      if (company.words.some((w) => wordRe(w.replace(/\s+/g, '')).test(hostWords) || hostWords.includes(w.replace(/\s+/g, '')))) {
+        add(HIGH, `Look-alike ${company.name} website: ${h}`, `It uses the ${company.name} name but isn’t on ${company.domains.join(' or ')}. Copying a real company’s website is easy; the address is what gives it away.`);
+      }
+    }
+  } else if (emails.length && !free.length && sender) {
+    good.push(`Sent from ${sender.split('@')[1]}. Check that this is the company’s real website before you reply.`);
+  }
+  // 3. Other hiring red flags.
+  if (/(you\s+(have\s+been|are|were)\s+(selected|shortlisted)|congratulations.{0,60}(selected|shortlisted|offer)|offer\s+letter.{0,40}(attached|issued))/i.test(text) && !/interview(ed)?\s+(on|with|held|round)/i.test(text)) {
+    add(MED, '“Selected” without a real interview', 'Genuine offers follow tests and interviews you actually attended. A surprise selection for a job or exam you don’t remember applying to is a classic trap.');
+  }
+  if (/(whatsapp|telegram|signal|google\s+chat|hangouts)\W+(\w+\W+){0,4}(interview|hr|recruit|onboard)|(interview|hr|recruit)\W+(\w+\W+){0,4}(on|via|over)\s+(whatsapp|telegram|signal)/i.test(text)) {
+    add(MED, 'Interview or HR on WhatsApp or Telegram', 'Large companies don’t interview or onboard through chat apps. Scammers use them because they’re anonymous.');
+  }
+  if (/(send|share|upload|submit)\W+(\w+\W+){0,6}(aadhaa?r|pan\s*card|bank\s*(details|statement|passbook|account)|cancelled\s*cheque|passport)/i.test(text)) {
+    add(MED, 'Asks for ID or bank documents up front', 'Your Aadhaar, PAN and bank details can be misused for loans and fraud. Share them only after a verified offer, on the company’s official portal.');
+  }
+  if (/no\s+(experience|interview)\s+(needed|required)|(\d{2,3})\s*(lpa|lakhs?\s+per\s+annum)|earn\s+(up\s+to\s+)?(rs\.?|₹)\s?\d/i.test(text)) {
+    add(LOW, 'Sounds too good to be true', 'High pay with no experience or interview is how fake job offers hook people.');
+  }
+  if (flags.some((f) => f.level === HIGH)) { const keep = good.filter((g) => !/official/i.test(g)); good.length = 0; good.push(...keep); }
+
+  const score = flags.reduce((a, f) => a + f.level, 0);
+  return { ...base, kind: 'job', verdict: verdict(score, flags), score, flags, good, company: company ? { name: company.name, domains: company.domains, site: company.site } : null, gov };
+}
+
 export function detectKind(text) {
   const t = String(text || '').trim();
   if (/^[+\d][\d\s()-]{7,}$/.test(t)) return 'phone';
@@ -290,9 +390,16 @@ export function detectKind(text) {
   return 'message';
 }
 
-export function check(kind, text) {
-  return kind === 'link' ? checkLink(text) : kind === 'phone' ? checkPhone(text) : checkMessage(text);
+export function check(kind, text, extra) {
+  return kind === 'link' ? checkLink(text) : kind === 'phone' ? checkPhone(text) : kind === 'job' ? checkJob(text, extra) : checkMessage(text);
 }
+
+export const JOB_ADVICE = [
+  'Never pay to get a job, exam slot, interview, training, laptop or ID card. Real employers don’t charge candidates.',
+  'Go to the company’s official website yourself (type it, don’t click the link) and look for the job on its Careers page.',
+  'Many companies, including TCS and Infosys, let you verify an offer letter on their official site.',
+  'Already paid? Call 1930 or report at cybercrime.gov.in straight away, and tell your bank.',
+];
 
 export const ADVICE = {
   danger: ['Don’t click, reply, call back or pay.', 'Never share an OTP, PIN or password with anyone.', 'If it claims to be someone you know, check with them on Verth or their usual number.', 'Report it at sancharsaathi.gov.in (Chakshu). If you lost money, call 1930 or report at cybercrime.gov.in straight away.'],

@@ -1,7 +1,7 @@
 // Unit tests for the scam checker, using real-world style examples.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkLink, checkPhone, checkMessage, detectKind, registeredDomain, fingerprint } from '../src/scamcheck.js';
+import { checkLink, checkPhone, checkMessage, checkJob, findCompany, detectKind, registeredDomain, fingerprint } from '../src/scamcheck.js';
 
 const titles = (r) => r.flags.map((f) => f.title).join(' | ');
 
@@ -120,4 +120,44 @@ test('fingerprints are stable, private hashes', async () => {
   assert.equal(a, b);
   assert.match(a, /^[a-f0-9]{64}$/);
   assert.ok(!a.includes('9876'));
+});
+
+/* ---------- job and exam offers ---------- */
+const FAKE_EXAM = 'From: TCS Recruitment <hr.tcs.careers@gmail.com>\nSubject: Selection for TCS Online Assessment\nDear Candidate, Congratulations! You have been shortlisted for the TCS online exam. To confirm your exam slot, pay the refundable exam fee of Rs 1500 via UPI within 24 hours. Visit https://tcs-careers-india.in/slot';
+test('job: fake exam fee email (the founder’s story) is high risk with clear reasons', () => {
+  const r = checkJob(FAKE_EXAM);
+  assert.equal(r.verdict, 'danger');
+  assert.equal(r.company.name, 'TCS (Tata Consultancy Services)');
+  const t = titles(r);
+  assert.match(t, /pay for a job, exam/);
+  assert.match(t, /free email address/);
+  assert.match(t, /Look-alike TCS/);
+  assert.ok(!r.good.some((g) => /official/i.test(g)));
+});
+test('job: genuine email from the official domain stays clear', () => {
+  const r = checkJob('From: TCS Talent Acquisition <talent@tcs.com>\nDear Umesh, following your interview on 12 Sept, please find your offer letter on https://www.tcs.com/careers');
+  assert.equal(r.verdict, 'clear', titles(r));
+  assert.ok(r.good.some((g) => /official/i.test(g)));
+});
+test('job: company domain mismatch is caught even without a fee', () => {
+  const r = checkJob('From: Infosys HR <recruitment@infosys-careers.co.in>\nPlease attend your interview round tomorrow.', 'Infosys');
+  assert.equal(r.verdict, 'danger');
+  assert.match(titles(r), /isn’t from Infosys/);
+});
+test('job: task, WhatsApp interview and document requests are flagged', () => {
+  const r = checkJob('Hi, I am HR from a reputed MNC. Interview will be on WhatsApp. Send your Aadhaar and bank details to confirm. No experience needed, 12 LPA.');
+  assert.notEqual(r.verdict, 'clear');
+  const t = titles(r);
+  assert.match(t, /WhatsApp or Telegram/);
+  assert.match(t, /ID or bank documents/);
+});
+test('job: government exam fees get the official-portal advice instead of an outright scam label', () => {
+  const r = checkJob('SSC CGL 2026: complete your application and pay the exam fee before 30 October.');
+  assert.match(titles(r), /exam fee/);
+  assert.ok(!titles(r).includes('pay for a job'));
+});
+test('job: company is recognised from a typed name or from the text', () => {
+  assert.equal(findCompany('', 'infosys').name, 'Infosys');
+  assert.equal(findCompany('Offer from Wipro Limited', '').name, 'Wipro');
+  assert.equal(findCompany('Hello there', ''), null);
 });

@@ -206,7 +206,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.getByRole('heading', { name: 'You’ve used today’s free checks' }).waitFor({ timeout: 5000 * SLOW });
     await shot(B, '12-B-scan-limit');
   });
-  await step('Scan-only account: someone can sign up just to check a message', async () => {
+  await step('Scan-only account, share-to-Verth and job offer check', async () => {
     const C = await ctx.newPage();
     C.on('pageerror', (e) => errors.push('C pageerror: ' + e.message));
     await C.goto(URL);
@@ -220,6 +220,18 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.click('button:has-text("Check it")');
     await C.getByRole('heading', { name: 'No obvious red flags' }).waitFor({ timeout: 5000 * SLOW });
     await shot(C, '13-C-scan-only');
+    // A fake exam offer shared to Verth from another app (Android share sheet) opens ready to check.
+    const offer = 'From: TCS Recruitment <hr.tcs.careers@gmail.com>\nCongratulations! You have been shortlisted for the TCS online exam. Pay the refundable exam fee of Rs 1500 to confirm your slot: https://tcs-careers-india.in/slot';
+    await C.goto(URL + '&share_text=' + encodeURIComponent(offer));
+    await C.getByText('Shared to Verth.').waitFor({ timeout: 5000 * SLOW });
+    const pre = await C.locator('#s-job').inputValue();
+    if (!pre.includes('tcs-careers-india.in')) throw new Error('shared text not prefilled into the job check');
+    if (C.url().includes('share_text')) throw new Error('shared text left in the address bar');
+    await C.click('button:has-text("Check it")');
+    await C.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 5000 * SLOW });
+    await C.getByText('Asks you to pay for a job, exam, interview or training').waitFor();
+    await C.getByText('@tcs.com', { exact: false }).first().waitFor();
+    await shot(C, '14-C-job-check');
     await C.close();
   });
   await step('Home screen renders', async () => {

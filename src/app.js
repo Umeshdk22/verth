@@ -12,7 +12,7 @@ import {
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey } from './config.js';
 import { secondsLeft } from './totp.js';
-import { check, fingerprint, ADVICE } from './scamcheck.js';
+import { check, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
 import {
   deviceKeys, samePub, codeFor, checkCode, answerPayload, signAnswer, verifyAnswer, deviceLabel,
 } from './devicekeys.js';
@@ -47,12 +47,34 @@ if (CONFIGURED) {
   }
 }
 
+// Text shared to Verth from another app (Android share sheet), or a #scan shortcut.
+const SHARED = (() => {
+  const t = [params.get('share_title'), params.get('share_text'), params.get('share_url')].filter(Boolean).join('\n').trim();
+  if (t) {
+    try { sessionStorage.setItem('verth-share', t.slice(0, 6000)); } catch {}
+    const clean = new URL(location.href); ['share_title', 'share_text', 'share_url'].forEach((k) => clean.searchParams.delete(k));
+    history.replaceState(null, '', clean.pathname + clean.search + '#scan');
+  }
+  let v = '';
+  try { v = sessionStorage.getItem('verth-share') || ''; } catch {}
+  return v;
+})();
+function takeShared() {
+  if (!SHARED && location.hash !== '#scan') return false;
+  if (SHARED) {
+    const kind = /\b(exam|interview|recruit|hiring|offer\s+letter|shortlisted|selected|job|placement|internship|hr\b)/i.test(SHARED) && detectKind(SHARED) === 'message' ? 'job' : detectKind(SHARED);
+    S.prefill = { kind, text: SHARED }; S.scanKind = kind; S.scanResult = null;
+    try { sessionStorage.removeItem('verth-share'); } catch {}
+  }
+  return true;
+}
+
 const S = {
   user: null, profile: null, keys: null, circleId: null, circle: null, circles: {}, pending: [],
   members: [], checks: [], tab: 'home', tourStep: 0, verifyMode: 'push', codeFor: '',
   lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null,
   seen: new Set(), sig: new Map(), unsubs: [],
-  scanKind: 'message', scanResult: null, scanUsed: null, reports: {}, myReports: new Set(), scanOnly: false,
+  scanKind: 'message', scanResult: null, scanUsed: null, reports: {}, myReports: new Set(), scanOnly: false, prefill: null,
 };
 
 /* ---------- helpers ---------- */
@@ -537,7 +559,7 @@ const VERDICT = {
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
   const n = S.reports[r.fp] || 0, mine = S.myReports.has(r.fp);
-  const what = { link: 'link', phone: 'number', message: 'message' }[r.kind];
+  const what = { link: 'link', phone: 'number', message: 'message', job: 'offer' }[r.kind];
   return `<div class="result verdict ${cls}" id="scan-result">
     <div class="split"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
       <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div></div>
@@ -548,7 +570,9 @@ function scanResultCard(r) {
     ${r.links?.length ? `<div class="found"><b>Links found</b>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
     <div class="community">${n ? `<b>Reported as a scam by ${n} Verth ${n === 1 ? 'user' : 'users'}.</b>` : 'No Verth user has reported this yet.'}
       ${mine ? '<span class="pill bad">You reported this</span>' : `<button class="btn small" data-act="report-scam">Report this ${what} as a scam</button>`}</div>
-    <div class="advice"><b>What to do</b><ul>${ADVICE[r.verdict].map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
+    ${r.kind === 'job' && r.company ? `<div class="company"><b>${esc(r.company.name)}: the only real email addresses</b><span class="mono">${r.company.domains.map((d) => '@' + esc(d)).join('  ')}</span><span class="small">Apply and verify offers only through the Careers page on <b>${esc(r.company.site)}</b>. Type the address yourself; don’t use links in the message.</span></div>` : ''}
+    ${r.kind === 'job' && !r.company ? '<div class="company"><b>Check the company yourself</b><span class="small">Search for the company’s official website, open its Careers page, and confirm the job exists there. Their recruitment emails should come from that same website’s domain, never Gmail or Yahoo.</span></div>' : ''}
+    <div class="advice"><b>What to do</b><ul>${(r.kind === 'job' ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict]).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
       <p class="small">Report fraud calls and messages at <a href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener noreferrer">Sanchar Saathi (Chakshu)</a>. Lost money? Call <b>1930</b> or report at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">cybercrime.gov.in</a> immediately.</p></div>
     ${S.circle && r.verdict !== 'clear' ? '<button class="btn primary" data-act="goverify" data-mode="push">Ask the real person on Verth</button>' : ''}
     <button class="btn ghost" data-act="scan-again">Check something else</button>
@@ -557,16 +581,20 @@ function scanResultCard(r) {
 function viewScan() {
   const lim = scanLimit(), used = S.scanUsed ?? 0, left = lim === Infinity ? Infinity : Math.max(0, lim - used);
   const k = S.scanKind, r = S.scanResult;
-  const seg = `<div class="seg three" role="tablist">${[['message', 'Message or email'], ['link', 'Link'], ['phone', 'Phone number']].map(([id, t]) => `<button class="${k === id ? 'on' : ''}" data-act="scan-kind" data-kind="${id}" role="tab">${t}</button>`).join('')}</div>`;
+  const seg = `<div class="seg four" role="tablist">${[['message', 'Message or email'], ['job', 'Job or exam offer'], ['link', 'Link'], ['phone', 'Phone number']].map(([id, t]) => `<button class="${k === id ? 'on' : ''}" data-act="scan-kind" data-kind="${id}" role="tab">${t}</button>`).join('')}</div>`;
+  const pre = S.prefill && S.prefill.kind === k ? esc(S.prefill.text) : '';
   const field = k === 'message'
-    ? '<label>Paste the SMS, WhatsApp message or email<textarea id="s-message" rows="6" maxlength="5000" placeholder="e.g. Dear customer, your account will be blocked today. Update KYC: http://…"></textarea></label>'
-    : k === 'link' ? '<label>Paste the link<input id="s-link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2000" placeholder="e.g. sbi-kyc-update.xyz/login"></label>'
-      : '<label>Enter the phone number that called or messaged you<input id="s-phone" inputmode="tel" autocomplete="off" maxlength="25" placeholder="e.g. +91 98765 43210"></label>';
+    ? `<label>Paste the SMS, WhatsApp message or email<textarea id="s-message" rows="6" maxlength="5000" placeholder="e.g. Dear customer, your account will be blocked today. Update KYC: http://…">${pre}</textarea></label>`
+    : k === 'job' ? `<label>Paste the job, exam or interview email or message<span class="muted small">Include the “From:” line and any links if you can. That’s where fakes give themselves away.</span><textarea id="s-job" rows="7" maxlength="6000" placeholder="e.g. From: TCS Recruitment &lt;hr.tcs@gmail.com&gt; – You are shortlisted for the online exam. Pay ₹1,500 to confirm your slot…">${pre}</textarea></label>
+      <label>Which company does it claim to be from? <span class="muted small">(optional)</span><input id="s-company" list="company-list" maxlength="60" autocomplete="off" placeholder="e.g. TCS, Infosys, Wipro"></label>
+      <datalist id="company-list">${Object.keys(COMPANIES).map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>`
+    : k === 'link' ? `<label>Paste the link<input id="s-link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2000" placeholder="e.g. sbi-kyc-update.xyz/login" value="${pre}"></label>`
+      : `<label>Enter the phone number that called or messaged you<input id="s-phone" inputmode="tel" autocomplete="off" maxlength="25" placeholder="e.g. +91 98765 43210" value="${pre}"></label>`;
   const counter = lim === Infinity ? '<span class="pill ok">Unlimited</span>' : `<span class="muted small">${left} of ${lim} free checks left today</span>`;
   const limitCard = `<section class="card attention"><h2>You’ve used today’s free checks</h2>
     <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
     <button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button></section>`;
-  return `<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
+  return `${S.prefill ? '<div class="banner accent"><span><b>Shared to Verth.</b> Check it below before you reply, click or pay.</span></div>' : ''}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
       <p class="muted">Got a strange message, email, link or call? Check it here before you reply, click, call back or pay.</p>
       ${seg}
       ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary" type="submit">Check it</button></form>`}
@@ -710,7 +738,10 @@ async function afterSignIn(preferId) {
   await Promise.all([loadCircles(), loadUsage()]);
   watchPending();
   const ids = Object.keys(S.circles);
+  const wantScan = takeShared();
+  if (wantScan) S.tab = 'scan';
   if (!ids.length) {
+    if (wantScan) return renderScanOnly();
     if (S.pending.length) return renderPending();
     if (S.profile.onboarded) return renderScanOnly();
     S.tourStep = 0;
@@ -758,7 +789,7 @@ const actions = {
   'report-scam': async () => {
     const r = S.scanResult; if (!r?.fp) return;
     try {
-      await setDoc(doc(db, 'reports', r.fp, 'by', S.user.uid), { kind: r.kind, at: serverTimestamp() });
+      await setDoc(doc(db, 'reports', r.fp, 'by', S.user.uid), { kind: r.kind === 'job' ? 'message' : r.kind, at: serverTimestamp() });
       S.myReports.add(r.fp); S.reports[r.fp] = (S.reports[r.fp] || 0) + 1;
       toast('Thanks. Your report helps warn other Verth users.', 'ok'); renderScanView();
     } catch (e) { toast(friendlyError(e), 'bad'); }
@@ -872,8 +903,8 @@ async function removeMember(uid, word) {
 
 const forms = {
   scan: async (f) => {
-    const el = f.querySelector('textarea, input'), text = el.value.trim();
-    if (!text) return setErr('scan-err', S.scanKind === 'phone' ? 'Enter the phone number.' : S.scanKind === 'link' ? 'Paste the link.' : 'Paste the message first.');
+    const el = f.querySelector('textarea, input'), text = el.value.trim(); // first field is the content
+    if (!text) return setErr('scan-err', S.scanKind === 'phone' ? 'Enter the phone number.' : S.scanKind === 'link' ? 'Paste the link.' : S.scanKind === 'job' ? 'Paste the job or exam email first.' : 'Paste the message first.');
     if (scanLimit() !== Infinity && (S.scanUsed ?? 0) >= scanLimit()) { S.scanResult = null; return renderScanView(); }
     busy(f, true);
     try { await useScan(); }
@@ -882,7 +913,8 @@ const forms = {
       if (e?.code === 'permission-denied') { S.scanUsed = scanLimit(); S.scanResult = null; return renderScanView(); }
       return setErr('scan-err', friendlyError(e));
     }
-    const r = check(S.scanKind, text);
+    const r = check(S.scanKind, text, f.querySelector('#s-company')?.value || '');
+    S.prefill = null;
     r.fp = r.normalized ? await fingerprint(r.kind, r.normalized) : null;
     S.scanResult = r;
     renderScanView();
@@ -1031,10 +1063,12 @@ setInterval(() => {
 /* ---------- routing ---------- */
 function route() {
   const u = S.user;
-  if (!u) { stopListeners(); Object.assign(S, { circle: null, circleId: null, profile: null, keys: null, circles: {}, pending: [] }); return renderAuth(params.get('mode') === 'signup' ? 'signup' : 'signin'); }
+  if (!u) { stopListeners(); Object.assign(S, { circle: null, circleId: null, profile: null, keys: null, circles: {}, pending: [] }); return renderAuth(params.get('mode') === 'signup' ? 'signup' : 'signin', SHARED ? 'Sign in or create a free account, and Verth will check what you shared.' : ''); }
   if (!u.emailVerified) return renderVerifyEmail();
   afterSignIn().catch((e) => errorScreen(friendlyError(e)));
 }
+
+if ('serviceWorker' in navigator && !EMU) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 if (!CONFIGURED) renderNotConfigured();
 else onAuthStateChanged(auth, (u) => { S.user = u; route(); });

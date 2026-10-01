@@ -57,7 +57,20 @@ Paste a suspicious **SMS, WhatsApp message, email, link or phone number** and Ve
 - Checks run on the device. **Community reports** store only a SHA-256 fingerprint, never the content.
 - Free accounts get **2 checks a day**, enforced by the database rules (the counter is keyed to today's date in India time and can only go up by one).
 
-## The product (v0.2)
+## Job & exam offer check (new)
+
+Built from a real story: the founder paid ₹1,500 "exam fee" to a fake company with a look-alike website. Paste the offer email or message (and optionally the company name) and Verth checks:
+
+- **Fees for exams, interviews, training, laptops or deposits.** Real employers never charge candidates; TCS and Infosys state this publicly. Government exam fees get "pay only on the official .gov.in/.nic.in portal" advice instead.
+- **Who really sent it:** free email providers, and sender domains checked against the official recruitment domains of 25+ large employers (TCS `@tcs.com`, Infosys `@infosys.com`, Wipro, Accenture, Cognizant, HCLTech and others).
+- **Look-alike company websites** (e.g. `tcs-careers-india.in`).
+- **Other hiring red flags:** surprise "selection", WhatsApp/Telegram interviews, Aadhaar/PAN/bank documents up front, too-good-to-be-true pay.
+
+## Install on your phone
+
+Verth is an installable web app (manifest + service worker). On Android, after installing, any SMS, WhatsApp message, email or link can be sent to Verth with **Share → Verth** (Web Share Target), which opens Scam check pre-filled. Shared text is removed from the address bar immediately and never stored.
+
+## The product (v0.3)
 
 - **Landing page** (`index.html`): what Verth is, Scam check, a wall of real-world scam examples, the demo video, examples for organisations and families, guidelines, plans and FAQ. Optional piano soundtrack (never autoplays).
 - **App** (`app.html`): real accounts and real checks between people.
@@ -94,7 +107,7 @@ npm run build          # writes assets/app.js
 
 Put your Firebase web config in `src/config.js`, then serve the folder with any static server.
 
-- `npm run test:unit` runs 22 real-world scam-check examples (`test/scamcheck.test.mjs`).
+- `npm run test:unit` runs 28 real-world scam-check and job-offer examples (`test/scamcheck.test.mjs`).
 - `npm run test:rules` runs the attacker scenarios in `test/rules.test.mjs` against the Firestore emulator.
 - `npm run test:e2e` drives two browsers (an employee and the CEO) plus attacker actions through the whole app, using `test/fake-firebase.js`, an in-browser stand-in for the Firebase SDK.
 - Both run on every push in GitHub Actions.

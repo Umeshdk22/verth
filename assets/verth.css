@@ -169,3 +169,11 @@ input,select{background:var(--surface-2)}
 .advice p{color:var(--muted)}
 .result a{color:var(--accent)}
 .hand{font-family:var(--hand);color:var(--accent)}
+
+.seg.four{grid-template-columns:repeat(4,1fr)}
+@media (max-width:520px){.seg.four{grid-template-columns:repeat(2,1fr)}}
+.seg.four button{font-size:13px;padding:9px 4px}
+label .muted.small{font-weight:400}
+.company{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;background:rgba(61,214,195,.08);border:1px solid rgba(61,214,195,.35)}
+.company .mono{color:var(--teal);font-size:15px;word-break:break-word}
+.company .small{color:var(--muted)}

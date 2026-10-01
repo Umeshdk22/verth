@@ -1,0 +1,25 @@
+{
+  "name": "Verth: check before you trust",
+  "short_name": "Verth",
+  "description": "Check suspicious messages, job offers, links and phone numbers, and verify requests with the real person.",
+  "id": "./app.html",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B0E18",
+  "theme_color": "#0B0E18",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "./app.html",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": { "title": "share_title", "text": "share_text", "url": "share_url" }
+  },
+  "shortcuts": [
+    { "name": "Scam check", "short_name": "Scan", "url": "./app.html#scan", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
