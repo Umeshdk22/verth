@@ -5,24 +5,26 @@
 <title>Verth video stage</title>
 <link rel="stylesheet" href="fonts.css">
 <style>
-:root{--ink:#FFF3E2;--muted:#D3C8DE;--accent:#FFB45E;--line:#3E3566;--surface:#1A1736;--teal:#8FE3D6}
+:root{--ink:#16132B;--muted:#5F5A78;--accent:#6B3DF0;--line:#E4DFF4}
 *{box-sizing:border-box}
 html,body{margin:0;width:1600px;height:900px;overflow:hidden}
-body{background:linear-gradient(180deg,rgba(9,9,28,.70),rgba(9,9,28,.38) 50%,rgba(9,8,20,.62)),url(assets/bg-dusk.webp) center bottom/cover,#120F2A;color:var(--ink);font-family:"Hind",system-ui,sans-serif}
-.brand{position:absolute;left:70px;top:52px;display:flex;align-items:center;gap:14px;font-family:"Rozha One",serif;font-size:42px;letter-spacing:.03em}
-.brand svg{width:56px;height:56px;padding:8px;border-radius:12px;background:var(--accent);color:#2A1400;transform:rotate(-4deg)}
-.panel{position:absolute;left:70px;top:160px;width:var(--pw,560px);display:flex;flex-direction:column;gap:18px}
-.kicker{font-size:25px;font-weight:600;color:#FFD3A1;min-height:28px}
-h1{font-family:"Rozha One",serif;font-weight:400;font-size:var(--h1,52px);line-height:1.08;margin:0;text-wrap:balance}
-.cap{font-size:var(--capsize,25px);line-height:1.45;color:#F2EAF6;background:rgba(18,15,42,.72);border:1px solid rgba(255,180,94,.35);border-radius:18px;padding:18px 22px;min-height:120px;transition:opacity .25s}
+body{background:radial-gradient(900px 600px at 85% 10%,rgba(139,92,246,.55),transparent 60%),radial-gradient(800px 600px at 0% 100%,rgba(91,47,219,.6),transparent 60%),linear-gradient(155deg,#12082F 0%,#2A137A 50%,#4B23C9 100%);color:#fff;font-family:"DM Sans","Hind",system-ui,sans-serif}
+.brand{position:absolute;left:70px;top:52px;display:flex;align-items:center;gap:14px;font-weight:800;font-size:40px;letter-spacing:-.03em}
+.brand svg{width:54px;height:54px;padding:9px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff}
+.panel{position:absolute;left:70px;top:170px;width:var(--pw,560px);display:flex;flex-direction:column;gap:18px}
+.kicker{align-self:flex-start;font-size:21px;font-weight:700;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:6px 16px;border-radius:999px;min-height:28px}
+.kicker:empty{visibility:hidden}
+h1{font-weight:700;font-size:var(--h1,54px);line-height:1.05;letter-spacing:-.035em;margin:0;text-wrap:balance}
+html[lang=hi] h1{letter-spacing:0;line-height:1.2}
+.cap{font-size:var(--capsize,25px);line-height:1.45;color:var(--ink);background:#fff;border-radius:20px;padding:20px 24px;min-height:120px;box-shadow:0 24px 50px -20px rgba(10,4,40,.6);transition:opacity .25s}
 .cap:empty{opacity:0}
 html[lang=hi] .cap{line-height:1.6}
 .phones{position:absolute;right:70px;top:22px;display:flex;gap:34px;align-items:flex-start}
 .ph{display:flex;flex-direction:column;align-items:center;gap:8px}
-.ph .who{font-weight:600;font-size:21px;color:#FFD3A1;background:rgba(18,15,42,.75);padding:3px 14px;border-radius:999px;border:1px solid rgba(255,180,94,.35)}
-.frame{width:410px;height:800px;border-radius:46px;padding:10px;background:#0A0818;border:1px solid #3E3566;box-shadow:0 30px 70px -20px rgba(0,0,0,.85),0 0 0 7px rgba(255,180,94,.07);overflow:hidden;position:relative}
-.frame iframe{width:390px;height:780px;border:0;border-radius:36px;background:#120F2A;display:block}
-.ripple{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:4px solid rgba(255,196,110,.95);background:rgba(255,180,94,.28);pointer-events:none;z-index:50;animation:rip .6s ease-out forwards}
+.ph .who{font-weight:700;font-size:20px;color:#2A137A;background:#fff;padding:3px 14px;border-radius:999px}
+.frame{width:410px;height:800px;border-radius:46px;padding:10px;background:#16132B;box-shadow:0 34px 70px -24px rgba(5,2,25,.85),0 0 0 6px rgba(255,255,255,.08);overflow:hidden;position:relative}
+.frame iframe{width:390px;height:780px;border:0;border-radius:36px;background:#F6F4FF;display:block}
+.ripple{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:4px solid rgba(107,61,240,.95);background:rgba(107,61,240,.25);pointer-events:none;z-index:50;animation:rip .6s ease-out forwards}
 @keyframes rip{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.25);opacity:0}}
 .bubble{position:absolute;z-index:40;width:400px;background:#ECE5DD;color:#111;border-radius:16px;box-shadow:0 24px 50px -16px rgba(0,0,0,.8);overflow:hidden;font-size:20px;line-height:1.4;transform:translateY(16px) scale(.96);opacity:0;transition:all .45s cubic-bezier(.2,.8,.2,1)}
 .bubble.show{transform:none;opacity:1}
@@ -31,12 +33,13 @@ html[lang=hi] .cap{line-height:1.6}
 .bubble .bd{margin:12px;background:#fff;border-radius:10px;padding:10px 12px}
 .bubble .bd small{display:block;color:#888;font-size:13px;margin-top:4px;text-align:right}
 .bubble .warn{color:#B3261E;font-size:14px;font-weight:600;padding:0 14px 12px}
-.cover{position:absolute;inset:0;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;background:linear-gradient(180deg,rgba(9,9,28,.82),rgba(9,9,28,.55) 55%,rgba(9,8,20,.75)),url(assets/bg-dusk.webp) center bottom/cover;transition:opacity .6s}
+.cover{position:absolute;inset:0;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;background:radial-gradient(900px 500px at 75% 15%,rgba(139,92,246,.6),transparent 60%),linear-gradient(155deg,#12082F 0%,#2A137A 52%,#4B23C9 100%);transition:opacity .6s}
 .cover.hide{opacity:0;pointer-events:none}
-.cover svg{width:104px;height:104px;padding:14px;border-radius:22px;background:var(--accent);color:#2A1400;transform:rotate(-4deg)}
-.cover h2{font-family:"Rozha One",serif;font-weight:400;font-size:84px;margin:0;line-height:1.05}
-.cover p{font-size:34px;color:#FFD3A1;margin:0;max-width:1150px}
-.cover .url{font-size:32px;color:var(--ink);background:rgba(18,15,42,.7);border:1px solid rgba(255,180,94,.45);padding:8px 22px;border-radius:999px;margin-top:8px}
+.cover svg{width:104px;height:104px;padding:18px;border-radius:26px;background:#fff;color:#6B3DF0}
+.cover h2{font-weight:700;font-size:86px;letter-spacing:-.04em;margin:0;line-height:1.05}
+html[lang=hi] .cover h2{letter-spacing:0}
+.cover p{font-size:34px;color:rgba(255,255,255,.85);margin:0;max-width:1150px}
+.cover .url{font-size:30px;color:#2A137A;background:#fff;font-weight:700;padding:10px 26px;border-radius:999px;margin-top:8px}
 </style>
 </head>
 <body>

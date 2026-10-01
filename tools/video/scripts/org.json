@@ -54,8 +54,8 @@
  {"id":"outro",
   "kicker":{"en":"","hi":""},
   "title":{"en":"No Verth check, no payment","hi":"वर्थ जाँच नहीं, तो पेमेंट नहीं"},
-  "say":{"en":"Free for up to five people. The Team plan is ninety nine rupees per person per month. Set up your organisation today.",
-         "hi":"पाँच लोगों तक मुफ़्त। टीम प्लान निन्यानवे रुपये प्रति व्यक्ति प्रति महीना है। आज ही अपनी कंपनी के लिए सेट कीजिए।",
-         "en_cap":"Free for up to 5 people · Team plan ₹99 per person per month",
-         "hi_cap":"5 लोगों तक मुफ़्त · टीम प्लान ₹99 प्रति व्यक्ति प्रति महीना"}}
+  "say":{"en":"Free for up to five people. The Team plan is one hundred and ninety nine rupees a month for your whole organisation, with no limits. Set up your organisation today.",
+         "hi":"पाँच लोगों तक मुफ़्त। टीम प्लान पूरी कंपनी के लिए एक सौ निन्यानवे रुपये महीना है, बिना किसी सीमा के। आज ही अपनी कंपनी के लिए सेट कीजिए।",
+         "en_cap":"Free for up to 5 people · Team plan ₹199/month for your whole organisation, no limits",
+         "hi_cap":"5 लोगों तक मुफ़्त · टीम प्लान पूरी कंपनी के लिए ₹199/महीना, बिना सीमा"}}
 ]

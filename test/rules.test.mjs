@@ -295,10 +295,10 @@ test('a free circle doesn’t unlock scans', async () => {
   await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
   await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
 });
-test('a Team circle can grow up to the seats paid for, and no further', async () => {
-  await asServer('circles/c1', { plan: 'team', seats: 4 });
+test('a Team circle has no practical limit on people (2,000)', async () => {
+  await asServer('circles/c1', { plan: 'team', seats: 2000, memberCount: 600 });
   await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
-  await asServer('circles/c1', { memberCount: 4 });
+  await asServer('circles/c1', { memberCount: 2000 });
   await env.withSecurityRulesDisabled((c) => deleteDoc(doc(c.firestore(), 'circles/c1/members/outsider')));
   await assertFails(joinBatch(db('outsider'), 'outsider'));
 });

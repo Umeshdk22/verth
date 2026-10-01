@@ -495,7 +495,7 @@ function viewCircle() {
     <div class="invite"><span class="mono">${fmtInvite(c.inviteCode)}</span><button class="btn small" data-act="copy" data-text="${esc(c.inviteCode)}">Copy code</button></div>
     <button class="btn ghost" data-act="copy" data-text="${esc(msg)}">Copy invite message</button>
     ${admin ? '<div class="row gap"><button class="btn small ghost" data-act="rotate-code">Change code</button><button class="btn small ghost" data-act="join-open" data-v="0">Turn joining off</button></div><p class="muted small">Change the code if it was shared somewhere public. The old code stops working immediately.</p>' : ''}`}
-    <p class="muted small">${c.memberCount || S.members.length} of ${lim} places used on the ${esc(plan().name)} plan.</p></section>
+    <p class="muted small">${c.plan === 'team' ? `${c.memberCount || S.members.length} people on the Team plan, no limit.` : `${c.memberCount || S.members.length} of ${lim} places used on the ${esc(plan().name)} plan.`}</p></section>
   <section class="card"><h2>People in ${esc(c.name)}</h2><ul class="list people">${active().map(row).join('')}</ul></section>
   <section class="card"><h2>More circles</h2><p class="muted">Protect your workplace and your family separately.</p>
     <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="${c.type === 'family' ? 'org' : 'family'}">New ${c.type === 'family' ? 'organisation' : 'family'} circle</button><button class="btn ghost grow" data-act="setup" data-type="join">Join with a code</button></div>
@@ -662,7 +662,7 @@ function viewScan() {
   const counter = lim === Infinity ? `<span class="pill ok">Unlimited${img ? ' photo checks' : ''}</span>` : `<span class="muted small">${left} of ${lim} free ${img ? 'photo checks left' : 'checks left today'}</span>`;
   const limitCard = img
     ? `<section class="card attention"><h2>You’ve used your ${lim} free photo checks</h2>
-      <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹29 a month. You can still type or paste the message and check it free.</p>
+      <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹49 a month. You can still type or paste the message and check it free.</p>
       <div class="row gap"><button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button><button class="btn ghost" data-act="scan-kind" data-kind="message">Type the message instead</button></div></section>`
     : `<section class="card attention"><h2>You’ve used today’s free checks</h2>
       <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
@@ -736,7 +736,7 @@ function renderScanOnly() {
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div>
         <button class="link" data-act="setup" data-type="join">I have an invite code</button></section>
       ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹29 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
-        ${PAY_API ? payButton('personal', 'Get Personal · ₹29 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
+        ${PAY_API ? payButton('personal', 'Get Personal · ₹49 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button><button class="link" data-act="signout">Sign out</button></div>
     </main></div>`);
 }
@@ -753,7 +753,6 @@ function billingCard(b, target) {
   const sure = S.confirmCancel === target;
   return `<section class="card"><h2>Subscription</h2>
     <p>${line}</p>
-    ${b.product === 'team' ? `<p class="muted small">${esc(b.seats)} people paid for.</p>` : ''}
     <p class="muted small">Payments are handled by Razorpay. <a href="refunds.html" target="_blank" rel="noopener">Cancellation and refunds</a></p>
     ${canCancel ? (sure
       ? `<div class="warn">Stop renewing? You keep the plan until ${esc(when || 'the end of this month')}, then it goes back to Free.</div><div class="row gap"><button class="btn bad grow" data-act="cancel-sub" data-target="${target}" ${S.payBusy ? 'disabled' : ''}>Yes, stop renewing</button><button class="btn ghost grow" data-act="cancel-sub-no">Keep it</button></div>`
@@ -773,21 +772,20 @@ function viewPlan() {
     if (circlePaid()) return '';
     if (!admin) return '<span class="muted small">Ask an admin of this circle to choose it.</span>';
     if (id === 'family' && count > 10) return '<span class="muted small">Your circle has more than 10 people. Choose Team.</span>';
-    if (id === 'team') return `<label class="small">People to pay for<input id="team-seats" type="number" inputmode="numeric" min="${count}" max="500" value="${Math.max(count, 2)}"></label>${payButton('team', 'Subscribe')}`;
     return payButton(id, 'Subscribe');
   };
   const card = (id, title, price, items) => `<div class="plan ${(id === 'personal' ? personal : cp === id && !(id === 'free' && personal)) ? 'current' : ''}"><h3>${title}</h3><div class="price">${price}</div><ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>${action(id)}</div>`;
   return `<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
-      ${plan().checksPerMonth === Infinity ? 'Unlimited checks.' : `${used} of ${plan().checksPerMonth} checks used this month.`} ${count} of ${cp === 'team' ? (S.circle.seats || plan().maxMembers) : plan().maxMembers} places used.</p></section>
+      ${plan().checksPerMonth === Infinity ? 'Unlimited checks.' : `${used} of ${plan().checksPerMonth} checks used this month.`} ${cp === 'team' ? `${count} people, no limit.` : `${count} of ${plan().maxMembers} places used.`}</p></section>
     ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
     ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
     <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p>
       <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
     <div class="plans">
       ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', 'Signed push checks and rolling codes'])}
-      ${card('personal', 'Personal', '₹29 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Messages, emails, jobs, links and numbers', 'Everything in Free'])}
-      ${card('family', 'Family', '₹49 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Log export'])}
-      ${card('team', 'Team', '₹99 <small>/ person / month</small>', ['Whole organisation, up to 500', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support'])}
+      ${card('personal', 'Personal', '₹49 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Messages, emails, jobs, links and numbers', 'Everything in Free'])}
+      ${card('family', 'Family', '₹99 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Log export'])}
+      ${card('team', 'Team', '₹199 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     <section class="card"><h2>Account and device</h2><p class="muted">${esc(S.user.email)}</p>
@@ -821,10 +819,10 @@ async function refreshProfile() {
   const s = await getDoc(doc(db, 'users', S.user.uid));
   if (s.exists()) S.profile = s.data();
 }
-async function startCheckout(planId, seats) {
+async function startCheckout(planId) {
   S.payBusy = planId; renderScanView();
   try {
-    const [sub] = await Promise.all([payApi('/subscribe', { plan: planId, circleId: S.circleId || null, seats }), loadCheckout()]);
+    const [sub] = await Promise.all([payApi('/subscribe', { plan: planId, circleId: S.circleId || null }), loadCheckout()]);
     const result = await new Promise((resolve, reject) => {
       const rzp = new window.Razorpay({
         key: sub.keyId, subscription_id: sub.subscriptionId, name: 'Verth', description: sub.description,
@@ -1088,9 +1086,7 @@ const actions = {
   upgrade: async (el) => {
     if (PAY_API) {
       if (S.payBusy) return;
-      const seats = el.dataset.plan === 'team' ? Math.floor(+document.getElementById('team-seats')?.value || 0) : undefined;
-      if (el.dataset.plan === 'team' && (!seats || seats < (S.circle?.memberCount || 1) || seats > 500)) { toast(`Choose between ${S.circle?.memberCount || 1} and 500 people.`, 'bad'); return; }
-      return startCheckout(el.dataset.plan, seats);
+      return startCheckout(el.dataset.plan);
     }
     try {
       await updateDoc(doc(db, 'users', S.user.uid), { upgradeInterest: { plan: el.dataset.plan, circleId: S.circleId || null, at: serverTimestamp() } });

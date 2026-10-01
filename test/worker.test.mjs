@@ -118,18 +118,17 @@ const circleDocs = (extra = {}) => ({
   'circles/c1/members/uidB': { role: 'member', status: 'active' },
   ...extra,
 });
-test('family and team: only an active admin can buy, seats are checked', async () => {
+test('family and team: only an active admin can buy; Team is one flat price with no limit on people', async () => {
   const f = fakes(circleDocs());
   assert.equal((await call(f, '/subscribe', { plan: 'family', circleId: 'c1' }, { claims: { sub: 'uidB' } })).status, 403);
-  assert.equal((await call(f, '/subscribe', { plan: 'team', circleId: 'c1', seats: 2 })).status, 400);
-  assert.equal((await call(f, '/subscribe', { plan: 'team', circleId: 'c1', seats: 501 })).status, 400);
-  const t = await call(f, '/subscribe', { plan: 'team', circleId: 'c1', seats: 12 });
-  assert.equal(t.status, 200); assert.equal(t.body.quantity, 12);
+  const t = await call(f, '/subscribe', { plan: 'team', circleId: 'c1', seats: 999 });
+  assert.equal(t.status, 200); assert.equal(t.body.quantity, 1);
+  assert.equal(f.calls.at(-1)[1].quantity, 1);
   assert.deepEqual(f.calls.at(-1)[1].notes, { product: 'team', uid: 'uidA', circleId: 'c1' });
   paidActive(f, t.body.subscriptionId);
   await call(f, '/verify', { razorpay_payment_id: 'pay_2', razorpay_subscription_id: t.body.subscriptionId, razorpay_signature: await checkoutSig('pay_2', t.body.subscriptionId) });
   assert.equal(f.db['circles/c1'].plan, 'team');
-  assert.equal(f.db['circles/c1'].seats, 12);
+  assert.equal(f.db['circles/c1'].seats, 2000);
   const big = fakes(circleDocs({ 'circles/c1': { plan: 'free', memberCount: 11 } }));
   assert.match((await call(big, '/subscribe', { plan: 'family', circleId: 'c1' })).body.error, /Team/);
 });

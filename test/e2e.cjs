@@ -299,9 +299,9 @@ const SLOW = process.env.CI ? 3 : 1;
       const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
       seen.push([path, body, r.request().headers().authorization]);
       const end = Date.now() + 30 * 86400000;
-      if (path === '/subscribe') return r.fulfill({ headers: cors, json: { subscriptionId: 'sub_T1', keyId: 'rzp_test_1', description: 'Verth Team', quantity: body.seats } });
+      if (path === '/subscribe') return r.fulfill({ headers: cors, json: { subscriptionId: 'sub_T1', keyId: 'rzp_test_1', description: 'Verth Team', quantity: 1 } });
       if (path === '/verify') {
-        await A.evaluate(([cid, seats, end]) => { const db = JSON.parse(localStorage.getItem('fakefs')); Object.assign(db['circles/' + cid], { plan: 'team', seats, billing: { product: 'team', subscriptionId: 'sub_T1', status: 'active', seats, currentEnd: { __ts: end }, cancelAtEnd: false } }); localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); }, [seen[0][1].circleId, seen[0][1].seats, end]);
+        await A.evaluate(([cid, seats, end]) => { const db = JSON.parse(localStorage.getItem('fakefs')); Object.assign(db['circles/' + cid], { plan: 'team', seats, billing: { product: 'team', subscriptionId: 'sub_T1', status: 'active', seats, currentEnd: { __ts: end }, cancelAtEnd: false } }); localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); }, [seen[0][1].circleId, 2000, end]);
         return r.fulfill({ headers: cors, json: { paid: true, status: 'active', product: 'team' } });
       }
       if (path === '/cancel') {
@@ -312,11 +312,10 @@ const SLOW = process.env.CI ? 3 : 1;
     });
     await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
     await A.click('nav >> text=Plan');
-    await A.fill('#team-seats', '8');
     await A.click('.plan:has(h3:text-is("Team")) >> button:has-text("Subscribe")');
     await A.getByText('Renews on', { exact: false }).waitFor({ timeout: 6000 * SLOW });
     await A.locator('.plan.current h3', { hasText: 'Team' }).waitFor();
-    if (seen[0][0] !== '/subscribe' || seen[0][1].plan !== 'team' || seen[0][1].seats !== 8 || !seen[0][2]?.startsWith('Bearer ')) throw new Error('bad subscribe call ' + JSON.stringify(seen[0]));
+    if (seen[0][0] !== '/subscribe' || seen[0][1].plan !== 'team' || !seen[0][2]?.startsWith('Bearer ')) throw new Error('bad subscribe call ' + JSON.stringify(seen[0]));
     if (seen[1][0] !== '/verify' || seen[1][1].razorpay_subscription_id !== 'sub_T1') throw new Error('checkout result not sent for verification');
     if ((await A.evaluate(() => window.__rzpOpts.key)) !== 'rzp_test_1') throw new Error('checkout opened with the wrong key');
     await shot(A, '15-A-team-plan');

@@ -55,7 +55,7 @@ Verth protects decisions about money, bank details and account access, so it is 
 - Every app request to the worker carries a Firebase ID token; the worker verifies its RS256 signature against Google's published keys, the project, issuer, expiry and a confirmed email. Only the Verth site's origin is allowed by CORS.
 - Checkout results are checked with Razorpay's HMAC-SHA256 signature (constant-time comparison), and the subscription must carry the caller's own account ID (set by the worker when it was created). Webhooks are checked with the webhook secret over the raw body.
 - Plan state is always taken from the subscription as fetched from Razorpay, and only for Verth's own plan IDs. Out-of-order or replayed events can't flip a newer paid subscription off.
-- Firestore rules: plans, seats and billing are server-only; Team circles are capped at the seats paid for.
+- Firestore rules: plans, seats and billing are server-only; Family circles stop at 10 people, Team circles have no practical limit (2,000).
 - Tests: `test/worker.test.mjs` (forged tokens, forged signatures, someone else's payment, wrong plan IDs, non-admin purchases, forged webhooks) and the browser test of Checkout → verify → cancel.
 
 ### Verth Helper (assistant)

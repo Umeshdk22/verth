@@ -95,9 +95,9 @@ PAGES = {
 <p>All prices are in Indian Rupees, per month, and include applicable taxes. Paid plans renew monthly until you cancel.</p>
 <div class="price-table">
 <div><h2>Free</h2><p class="amt">₹0</p><ul><li>Up to 5 people in a circle</li><li>20 verification checks a month</li><li>2 scam checks a day</li><li>5 free photo / screenshot checks</li></ul></div>
-<div><h2>Personal</h2><p class="amt">₹29 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Unlimited photo / screenshot checks</li><li>Everything in Free</li></ul></div>
-<div><h2>Family</h2><p class="amt">₹49 <small>/ month</small></p><ul><li>Up to 10 people</li><li>Unlimited verification checks</li><li>Unlimited scam and photo checks for everyone in the circle</li><li>Log export</li></ul></div>
-<div><h2>Team</h2><p class="amt">₹99 <small>/ person / month</small></p><ul><li>Organisations, up to 500 people</li><li>Unlimited checks, scam and photo checks for everyone</li><li>Log export for auditors</li><li>Priority support</li></ul></div>
+<div><h2>Personal</h2><p class="amt">₹49 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Unlimited photo / screenshot checks</li><li>Everything in Free</li></ul></div>
+<div><h2>Family</h2><p class="amt">₹99 <small>/ month</small></p><ul><li>Up to 10 people</li><li>Unlimited verification checks</li><li>Unlimited scam and photo checks for everyone in the circle</li><li>Log export</li></ul></div>
+<div><h2>Team</h2><p class="amt">₹199 <small>/ month</small></p><ul><li>Your whole organisation, no limit on people</li><li>Everything in every plan</li><li>Unlimited checks, scam and photo checks for everyone</li><li>Log export for auditors</li><li>Priority support</li></ul></div>
 </div>
 <p>Pay with UPI Autopay, cards and other methods through Razorpay. See the <a href="refunds.html">Cancellation and Refund Policy</a> and <a href="terms.html">Terms</a>.</p>
 """),
@@ -113,15 +113,15 @@ TEMPLATE = """<!doctype html>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{title} for Verth, the scam-check and verification app.">
-<meta name="theme-color" content="#0B0E18">
+<meta name="theme-color" content="#2A137A">
 <title>{title} · Verth</title>
 <link rel="icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Hind:wght@400;500;600;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..600&family=Kalam:wght@700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="assets/verth.css">
 <style>
 .legal{{max-width:760px;margin:0 auto;padding:20px 20px 64px}}
 .legal header{{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-block:6px 26px}}
-.legal article{{background:rgba(26,23,54,.95);border:1px solid var(--line);border-radius:18px;padding:28px clamp(18px,4vw,40px);display:flex;flex-direction:column;gap:14px}}
+.legal article{{background:#fff;box-shadow:var(--shadow);border:1px solid var(--line);border-radius:18px;padding:28px clamp(18px,4vw,40px);display:flex;flex-direction:column;gap:14px}}
 .legal h1{{font-size:clamp(36px,6vw,52px)}}
 .legal h2{{font-size:22px;margin-top:10px}}
 .legal ul{{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}}

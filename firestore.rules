@@ -34,7 +34,7 @@ service cloud.firestore {
     }
     // Plans, seats and billing are written only by the payments server (never by the app).
     function withinLimit(c, n) {
-      return (c.plan == 'team' && n <= c.get('seats', 500) && n <= 500)
+      return (c.plan == 'team' && n <= 2000)
         || (c.plan == 'family' && n <= 10)
         || (c.plan == 'free' && n <= 5);
     }

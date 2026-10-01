@@ -19,9 +19,9 @@
 const enc = new TextEncoder();
 const PAID_STATUSES = ['authenticated', 'active', 'pending'];
 export const PRODUCTS = {
-  personal: { target: 'user', envKey: 'PLAN_PERSONAL', label: 'Verth Personal (₹29 / month)' },
-  family: { target: 'circle', envKey: 'PLAN_FAMILY', label: 'Verth Family (₹49 / month)', maxMembers: 10 },
-  team: { target: 'circle', envKey: 'PLAN_TEAM', label: 'Verth Team (₹99 / person / month)', maxMembers: 500 },
+  personal: { target: 'user', envKey: 'PLAN_PERSONAL', label: 'Verth Personal (₹49 / month)' },
+  family: { target: 'circle', envKey: 'PLAN_FAMILY', label: 'Verth Family (₹99 / month)', maxMembers: 10 },
+  team: { target: 'circle', envKey: 'PLAN_TEAM', label: 'Verth Team (₹199 / month, unlimited)', maxMembers: 2000 },
 };
 const TOTAL_COUNT = 120; // monthly cycles: 10 years, Razorpay's maximum for most methods
 
@@ -186,7 +186,7 @@ export async function syncSubscription(sub, fs, env) {
   if (c.billing?.subscriptionId && c.billing.subscriptionId !== sub.id && isPaid(c.billing) && !paid) return { ignored: true };
   await fs.update('circles/' + n.circleId, {
     plan: paid ? n.product : 'free',
-    seats: paid ? (n.product === 'team' ? billing.seats : product.maxMembers) : 5,
+    seats: paid ? product.maxMembers : 5,
     billing: { ...billing, cancelAtEnd: !!(c.billing?.subscriptionId === sub.id && c.billing.cancelAtEnd && paid) },
   });
   return { target: 'circle', paid };
@@ -209,10 +209,6 @@ async function subscribe(body, user, env, fs, rp) {
     if (isPaid(c.billing) || (c.plan && c.plan !== 'free')) throw new HttpError(409, 'This circle already has a paid plan.');
     const count = Number(c.memberCount) || 1;
     if (body.plan === 'family' && count > product.maxMembers) throw new HttpError(400, `Family covers up to ${product.maxMembers} people. Choose Team instead.`);
-    if (body.plan === 'team') {
-      quantity = Math.floor(Number(body.seats) || count);
-      if (quantity < count || quantity > product.maxMembers) throw new HttpError(400, `Choose between ${count} and ${product.maxMembers} people.`);
-    }
     notes.circleId = cid;
   }
   const sub = await rp.createSubscription({

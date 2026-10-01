@@ -48,3 +48,57 @@
   document.querySelectorAll('a[data-video]').forEach(function (a) { a.addEventListener('click', function () { state.topic = a.dataset.video; show(false); }); });
   show(false);
 })();
+
+// Quick check box in the hero: hand the text to the app's Scam check.
+(function () {
+  var form = document.getElementById('quick'), input = document.getElementById('quick-text');
+  if (!form || !input) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = input.value.trim();
+    if (t) { try { sessionStorage.setItem('verth-share', t.slice(0, 5000)); } catch (err) {} }
+    location.href = 'app.html#scan';
+  });
+})();
+
+// Rotating showcase: changes every few seconds, pauses on hover or focus, stops if the user prefers less motion.
+(function () {
+  var root = document.getElementById('show');
+  if (!root) return;
+  var slides = root.querySelectorAll('.slide'), tabs = root.querySelectorAll('[data-slide]');
+  var DUR = 5000, i = 0, timer = null, paused = false;
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.style.setProperty('--dur', DUR + 'ms');
+  function go(n) {
+    i = (n + slides.length) % slides.length;
+    slides.forEach(function (s, k) { s.classList.toggle('on', k === i); s.setAttribute('aria-hidden', k === i ? 'false' : 'true'); });
+    tabs.forEach(function (t, k) {
+      t.classList.toggle('on', k === i); t.setAttribute('aria-selected', k === i ? 'true' : 'false');
+      var bar = t.querySelector('i'); if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+    });
+    schedule();
+  }
+  function schedule() { clearTimeout(timer); if (!still && !paused && !document.hidden) timer = setTimeout(function () { go(i + 1); }, DUR); }
+  function pause(p) { paused = p; root.classList.toggle('paused', p); if (p) clearTimeout(timer); else go(i); }
+  tabs.forEach(function (t) { t.addEventListener('click', function () { go(+t.dataset.slide); }); });
+  root.addEventListener('mouseenter', function () { pause(true); });
+  root.addEventListener('mouseleave', function () { pause(false); });
+  root.addEventListener('focusin', function () { pause(true); });
+  root.addEventListener('focusout', function () { pause(false); });
+  document.addEventListener('visibilitychange', schedule);
+  var x0 = null;
+  root.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  root.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) go(i + (dx < 0 ? 1 : -1)); x0 = null; });
+  go(0);
+})();
+
+// Feature tabs: Messages, Job offers, Photos & QR, Verify a person, Help.
+(function () {
+  var tabs = document.querySelectorAll('[data-ftab]');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (b) { var on = b === t; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      document.querySelectorAll('[data-fpanel]').forEach(function (p) { p.classList.toggle('on', p.dataset.fpanel === t.dataset.ftab); });
+    });
+  });
+})();
