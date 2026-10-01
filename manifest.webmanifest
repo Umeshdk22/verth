@@ -9,17 +9,52 @@
   "background_color": "#0B0E18",
   "theme_color": "#0B0E18",
   "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "share_target": {
-    "action": "./app.html",
-    "method": "GET",
-    "enctype": "application/x-www-form-urlencoded",
-    "params": { "title": "share_title", "text": "share_text", "url": "share_url" }
+    "action": "./app.html?share-target=1",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "share_title",
+      "text": "share_text",
+      "url": "share_url",
+      "files": [
+        {
+          "name": "share_image",
+          "accept": [
+            "image/*"
+          ]
+        }
+      ]
+    }
   },
   "shortcuts": [
-    { "name": "Scam check", "short_name": "Scan", "url": "./app.html#scan", "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Scam check",
+      "short_name": "Scan",
+      "url": "./app.html#scan",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

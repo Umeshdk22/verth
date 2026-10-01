@@ -307,6 +307,42 @@ test('a Family circle can hold 10 people', async () => {
   await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
 });
 
+/* ---------- photo checks ---------- */
+const photos = (uid) => doc(db(uid), `users/${uid}/meters/photos`);
+test('free accounts get 5 photo checks in total, then the database refuses', async () => {
+  const ref = photos('priya');
+  await assertSucceeds(setDoc(ref, { count: 1, at: serverTimestamp() }));
+  for (let i = 2; i <= 5; i++) await assertSucceeds(updateDoc(ref, { count: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(ref, { count: increment(1), at: serverTimestamp() }));
+});
+test('the photo counter can’t be reset, skipped, deleted or used by others', async () => {
+  const ref = photos('priya');
+  await assertFails(setDoc(ref, { count: 0, at: serverTimestamp() }));
+  await assertSucceeds(setDoc(ref, { count: 1, at: serverTimestamp() }));
+  await assertFails(setDoc(ref, { count: 1, at: serverTimestamp() }));
+  await assertFails(updateDoc(ref, { count: 3, at: serverTimestamp() }));
+  await assertFails(deleteDoc(ref));
+  await assertFails(setDoc(doc(db('priya'), 'users/priya/meters/other'), { count: 1, at: serverTimestamp() }));
+  await assertFails(getDoc(doc(db('rajesh'), 'users/priya/meters/photos')));
+  await assertFails(setDoc(doc(db('rajesh'), 'users/priya/meters/photos'), { count: 1, at: serverTimestamp() }));
+});
+test('paid plans and paid circles unlock unlimited photo checks', async () => {
+  await asServer('users/rajesh', { plan: 'personal' });
+  const r = photos('rajesh');
+  await assertSucceeds(setDoc(r, { count: 1, at: serverTimestamp() }));
+  for (let i = 2; i <= 7; i++) await assertSucceeds(updateDoc(r, { count: increment(1), at: serverTimestamp() }));
+  await asServer('circles/c1', { plan: 'family', seats: 10 });
+  const p = photos('priya');
+  await assertSucceeds(setDoc(p, { count: 1, at: serverTimestamp() }));
+  for (let i = 2; i <= 5; i++) await assertSucceeds(updateDoc(p, { count: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(p, { count: increment(1), at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(p, { count: increment(1), at: serverTimestamp(), via: 'c1' }));
+  const m = photos('mallory');
+  await assertSucceeds(setDoc(m, { count: 1, at: serverTimestamp() }));
+  for (let i = 2; i <= 5; i++) await assertSucceeds(updateDoc(m, { count: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(m, { count: increment(1), at: serverTimestamp(), via: 'c1' }));
+});
+
 /* ---------- community scam reports ---------- */
 const FP = 'a'.repeat(64);
 test('a signed-in user can report once, and anyone signed in can count reports', async () => {

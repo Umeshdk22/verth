@@ -15,10 +15,10 @@ const SLOW = process.env.CI ? 3 : 1;
     p.on('console', (m) => { if (m.type() === 'error') errors.push(n + ' console: ' + m.text()); });
   }
   const shot = (p, name) => p.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
-  let failed = 0;
+  let failed = 0; const extra = [];
   const step = async (msg, fn) => {
     try { await fn(); console.log('ok  ', msg); }
-    catch (e) { failed++; console.log('FAIL', msg, '-', e.message.split('\n')[0]); if (process.env.CI) console.log(`::error title=E2E failed::${msg}: ${e.message.split('\n')[0]} | page errors: ${JSON.stringify(errors).slice(0, 400)}`); await shot(A, 'fail-A'); await shot(B, 'fail-B'); throw e; }
+    catch (e) { failed++; console.log('FAIL', msg, '-', e.message.split('\n')[0]); if (process.env.CI) console.log(`::error title=E2E failed::${msg}: ${e.message.split('\n')[0]} | page errors: ${JSON.stringify(errors).slice(0, 400)}`); await shot(A, 'fail-A'); await shot(B, 'fail-B'); for (const [n, pg] of extra) await shot(pg, 'fail-' + n).catch(() => {}); throw e; }
   };
   const fs = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('fakefs') || '{}'));
   const poke = (p) => p.evaluate(() => new BroadcastChannel('fakefire').postMessage('x'));
@@ -195,7 +195,7 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Scam check: phone number analysis', async () => {
     await B.click('text=Check something else');
-    await B.click('.seg >> text=Phone number');
+    await B.click('.kinds >> text=Phone number');
     await B.fill('#s-phone', '+91 1401234567');
     await B.click('button:has-text("Check it")');
     await B.getByText('Marketing number', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
@@ -207,7 +207,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(B, '12-B-scan-limit');
   });
   await step('Scan-only account, share-to-Verth and job offer check', async () => {
-    const C = await ctx.newPage();
+    const C = await ctx.newPage(); extra.push(['C', C]);
     C.on('pageerror', (e) => errors.push('C pageerror: ' + e.message));
     await C.goto(URL);
     await C.evaluate(() => { window.__googleEmail = 'kamla@family.in'; window.__googleName = 'Kamla Devi'; });
@@ -225,14 +225,13 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.press('#vh-q', 'Enter');
     await C.locator('.vh-msg.bot', { hasText: 'Please don’t type OTPs' }).waitFor();
     await shot(C, '13a-C-helper');
-    await C.click('.vh-act:has-text("Lost money")').catch(() => {});
     await C.fill('#vh-q', 'sbi-kyc-update.xyz/login');
     await C.press('#vh-q', 'Enter');
-    await C.click('.vh-act:has-text("Open it in Scam check")');
+    await C.click('.vh-act:has-text("Check it in Scam check")');
     if (!(await C.locator('#vh-panel').isHidden())) throw new Error('helper should close on a phone after taking you somewhere');
     if ((await C.locator('#s-link').inputValue()) !== 'sbi-kyc-update.xyz/login') throw new Error('helper did not prefill the link');
     await C.getByText('From Verth Helper.').waitFor();
-    await C.click('.seg >> text=Link');
+    await C.click('.kinds >> text=Link');
     await C.fill('#s-link', 'https://www.onlinesbi.sbi/');
     await C.click('button:has-text("Check it")');
     await C.getByRole('heading', { name: 'No obvious red flags' }).waitFor({ timeout: 5000 * SLOW });
@@ -249,6 +248,42 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByText('Asks you to pay for a job, exam, interview or training').waitFor();
     await C.getByText('@tcs.com', { exact: false }).first().waitFor();
     await shot(C, '14-C-job-check');
+    // Photo and screenshot checks: read on the device, 5 free, then the plan screen.
+    const FIX = require('node:path').join(__dirname, 'fixtures');
+    await C.click('text=Check something else');
+    await C.click('.kinds >> text=Photo or screenshot');
+    await C.getByText('Tap here to add a screenshot or photo').waitFor();
+    await C.getByText('5 of 5 free photo checks left').waitFor();
+    await C.setInputFiles('#s-image', FIX + '/scam-sms.png');
+    await C.locator('.photo-pick img').waitFor();
+    await C.click('button:has-text("Check it")');
+    await C.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 60000 * SLOW });
+    await C.getByText('Suspicious link: sbi-yono-kyc.xyz', { exact: false }).first().waitFor();
+    await C.getByText('What Verth found in your picture').waitFor();
+    await shot(C, '14a-C-photo-sms');
+    await C.click('text=Check something else');
+    await C.click('.kinds >> text=Photo or screenshot');
+    await C.setInputFiles('#s-image', FIX + '/qr-cashback.png');
+    await C.click('button:has-text("Check it")');
+    await C.getByText('A QR code you’re told will give you money').waitFor({ timeout: 60000 * SLOW });
+    await C.getByText('A UPI QR code that pays ₹4,999', { exact: false }).waitFor();
+    await shot(C, '14b-C-photo-qr');
+    for (let i = 3; i <= 5; i++) {
+      await C.click('text=Check something else');
+      await C.click('.kinds >> text=Photo or screenshot');
+      await C.setInputFiles('#s-image', FIX + '/scam-sms.png');
+      await C.click('button:has-text("Check it")');
+      await C.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 60000 * SLOW });
+    }
+    await C.click('text=Check something else');
+    await C.click('.kinds >> text=Photo or screenshot');
+    await C.getByRole('heading', { name: 'You’ve used your 5 free photo checks' }).waitFor();
+    if (await C.locator('#s-image').count()) throw new Error('photo upload still offered after the free limit');
+    await shot(C, '14c-C-photo-limit');
+    // "Not sure?" opens the helper with big start buttons.
+    await C.click('.kinds >> text=Not sure? Ask for help');
+    await C.getByText('📷 I have a screenshot or photo').waitFor();
+    await C.click('.vh-x');
     await C.close();
   });
   await step('Payments: Team plan through Razorpay Checkout, then cancel renewal', async () => {

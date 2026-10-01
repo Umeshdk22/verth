@@ -45,6 +45,11 @@ Verth protects decisions about money, bank details and account access, so it is 
 - The free daily limit is enforced by the rules: the counter document must be named after today's date (India time), can only start at 1 and go up by exactly 1, and stops at 2 unless the account's plan (which only the server can change) is paid.
 - Limits: someone determined can run the open-source analysis code offline, and many fake accounts could inflate a report count. Report counts are shown as a signal, never as a verdict.
 
+### Photo checks
+- Pictures are read in the browser (WebAssembly OCR and QR decoding); no image or extracted text is uploaded. Engine files are served from the site itself; the page's CSP adds only `'wasm-unsafe-eval'` and `blob:` image previews.
+- Shared pictures (Android share target) are held briefly in a private Cache Storage entry and deleted as soon as the app picks them up.
+- The free photo allowance is a server-checked counter (`users/{uid}/meters/photos`): starts at 1, goes up by exactly 1, stops at 5 unless the account or an active paid circle is on a paid plan. Unreadable pictures don't count.
+
 ### Payments
 - Razorpay secrets and the Firebase service account live only in Cloudflare Worker secrets. The service account has the single role *Cloud Datastore User*.
 - Every app request to the worker carries a Firebase ID token; the worker verifies its RS256 signature against Google's published keys, the project, issuer, expiry and a confirmed email. Only the Verth site's origin is allowed by CORS.

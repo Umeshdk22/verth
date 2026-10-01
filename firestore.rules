@@ -92,6 +92,24 @@ service cloud.firestore {
               || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
               || paidCircleFor(uid, request.resource.data.get('via', null)));
       }
+
+      // Photo and screenshot checks: 5 free in total, then unlimited on a paid plan (your own,
+      // or a Family or Team circle you're an active member of). Counts only go up by one.
+      match /meters/{meter} {
+        allow get: if signedIn() && me() == uid;
+        allow create: if signedIn() && me() == uid && meter == 'photos'
+          && request.resource.data.keys().hasOnly(['count', 'at'])
+          && request.resource.data.count == 1
+          && request.resource.data.at == request.time;
+        allow update: if signedIn() && me() == uid && meter == 'photos'
+          && onlyChanges(['count', 'at', 'via'])
+          && request.resource.data.count == resource.data.count + 1
+          && request.resource.data.at == request.time
+          && (request.resource.data.count <= 5
+              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+              || paidCircleFor(uid, request.resource.data.get('via', null)));
+        allow delete: if false;
+      }
     }
 
     // ---------- community scam reports ----------

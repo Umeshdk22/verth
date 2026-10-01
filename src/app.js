@@ -14,7 +14,7 @@ import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
 import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS } from './config.js';
 import { mountHelper, aiInstructions } from './helper.js';
 import { secondsLeft } from './totp.js';
-import { check, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
+import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
 import {
   deviceKeys, samePub, codeFor, checkCode, answerPayload, signAnswer, verifyAnswer, deviceLabel,
 } from './devicekeys.js';
@@ -63,7 +63,21 @@ const SHARED = (() => {
   try { v = sessionStorage.getItem('verth-share') || ''; } catch {}
   return v;
 })();
+// A picture shared to Verth from another app (Android share sheet) waits in the service worker's cache.
+let SHARED_IMAGE = params.has('shared_image');
+if (SHARED_IMAGE) { const clean = new URL(location.href); clean.searchParams.delete('shared_image'); history.replaceState(null, '', clean.pathname + clean.search + '#scan'); }
+async function loadSharedImage() {
+  try {
+    const c = await caches.open('verth-share'), res = await c.match('shared-image');
+    if (!res) return;
+    const blob = await res.blob(); await c.delete('shared-image');
+    setPhoto(new File([blob], 'shared-picture', { type: blob.type || 'image/jpeg' }), true);
+  } catch {}
+}
 function takeShared() {
+  if (SHARED_IMAGE) { SHARED_IMAGE = false; S.scanKind = 'image'; S.scanResult = null; setTimeout(loadSharedImage, 0); return true; }
+  const hashKind = (location.hash.match(/^#scan-(image|message|job|link|phone)$/) || [])[1];
+  if (hashKind && !SHARED) { S.scanKind = hashKind; S.scanResult = null; history.replaceState(null, '', location.pathname + location.search + '#scan'); return true; }
   if (!SHARED && location.hash !== '#scan') return false;
   if (SHARED) {
     const kind = /\b(exam|interview|recruit|hiring|offer\s+letter|shortlisted|selected|job|placement|internship|hr\b)/i.test(SHARED) && detectKind(SHARED) === 'message' ? 'job' : detectKind(SHARED);
@@ -78,7 +92,7 @@ const S = {
   members: [], checks: [], tab: 'home', tourStep: 0, verifyMode: 'push', codeFor: '',
   lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null,
   seen: new Set(), sig: new Map(), unsubs: [],
-  scanKind: 'message', scanResult: null, scanUsed: null, payBusy: null, confirmCancel: null, reports: {}, myReports: new Set(), scanOnly: false, prefill: null,
+  scanKind: 'message', scanResult: null, scanUsed: null, photoUsed: null, photo: null, photoUrl: '', photoBusy: null, photoShared: false, payBusy: null, confirmCancel: null, reports: {}, myReports: new Set(), scanOnly: false, prefill: null,
 };
 
 /* ---------- helpers ---------- */
@@ -174,6 +188,12 @@ function paint(html) {
 }
 
 const ICON = {
+  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>',
+  job: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M3 13h18"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1z"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 115 1c-.8.6-2.5 1.2-2.5 2.5"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>',
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>',
@@ -530,6 +550,22 @@ function viewGuide() {
 const IST_MS = 19800000, DAY_MS = 86400000;
 const todayKey = () => String(Math.floor((Date.now() + IST_MS) / DAY_MS));
 const circlePaid = () => ['family', 'team'].includes(S.circle?.plan);
+const photoLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() ? Infinity : PLANS.free.photoChecks);
+const photoRef = () => doc(db, 'users', S.user.uid, 'meters', 'photos');
+async function loadPhotoUsage() {
+  try { const s = await getDoc(photoRef()); S.photoUsed = s.exists() ? s.data().count : 0; }
+  catch { S.photoUsed = 0; }
+}
+// Counts a photo check before showing its result. The database refuses the 6th on the free plan.
+async function usePhoto() {
+  const ref = photoRef();
+  if (!S.photoUsed) {
+    try { await setDoc(ref, { count: 1, at: serverTimestamp() }); S.photoUsed = 1; return; }
+    catch (e) { const s = await getDoc(ref).catch(() => null); if (!s?.exists()) throw e; S.photoUsed = s.data().count; }
+  }
+  await updateDoc(ref, { count: increment(1), at: serverTimestamp(), ...(circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {}) });
+  S.photoUsed += 1;
+}
 const scanLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() ? Infinity : PLANS.free.scansPerDay);
 async function loadUsage() {
   try { const s = await getDoc(doc(db, 'users', S.user.uid, 'usage', todayKey())); S.scanUsed = s.exists() ? s.data().scans : 0; }
@@ -565,7 +601,9 @@ const VERDICT = {
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
   const n = S.reports[r.fp] || 0, mine = S.myReports.has(r.fp);
-  const what = { link: 'link', phone: 'number', message: 'message', job: 'offer' }[r.kind];
+  const what = { link: 'link', phone: 'number', message: 'message', job: 'offer', image: 'message' }[r.kind];
+  const isJob = r.kind === 'job' || r.sub === 'job';
+  const qr = r.qr;
   return `<div class="result verdict ${cls}" id="scan-result">
     <div class="split"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
       <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div></div>
@@ -576,38 +614,111 @@ function scanResultCard(r) {
     ${r.links?.length ? `<div class="found"><b>Links found</b>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
     <div class="community">${n ? `<b>Reported as a scam by ${n} Verth ${n === 1 ? 'user' : 'users'}.</b>` : 'No Verth user has reported this yet.'}
       ${mine ? '<span class="pill bad">You reported this</span>' : `<button class="btn small" data-act="report-scam">Report this ${what} as a scam</button>`}</div>
-    ${r.kind === 'job' && r.company ? `<div class="company"><b>${esc(r.company.name)}: the only real email addresses</b><span class="mono">${r.company.domains.map((d) => '@' + esc(d)).join('  ')}</span><span class="small">Apply and verify offers only through the Careers page on <b>${esc(r.company.site)}</b>. Type the address yourself; don’t use links in the message.</span></div>` : ''}
-    ${r.kind === 'job' && !r.company ? '<div class="company"><b>Check the company yourself</b><span class="small">Search for the company’s official website, open its Careers page, and confirm the job exists there. Their recruitment emails should come from that same website’s domain, never Gmail or Yahoo.</span></div>' : ''}
-    <div class="advice"><b>What to do</b><ul>${(r.kind === 'job' ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict]).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
+    ${r.kind === 'image' ? `<div class="found"><b>What Verth found in your picture</b>
+      ${qr?.type === 'upi' ? `<span>A UPI QR code that pays ${qr.amount ? esc(qr.amount) + ' to ' : ''}<b>${esc(qr.name || qr.payee)}</b>${qr.name && qr.payee ? ` (${esc(qr.payee)})` : ''}.</span>` : qr?.type === 'link' ? `<span>A QR code that opens <span class="mono">${esc(qr.host)}</span>.</span>` : qr ? '<span>A QR code with some text in it.</span>' : ''}
+      ${r.text ? `<details><summary>Show the words Verth read</summary><p class="ocr-text">${esc(r.text)}</p></details>` : ''}</div>` : ''}
+    ${isJob && r.company ? `<div class="company"><b>${esc(r.company.name)}: the only real email addresses</b><span class="mono">${r.company.domains.map((d) => '@' + esc(d)).join('  ')}</span><span class="small">Apply and verify offers only through the Careers page on <b>${esc(r.company.site)}</b>. Type the address yourself; don’t use links in the message.</span></div>` : ''}
+    ${isJob && !r.company ? '<div class="company"><b>Check the company yourself</b><span class="small">Search for the company’s official website, open its Careers page, and confirm the job exists there. Their recruitment emails should come from that same website’s domain, never Gmail or Yahoo.</span></div>' : ''}
+    <div class="advice"><b>What to do</b><ul>${(isJob ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict]).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
       <p class="small">Report fraud calls and messages at <a href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener noreferrer">Sanchar Saathi (Chakshu)</a>. Lost money? Call <b>1930</b> or report at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">cybercrime.gov.in</a> immediately.</p></div>
     ${S.circle && r.verdict !== 'clear' ? '<button class="btn primary" data-act="goverify" data-mode="push">Ask the real person on Verth</button>' : ''}
     <button class="btn ghost" data-act="scan-again">Check something else</button>
   </div>`;
 }
+const KINDS = [
+  ['image', 'Photo or screenshot', 'camera'], ['message', 'Message or email', 'chat'], ['job', 'Job or exam offer', 'job'],
+  ['link', 'Link', 'link'], ['phone', 'Phone number', 'phone'],
+];
+function photoField() {
+  if (S.photo) {
+    return `<div class="photo-pick"><img src="${esc(S.photoUrl)}" alt="The picture you chose">
+      <div class="stack">${S.photoShared ? '<b>Shared to Verth</b>' : '<b>Your picture</b>'}<span class="muted small">Tap <b>Check it</b> and Verth will read the words and any QR code in it.</span>
+      ${S.photoBusy ? '' : '<button type="button" class="link" data-act="photo-clear">Choose a different picture</button>'}</div></div>`;
+  }
+  return `<label class="drop" for="s-image">${ICON.camera}<b>Tap here to add a screenshot or photo</b>
+      <span>Take a photo of the message, or choose a screenshot from your gallery.</span></label>`;
+}
 function viewScan() {
-  const lim = scanLimit(), used = S.scanUsed ?? 0, left = lim === Infinity ? Infinity : Math.max(0, lim - used);
-  const k = S.scanKind, r = S.scanResult;
-  const seg = `<div class="seg four" role="tablist">${[['message', 'Message or email'], ['job', 'Job or exam offer'], ['link', 'Link'], ['phone', 'Phone number']].map(([id, t]) => `<button class="${k === id ? 'on' : ''}" data-act="scan-kind" data-kind="${id}" role="tab">${t}</button>`).join('')}</div>`;
+  const k = S.scanKind, r = S.scanResult, img = k === 'image';
+  const lim = img ? photoLimit() : scanLimit(), used = (img ? S.photoUsed : S.scanUsed) ?? 0, left = lim === Infinity ? Infinity : Math.max(0, lim - used);
+  const tiles = `<div class="kinds" role="tablist" aria-label="What do you want to check?">${KINDS.map(([id, t, ic]) => `<button type="button" class="kind ${k === id ? 'on' : ''}" data-act="scan-kind" data-kind="${id}" role="tab" aria-selected="${k === id}">${ICON[ic]}<span>${t}</span></button>`).join('')}
+    <button type="button" class="kind help" data-act="open-helper">${ICON.help}<span>Not sure? Ask for help</span></button></div>`;
   const pre = S.prefill && S.prefill.kind === k ? esc(S.prefill.text) : '';
-  const field = k === 'message'
+  const field = img
+    ? `${photoField()}<input id="s-image" class="sr-file" type="file" accept="image/*" data-keep="no" aria-label="Choose a screenshot or photo">
+       ${S.photoBusy ? `<div class="ocr-prog" role="status"><span id="ocr-stage">${esc(S.photoBusy.stage)}</span><div class="bar"><i id="ocr-bar" style="width:${S.photoBusy.pct}%"></i></div></div>` : ''}`
+    : k === 'message'
     ? `<label>Paste the SMS, WhatsApp message or email<textarea id="s-message" rows="6" maxlength="5000" placeholder="e.g. Dear customer, your account will be blocked today. Update KYC: http://…">${pre}</textarea></label>`
     : k === 'job' ? `<label>Paste the job, exam or interview email or message<span class="muted small">Include the “From:” line and any links if you can. That’s where fakes give themselves away.</span><textarea id="s-job" rows="7" maxlength="6000" placeholder="e.g. From: TCS Recruitment &lt;hr.tcs@gmail.com&gt; – You are shortlisted for the online exam. Pay ₹1,500 to confirm your slot…">${pre}</textarea></label>
       <label>Which company does it claim to be from? <span class="muted small">(optional)</span><input id="s-company" list="company-list" maxlength="60" autocomplete="off" placeholder="e.g. TCS, Infosys, Wipro"></label>
       <datalist id="company-list">${Object.keys(COMPANIES).map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>`
     : k === 'link' ? `<label>Paste the link<input id="s-link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2000" placeholder="e.g. sbi-kyc-update.xyz/login" value="${pre}"></label>`
       : `<label>Enter the phone number that called or messaged you<input id="s-phone" inputmode="tel" autocomplete="off" maxlength="25" placeholder="e.g. +91 98765 43210" value="${pre}"></label>`;
-  const counter = lim === Infinity ? '<span class="pill ok">Unlimited</span>' : `<span class="muted small">${left} of ${lim} free checks left today</span>`;
-  const limitCard = `<section class="card attention"><h2>You’ve used today’s free checks</h2>
-    <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
-    <button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button></section>`;
-  return `${S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : ''}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
-      <p class="muted">Got a strange message, email, link or call? Check it here before you reply, click, call back or pay.</p>
-      ${seg}
-      ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary" type="submit">Check it</button></form>`}
-      <p class="muted small">Checks run on your device. Verth doesn’t store what you paste. If you report something, only a scrambled fingerprint of it is saved.</p></section>
+  const counter = lim === Infinity ? `<span class="pill ok">Unlimited${img ? ' photo checks' : ''}</span>` : `<span class="muted small">${left} of ${lim} free ${img ? 'photo checks left' : 'checks left today'}</span>`;
+  const limitCard = img
+    ? `<section class="card attention"><h2>You’ve used your ${lim} free photo checks</h2>
+      <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹29 a month. You can still type or paste the message and check it free.</p>
+      <div class="row gap"><button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button><button class="btn ghost" data-act="scan-kind" data-kind="message">Type the message instead</button></div></section>`
+    : `<section class="card attention"><h2>You’ve used today’s free checks</h2>
+      <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
+      <button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button></section>`;
+  const banner = S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : '';
+  return `${banner}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
+      <p class="muted">What do you want to check? Tap one.</p>
+      ${tiles}
+      ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary big" type="submit" ${S.photoBusy ? 'disabled' : ''}>${S.photoBusy ? '<span class="spin" aria-hidden="true"></span> Reading your picture…' : 'Check it'}</button></form>`}
+      <p class="muted small">${img ? 'Your picture stays on your phone. Verth reads it here and never uploads it.' : 'Checks run on your device. Verth doesn’t store what you paste.'} If you report something, only a scrambled fingerprint of it is saved.</p></section>
     ${left === 0 && !r ? limitCard : ''}
     ${r ? scanResultCard(r) : ''}`;
 }
+
+/* ---------- photo and screenshot checks ---------- */
+const OCR_MODULE = './ocr/imagecheck.js'; // loaded only when a picture is checked
+function setPhoto(file, shared = false) {
+  if (!file) return;
+  if (!/^image\//.test(file.type)) { toast('That file isn’t a picture. Choose a screenshot or photo.', 'bad'); return; }
+  if (S.photoUrl) URL.revokeObjectURL(S.photoUrl);
+  Object.assign(S, { photo: file, photoUrl: URL.createObjectURL(file), photoShared: shared, scanKind: 'image', scanResult: null, prefill: null });
+  if (S.circle && !S.scanOnly) S.tab = 'scan';
+  renderScanView();
+}
+function clearPhoto() {
+  if (S.photoUrl) URL.revokeObjectURL(S.photoUrl);
+  Object.assign(S, { photo: null, photoUrl: '', photoShared: false });
+}
+async function scanPhoto(f) {
+  if (!S.photo) return setErr('scan-err', 'Add a screenshot or photo first. Tap the box above.');
+  if (photoLimit() !== Infinity && (S.photoUsed ?? 0) >= photoLimit()) { S.scanResult = null; return renderScanView(); }
+  const fail = (msg) => { S.photoBusy = null; renderScanView(); setErr('scan-err', msg); };
+  S.photoBusy = { stage: 'Opening your picture', pct: 3 }; renderScanView();
+  let read;
+  try {
+    const mod = await import(OCR_MODULE);
+    read = await mod.readImage(S.photo, (stage, pct) => {
+      S.photoBusy = { stage, pct };
+      const a = document.getElementById('ocr-stage'), b = document.getElementById('ocr-bar');
+      if (a) a.textContent = stage;
+      if (b) b.style.width = pct + '%';
+    });
+  } catch (e) {
+    return fail(e?.message === 'too-big' ? 'That picture is too large. Try a screenshot instead.'
+      : e?.message === 'not-image' ? 'That file isn’t a picture. Choose a screenshot or photo.'
+        : 'Couldn’t read the picture. Check your internet connection (the reader downloads once), then try again.');
+  }
+  const r = checkImage(read.text, read.qr);
+  if (r.unreadable) return fail('Verth couldn’t find any words or a QR code in this picture. Try a clearer screenshot, or type the message instead. This didn’t use up a free check.');
+  try { await usePhoto(); }
+  catch (e) {
+    if (e?.code === 'permission-denied') { S.photoBusy = null; S.photoUsed = photoLimit(); S.scanResult = null; return renderScanView(); }
+    return fail(friendlyError(e));
+  }
+  r.fp = r.normalized ? await fingerprint(r.fpKind, r.normalized) : null;
+  S.photoBusy = null; S.scanResult = r;
+  renderScanView();
+  document.getElementById('scan-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  loadReportCount(r);
+}
+
 function renderScanOnly() {
   S.scanOnly = true; stopListeners(); S.circle = null; S.circleId = null;
   const interest = S.profile?.upgradeInterest?.plan;
@@ -619,7 +730,7 @@ function renderScanOnly() {
       <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div>
         <button class="link" data-act="setup" data-type="join">I have an invite code</button></section>
-      ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam checks</h2><p class="muted">Personal plan, ₹29 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
+      ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹29 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
         ${PAY_API ? payButton('personal', 'Get Personal · ₹29 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button><button class="link" data-act="signout">Sign out</button></div>
     </main></div>`);
@@ -665,12 +776,13 @@ function viewPlan() {
       ${plan().checksPerMonth === Infinity ? 'Unlimited checks.' : `${used} of ${plan().checksPerMonth} checks used this month.`} ${count} of ${cp === 'team' ? (S.circle.seats || plan().maxMembers) : plan().maxMembers} places used.</p></section>
     ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
     ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
-    <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p></section>
+    <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p>
+      <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
     <div class="plans">
-      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', 'Signed push checks and rolling codes'])}
-      ${card('personal', 'Personal', '₹29 <small>/ month</small>', ['Unlimited scam checks for you', 'Messages, emails, jobs, links and numbers', 'Community scam reports', 'Everything in Free'])}
-      ${card('family', 'Family', '₹49 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam checks for everyone', 'Log export'])}
-      ${card('team', 'Team', '₹99 <small>/ person / month</small>', ['Whole organisation, up to 500', 'Unlimited checks and scam checks', 'Log export for auditors', 'Admin controls and priority support'])}
+      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', 'Signed push checks and rolling codes'])}
+      ${card('personal', 'Personal', '₹29 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Messages, emails, jobs, links and numbers', 'Everything in Free'])}
+      ${card('family', 'Family', '₹49 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Log export'])}
+      ${card('team', 'Team', '₹99 <small>/ person / month</small>', ['Whole organisation, up to 500', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     <section class="card"><h2>Account and device</h2><p class="muted">${esc(S.user.email)}</p>
@@ -827,7 +939,7 @@ async function afterSignIn(preferId) {
   }
   S.profile = s.data();
   S.keys = await deviceKeys(u.uid);
-  await Promise.all([loadCircles(), loadUsage()]);
+  await Promise.all([loadCircles(), loadUsage(), loadPhotoUsage()]);
   watchPending();
   const ids = Object.keys(S.circles);
   const wantScan = takeShared();
@@ -876,12 +988,14 @@ const actions = {
     renderSetup(el.dataset.type);
   },
   'scan-only': () => renderScanOnly(),
-  'scan-kind': (el) => { S.scanKind = el.dataset.kind; S.scanResult = null; renderScanView(); },
-  'scan-again': () => { S.scanResult = null; renderScanView(); window.scrollTo(0, 0); },
+  'scan-kind': (el) => { S.scanKind = el.dataset.kind; S.scanResult = null; renderScanView(); document.querySelector('.kinds')?.scrollIntoView({ block: 'nearest' }); },
+  'scan-again': () => { S.scanResult = null; clearPhoto(); renderScanView(); window.scrollTo(0, 0); },
+  'photo-clear': () => { clearPhoto(); S.scanResult = null; renderScanView(); },
+  'open-helper': () => helper?.open(),
   'report-scam': async () => {
     const r = S.scanResult; if (!r?.fp) return;
     try {
-      await setDoc(doc(db, 'reports', r.fp, 'by', S.user.uid), { kind: r.kind === 'job' ? 'message' : r.kind, at: serverTimestamp() });
+      await setDoc(doc(db, 'reports', r.fp, 'by', S.user.uid), { kind: r.kind === 'job' || r.kind === 'image' ? 'message' : r.kind, at: serverTimestamp() });
       S.myReports.add(r.fp); S.reports[r.fp] = (S.reports[r.fp] || 0) + 1;
       toast('Thanks. Your report helps warn other Verth users.', 'ok'); renderScanView();
     } catch (e) { toast(friendlyError(e), 'bad'); }
@@ -1012,6 +1126,7 @@ async function removeMember(uid, word) {
 
 const forms = {
   scan: async (f) => {
+    if (S.scanKind === 'image') return scanPhoto(f);
     const el = f.querySelector('textarea, input'), text = el.value.trim(); // first field is the content
     if (!text) return setErr('scan-err', S.scanKind === 'phone' ? 'Enter the phone number.' : S.scanKind === 'link' ? 'Paste the link.' : S.scanKind === 'job' ? 'Paste the job or exam email first.' : 'Paste the message first.');
     if (scanLimit() !== Infinity && (S.scanUsed ?? 0) >= scanLimit()) { S.scanResult = null; return renderScanView(); }
@@ -1140,6 +1255,22 @@ root.addEventListener('submit', (e) => {
 root.addEventListener('change', (e) => {
   if (e.target.id === 'circle-switch') openCircle(e.target.value);
   if (e.target.id === 'code-for') { S.codeFor = e.target.value; lastCodeKey = ''; tick(); }
+  if (e.target.id === 's-image') setPhoto(e.target.files?.[0]);
+});
+
+// Paste or drop a screenshot anywhere on the Scam check screen.
+const onScanScreen = () => !!document.querySelector('.kinds');
+document.addEventListener('paste', (e) => {
+  if (!S.user || !onScanScreen() || S.photoBusy) return;
+  const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith('image/'));
+  if (item) { e.preventDefault(); setPhoto(item.getAsFile()); }
+});
+root.addEventListener('dragover', (e) => { if (e.target.closest?.('.drop, .photo-pick')) { e.preventDefault(); e.target.closest('.drop, .photo-pick').classList.add('over'); } });
+root.addEventListener('dragleave', (e) => e.target.closest?.('.drop, .photo-pick')?.classList.remove('over'));
+root.addEventListener('drop', (e) => {
+  if (!e.target.closest?.('.drop, .photo-pick')) return;
+  e.preventDefault();
+  setPhoto([...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith('image/')));
 });
 
 /* ---------- ticking UI: codes and countdowns ---------- */
@@ -1218,7 +1349,7 @@ function makeAI() {
     return text.slice(0, 1500);
   };
 }
-mountHelper({ go: helperGo, ai: makeAI(), raised: true });
+const helper = mountHelper({ go: helperGo, ai: makeAI(), raised: true });
 
 /* ---------- routing ---------- */
 function route() {

@@ -44,7 +44,7 @@ PAGES = {
 <ul><li><b>Account:</b> your name, email address, and whether your email is confirmed (handled by Google Firebase Authentication).</li>
 <li><b>Circles and checks:</b> the circles you create or join, your role, the verification requests you send or answer (who, what was asked in your words, the channel, the answer and time).</li>
 <li><b>Device keys:</b> public keys that tie your answers to your own device, plus a simple device label like “Chrome on Android”. Private keys never leave your device.</li>
-<li><b>Scam check:</b> the text you paste is checked on your device and is <b>not</b> uploaded or stored. We keep only a daily count of checks. If you report something as a scam, we store a one-way scrambled fingerprint of it, never the text.</li>
+<li><b>Scam check:</b> the text you paste, and any screenshot or photo you choose, is checked on your device and is <b>not</b> uploaded or stored. We keep only a count of checks (daily for text, in total for photos). If you report something as a scam, we store a one-way scrambled fingerprint of it, never the text.</li>
 <li><b>Payments:</b> your subscription ID, plan, status and renewal date. Card, UPI and bank details are collected and processed by Razorpay, not by Verth.</li>
 <li><b>Verth Helper:</b> questions you type are answered on your device and not stored. If the optional AI mode is switched on, questions the built-in guide can’t answer are sent to Google Gemini to generate a reply.</li></ul>
 <h2>What we don’t do</h2>
@@ -94,10 +94,10 @@ PAGES = {
     "pricing": ("Pricing", """
 <p>All prices are in Indian Rupees, per month, and include applicable taxes. Paid plans renew monthly until you cancel.</p>
 <div class="price-table">
-<div><h2>Free</h2><p class="amt">₹0</p><ul><li>Up to 5 people in a circle</li><li>20 verification checks a month</li><li>2 scam checks a day</li></ul></div>
-<div><h2>Personal</h2><p class="amt">₹29 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Everything in Free</li></ul></div>
-<div><h2>Family</h2><p class="amt">₹49 <small>/ month</small></p><ul><li>Up to 10 people</li><li>Unlimited verification checks</li><li>Unlimited scam checks for everyone in the circle</li><li>Log export</li></ul></div>
-<div><h2>Team</h2><p class="amt">₹99 <small>/ person / month</small></p><ul><li>Organisations, up to 500 people</li><li>Unlimited checks and scam checks for everyone</li><li>Log export for auditors</li><li>Priority support</li></ul></div>
+<div><h2>Free</h2><p class="amt">₹0</p><ul><li>Up to 5 people in a circle</li><li>20 verification checks a month</li><li>2 scam checks a day</li><li>5 free photo / screenshot checks</li></ul></div>
+<div><h2>Personal</h2><p class="amt">₹29 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Unlimited photo / screenshot checks</li><li>Everything in Free</li></ul></div>
+<div><h2>Family</h2><p class="amt">₹49 <small>/ month</small></p><ul><li>Up to 10 people</li><li>Unlimited verification checks</li><li>Unlimited scam and photo checks for everyone in the circle</li><li>Log export</li></ul></div>
+<div><h2>Team</h2><p class="amt">₹99 <small>/ person / month</small></p><ul><li>Organisations, up to 500 people</li><li>Unlimited checks, scam and photo checks for everyone</li><li>Log export for auditors</li><li>Priority support</li></ul></div>
 </div>
 <p>Pay with UPI Autopay, cards and other methods through Razorpay. See the <a href="refunds.html">Cancellation and Refund Policy</a> and <a href="terms.html">Terms</a>.</p>
 """),

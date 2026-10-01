@@ -1,7 +1,7 @@
 // Unit tests for Verth Helper's understanding of questions.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findAnswer, looksSensitive, looksLikeSomethingToCheck, TOPICS, aiInstructions } from '../src/helper.js';
+import { findAnswer, looksSensitive, looksLikeSomethingToCheck, extractTarget, TOPICS, aiInstructions } from '../src/helper.js';
 
 const topicOf = (q) => findAnswer(q)?.topic.id;
 
@@ -28,6 +28,10 @@ test('common questions land on the right topic', () => {
     'does verth read my whatsapp': 'privacy',
     'is it safe to share otp with bank': 'otp',
     'what is verth': 'what',
+    'how to check screenshot': 'photo',
+    'photo kaise check kare': 'photo',
+    'I dont understand how to use this': 'howto',
+    'can i upload image of message': 'photo',
     'how do I cancel my subscription': 'billing',
     'I was charged twice, need refund': 'billing',
     'how much does it cost': 'plans',
@@ -65,4 +69,13 @@ test('every topic is complete and the AI is limited to the guide', () => {
   assert.match(p, /Only use facts from the VERTH GUIDE/);
   assert.match(p, /Never ask for or accept OTPs/);
   assert.match(p, /1930/);
+});
+
+test('numbers and links inside a question go to Scam check, with just the number or link', () => {
+  assert.equal(looksLikeSomethingToCheck('is 98765 43210 safe?'), 'phone');
+  assert.equal(extractTarget('is 98765 43210 safe?', 'phone'), '98765 43210');
+  assert.equal(looksLikeSomethingToCheck('this number +91 9876543210 called me, is it fraud'), 'phone');
+  assert.equal(looksLikeSomethingToCheck('is sbi-kyc-update.xyz/login safe to open?'), 'link');
+  assert.equal(extractTarget('is sbi-kyc-update.xyz/login safe to open?', 'link'), 'sbi-kyc-update.xyz/login');
+  assert.equal(looksLikeSomethingToCheck('how do I install on iphone'), null);
 });

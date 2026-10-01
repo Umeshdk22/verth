@@ -66,10 +66,20 @@ Built from a real story: the founder paid ₹1,500 "exam fee" to a fake company 
 - **Look-alike company websites** (e.g. `tcs-careers-india.in`).
 - **Other hiring red flags:** surprise "selection", WhatsApp/Telegram interviews, Aadhaar/PAN/bank documents up front, too-good-to-be-true pay.
 
+## Photo & screenshot check
+
+Not everyone can copy and paste. In Scam check, tap **Photo or screenshot**, take a photo of the message or pick a screenshot (or on Android, **Share → Verth** straight from WhatsApp or the Gallery).
+
+- **Reads the picture on the phone itself** (Tesseract OCR compiled to WebAssembly, loaded only when needed). The picture is never uploaded.
+- **Finds QR codes** in the picture (jsQR). A UPI QR code is decoded to show exactly who it pays and how much, and "scan to receive money" is flagged as the scam it is.
+- The words found go through the same message and job checks, with the read text shown so people can see what Verth saw.
+- **5 free photo checks per account**, enforced by Firestore rules; unlimited on Personal, Family and Team.
+
 ## Verth Helper (AI assistant)
 
 A **“Need help?”** button on every page opens Verth Helper, a chat assistant for anyone who finds the app confusing:
 
+- **Big "What happened?" buttons** (I have a screenshot, a strange message, a number called me, a job offer, someone is asking for money, I lost money) so nobody needs to know the right words, plus a **🔊 Listen** button that reads any answer aloud.
 - **Understands plain questions**, including Hinglish (“account kaise banaye”, “kitne ka plan hai”), and answers in simple steps with buttons that take you straight there (Open Verify, See plans, Install…).
 - **Built-in guide first:** 27 topics answered instantly, offline and free (sign-up, circles, checks, codes, new phone, plans, what to do if you’ve been scammed: 1930 and cybercrime.gov.in).
 - **Safety rails:** it refuses OTPs, PINs, passwords and card/Aadhaar numbers (they’re never processed or sent anywhere), and anything pasted that looks like a link, number or message is handed to Scam check instead of being judged by a chatbot.

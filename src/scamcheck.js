@@ -412,3 +412,62 @@ export async function fingerprint(kind, normalized) {
   const h = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(h), (b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+/* ---------- photos and screenshots ---------- */
+// What a QR code inside a picture really does. UPI QR codes SEND money; scammers say "scan to receive".
+const RECEIVE_WORDS = /\b(receive|recieve|get|claim|credited|credit|refund|cashback|cash back|prize|won|winner|lottery|reward|bonus|kyc|verify|verification)\b/i;
+export function checkQR(data, context = '') {
+  const raw = String(data || '').trim();
+  const flags = [], good = [];
+  if (/^upi:\/\//i.test(raw)) {
+    const q = new URLSearchParams(raw.slice(raw.indexOf('?') + 1));
+    const pa = (q.get('pa') || '').slice(0, 80), pn = (q.get('pn') || '').slice(0, 60), am = q.get('am') || '';
+    const amount = am && !isNaN(+am) ? '₹' + Number(am).toLocaleString('en-IN') : '';
+    const who = pn ? `“${pn}”${pa ? ` (${pa})` : ''}` : pa || 'someone';
+    if (RECEIVE_WORDS.test(context)) {
+      flags.push(flag(HIGH, 'A QR code you’re told will give you money', `This QR code actually PAYS ${amount ? amount + ' ' : ''}to ${who}. You never scan a QR code or enter your UPI PIN to receive money. This is a common scam.`));
+    } else {
+      flags.push(flag(MED, `This QR code sends ${amount || 'money'} to ${who}`, 'Scanning it opens your UPI app to pay. Only scan it if you want to pay this shop or person, and check the name in your UPI app before entering your PIN.'));
+    }
+    return { flags, good, info: { type: 'upi', payee: pa, name: pn, amount } };
+  }
+  if (/^(https?:\/\/|www\.)/i.test(raw) || /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(raw)) {
+    const r = checkLink(raw);
+    for (const f of r.flags) flags.push(flag(f.level, 'QR code link: ' + f.title, f.why));
+    if (!r.flags.length) good.push(`The QR code opens ${r.host || raw}, which shows no warning signs.`);
+    return { flags, good, info: { type: 'link', host: r.host || raw, verdict: r.verdict } };
+  }
+  return { flags, good, info: { type: 'text', text: raw.slice(0, 200) } };
+}
+
+// Cleans up text read from a picture: joins broken lines and fixes common reading slips in links.
+export function cleanOcr(text) {
+  return String(text || '')
+    .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
+    .replace(/(https?):\s*\/\s*\//gi, '$1://')
+    .replace(/[ \t]+/g, ' ')
+    .split('\n')
+    // drop "lines" that are really picture noise (QR codes, icons): too few real letters
+    .filter((l) => { const t = l.trim(); if (!t) return true; const good = (t.match(/[a-z0-9₹@]/gi) || []).length; return good >= 4 && good / t.length >= 0.55 && /[a-z0-9₹@]{3,}/i.test(t); })
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+const JOB_WORDS = /\b(exam|interview|recruit|recruitment|hiring|offer letter|shortlisted|selected|job|placement|internship|hr team|walk-?in|joining)\b/i;
+export function checkImage(text, qrData) {
+  const t = cleanOcr(text);
+  const readable = t.replace(/[^a-z0-9]/gi, '').length >= 12;
+  if (!readable && !qrData) return { kind: 'image', unreadable: true };
+  const sub = readable && JOB_WORDS.test(t) ? 'job' : 'message';
+  const base = readable ? (sub === 'job' ? checkJob(t) : checkMessage(t)) : { flags: [], good: [], links: [], phones: [], normalized: '' };
+  const flags = [...base.flags], good = [...base.good];
+  let qr = null;
+  if (qrData) { qr = checkQR(qrData, t); flags.push(...qr.flags); good.push(...qr.good); }
+  const score = flags.reduce((a, f) => a + f.level, 0);
+  return {
+    ...base, kind: 'image', sub, text: t, qr: qr?.info || null, flags, good,
+    score, verdict: verdict(score, flags),
+    fpKind: 'message', normalized: base.normalized || (qrData ? String(qrData).trim().toLowerCase() : ''),
+  };
+}

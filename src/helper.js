@@ -66,6 +66,18 @@ export const TOPICS = [
     go: [['Open Verify', 'verify']],
   },
   {
+    id: 'howto', q: 'How do I use Verth? (simple steps)',
+    keys: ['how to use', 'how do i use', 'how can i use', 'use verth', 'kaise use', 'use kaise', 'kaise kare', 'kaise karu', 'help me', 'dont understand', 'do not understand', 'confused', 'difficult', 'not able', 'samajh nahi', 'kya karu', 'steps', 'guide me', 'new to phone', 'first time'],
+    a: 'It’s easy. Do this:\n• Step 1: Open Verth and sign in.\n• Step 2: Tap Scan at the bottom.\n• Step 3: Tap the picture that matches what you got: Photo or screenshot, Message, Job offer, Link or Phone number.\n• Step 4: Add it (take a screenshot, paste the message, or type the number) and tap the big Check it button.\n• Step 5: Read the answer. Red means danger: don’t pay, don’t share OTP.\nYou can tap the 🔊 Listen button to hear any answer.',
+    go: [['📷 Check a screenshot', 'scan-image'], ['💬 Check a message', 'scan-message']],
+  },
+  {
+    id: 'photo', q: 'How do I check a screenshot or photo?',
+    keys: ['screenshot', 'screen shot', 'photo', 'image', 'picture', 'pic', 'upload', 'camera', 'gallery', 'ss', 'photo check', 'click photo', 'photo kaise'],
+    a: 'You don’t need to copy anything. Just use a picture:\n• Take a screenshot of the message (press Power + Volume-down together on most phones).\n• Open Scam check and tap Photo or screenshot.\n• Tap the big box and choose the screenshot from your gallery, or take a photo of the screen.\n• Tap Check it. Verth reads the words and any QR code and tells you if it’s a scam.\nYour picture stays on your phone. Free accounts get 5 photo checks; paid plans get unlimited.\nOn Android you can also open the screenshot and tap Share → Verth.',
+    go: [['📷 Check a screenshot now', 'scan-image']],
+  },
+  {
     id: 'scan', q: 'How do I check a suspicious message, link or number?',
     keys: ['scam check', 'scan', 'check message', 'check sms', 'check link', 'check url', 'check number', 'check phone', 'suspicious', 'fraud message', 'fake message', 'is this fake', 'is this real', 'is this a scam', 'phishing', 'spam call', 'kyc', 'fake link', 'check email'],
     a: 'Open Scam check and choose what you got: Message or email, Job or exam offer, Link, or Phone number.\n• Paste it and tap “Check it”.\n• Verth shows a verdict (High risk, Be careful, or No obvious red flags), the exact warning signs, and what to do next.\n• The check runs on your device. Verth doesn’t store what you paste.\n• On Android, you can share a message straight to Verth from WhatsApp, Gmail or Messages.',
@@ -79,14 +91,14 @@ export const TOPICS = [
   },
   {
     id: 'limit', q: 'Why can I only do 2 scam checks?',
-    keys: ['limit', '2 per day', 'two per day', 'daily limit', 'free checks', 'used todays', 'no checks left', 'more checks', 'unlimited', 'reset'],
-    a: 'Free accounts get 2 scam checks a day. They reset at midnight, India time.\n• The Personal plan (₹29 a month) gives unlimited scam checks; Family and Team include them for everyone.\n• Verify checks are separate: free circles get 20 a month.',
+    keys: ['limit', '2 per day', 'two per day', 'daily limit', 'free checks', 'used todays', 'no checks left', 'more checks', 'unlimited', 'reset', 'photo limit', '5 photos', 'free photo'],
+    a: 'Free accounts get 2 scam checks a day (they reset at midnight, India time) and 5 photo or screenshot checks in total.\n• The Personal plan (₹29 a month) gives unlimited scam and photo checks; Family and Team include them for everyone.\n• Verify checks are separate: free circles get 20 a month.',
     go: [['See plans', 'plan']],
   },
   {
     id: 'plans', q: 'What do the plans cost?',
     keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'charges', 'buy', 'subscribe'],
-    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day.\n• Personal ₹29/month: unlimited scam checks.\n• Family ₹49/month: up to 10 people, unlimited checks.\n• Team ₹99 per person/month: for offices, up to 500 people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
+    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹29/month: unlimited scam and photo checks.\n• Family ₹49/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹99 per person/month: for offices, up to 500 people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
   },
   {
@@ -158,8 +170,19 @@ export const TOPICS = [
   },
 ];
 
-const HELLO = 'Hi! I’m Verth Helper. Ask me how to do anything in Verth, in your own words. For example “how do I add my mom?” or “I got a fake job email”.';
-const SUGGEST = ['signup', 'scan', 'circle', 'verify', 'install', 'lost'];
+const HELLO = 'Namaste! I’m Verth Helper. Tell me what happened, and I’ll take you to the right place. Tap a button, or type your question in your own words.';
+const SUGGEST = ['howto', 'photo', 'signup', 'circle', 'verify', 'lost'];
+// Big "What happened?" buttons, so nobody has to type or know the right words.
+const START = [
+  ['📷 I have a screenshot or photo', 'scan-image'],
+  ['💬 I got a strange message', 'scan-message'],
+  ['📞 A number called or messaged me', 'scan-phone'],
+  ['💼 I got a job or exam offer', 'scan-job'],
+  ['🔗 Someone sent me a link', 'scan-link'],
+  ['💸 Someone I know is asking for money', 'ask:verify'],
+  ['😟 I already lost money', 'ask:lost'],
+  ['❓ How do I use Verth?', 'ask:howto'],
+];
 
 /* ---------- understanding the question ---------- */
 const norm = (t) => ' ' + String(t || '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9₹]+/g, ' ').trim() + ' ';
@@ -197,14 +220,49 @@ export function looksSensitive(text) {
 
 // Something to check rather than a question about the app: a link, a phone number,
 // or a pasted message. These go to Scam check instead of the helper (or any AI).
+const PHONE_IN = /(?:\+?91[\s-]?)?(?:[6-9]\d{4}[\s-]?\d{5}|1[46]0\d{7,10})/;
+const LINK_IN = /(?:https?:\/\/|www\.)\S+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|in|xyz|top|online|site|info|co|org|net|live|shop|link|click|ly|me|io|app)(?:\/\S*)?/i;
+// The number or link inside a question like "is 98765 43210 safe?", for Scam check.
+export function extractTarget(text, kind) {
+  const t = String(text || '');
+  if (kind === 'phone') return (t.match(PHONE_IN) || [t])[0].trim();
+  if (kind === 'link') return (t.match(LINK_IN) || [t])[0].replace(/[.,!?)]+$/, '');
+  return t;
+}
 export function looksLikeSomethingToCheck(text) {
   const t = String(text || '').trim();
+  const short = t.split(/\s+/).length <= 12;
+  if (short && PHONE_IN.test(t) && !LINK_IN.test(t)) return 'phone';
+  if (short && LINK_IN.test(t) && /\b(safe|real|fake|scam|genuine|check|legit|sahi|asli|nakli|open|click)\b/i.test(t)) return 'link';
   if (/^(https?:\/\/|www\.)\S+$/i.test(t) || /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t)) return 'link';
   if (/^\+?[\d\s()-]{8,18}$/.test(t)) return 'phone';
   const hasLink = /(https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(com|in|xyz|top|online|site|info|co|org|net|live|shop|link|click)\b/i.test(t);
   const pasted = /^(from:|subject:|dear (customer|candidate|user|sir|madam))/im.test(t) || t.length > 220;
   if (pasted || (hasLink && t.split(/\s+/).length > 4)) return /\b(exam|interview|recruit|hiring|offer letter|shortlisted|selected|job|placement|internship)\b/i.test(t) ? 'job' : 'message';
   return null;
+}
+
+/* ---------- reading answers aloud ---------- */
+const CAN_SPEAK = typeof window !== 'undefined' && 'speechSynthesis' in window;
+let speakingBtn = null;
+function stopSpeaking() {
+  if (!CAN_SPEAK) return;
+  window.speechSynthesis.cancel();
+  if (speakingBtn) speakingBtn.textContent = '🔊 Listen';
+  speakingBtn = null;
+}
+function speak(text, btn) {
+  if (!CAN_SPEAK) return;
+  if (speakingBtn === btn) { stopSpeaking(); return; }
+  stopSpeaking();
+  const u = new SpeechSynthesisUtterance(text.replace(/[•]/g, '. ').replace(/\s+/g, ' ').trim());
+  const voices = window.speechSynthesis.getVoices();
+  const v = voices.find((x) => /en[-_]IN/i.test(x.lang)) || voices.find((x) => /^en/i.test(x.lang));
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-IN';
+  u.rate = 0.92;
+  u.onend = u.onerror = () => { if (speakingBtn === btn) { btn.textContent = '🔊 Listen'; speakingBtn = null; } };
+  speakingBtn = btn; btn.textContent = '⏹ Stop';
+  window.speechSynthesis.speak(u);
 }
 
 /* ---------- the chat window ---------- */
@@ -244,10 +302,11 @@ export function mountHelper({ go, ai = null, raised = false } = {}) {
   let busy = false, greeted = false;
 
   const scrollDown = () => { log.scrollTop = log.scrollHeight; };
-  function add(who, html, actions = []) {
+  function add(who, html, actions = [], big = false) {
     const d = document.createElement('div');
     d.className = 'vh-msg ' + who;
-    d.innerHTML = `<div class="vh-b">${html}</div>${actions.length ? `<div class="vh-acts">${actions.map(([label, to, text]) => `<button type="button" class="vh-act" data-to="${esc(to)}"${text ? ` data-text="${esc(text)}"` : ''}>${esc(label)}</button>`).join('')}</div>` : ''}`;
+    const say = who === 'bot' && CAN_SPEAK && !html.includes('vh-dots') ? '<button type="button" class="vh-say" aria-label="Listen to this answer">🔊 Listen</button>' : '';
+    d.innerHTML = `<div class="vh-b">${html}</div>${say}${actions.length ? `<div class="vh-acts${big ? ' big' : ''}">${actions.map(([label, to, text]) => `<button type="button" class="vh-act" data-to="${esc(to)}"${text ? ` data-text="${esc(text)}"` : ''}>${esc(label)}</button>`).join('')}</div>` : ''}`;
     log.appendChild(d); scrollDown();
     return d;
   }
@@ -255,10 +314,10 @@ export function mountHelper({ go, ai = null, raised = false } = {}) {
 
   function open() {
     panel.hidden = false; fab.setAttribute('aria-expanded', 'true'); wrap.classList.add('open');
-    if (!greeted) { greeted = true; add('bot', fmt(HELLO), chips(SUGGEST)); }
+    if (!greeted) { greeted = true; add('bot', fmt(HELLO), START, true); }
     setTimeout(() => input.focus(), 30);
   }
-  function close() { panel.hidden = true; fab.setAttribute('aria-expanded', 'false'); wrap.classList.remove('open'); fab.focus(); }
+  function close() { stopSpeaking(); panel.hidden = true; fab.setAttribute('aria-expanded', 'false'); wrap.classList.remove('open'); fab.focus(); }
   fab.addEventListener('click', () => (panel.hidden ? open() : close()));
   wrap.querySelector('.vh-x').addEventListener('click', close);
   panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
@@ -278,7 +337,9 @@ export function mountHelper({ go, ai = null, raised = false } = {}) {
     }
     const kind = looksLikeSomethingToCheck(q);
     if (kind) {
-      add('bot', fmt(`That looks like a ${kind === 'job' ? 'job or exam offer' : kind} you want to check. Scam check will look at it properly and show you every warning sign.`), [[`Open it in Scam check`, 'scan-' + kind, q]]);
+      const target = extractTarget(q, kind);
+      const what = kind === 'job' ? 'a job or exam offer' : kind === 'phone' ? `the number ${target}` : kind === 'link' ? `the link ${target}` : 'a message';
+      add('bot', fmt(`Let’s check ${what}. Tap the button below, then tap the big Check it button.`), [['🔎 Check it in Scam check', 'scan-' + kind, target]], true);
       return;
     }
     history.push({ role: 'user', text: q });
@@ -304,6 +365,8 @@ export function mountHelper({ go, ai = null, raised = false } = {}) {
 
   form.addEventListener('submit', (e) => { e.preventDefault(); const q = input.value; input.value = ''; ask(q); });
   log.addEventListener('click', (e) => {
+    const sb = e.target.closest('.vh-say');
+    if (sb) { speak(sb.previousElementSibling?.innerText || '', sb); return; }
     const b = e.target.closest('.vh-act');
     if (!b) return;
     const to = b.dataset.to;

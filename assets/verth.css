@@ -220,3 +220,36 @@ label .muted.small{font-weight:400}
   .vh-fab span{font-size:14px}
 }
 @media (prefers-reduced-motion:reduce){.vh-dots i{animation:none}.vh-fab{transition:none}}
+
+/* scam check: big picture tiles, easy to tap for everyone */
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:480px){.kinds{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kind{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:96px;padding:14px 8px;border-radius:70px 70px 14px 14px/26px 26px 14px 14px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font-weight:600;font-size:15px;line-height:1.2;text-align:center}
+.kind svg{width:30px;height:30px;color:var(--accent)}
+.kind.on{background:var(--accent-soft);border:2px solid var(--accent);color:var(--ink)}
+.kind.help{border-style:dashed;color:var(--muted)}
+.kind.help svg{color:var(--teal)}
+.kind:hover{border-color:var(--accent)}
+.btn.big{min-height:54px;font-size:17px}
+.sr-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:170px;padding:22px 16px;border:2px dashed rgba(255,180,94,.55);border-radius:var(--arch);background:rgba(255,180,94,.07);cursor:pointer;font-weight:400}
+.drop svg{width:44px;height:44px;color:var(--accent)}
+.drop b{font-size:18px;font-weight:600}
+.drop span{color:var(--muted);font-size:14px;max-width:34ch}
+.drop.over,.photo-pick.over{background:rgba(255,180,94,.16);border-color:var(--accent)}
+.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.photo-pick{display:flex;gap:14px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.photo-pick img{width:110px;max-height:190px;object-fit:cover;object-position:top;border-radius:10px;border:1px solid var(--line);flex:none;background:#fff}
+.photo-pick .stack{gap:6px}
+.ocr-prog{display:flex;flex-direction:column;gap:8px;font-weight:600}
+.ocr-prog .bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.ocr-prog .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFC277,#F59E2E);border-radius:999px;transition:width .3s}
+.found details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
+.ocr-text{white-space:pre-wrap;font-size:14px;color:var(--muted);margin-top:6px;max-height:220px;overflow:auto;background:rgba(0,0,0,.2);padding:10px;border-radius:8px}
+/* helper: big start buttons and read-aloud */
+.vh-b{font-size:15.5px}
+.vh-acts.big{flex-direction:column;align-items:stretch}
+.vh-acts.big .vh-act{font-size:15px;padding:11px 14px;border-radius:14px;color:var(--ink);border-color:rgba(255,180,94,.45);background:rgba(255,180,94,.08)}
+.vh-acts.big .vh-act:hover{background:rgba(255,180,94,.18)}
+.vh-say{align-self:flex-start;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600}
+.vh-say:hover{color:var(--ink);border-color:var(--accent)}

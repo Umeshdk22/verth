@@ -161,3 +161,40 @@ test('job: company is recognised from a typed name or from the text', () => {
   assert.equal(findCompany('Offer from Wipro Limited', '').name, 'Wipro');
   assert.equal(findCompany('Hello there', ''), null);
 });
+
+/* ---------- photos and screenshots ---------- */
+import { checkImage, checkQR, cleanOcr } from '../src/scamcheck.js';
+test('photo: text read from a scam screenshot is checked like a message', () => {
+  const r = checkImage('Dear Customer, your SBI YONO account will be\nblocked today. Update PAN KYC immediately:\nhttp: //sbi-yono-kyc.xyz/update');
+  assert.equal(r.kind, 'image');
+  assert.equal(r.verdict, 'danger');
+  assert.match(titles(r), /Suspicious link/);
+  assert.equal(r.fpKind, 'message');
+});
+test('photo: a job screenshot uses the job checks', () => {
+  const r = checkImage('From: TCS Recruitment <hr.tcs.careers@gmail.com>\nYou are shortlisted for the TCS online exam. Pay exam fee Rs 1500 to confirm your slot.');
+  assert.equal(r.sub, 'job');
+  assert.match(titles(r), /pay for a job, exam/);
+});
+test('photo: a "scan to receive money" QR code is high risk', () => {
+  const r = checkImage('Congratulations! Scan this QR to receive your cashback of Rs 5000', 'upi://pay?pa=lucky.winner@ybl&pn=Cashback%20Dept&am=4999');
+  assert.equal(r.verdict, 'danger');
+  assert.match(titles(r), /QR code you’re told will give you money/);
+  assert.equal(r.qr.amount, '₹4,999');
+});
+test('photo: an ordinary shop UPI QR is a caution, not a scam', () => {
+  const q = checkQR('upi://pay?pa=sharmastore@okaxis&pn=Sharma%20Store', 'Sharma General Store');
+  assert.equal(q.flags[0].level, 2);
+  assert.match(q.flags[0].title, /sends money to “Sharma Store”/);
+});
+test('photo: QR code links are checked like links', () => {
+  const q = checkQR('http://sbi-kyc-update.xyz/login');
+  assert.ok(q.flags.some((f) => f.level === 3));
+  assert.equal(q.info.type, 'link');
+});
+test('photo: blank or unreadable pictures are reported, not judged', () => {
+  assert.equal(checkImage('  ~ ', null).unreadable, true);
+  assert.equal(cleanOcr('visit https : // x.com'), 'visit https : // x.com');
+  assert.equal(cleanOcr('visit https:/ /x.com'), 'visit https://x.com');
+  assert.equal(cleanOcr('Scan to receive\na\n[=] 0 gL. [=]\nEL Ta\nronn\nyour money now'), 'Scan to receive\nronn\nyour money now');
+});
