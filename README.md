@@ -66,6 +66,15 @@ Built from a real story: the founder paid ₹1,500 "exam fee" to a fake company 
 - **Look-alike company websites** (e.g. `tcs-careers-india.in`).
 - **Other hiring red flags:** surprise "selection", WhatsApp/Telegram interviews, Aadhaar/PAN/bank documents up front, too-good-to-be-true pay.
 
+## Verth Helper (AI assistant)
+
+A **“Need help?”** button on every page opens Verth Helper, a chat assistant for anyone who finds the app confusing:
+
+- **Understands plain questions**, including Hinglish (“account kaise banaye”, “kitne ka plan hai”), and answers in simple steps with buttons that take you straight there (Open Verify, See plans, Install…).
+- **Built-in guide first:** 27 topics answered instantly, offline and free (sign-up, circles, checks, codes, new phone, plans, what to do if you’ve been scammed: 1930 and cybercrime.gov.in).
+- **Safety rails:** it refuses OTPs, PINs, passwords and card/Aadhaar numbers (they’re never processed or sent anywhere), and anything pasted that looks like a link, number or message is handed to Scam check instead of being judged by a chatbot.
+- **Optional Gemini mode** via Firebase AI Logic (Gemini Developer API free tier, App Check protected, no secret key in the browser). Gemini is restricted to the Verth guide by its system instructions and limited to 15 answers per person per day.
+
 ## Install on your phone
 
 Verth is an installable web app (manifest + service worker). On Android, after installing, any SMS, WhatsApp message, email or link can be sent to Verth with **Share → Verth** (Web Share Target), which opens Scam check pre-filled. Shared text is removed from the address bar immediately and never stored.

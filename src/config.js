@@ -23,3 +23,9 @@ export const CHECK_TTL_SECONDS = 180;
 // Firebase App Check (reCAPTCHA Enterprise) site key. When set, Firebase only accepts
 // requests coming from the real Verth site, which blocks scripts and bots.
 export const appCheckSiteKey = '';
+
+// Verth Helper's optional Gemini mode (Firebase AI Logic, Gemini Developer API free tier).
+// To switch it on: Firebase console → AI Logic → Get started → Gemini Developer API,
+// set up App Check (appCheckSiteKey above, required by Firebase from 2 Nov 2026),
+// then set enabled: true. Without it, the helper still answers from the built-in guide.
+export const AI_HELPER = { enabled: false, model: 'gemini-3.5-flash-lite', perDay: 15 };

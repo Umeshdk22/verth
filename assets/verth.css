@@ -177,3 +177,39 @@ label .muted.small{font-weight:400}
 .company{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;background:rgba(61,214,195,.08);border:1px solid rgba(61,214,195,.35)}
 .company .mono{color:var(--teal);font-size:15px;word-break:break-word}
 .company .small{color:var(--muted)}
+
+/* Verth Helper: chat assistant */
+.vh{--vh-bottom:18px;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(var(--vh-bottom) + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:var(--body)}
+.vh.raised{--vh-bottom:82px}
+.vh-fab{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:10px 16px 10px 12px;min-height:48px;background:var(--accent);color:var(--accent-ink);font-weight:700;box-shadow:0 10px 28px rgba(0,0,0,.45),0 0 0 3px rgba(255,178,36,.18);transform:rotate(-1.5deg);transition:transform .15s}
+.vh-fab:hover{transform:rotate(0) translateY(-1px)}
+.vh-fab svg{width:24px;height:24px}
+.vh.open .vh-fab span{display:none}
+.vh.open .vh-fab{padding:10px 12px}
+.vh-panel{width:min(380px,calc(100vw - 32px));height:min(560px,calc(100dvh - var(--vh-bottom) - 96px));display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.55);overflow:hidden;order:-1}
+.vh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 14px 12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(255,178,36,.16),rgba(61,214,195,.08))}
+.vh-head h2{font-size:22px}
+.vh-head p{color:var(--muted);font-size:12.5px}
+.vh-x{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;width:36px;height:36px;flex:none}
+.vh-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.vh-msg{display:flex;flex-direction:column;gap:6px;max-width:92%}
+.vh-msg.me{align-self:flex-end;align-items:flex-end}
+.vh-b{padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.5;background:var(--surface-2);border:1px solid var(--line);border-top-left-radius:4px;overflow-wrap:anywhere}
+.vh-msg.me .vh-b{background:var(--accent-soft);border-color:rgba(255,178,36,.35);border-radius:14px;border-top-right-radius:4px}
+.vh-acts{display:flex;flex-wrap:wrap;gap:6px}
+.vh-act{background:transparent;border:1px solid rgba(61,214,195,.45);color:var(--teal);border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:600;text-align:left}
+.vh-act:hover{background:rgba(61,214,195,.1)}
+.vh-form{display:flex;gap:8px;padding:10px 12px 6px;border-top:1px solid var(--line)}
+.vh-form input{min-height:42px;border-radius:12px}
+.vh-send{flex:none;width:44px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:16px}
+.vh-foot{padding:0 14px 10px;color:var(--muted);font-size:11.5px}
+.vh-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.vh-dots{display:inline-flex;gap:4px;padding:4px 0}
+.vh-dots i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:vhdot 1s infinite}
+.vh-dots i:nth-child(2){animation-delay:.15s}.vh-dots i:nth-child(3){animation-delay:.3s}
+@keyframes vhdot{0%,80%,100%{opacity:.3}40%{opacity:1}}
+@media (max-width:560px){
+  .vh-panel{position:fixed;inset:auto 8px calc(var(--vh-bottom) + 64px + env(safe-area-inset-bottom,0px)) 8px;width:auto;height:calc(100dvh - var(--vh-bottom) - 84px)}
+  .vh-fab span{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){.vh-dots i{animation:none}.vh-fab{transition:none}}

@@ -10,7 +10,9 @@ import {
   connectFirestoreEmulator,
 } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey } from './config.js';
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
+import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER } from './config.js';
+import { mountHelper, aiInstructions } from './helper.js';
 import { secondsLeft } from './totp.js';
 import { check, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
 import {
@@ -35,9 +37,9 @@ const NEW_DEVICE_WARN_MS = 7 * 24 * 3600 * 1000;
 const CHANNELS = ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other'];
 
 const root = document.getElementById('app');
-let auth, db;
+let auth, db, fbApp;
 if (CONFIGURED) {
-  const app = initializeApp(cfg);
+  const app = (fbApp = initializeApp(cfg));
   if (appCheckSiteKey && !EMU) initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey), isTokenAutoRefreshEnabled: true });
   auth = getAuth(app);
   db = getFirestore(app);
@@ -594,7 +596,7 @@ function viewScan() {
   const limitCard = `<section class="card attention"><h2>You’ve used today’s free checks</h2>
     <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
     <button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button></section>`;
-  return `${S.prefill ? '<div class="banner accent"><span><b>Shared to Verth.</b> Check it below before you reply, click or pay.</span></div>' : ''}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
+  return `${S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : ''}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
       <p class="muted">Got a strange message, email, link or call? Check it here before you reply, click, call back or pay.</p>
       ${seg}
       ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary" type="submit">Check it</button></form>`}
@@ -1059,6 +1061,57 @@ setInterval(() => {
     expiredRerender = Date.now(); setTimeout(renderMain, 1100);
   }
 }, 1000);
+
+/* ---------- Verth Helper ---------- */
+// Takes the person to the right place from a helper answer.
+function helperGo(to, text) {
+  if (to === 'app') return;
+  if (to === 'install') { location.href = './#install'; return; }
+  if (!S.user || !S.user.emailVerified || !S.profile) { toast('Sign in first, then I can take you there.'); return; }
+  if (to.startsWith('scan')) {
+    const kind = to.split('-')[1] || 'message';
+    S.scanKind = kind; S.scanResult = null;
+    S.prefill = text ? { kind, text: text.slice(0, 6000), from: 'helper' } : null;
+    if (!S.circle) { renderScanOnly(); window.scrollTo(0, 0); return; }
+    to = 'scan';
+  }
+  if (!S.circle) { toast('Set up or join a circle first to use that.'); return; }
+  S.tab = to; S.confirmRemove = null; if (to === 'verify') S.codeResult = null;
+  renderMain(); window.scrollTo(0, 0);
+}
+
+// Optional Gemini answers (Firebase AI Logic). Off unless switched on in config.js,
+// and only with App Check, so only the real Verth site can use the project's AI quota.
+function makeAI() {
+  if (!AI_HELPER.enabled || !fbApp || EMU || !appCheckSiteKey) return null;
+  let chatModel = null;
+  const KEY = 'verth-ai-' + todayKey();
+  return async (q, history) => {
+    let used = 0;
+    try { used = +localStorage.getItem(KEY) || 0; } catch {}
+    if (used >= AI_HELPER.perDay) throw new Error('limit');
+    chatModel ||= getGenerativeModel(getAI(fbApp, { backend: new GoogleAIBackend() }), {
+      model: AI_HELPER.model,
+      systemInstruction: aiInstructions(),
+      generationConfig: { maxOutputTokens: 400, temperature: 0.3 },
+    });
+    // Gemini wants the history to start with the user and alternate turns.
+    const past = [];
+    for (const m of history.slice(0, -1)) {
+      if (!past.length && m.role !== 'user') continue;
+      if (past.length && past[past.length - 1].role === m.role) past[past.length - 1].parts[0].text += '\n' + m.text;
+      else past.push({ role: m.role, parts: [{ text: m.text }] });
+    }
+    if (past.length && past[past.length - 1].role === 'user') past.pop();
+    const chat = chatModel.startChat({ history: past });
+    const r = await chat.sendMessage(q);
+    try { localStorage.setItem(KEY, String(used + 1)); } catch {}
+    const text = r.response.text().trim();
+    if (!text) throw new Error('empty');
+    return text.slice(0, 1500);
+  };
+}
+mountHelper({ go: helperGo, ai: makeAI(), raised: true });
 
 /* ---------- routing ---------- */
 function route() {

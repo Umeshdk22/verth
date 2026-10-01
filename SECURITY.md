@@ -45,6 +45,11 @@ Verth protects decisions about money, bank details and account access, so it is 
 - The free daily limit is enforced by the rules: the counter document must be named after today's date (India time), can only start at 1 and go up by exactly 1, and stops at 2 unless the account's plan (which only the server can change) is paid.
 - Limits: someone determined can run the open-source analysis code offline, and many fake accounts could inflate a report count. Report counts are shown as a signal, never as a verdict.
 
+### Verth Helper (assistant)
+- Guide answers run in the browser. Typed questions are not stored.
+- Text that looks like an OTP, PIN, password, card or Aadhaar number is refused before any processing.
+- Optional Gemini mode uses Firebase AI Logic: no Gemini key ships to the browser, calls require App Check, and the project stays on the no-billing free tier so it cannot run up a bill. The system instruction limits answers to the Verth guide and scam safety; the model never sees account data. Output is rendered as escaped text, never HTML.
+
 ### Web security
 - A strict **Content Security Policy** on every page: scripts only from Verth itself and Google's sign-in and App Check services, no plugins, no `<base>` changes, no form submissions, and HTTPS only.
 - Verth refuses to run inside another site's frame (clickjacking).
@@ -81,6 +86,8 @@ Do these once in the consoles. They add protection the code can't provide by its
 4. **Authentication → Settings → Authorized domains:** keep only `umeshdk22.github.io` and your `…firebaseapp.com` domain (remove `localhost`).
 5. **Authentication → Sign-in method:** only **Email/Password** and **Google** enabled.
 6. **App Check:** register the web app with **reCAPTCHA Enterprise**, send the site key so it can be added to `src/config.js`, watch the metrics for a day, then **Enforce** for Firestore and Authentication.
+
+7a. *(Optional, for Gemini answers in Verth Helper)* **AI Logic → Get started → Gemini Developer API**. Keep the project on the free Spark plan (no billing account). After App Check is set up, set `AI_HELPER.enabled = true` in `src/config.js`.
 
 **Google Cloud console** (same Google account)
 7. **APIs & Services → Credentials → Browser key:** set *Website restrictions* to `https://umeshdk22.github.io/*` and `https://YOUR-PROJECT.firebaseapp.com/*`.

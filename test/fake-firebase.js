@@ -154,3 +154,7 @@ export const initializeAppCheck = () => {};
 export class ReCaptchaEnterpriseProvider {}
 
 export async function getCountFromServer(col) { return { data: () => ({ count: runQuery({ path: col.path, c: [] }).docs.length }) }; }
+// firebase/ai stand-in (the helper's Gemini mode is off in tests).
+export const getAI = () => ({});
+export class GoogleAIBackend {}
+export const getGenerativeModel = () => ({ startChat: () => ({ sendMessage: async () => ({ response: { text: () => 'test answer' } }) }) });
