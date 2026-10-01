@@ -10,25 +10,25 @@
 <title>Verth</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Kalam:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Hind:wght@400;500;600;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 :root{
   color-scheme:dark;
-  --bg:#0B0E18; --surface:#141A28; --ink:#EEF1F6; --muted:#A3AEC2; --line:#2A3550;
-  --accent:#FFB224; --accent-ink:#1B1204; --accent-soft:rgba(255,178,36,.14);
+  --bg:#120F2A; --surface:#1A1736; --ink:#FFF3E2; --muted:#D3C8DE; --line:#3E3566;
+  --accent:#FFB45E; --accent-ink:#2A1400; --accent-soft:rgba(255,180,94,.15);
   --ok:#43D6A2; --ok-bg:rgba(67,214,162,.13); --bad:#FF6259; --bad-bg:rgba(255,98,89,.13); --wait:#FFC857; --wait-bg:rgba(255,200,87,.12);
   --phone:#05070D; --screen:#101624; --bubble:#1F3A2E;
-  --display:"Big Shoulders Display","Arial Narrow",system-ui,sans-serif;
-  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --display:"Rozha One",Georgia,serif;
+  --body:"Hind","Segoe UI",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0}
 [hidden]{display:none!important}
-body{background:linear-gradient(rgba(11,14,24,.82),rgba(11,14,24,.9)),url(assets/bg-contours.webp) center top/cover fixed,var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 56px}
+body{background:linear-gradient(180deg,rgba(9,9,28,.80),rgba(9,9,28,.62) 50%,rgba(9,8,20,.75)),url(assets/bg-dusk.webp) center bottom/cover fixed,var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 56px}
 .wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
-h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-0.01em}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:0;font-weight:400}
 p{margin:0}
 button{font:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -39,9 +39,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .logo{display:flex;align-items:center;gap:10px}
 .mark{width:34px;height:34px;border-radius:10px;background:var(--accent);transform:rotate(-4deg);display:grid;place-items:center}
 .mark svg{width:20px;height:20px}
-.logo h1{font-size:40px;font-weight:800;letter-spacing:.02em}
+.logo h1{font-size:40px;font-weight:400;letter-spacing:.02em}
 .tag{font-size:17px;color:var(--muted);max-width:60ch}
-.chip{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--wait);background:var(--wait-bg);padding:5px 10px;border-radius:999px;white-space:nowrap}
+.chip{font-size:13px;font-weight:600;color:var(--wait);background:var(--wait-bg);padding:5px 10px;border-radius:999px;white-space:nowrap}
 
 /* scenario tabs */
 .tabs{display:flex;flex-wrap:wrap;gap:8px}
@@ -53,7 +53,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 /* stage */
 .stage{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,340px);gap:24px;align-items:start;justify-content:center}
 @media (max-width:900px){.stage{grid-template-columns:minmax(0,380px);justify-content:center}}
-.who{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
+.who{font-size:14px;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
 .phone{background:var(--phone);border-radius:34px;padding:10px;box-shadow:0 18px 40px -22px rgba(10,20,25,.55)}
 .screen{background:var(--screen);border-radius:26px;min-height:560px;display:flex;flex-direction:column;overflow:hidden}
 .sbar{display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:10px 20px 4px;font-variant-numeric:tabular-nums}
@@ -120,7 +120,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .rail{display:flex;flex-direction:column;gap:16px;padding-top:28px}
 @media (max-width:900px){.rail{padding-top:0;order:0}}
 .guide{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px}
-.guide .eyebrow{font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--accent)}
+.guide .eyebrow{font-size:14px;font-weight:600;color:var(--accent)}
 .guide h2{font-size:22px}
 .guide p{color:var(--muted)}
 .path{display:flex;flex-direction:column;gap:0;margin-top:4px}
@@ -141,7 +141,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .stat span{font-size:13px;color:var(--muted)}
 .tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px}
 table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px}
-th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{text-align:left;font-size:13px;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line)}
 td{padding:11px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;vertical-align:top}
 tr:last-child td{border-bottom:0}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
@@ -158,7 +158,7 @@ tr.new td{animation:flash 1.6s ease-out}
 .plan{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
 .plan.pick{border-color:var(--accent);border-width:2px}
 .plan h3{font-size:18px}
-.price{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.price{font-family:var(--display);font-size:26px;font-weight:400;font-variant-numeric:tabular-nums}
 .price small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:400}
 .plan ul{margin:4px 0 0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:3px}
 .foot{font-size:13px;color:var(--muted)}
@@ -333,7 +333,7 @@ tr.new td{animation:flash 1.6s ease-out}
   function renderExec(){
     var sc = S[st.s], p = st.phase, c = code(win()), h = "";
     if (p === "pending") {
-      h += '<div class="notif"><div style="font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase">Verth check</div>'+
+      h += '<div class="notif"><div style="font-size:12px;color:var(--accent);font-weight:600">Verth check</div>'+
            '<div class="q">Did you ask Priya to '+esc(sc.request.charAt(0).toLowerCase()+sc.request.slice(1).replace(" · "," "))+'?</div>'+
            '<dl class="kv"><dt>Asked by</dt><dd>Priya Nair, Accounts</dd><dt>Came via</dt><dd>'+esc(sc.channel)+'</dd><dt>Sender</dt><dd>'+esc(sc.handle)+'</dd></dl>'+
            '<div class="row2"><button class="btn btn-bad" type="button" id="no">No, not me</button><button class="btn btn-ok" type="button" id="yes">Yes, I sent it</button></div>'+

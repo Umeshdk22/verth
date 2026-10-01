@@ -4,7 +4,7 @@
   var video = document.getElementById('demo-video');
   if (!btn || !audio) return;
   audio.volume = 0.35;
-  function set(on) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); label.textContent = on ? 'Sound on' : 'Soundtrack'; btn.setAttribute('aria-label', on ? 'Pause soundtrack' : 'Play soundtrack'); }
+  function set(on) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); label.textContent = on ? 'Music on' : 'Music off'; var t = on ? 'Pause background music' : 'Play background music'; btn.setAttribute('aria-label', t); btn.setAttribute('title', t); }
   btn.addEventListener('click', function () {
     if (audio.paused) { audio.play().then(function () { set(true); }).catch(function () { set(false); }); }
     else { audio.pause(); set(false); }
