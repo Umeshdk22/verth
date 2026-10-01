@@ -34,7 +34,7 @@ const cfg = EMU ? { apiKey: 'demo-key', authDomain: 'demo-verth.firebaseapp.com'
 const CONFIGURED = EMU || !String(cfg.apiKey).includes('REPLACE');
 const APP_URL = 'https://umeshdk22.github.io/verth/app.html';
 // Tests can point payments at a stand-in server (local emulator builds only).
-const PAY_API = PAYMENTS.api || (EMU ? params.get('payapi') || '' : '');
+const PAY_API = EMU ? params.get('payapi') || '' : PAYMENTS.api;
 const NEW_DEVICE_WARN_MS = 7 * 24 * 3600 * 1000;
 const CHANNELS = ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other'];
 

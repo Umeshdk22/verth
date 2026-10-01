@@ -33,4 +33,4 @@ export const AI_HELPER = { enabled: false, model: 'gemini-3.5-flash-lite', perDa
 // Razorpay payments go through the Verth payments worker (worker/ folder, on Cloudflare).
 // Put its address here after deploying it, e.g. 'https://verth-pay.yourname.workers.dev'.
 // While empty, paid plans show "Notify me" and nobody can be charged.
-export const PAYMENTS = { api: '' };
+export const PAYMENTS = { api: 'https://verth-pay.umeshdk22.workers.dev' };
