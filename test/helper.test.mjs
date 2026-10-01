@@ -28,6 +28,9 @@ test('common questions land on the right topic', () => {
     'does verth read my whatsapp': 'privacy',
     'is it safe to share otp with bank': 'otp',
     'what is verth': 'what',
+    'how do I cancel my subscription': 'billing',
+    'I was charged twice, need refund': 'billing',
+    'how much does it cost': 'plans',
     'I paid 1500 for a fake exam, what now?': 'lost',
     'I shared my OTP by mistake': 'lost',
   };

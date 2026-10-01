@@ -1,0 +1,84 @@
+# Connecting Razorpay to Verth
+
+Takes about 30 minutes. You'll need: your Razorpay dashboard, the Firebase / Google Cloud console for `verth-ece65`, and a free Cloudflare account.
+
+**Golden rule:** the Key Secret, webhook secret and service-account file go **only** into Cloudflare's "Secret" fields. Never paste them into GitHub, the app, WhatsApp, email or a chat.
+
+```
+Verth app ──(signed-in request)──▶ Cloudflare Worker ──▶ Razorpay (create subscription)
+   │                                     ▲  │
+   └──── Razorpay Checkout (UPI/card) ───┘  └──▶ Firebase (sets plan = paid)
+Razorpay ──(signed webhook: charged / halted / cancelled)──▶ Worker ──▶ Firebase
+```
+
+## 1. Razorpay: plans and keys
+
+Do this in **Test mode** first (toggle at the top of the dashboard), then repeat in **Live mode** at step 6.
+
+1. **Subscriptions → Plans → Create plan**, three times:
+
+   | Plan name | Billing | Amount |
+   |---|---|---|
+   | Verth Personal | Monthly, every 1 month | ₹29 |
+   | Verth Family | Monthly, every 1 month | ₹49 |
+   | Verth Team | Monthly, every 1 month | ₹99 (charged per person) |
+
+   Copy each **plan ID** (starts with `plan_`). Plan IDs aren't secret.
+   If you can't see *Subscriptions*, ask Razorpay support to enable Subscriptions on your account.
+2. **Account & Settings → API Keys → Generate key.** Copy the **Key ID** (`rzp_test_…`) and **Key Secret**. The secret is shown only once.
+
+## 2. Firebase: a service account that can only touch the database
+
+1. Open <https://console.cloud.google.com/iam-admin/serviceaccounts?project=verth-ece65>.
+2. **Create service account** → name `verth-payments` → **Create and continue**.
+3. Role: **Cloud Datastore User** → **Done**. (This can read and write the database and nothing else.)
+4. Click the new account → **Keys → Add key → Create new key → JSON**. A `.json` file downloads. You'll paste its whole contents into Cloudflare, then **delete the file**.
+
+## 3. Cloudflare: the payments worker
+
+1. Sign up free at <https://dash.cloudflare.com/sign-up> (no card needed).
+2. **Workers & Pages → Create → Create Worker** → name it `verth-pay` → **Deploy**.
+3. **Edit code** → delete everything → paste the contents of [`worker/src/index.js`](worker/src/index.js) → **Deploy**.
+4. **Settings → Variables and Secrets → Add**:
+
+   | Type | Name | Value |
+   |---|---|---|
+   | Text | `FIREBASE_PROJECT_ID` | `verth-ece65` |
+   | Text | `ALLOWED_ORIGIN` | `https://umeshdk22.github.io` |
+   | Text | `PLAN_PERSONAL` | your Personal plan ID |
+   | Text | `PLAN_FAMILY` | your Family plan ID |
+   | Text | `PLAN_TEAM` | your Team plan ID |
+   | **Secret** | `RAZORPAY_KEY_ID` | Key ID |
+   | **Secret** | `RAZORPAY_KEY_SECRET` | Key Secret |
+   | **Secret** | `RAZORPAY_WEBHOOK_SECRET` | a long random password you make up (save it for step 4) |
+   | **Secret** | `FIREBASE_SERVICE_ACCOUNT` | the whole contents of the JSON file |
+
+   Click **Deploy** after adding them.
+5. Copy the worker address shown at the top, like `https://verth-pay.yourname.workers.dev`.
+
+## 4. Razorpay: webhook
+
+**Account & Settings → Webhooks → Add new webhook**
+
+- URL: `https://verth-pay.yourname.workers.dev/webhook`
+- Secret: the same value as `RAZORPAY_WEBHOOK_SECRET`
+- Active events: tick every **subscription.\*** event (authenticated, activated, charged, completed, updated, pending, halted, cancelled, paused, resumed).
+
+## 5. Switch it on in Verth
+
+1. Send Claude **only the worker address** (or put it in `src/config.js` yourself): `PAYMENTS = { api: 'https://verth-pay.yourname.workers.dev' }`. The Content-Security-Policy in `app.html` is then narrowed to that exact address.
+2. **Firebase console → Firestore → Rules:** paste the latest [`firestore.rules`](firestore.rules) and **Publish**.
+3. Test in the app (Plan tab → Subscribe) with a Razorpay test card or the test UPI ID `success@razorpay` (see Razorpay's test-mode docs). Check that:
+   - the plan shows **Active** with a renewal date;
+   - **Cancel subscription** shows "Renewal cancelled";
+   - in Razorpay, **Webhooks → your webhook** shows deliveries with status 200.
+
+## 6. Go live
+
+Switch the Razorpay dashboard to **Live mode** and repeat step 1 (live plans and live keys) and step 4 (live webhook). In Cloudflare, replace the three plan IDs and three Razorpay secrets with the live ones. Pay ₹29 once yourself to confirm, then refund it from **Transactions → Payments → Refund**.
+
+## If something goes wrong
+
+- **"Couldn't reach the payment service"**: check the worker address in `config.js`, and that `ALLOWED_ORIGIN` is exactly `https://umeshdk22.github.io` (no slash at the end).
+- **Paid but the plan didn't switch on**: Cloudflare → worker → **Logs**, and Razorpay → Webhooks → delivery attempts. The worker re-syncs from Razorpay on every webhook, so fixing a setting and clicking **Resend** on a delivery fixes the plan.
+- **Rotate a leaked secret**: generate a new Razorpay key or service-account key, update it in Cloudflare, then delete the old one.

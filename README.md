@@ -75,6 +75,18 @@ A **“Need help?”** button on every page opens Verth Helper, a chat assistant
 - **Safety rails:** it refuses OTPs, PINs, passwords and card/Aadhaar numbers (they’re never processed or sent anywhere), and anything pasted that looks like a link, number or message is handed to Scam check instead of being judged by a chatbot.
 - **Optional Gemini mode** via Firebase AI Logic (Gemini Developer API free tier, App Check protected, no secret key in the browser). Gemini is restricted to the Verth guide by its system instructions and limited to 15 answers per person per day.
 
+## Paid plans with Razorpay
+
+Monthly subscriptions (UPI Autopay or card) through Razorpay Checkout, with a small **Cloudflare Worker** (`worker/`) as the only thing allowed to mark a plan as paid:
+
+- The app sends a signed-in request (Firebase ID token, verified against Google's keys) to start a subscription; only circle admins can buy Family or Team.
+- After Checkout, the worker checks Razorpay's HMAC signature, then **re-reads the subscription from Razorpay** and writes the plan to Firestore with a least-privilege service account. Signed webhooks (charged, halted, cancelled…) keep it in sync; the browser's word is never trusted.
+- Firestore rules stop the app from writing plans, seats or billing. Team circles can't grow past the seats paid for, and Family/Team members get unlimited scam checks only while they're active members of a paid circle.
+- Cancel any time from the Plan tab (renewal stops at the end of the paid month).
+- Policy pages Razorpay requires: [Pricing](pricing.html), [Terms](terms.html), [Privacy](privacy.html), [Refunds](refunds.html), [Shipping](shipping.html), [Contact](contact.html).
+
+Setup: [PAYMENTS-SETUP.md](PAYMENTS-SETUP.md).
+
 ## Install on your phone
 
 Verth is an installable web app (manifest + service worker). On Android, after installing, any SMS, WhatsApp message, email or link can be sent to Verth with **Share → Verth** (Web Share Target), which opens Scam check pre-filled. Shared text is removed from the address bar immediately and never stored.

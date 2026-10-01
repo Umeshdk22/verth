@@ -8,7 +8,7 @@
     "watch": "esbuild src/app.js --bundle --format=esm --sourcemap --target=es2020 --outfile=assets/app.js --watch",
     "test:rules": "firebase emulators:exec --only firestore --project demo-verth \"node --test test/rules.test.mjs\"",
     "test:e2e": "bash test/run-e2e.sh",
-    "test:unit": "node --test test/scamcheck.test.mjs test/helper.test.mjs"
+    "test:unit": "node --test test/scamcheck.test.mjs test/helper.test.mjs test/worker.test.mjs"
   },
   "dependencies": {
     "firebase": "12.19.0"

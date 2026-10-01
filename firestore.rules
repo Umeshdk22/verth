@@ -32,8 +32,15 @@ service cloud.firestore {
         && getAfter(memberPath(cid, me())).data.role == 'admin'
         && getAfter(memberPath(cid, me())).data.status == 'active';
     }
-    function withinLimit(plan, n) {
-      return (plan == 'team' && n <= 500) || (plan == 'family' && n <= 10) || (plan == 'free' && n <= 5);
+    // Plans, seats and billing are written only by the payments server (never by the app).
+    function withinLimit(c, n) {
+      return (c.plan == 'team' && n <= c.get('seats', 500) && n <= 500)
+        || (c.plan == 'family' && n <= 10)
+        || (c.plan == 'free' && n <= 5);
+    }
+    // Family and Team plans give every active member unlimited scam checks.
+    function paidCircleFor(uid, cid) {
+      return cid is string && activeMember(cid, uid) && get(circlePath(cid)).data.plan in ['family', 'team'];
     }
     function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
     function onlyChanges(keys) { return changed().hasOnly(keys); }
@@ -78,11 +85,12 @@ service cloud.firestore {
           && request.resource.data.scans == 1
           && request.resource.data.at == request.time;
         allow update: if signedIn() && me() == uid && day == todayIST()
-          && onlyChanges(['scans', 'at'])
+          && onlyChanges(['scans', 'at', 'via'])
           && request.resource.data.scans == resource.data.scans + 1
           && request.resource.data.at == request.time
           && (request.resource.data.scans <= 2
-              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free');
+              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+              || paidCircleFor(uid, request.resource.data.get('via', null)));
       }
     }
 
@@ -137,7 +145,7 @@ service cloud.firestore {
       allow update: if signedIn()
         && onlyChanges(['memberCount'])
         && request.resource.data.memberCount == resource.data.memberCount + 1
-        && withinLimit(resource.data.plan, request.resource.data.memberCount)
+        && withinLimit(resource.data, request.resource.data.memberCount)
         && resource.data.joinOpen == true
         && !exists(memberPath(cid, me()))
         && existsAfter(memberPath(cid, me()));

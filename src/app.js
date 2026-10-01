@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
-import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER } from './config.js';
+import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS } from './config.js';
 import { mountHelper, aiInstructions } from './helper.js';
 import { secondsLeft } from './totp.js';
 import { check, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
@@ -33,6 +33,8 @@ const EMU = ['localhost', '127.0.0.1'].includes(location.hostname) && params.has
 const cfg = EMU ? { apiKey: 'demo-key', authDomain: 'demo-verth.firebaseapp.com', projectId: 'demo-verth', appId: 'demo' } : firebaseConfig;
 const CONFIGURED = EMU || !String(cfg.apiKey).includes('REPLACE');
 const APP_URL = 'https://umeshdk22.github.io/verth/app.html';
+// Tests can point payments at a stand-in server (local emulator builds only).
+const PAY_API = PAYMENTS.api || (EMU ? params.get('payapi') || '' : '');
 const NEW_DEVICE_WARN_MS = 7 * 24 * 3600 * 1000;
 const CHANNELS = ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other'];
 
@@ -76,7 +78,7 @@ const S = {
   members: [], checks: [], tab: 'home', tourStep: 0, verifyMode: 'push', codeFor: '',
   lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null,
   seen: new Set(), sig: new Map(), unsubs: [],
-  scanKind: 'message', scanResult: null, scanUsed: null, reports: {}, myReports: new Set(), scanOnly: false, prefill: null,
+  scanKind: 'message', scanResult: null, scanUsed: null, payBusy: null, confirmCancel: null, reports: {}, myReports: new Set(), scanOnly: false, prefill: null,
 };
 
 /* ---------- helpers ---------- */
@@ -527,7 +529,8 @@ function viewGuide() {
 /* ---------- scam check ---------- */
 const IST_MS = 19800000, DAY_MS = 86400000;
 const todayKey = () => String(Math.floor((Date.now() + IST_MS) / DAY_MS));
-const scanLimit = () => (PLANS[S.profile?.plan] || PLANS.free).scansPerDay;
+const circlePaid = () => ['family', 'team'].includes(S.circle?.plan);
+const scanLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() ? Infinity : PLANS.free.scansPerDay);
 async function loadUsage() {
   try { const s = await getDoc(doc(db, 'users', S.user.uid, 'usage', todayKey())); S.scanUsed = s.exists() ? s.data().scans : 0; }
   catch { S.scanUsed = 0; }
@@ -539,7 +542,8 @@ async function useScan() {
     try { await setDoc(ref, { scans: 1, at: serverTimestamp() }); S.scanUsed = 1; return; }
     catch (e) { const s = await getDoc(ref).catch(() => null); if (!s?.exists()) throw e; S.scanUsed = s.data().scans; }
   }
-  await updateDoc(ref, { scans: increment(1), at: serverTimestamp() });
+  // Members of a Family or Team circle name it, so the database can see they're covered.
+  await updateDoc(ref, { scans: increment(1), at: serverTimestamp(), ...(circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {}) });
   S.scanUsed += 1;
 }
 async function loadReportCount(r) {
@@ -615,29 +619,115 @@ function renderScanOnly() {
       <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div>
         <button class="link" data-act="setup" data-type="join">I have an invite code</button></section>
-      <section class="card"><h2>Unlimited scam checks</h2><p class="muted">Personal plan, ₹29 a month. Paid plans open with online payment soon; you won’t be charged now.</p>
-        ${interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>
+      ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam checks</h2><p class="muted">Personal plan, ₹29 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
+        ${PAY_API ? payButton('personal', 'Get Personal · ₹29 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button><button class="link" data-act="signout">Sign out</button></div>
     </main></div>`);
 }
 
+// Billing details shown to the person who pays (and, for circles, to everyone in it).
+const fmtDate = (t) => new Date(typeof t === 'string' ? Date.parse(t) : tsMs(t)).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' });
+function billingCard(b, target) {
+  if (!b) return '';
+  const canCancel = PAY_API && !b.cancelAtEnd && ['active', 'authenticated', 'pending'].includes(b.status) && (target === 'user' || isAdmin());
+  const when = b.currentEnd ? fmtDate(b.currentEnd) : '';
+  const line = b.status === 'pending' ? '<span class="pill wait">Payment retrying</span> Razorpay will try your payment again. Check your UPI app or card.'
+    : b.cancelAtEnd ? `<span class="pill wait">Renewal cancelled</span> Your plan stays on until ${esc(when)}.`
+    : `<span class="pill ok">Active</span> ${when ? `Renews on ${esc(when)}.` : ''}`;
+  const sure = S.confirmCancel === target;
+  return `<section class="card"><h2>Subscription</h2>
+    <p>${line}</p>
+    ${b.product === 'team' ? `<p class="muted small">${esc(b.seats)} people paid for.</p>` : ''}
+    <p class="muted small">Payments are handled by Razorpay. <a href="refunds.html" target="_blank" rel="noopener">Cancellation and refunds</a></p>
+    ${canCancel ? (sure
+      ? `<div class="warn">Stop renewing? You keep the plan until ${esc(when || 'the end of this month')}, then it goes back to Free.</div><div class="row gap"><button class="btn bad grow" data-act="cancel-sub" data-target="${target}" ${S.payBusy ? 'disabled' : ''}>Yes, stop renewing</button><button class="btn ghost grow" data-act="cancel-sub-no">Keep it</button></div>`
+      : `<button class="btn ghost" data-act="cancel-sub-ask" data-target="${target}">Cancel subscription</button>`) : ''}</section>`;
+}
+const payButton = (id, label) => `<button class="btn primary" data-act="upgrade" data-plan="${id}" ${S.payBusy ? 'disabled' : ''}>${S.payBusy === id ? '<span class="spin" aria-hidden="true"></span> Opening Razorpay…' : esc(label)}</button>`;
+
 function viewPlan() {
-  const cur = (S.profile?.plan && S.profile.plan !== 'free') ? S.profile.plan : (S.circle.plan || 'free'), used = monthChecks();
-  const interest = S.profile?.upgradeInterest?.plan;
-  const card = (id, title, price, items) => `<div class="plan ${cur === id ? 'current' : ''}"><h3>${title}</h3><div class="price">${price}</div><ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>${cur === id ? '<span class="pill ok">Current plan</span>' : interest === id ? '<span class="pill wait">We’ll notify you</span>' : id === 'free' ? '' : `<button class="btn primary" data-act="upgrade" data-plan="${id}">Choose ${PLANS[id].name}</button>`}</div>`;
-  return `<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}.
-      ${plan().checksPerMonth === Infinity ? 'Unlimited checks.' : `${used} of ${plan().checksPerMonth} checks used this month.`} ${S.circle.memberCount || S.members.length} of ${plan().maxMembers} places used.</p></section>
+  const personal = S.profile?.plan === 'personal', cp = S.circle.plan || 'free', used = monthChecks();
+  const interest = S.profile?.upgradeInterest?.plan, admin = isAdmin(), live = !!PAY_API;
+  const count = S.circle.memberCount || S.members.length;
+  const action = (id) => {
+    if (id === 'free') return '';
+    if (id === 'personal' ? personal : cp === id) return '<span class="pill ok">Current plan</span>';
+    if (!live) return interest === id ? '<span class="pill wait">We’ll notify you</span>' : `<button class="btn primary" data-act="upgrade" data-plan="${id}">Choose ${PLANS[id].name}</button>`;
+    if (id === 'personal') return circlePaid() ? '<span class="muted small">Already included in your circle’s plan.</span>' : payButton('personal', 'Subscribe');
+    if (circlePaid()) return '';
+    if (!admin) return '<span class="muted small">Ask an admin of this circle to choose it.</span>';
+    if (id === 'family' && count > 10) return '<span class="muted small">Your circle has more than 10 people. Choose Team.</span>';
+    if (id === 'team') return `<label class="small">People to pay for<input id="team-seats" type="number" inputmode="numeric" min="${count}" max="500" value="${Math.max(count, 2)}"></label>${payButton('team', 'Subscribe')}`;
+    return payButton(id, 'Subscribe');
+  };
+  const card = (id, title, price, items) => `<div class="plan ${(id === 'personal' ? personal : cp === id && !(id === 'free' && personal)) ? 'current' : ''}"><h3>${title}</h3><div class="price">${price}</div><ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>${action(id)}</div>`;
+  return `<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
+      ${plan().checksPerMonth === Infinity ? 'Unlimited checks.' : `${used} of ${plan().checksPerMonth} checks used this month.`} ${count} of ${cp === 'team' ? (S.circle.seats || plan().maxMembers) : plan().maxMembers} places used.</p></section>
+    ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
+    ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
     <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p></section>
     <div class="plans">
       ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', 'Signed push checks and rolling codes'])}
-      ${card('personal', 'Personal', '₹29 <small>/ month</small>', ['Unlimited scam checks', 'Messages, emails, links and numbers', 'Community scam reports', 'Everything in Free'])}
+      ${card('personal', 'Personal', '₹29 <small>/ month</small>', ['Unlimited scam checks for you', 'Messages, emails, jobs, links and numbers', 'Community scam reports', 'Everything in Free'])}
       ${card('family', 'Family', '₹49 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam checks for everyone', 'Log export'])}
-      ${card('team', 'Team', '₹99 <small>/ person / month</small>', ['Whole organisation', 'Unlimited checks and scam checks', 'Log export for auditors', 'Admin controls and priority support'])}
+      ${card('team', 'Team', '₹99 <small>/ person / month</small>', ['Whole organisation, up to 500', 'Unlimited checks and scam checks', 'Log export for auditors', 'Admin controls and priority support'])}
     </div>
-    <p class="muted small">Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.</p>
+    <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     <section class="card"><h2>Account and device</h2><p class="muted">${esc(S.user.email)}</p>
       <p class="muted small">This device: ${esc(deviceLabel())}${thisDeviceActive() ? ' · registered' : ' · not registered'}</p>
       <button class="btn ghost" data-act="signout">Sign out</button></section>`;
+}
+
+/* ---------- payments (Razorpay, through the Verth payments worker) ---------- */
+async function payApi(path, body) {
+  const token = await S.user.getIdToken();
+  let r;
+  try {
+    r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
+  } catch { throw new Error('Couldn’t reach the payment service. Check your connection.'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'The payment service had a problem. Try again in a minute.');
+  return j;
+}
+let checkoutLoading = null;
+function loadCheckout() {
+  if (window.Razorpay) return Promise.resolve();
+  return (checkoutLoading ||= new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.onload = resolve;
+    s.onerror = () => { checkoutLoading = null; s.remove(); reject(new Error('Couldn’t load Razorpay. Check your connection.')); };
+    document.head.appendChild(s);
+  }));
+}
+async function refreshProfile() {
+  const s = await getDoc(doc(db, 'users', S.user.uid));
+  if (s.exists()) S.profile = s.data();
+}
+async function startCheckout(planId, seats) {
+  S.payBusy = planId; renderScanView();
+  try {
+    const [sub] = await Promise.all([payApi('/subscribe', { plan: planId, circleId: S.circleId || null, seats }), loadCheckout()]);
+    const result = await new Promise((resolve, reject) => {
+      const rzp = new window.Razorpay({
+        key: sub.keyId, subscription_id: sub.subscriptionId, name: 'Verth', description: sub.description,
+        prefill: { name: S.profile?.name || S.user.displayName || '', email: S.user.email || '' },
+        notes: { plan: planId }, theme: { color: '#FFB224' },
+        handler: (resp) => payApi('/verify', resp).then(resolve, reject),
+        modal: { ondismiss: () => reject(new Error('dismissed')), confirm_close: true },
+      });
+      rzp.open();
+    });
+    await refreshProfile();
+    if (result.paid) toast(`Payment received. ${PLANS[planId].name} is now active.`, 'ok');
+    else {
+      toast('Payment is being confirmed. Your plan switches on within a few minutes.');
+      // Razorpay's webhook usually lands within seconds; look again a few times.
+      for (const ms of [4000, 8000, 15000]) setTimeout(() => refreshProfile().then(renderScanView).catch(() => {}), ms);
+    }
+  } catch (e) {
+    if (e.message !== 'dismissed') toast(e.message, 'bad');
+  } finally { S.payBusy = null; renderScanView(); }
 }
 
 /* ---------- signatures ---------- */
@@ -877,11 +967,28 @@ const actions = {
     catch (e) { toast(friendlyError(e), 'bad'); }
   },
   upgrade: async (el) => {
+    if (PAY_API) {
+      if (S.payBusy) return;
+      const seats = el.dataset.plan === 'team' ? Math.floor(+document.getElementById('team-seats')?.value || 0) : undefined;
+      if (el.dataset.plan === 'team' && (!seats || seats < (S.circle?.memberCount || 1) || seats > 500)) { toast(`Choose between ${S.circle?.memberCount || 1} and 500 people.`, 'bad'); return; }
+      return startCheckout(el.dataset.plan, seats);
+    }
     try {
       await updateDoc(doc(db, 'users', S.user.uid), { upgradeInterest: { plan: el.dataset.plan, circleId: S.circleId || null, at: serverTimestamp() } });
       S.profile.upgradeInterest = { plan: el.dataset.plan };
       toast('Thanks! We’ll let you know as soon as paid plans open.', 'ok'); renderScanView();
     } catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'cancel-sub-ask': (el) => { S.confirmCancel = el.dataset.target; renderScanView(); },
+  'cancel-sub-no': () => { S.confirmCancel = null; renderScanView(); },
+  'cancel-sub': async (el) => {
+    S.payBusy = 'cancel'; renderScanView();
+    try {
+      const r = await payApi('/cancel', { target: el.dataset.target, circleId: S.circleId || null });
+      await refreshProfile();
+      toast(`Renewal cancelled. Your plan stays on until ${r.until ? fmtDate(r.until) : 'the end of this month'}.`, 'ok');
+    } catch (e) { toast(e.message, 'bad'); }
+    finally { S.payBusy = null; S.confirmCancel = null; renderScanView(); }
   },
   csv: () => {
     const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return `"${s.replace(/"/g, '""')}"`; }; // blocks spreadsheet formula injection

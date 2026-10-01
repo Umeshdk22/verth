@@ -29,3 +29,8 @@ export const appCheckSiteKey = '';
 // set up App Check (appCheckSiteKey above, required by Firebase from 2 Nov 2026),
 // then set enabled: true. Without it, the helper still answers from the built-in guide.
 export const AI_HELPER = { enabled: false, model: 'gemini-3.5-flash-lite', perDay: 15 };
+
+// Razorpay payments go through the Verth payments worker (worker/ folder, on Cloudflare).
+// Put its address here after deploying it, e.g. 'https://verth-pay.yourname.workers.dev'.
+// While empty, paid plans show "Notify me" and nobody can be charged.
+export const PAYMENTS = { api: '' };

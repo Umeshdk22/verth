@@ -1,0 +1,18 @@
+# Verth payments worker. Deploy from the Cloudflare dashboard (paste src/index.js) or with:
+#   npx wrangler deploy
+name = "verth-pay"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[vars]
+FIREBASE_PROJECT_ID = "verth-ece65"
+ALLOWED_ORIGIN = "https://umeshdk22.github.io"
+# Razorpay plan IDs (Dashboard → Subscriptions → Plans). Plan IDs are not secret.
+PLAN_PERSONAL = "plan_REPLACE_PERSONAL"
+PLAN_FAMILY = "plan_REPLACE_FAMILY"
+PLAN_TEAM = "plan_REPLACE_TEAM"
+
+# Secrets are NOT stored here. Add them with `npx wrangler secret put NAME` or in the dashboard
+# (Worker → Settings → Variables and Secrets → type "Secret"):
+#   RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT

@@ -45,6 +45,14 @@ Verth protects decisions about money, bank details and account access, so it is 
 - The free daily limit is enforced by the rules: the counter document must be named after today's date (India time), can only start at 1 and go up by exactly 1, and stops at 2 unless the account's plan (which only the server can change) is paid.
 - Limits: someone determined can run the open-source analysis code offline, and many fake accounts could inflate a report count. Report counts are shown as a signal, never as a verdict.
 
+### Payments
+- Razorpay secrets and the Firebase service account live only in Cloudflare Worker secrets. The service account has the single role *Cloud Datastore User*.
+- Every app request to the worker carries a Firebase ID token; the worker verifies its RS256 signature against Google's published keys, the project, issuer, expiry and a confirmed email. Only the Verth site's origin is allowed by CORS.
+- Checkout results are checked with Razorpay's HMAC-SHA256 signature (constant-time comparison), and the subscription must carry the caller's own account ID (set by the worker when it was created). Webhooks are checked with the webhook secret over the raw body.
+- Plan state is always taken from the subscription as fetched from Razorpay, and only for Verth's own plan IDs. Out-of-order or replayed events can't flip a newer paid subscription off.
+- Firestore rules: plans, seats and billing are server-only; Team circles are capped at the seats paid for.
+- Tests: `test/worker.test.mjs` (forged tokens, forged signatures, someone else's payment, wrong plan IDs, non-admin purchases, forged webhooks) and the browser test of Checkout → verify → cancel.
+
 ### Verth Helper (assistant)
 - Guide answers run in the browser. Typed questions are not stored.
 - Text that looks like an OTP, PIN, password, card or Aadhaar number is refused before any processing.

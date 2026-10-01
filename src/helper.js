@@ -85,9 +85,15 @@ export const TOPICS = [
   },
   {
     id: 'plans', q: 'What do the plans cost?',
-    keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'charges', 'refund', 'cancel'],
-    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day.\n• Personal ₹29/month: unlimited scam checks.\n• Family ₹49/month: up to 10 people, unlimited checks.\n• Team ₹99 per person/month: for offices, up to 500 people, CSV export of the log.\nOnline payment opens soon. Tap “Notify me” and you won’t be charged anything now.',
+    keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'charges', 'buy', 'subscribe'],
+    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day.\n• Personal ₹29/month: unlimited scam checks.\n• Family ₹49/month: up to 10 people, unlimited checks.\n• Team ₹99 per person/month: for offices, up to 500 people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
+  },
+  {
+    id: 'billing', q: 'How do I cancel or get a refund?',
+    keys: ['cancel subscription', 'cancel my subscription', 'cancel my plan', 'cancel plan', 'unsubscribe', 'stop subscription', 'stop renewal', 'autopay', 'auto pay', 'mandate', 'refund', 'money back', 'charged twice', 'double charged', 'payment failed', 'plan not active', 'paid but', 'receipt', 'invoice', 'cancel'],
+    a: 'Cancel any time: open the Plan tab and tap “Cancel subscription”. Renewals stop, and you keep the plan until the end of the month you paid for. You can also cancel the UPI Autopay mandate in your UPI app.\n• Charged twice, charged after cancelling, or plan not switched on within 1 hour of paying? Email umeshdk22@gmail.com with the payment date and amount for a full refund.\n• New subscribers can also ask for a refund within 7 days of their first payment.\n• Refunds reach your account in 5–7 working days.',
+    go: [['Open Plan', 'plan']],
   },
   {
     id: 'install', q: 'How do I install Verth on my phone?',

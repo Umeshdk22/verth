@@ -263,6 +263,50 @@ test('paid accounts can scan without the daily cap', async () => {
   for (let i = 0; i < 3; i++) await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
 });
 
+/* ---------- paid plans ---------- */
+const asServer = (path, data) => env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), path), data));
+test('nobody but the payments server can set plans, seats or billing', async () => {
+  await assertFails(updateDoc(doc(db('rajesh'), 'users/rajesh'), { billing: { status: 'active' } }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { seats: 500 }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { billing: { status: 'active' } }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { plan: 'family' }));
+});
+test('family members get unlimited scam checks through their circle', async () => {
+  await asServer('circles/c1', { plan: 'family', seats: 10 });
+  const f = db('priya'), ref = doc(f, 'users/priya/usage', today());
+  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
+  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
+});
+test('ATTACK: pending members and outsiders can’t borrow a paid circle', async () => {
+  await asServer('circles/c1', { plan: 'team', seats: 20 });
+  for (const uid of ['mallory', 'outsider']) {
+    const ref = doc(db(uid), `users/${uid}/usage`, today());
+    await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+    await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
+  }
+});
+test('a free circle doesn’t unlock scans', async () => {
+  const ref = doc(db('priya'), 'users/priya/usage', today());
+  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
+});
+test('a Team circle can grow up to the seats paid for, and no further', async () => {
+  await asServer('circles/c1', { plan: 'team', seats: 4 });
+  await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
+  await asServer('circles/c1', { memberCount: 4 });
+  await env.withSecurityRulesDisabled((c) => deleteDoc(doc(c.firestore(), 'circles/c1/members/outsider')));
+  await assertFails(joinBatch(db('outsider'), 'outsider'));
+});
+test('a Family circle can hold 10 people', async () => {
+  await asServer('circles/c1', { plan: 'family', seats: 10, memberCount: 9 });
+  await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
+});
+
 /* ---------- community scam reports ---------- */
 const FP = 'a'.repeat(64);
 test('a signed-in user can report once, and anyone signed in can count reports', async () => {

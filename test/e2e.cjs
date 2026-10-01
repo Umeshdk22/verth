@@ -251,6 +251,45 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(C, '14-C-job-check');
     await C.close();
   });
+  await step('Payments: Team plan through Razorpay Checkout, then cancel renewal', async () => {
+    const PAY = 'https://pay.test.workers.dev';
+    const cors = { 'access-control-allow-origin': 'http://127.0.0.1:8765', 'access-control-allow-headers': 'authorization, content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
+    const seen = [];
+    // A stand-in for Razorpay Checkout: "pays" straight away and returns a signed result.
+    await A.route('https://checkout.razorpay.com/v1/checkout.js', (r) => r.fulfill({ contentType: 'text/javascript', body:
+      'window.Razorpay=function(o){this.open=function(){window.__rzpOpts={key:o.key,subscription_id:o.subscription_id};setTimeout(function(){o.handler({razorpay_payment_id:"pay_1",razorpay_subscription_id:o.subscription_id,razorpay_signature:"s"})},80)}};' }));
+    // A stand-in for the payments worker. Like the real one, it is what writes the plan.
+    await A.route(PAY + '/**', async (r) => {
+      if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: cors });
+      const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
+      seen.push([path, body, r.request().headers().authorization]);
+      const end = Date.now() + 30 * 86400000;
+      if (path === '/subscribe') return r.fulfill({ headers: cors, json: { subscriptionId: 'sub_T1', keyId: 'rzp_test_1', description: 'Verth Team', quantity: body.seats } });
+      if (path === '/verify') {
+        await A.evaluate(([cid, seats, end]) => { const db = JSON.parse(localStorage.getItem('fakefs')); Object.assign(db['circles/' + cid], { plan: 'team', seats, billing: { product: 'team', subscriptionId: 'sub_T1', status: 'active', seats, currentEnd: { __ts: end }, cancelAtEnd: false } }); localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); }, [seen[0][1].circleId, seen[0][1].seats, end]);
+        return r.fulfill({ headers: cors, json: { paid: true, status: 'active', product: 'team' } });
+      }
+      if (path === '/cancel') {
+        await A.evaluate((cid) => { const db = JSON.parse(localStorage.getItem('fakefs')); db['circles/' + cid].billing.cancelAtEnd = true; localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); }, body.circleId);
+        return r.fulfill({ headers: cors, json: { cancelAtEnd: true, until: new Date(end).toISOString() } });
+      }
+      return r.fulfill({ status: 404, headers: cors, json: { error: 'no' } });
+    });
+    await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
+    await A.click('nav >> text=Plan');
+    await A.fill('#team-seats', '8');
+    await A.click('.plan:has(h3:text-is("Team")) >> button:has-text("Subscribe")');
+    await A.getByText('Renews on', { exact: false }).waitFor({ timeout: 6000 * SLOW });
+    await A.locator('.plan.current h3', { hasText: 'Team' }).waitFor();
+    if (seen[0][0] !== '/subscribe' || seen[0][1].plan !== 'team' || seen[0][1].seats !== 8 || !seen[0][2]?.startsWith('Bearer ')) throw new Error('bad subscribe call ' + JSON.stringify(seen[0]));
+    if (seen[1][0] !== '/verify' || seen[1][1].razorpay_subscription_id !== 'sub_T1') throw new Error('checkout result not sent for verification');
+    if ((await A.evaluate(() => window.__rzpOpts.key)) !== 'rzp_test_1') throw new Error('checkout opened with the wrong key');
+    await shot(A, '15-A-team-plan');
+    await A.click('text=Cancel subscription');
+    await A.click('text=Yes, stop renewing');
+    await A.getByText('Renewal cancelled', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '16-A-cancelled');
+  });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');
   });
