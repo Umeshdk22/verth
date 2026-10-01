@@ -270,3 +270,18 @@ label .muted.small{font-weight:400}
 .plan.current{border:2px solid var(--accent);box-shadow:0 14px 34px -18px rgba(107,61,240,.55)}
 .drop{background:rgba(107,61,240,.04)}
 .toast{box-shadow:0 14px 30px -12px rgba(22,19,43,.5)}
+
+/* log in with an email code */
+.panel.auth{gap:16px}
+.panel.auth h1{font-size:28px;letter-spacing:-.03em}
+.center{text-align:center}
+input.otp{font-family:var(--mono);font-size:30px;letter-spacing:.45em;text-align:center;padding:14px 10px;font-weight:600}
+input.otp::placeholder{letter-spacing:.3em;color:#C9C3DF}
+.links .link:disabled{color:var(--muted);cursor:default;text-decoration:none}
+/* the first moment, before the app has started: a quiet outline, no "Loading" text */
+.boot{display:flex;flex-direction:column;gap:18px}
+.boot .bar,.boot .card{background:linear-gradient(90deg,#EDE9FB 0%,#F7F5FF 50%,#EDE9FB 100%);background-size:200% 100%;border-radius:14px;animation:boot 1.4s ease-in-out infinite}
+.boot .bar{height:20px;width:60%}.boot .bar.s{width:85%;height:14px}
+.boot .card{height:300px;border-radius:var(--radius)}
+@keyframes boot{0%{background-position:100% 0}100%{background-position:-100% 0}}
+@media (prefers-reduced-motion:reduce){.boot .bar,.boot .card{animation:none}}

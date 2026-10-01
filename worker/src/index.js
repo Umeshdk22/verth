@@ -8,13 +8,15 @@
 //   /verify     after Razorpay Checkout → checks the payment signature, then syncs the plan
 //   /cancel     stop renewing at the end of the paid month
 //   /webhook    Razorpay events (signed with the webhook secret) → syncs the plan
+//   /otp/send   emails a 6-digit sign-in code (rate-limited per email and per network)
+//   /otp/verify checks the code → returns a Firebase sign-in token for that email's account
 //
 // Every change is derived from the subscription as Razorpay reports it (fetched with the key
 // secret), never from what the browser says. Webhook bodies are only a trigger.
 //
 // Secrets (wrangler secret put …): RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET,
-// FIREBASE_SERVICE_ACCOUNT (the whole JSON key file).
-// Vars (wrangler.toml): FIREBASE_PROJECT_ID, ALLOWED_ORIGIN, PLAN_PERSONAL, PLAN_FAMILY, PLAN_TEAM.
+// FIREBASE_SERVICE_ACCOUNT (the whole JSON key file), BREVO_API_KEY, OTP_SECRET (any long random text).
+// Vars (wrangler.toml): FIREBASE_PROJECT_ID, ALLOWED_ORIGIN, PLAN_PERSONAL, PLAN_FAMILY, PLAN_TEAM, MAIL_FROM.
 
 const enc = new TextEncoder();
 const PAID_STATUSES = ['authenticated', 'active', 'pending'];
@@ -74,15 +76,22 @@ export async function verifyIdToken(token, projectId, fetchFn = fetch, now = Dat
 
 /* ---------- Firestore (admin access through the REST API) ---------- */
 let tokenCache = { exp: 0, token: '' };
+let keyCache = { pem: '', key: null };
+async function signJwt(sa, payload) {
+  if (keyCache.pem !== sa.private_key) {
+    const pem = sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+    keyCache = { pem: sa.private_key, key: await crypto.subtle.importKey('pkcs8', fromB64url(pem.replace(/\+/g, '-').replace(/\//g, '_')), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']) };
+  }
+  const unsigned = b64urlJson({ alg: 'RS256', typ: 'JWT' }) + '.' + b64urlJson(payload);
+  return unsigned + '.' + b64url(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keyCache.key, enc.encode(unsigned)));
+}
 async function googleAccessToken(sa, fetchFn, now = Date.now()) {
   if (tokenCache.token && tokenCache.exp - 60_000 > now) return tokenCache.token;
   const iat = Math.floor(now / 1000);
-  const unsigned = b64urlJson({ alg: 'RS256', typ: 'JWT' }) + '.' + b64urlJson({
-    iss: sa.client_email, scope: 'https://www.googleapis.com/auth/datastore', aud: 'https://oauth2.googleapis.com/token', iat, exp: iat + 3600,
+  const jwt = await signJwt(sa, {
+    iss: sa.client_email, scope: 'https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/identitytoolkit',
+    aud: 'https://oauth2.googleapis.com/token', iat, exp: iat + 3600,
   });
-  const pem = sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
-  const key = await crypto.subtle.importKey('pkcs8', fromB64url(pem.replace(/\+/g, '-').replace(/\//g, '_')), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
-  const jwt = unsigned + '.' + b64url(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, enc.encode(unsigned)));
   const r = await fetchFn('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=' + jwt,
@@ -92,6 +101,7 @@ async function googleAccessToken(sa, fetchFn, now = Date.now()) {
   tokenCache = { token: j.access_token, exp: now + j.expires_in * 1000 };
   return j.access_token;
 }
+const serviceAccount = (env) => (typeof env.FIREBASE_SERVICE_ACCOUNT === 'string' ? JSON.parse(env.FIREBASE_SERVICE_ACCOUNT) : env.FIREBASE_SERVICE_ACCOUNT);
 
 export function toFs(v) {
   if (v === null || v === undefined) return { nullValue: null };
@@ -116,7 +126,7 @@ export function fromFs(f) {
 }
 
 export function firestore(env, fetchFn = fetch) {
-  const sa = typeof env.FIREBASE_SERVICE_ACCOUNT === 'string' ? JSON.parse(env.FIREBASE_SERVICE_ACCOUNT) : env.FIREBASE_SERVICE_ACCOUNT;
+  const sa = serviceAccount(env);
   const base = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/`;
   const call = async (method, path, body) => {
     const r = await fetchFn(base + path, {
@@ -124,19 +134,88 @@ export function firestore(env, fetchFn = fetch) {
       body: body ? JSON.stringify(body) : undefined,
     });
     if (r.status === 404) return null;
+    // Someone else changed the document first (see the preconditions below).
+    if (r.status === 409 || (r.status === 400 && /FAILED_PRECONDITION/.test(await r.clone().text().catch(() => '')))) throw new HttpError(429, 'Too many requests at once. Wait a moment and try again.');
     if (!r.ok) throw new Error(`firestore ${method} ${r.status}`);
     return r.json();
   };
   return {
     async get(path) {
       const d = await call('GET', path);
-      return d ? fromFs({ mapValue: { fields: d.fields || {} } }) : null;
+      if (!d) return null;
+      const o = fromFs({ mapValue: { fields: d.fields || {} } });
+      Object.defineProperty(o, 'updateTime', { value: d.updateTime, enumerable: false });
+      return o;
     },
-    // Updates only the named fields, and only if the document already exists.
-    async update(path, data) {
+    // Updates only the named fields, and only if the document already exists
+    // (or, with `since`, only if nobody changed it after that read).
+    async update(path, data, since) {
       const mask = Object.keys(data).map((k) => 'updateMask.fieldPaths=' + encodeURIComponent(k)).join('&');
       const fields = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, toFs(v)]));
-      return call('PATCH', `${path}?${mask}&currentDocument.exists=true`, { fields });
+      const pre = since ? 'currentDocument.updateTime=' + encodeURIComponent(since) : 'currentDocument.exists=true';
+      return call('PATCH', `${path}?${mask}&${pre}`, { fields });
+    },
+    // Creates or replaces the whole document. `prev` is the document as read before
+    // (or null if it didn't exist); the write fails if it changed in between.
+    async set(path, data, prev) {
+      const pre = prev === undefined ? '' : prev?.updateTime ? '?currentDocument.updateTime=' + encodeURIComponent(prev.updateTime) : '?currentDocument.exists=false';
+      return call('PATCH', path + pre, { fields: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, toFs(v)])) });
+    },
+    async remove(path) { return call('DELETE', path); },
+  };
+}
+
+/* ---------- Firebase Authentication (admin) ---------- */
+// Needs the service account to have the "Firebase Authentication Admin" role.
+export function firebaseAuth(env, fetchFn = fetch) {
+  const sa = serviceAccount(env);
+  const base = `https://identitytoolkit.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/`;
+  const call = async (path, body) => {
+    const r = await fetchFn(base + path, {
+      method: 'POST', headers: { authorization: 'Bearer ' + (await googleAccessToken(sa, fetchFn)), 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error(`auth ${path} ${r.status}`);
+    return r.json();
+  };
+  return {
+    // The account for this email, created if it doesn't exist yet, and marked as verified.
+    async verifiedUid(email) {
+      const found = (await call('accounts:lookup', { email: [email] })).users?.[0];
+      if (found) {
+        if (found.disabled) throw new HttpError(403, 'This account has been switched off. Contact support.');
+        if (!found.emailVerified) await call('accounts:update', { localId: found.localId, emailVerified: true });
+        return found.localId;
+      }
+      return (await call('accounts', { email, emailVerified: true })).localId;
+    },
+    // A one-time sign-in token for the app (Firebase "custom token"), valid for an hour.
+    async customToken(uid, now = Date.now()) {
+      const iat = Math.floor(now / 1000);
+      return signJwt(sa, {
+        iss: sa.client_email, sub: sa.client_email, iat, exp: iat + 3600, uid,
+        aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+      });
+    },
+  };
+}
+
+/* ---------- Email (Brevo) ---------- */
+export function mailer(env, fetchFn = fetch) {
+  return {
+    async sendCode(to, code) {
+      const text = `Your Verth code is ${code}\n\nIt works for 10 minutes. Never share this code with anyone, not even someone who says they are from Verth.\n\nIf you didn’t ask for it, you can ignore this email.`;
+      const html = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:440px;margin:0 auto;padding:24px;color:#16132B">
+<div style="font-size:22px;font-weight:700;color:#6B3DF0;margin-bottom:18px">Verth</div>
+<p style="font-size:16px;margin:0 0 12px">Your code to log in to Verth:</p>
+<div style="font-size:34px;font-weight:700;letter-spacing:8px;background:#F4F1FD;border-radius:12px;padding:16px;text-align:center">${code}</div>
+<p style="font-size:14px;color:#5F5A78;margin:16px 0 0">It works for 10 minutes. <b>Never share this code with anyone</b>, not even someone who says they are from Verth.</p>
+<p style="font-size:13px;color:#5F5A78;margin:12px 0 0">If you didn’t ask for it, you can ignore this email.</p></div>`;
+      const r = await fetchFn('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST', headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ sender: { name: 'Verth', email: env.MAIL_FROM }, to: [{ email: to }], subject: `${code} is your Verth code`, htmlContent: html, textContent: text, tags: ['otp'] }),
+      });
+      if (!r.ok) { console.error('brevo', r.status, await r.text().catch(() => '')); throw new HttpError(502, 'Couldn’t send the email. Try again in a minute.'); }
     },
   };
 }
@@ -254,6 +333,69 @@ async function webhook(raw, headers, env, fs, rp) {
   return syncSubscription(await rp.getSubscription(sid), fs, env);
 }
 
+/* ---------- Email codes (sign in without a password) ---------- */
+export const OTP = { ttlMs: 10 * 60_000, resendMs: 30_000, perEmailHour: 5, perIpHour: 20, maxTries: 5 };
+const EMAIL_RE = /^[^\s@"<>()\[\],;:]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
+export function normEmail(e) {
+  const v = String(e || '').trim().toLowerCase();
+  if (v.length > 254 || !EMAIL_RE.test(v)) throw new HttpError(400, 'That email address doesn’t look right.');
+  return v;
+}
+// A uniformly random 6-digit code.
+export function makeCode() {
+  const a = new Uint32Array(1);
+  do crypto.getRandomValues(a); while (a[0] >= 4294000000);
+  return String(a[0] % 1_000_000).padStart(6, '0');
+}
+// Counts events in a one-hour window; throws once the limit is reached.
+async function limit(fs, path, max, now, msg) {
+  const d = await fs.get(path);
+  const fresh = !d || now - new Date(d.windowStart).getTime() > 3600_000;
+  const count = fresh ? 0 : Number(d.count) || 0;
+  if (count >= max) throw new HttpError(429, msg);
+  await fs.set(path, { windowStart: fresh ? new Date(now) : new Date(d.windowStart), count: count + 1 }, d);
+}
+
+async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
+  const email = normEmail(body.email);
+  const id = await hmacHex(env.OTP_SECRET, 'email:' + email);
+  const prev = await fs.get('otp/' + id);
+  if (prev?.sentAt && now - new Date(prev.sentAt).getTime() < OTP.resendMs) throw new HttpError(429, 'Wait 30 seconds before asking for a new code.');
+  await limit(fs, 'otpip/' + (await hmacHex(env.OTP_SECRET, 'ip:' + ip)), OTP.perIpHour, now, 'Too many codes from this network. Try again in an hour.');
+  const fresh = !prev?.windowStart || now - new Date(prev.windowStart).getTime() > 3600_000;
+  const sends = fresh ? 0 : Number(prev.sends) || 0;
+  if (sends >= OTP.perEmailHour) throw new HttpError(429, 'Too many codes for this email. Try again in an hour.');
+  const code = makeCode();
+  await fs.set('otp/' + id, {
+    codeHash: await hmacHex(env.OTP_SECRET, id + ':' + code), expires: new Date(now + OTP.ttlMs), tries: 0,
+    sentAt: new Date(now), windowStart: fresh ? new Date(now) : new Date(prev.windowStart), sends: sends + 1,
+  }, prev);
+  await deps.mail.sendCode(email, code);
+  return { sent: true, resendInSeconds: OTP.resendMs / 1000 };
+}
+
+async function otpVerify(body, env, fs, deps, now = Date.now()) {
+  const email = normEmail(body.email);
+  const code = String(body.code || '').replace(/\D/g, '');
+  if (code.length !== 6) throw new HttpError(400, 'Enter the 6-digit code from the email.');
+  const id = await hmacHex(env.OTP_SECRET, 'email:' + email);
+  const d = await fs.get('otp/' + id);
+  if (!d?.codeHash || new Date(d.expires).getTime() < now) throw new HttpError(400, 'This code has expired. Send a new one.');
+  const tries = (Number(d.tries) || 0) + 1;
+  if (tries > OTP.maxTries) throw new HttpError(429, 'Too many wrong tries. Send a new code.');
+  // Count the try before comparing, and only if nobody else tried in between,
+  // so guesses sent at the same moment can't get around the limit.
+  await fs.update('otp/' + id, { tries }, d.updateTime);
+  if (!safeEqual(await hmacHex(env.OTP_SECRET, id + ':' + code), d.codeHash)) {
+    const left = OTP.maxTries - tries;
+    throw new HttpError(400, left > 0 ? `That code isn’t right. ${left} ${left === 1 ? 'try' : 'tries'} left.` : 'Too many wrong tries. Send a new code.');
+  }
+  // Used once: keep the send counters, drop the code.
+  await fs.set('otp/' + id, { sentAt: new Date(d.sentAt), windowStart: new Date(d.windowStart), sends: Number(d.sends) || 1, tries: 0 });
+  const uid = await deps.auth.verifiedUid(email);
+  return { token: await deps.auth.customToken(uid, now) };
+}
+
 /* ---------- HTTP ---------- */
 function cors(env, origin) {
   const allowed = String(env.ALLOWED_ORIGIN || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -277,8 +419,16 @@ export async function handle(request, env, deps = {}) {
     if (raw.length > 100_000) throw new HttpError(413, 'Too large.');
     if (url.pathname === '/webhook') return json(await webhook(raw, request.headers, env, fs, rp), 200);
 
-    // Everything else comes from the Verth app, in the browser of a signed-in person.
+    // Everything else comes from the Verth app in a browser.
     if (!h['access-control-allow-origin']) throw new HttpError(403, 'Not allowed.');
+    if (url.pathname === '/otp/send' || url.pathname === '/otp/verify') {
+      let body;
+      try { body = JSON.parse(raw || '{}'); } catch { throw new HttpError(400, 'Bad request.'); }
+      const d = { mail: deps.mail || mailer(env, fetchFn), auth: deps.auth || firebaseAuth(env, fetchFn) };
+      const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+      return json(url.pathname === '/otp/send' ? await otpSend(body, env, fs, d, ip, deps.now) : await otpVerify(body, env, fs, d, deps.now), 200, h);
+    }
+    // The rest needs a signed-in person.
     const user = await verifyIdToken((request.headers.get('authorization') || '').replace(/^Bearer /, ''), env.FIREBASE_PROJECT_ID, fetchFn);
     let body;
     try { body = JSON.parse(raw || '{}'); } catch { throw new HttpError(400, 'Bad request.'); }

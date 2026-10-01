@@ -23,23 +23,44 @@ const SLOW = process.env.CI ? 3 : 1;
   const fs = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('fakefs') || '{}'));
   const poke = (p) => p.evaluate(() => new BroadcastChannel('fakefire').postMessage('x'));
 
-  await A.goto(URL);
-  await step('weak password is refused', async () => {
-    await A.click('text=Create a free account');
-    await A.fill('#a-name', 'Rajesh Mehta'); await A.fill('#a-email', 'rajesh@nirmaan.in'); await A.fill('#a-pass', 'password123');
-    await A.click('button[type=submit]');
-    await A.getByText('too common').waitFor({ timeout: 3000 * SLOW });
+  // A stand-in for the Verth server's email codes. The code in the "email" is always 482913.
+  const PAY = 'https://pay.test.workers.dev';
+  const corsH = { 'access-control-allow-origin': 'http://127.0.0.1:8765', 'access-control-allow-headers': 'authorization, content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
+  const otpSeen = [];
+  await A.route(PAY + '/otp/**', async (r) => {
+    if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH });
+    const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
+    otpSeen.push([path, body]);
+    if (path === '/otp/send') return r.fulfill({ headers: corsH, json: { sent: true, resendInSeconds: 30 } });
+    if (body.code !== '482913') return r.fulfill({ status: 400, headers: corsH, json: { error: 'That code isn’t right. 4 tries left.' } });
+    const tok = 'h.' + Buffer.from(JSON.stringify({ uid: 'u_rajesh', email: body.email })).toString('base64') + '.s';
+    return r.fulfill({ headers: corsH, json: { token: tok } });
   });
-  await step('A signs up and must confirm email', async () => {
-    await A.fill('#a-pass', 'blue-tiger-sings-42');
-    await A.click('button[type=submit]');
-    await A.getByRole('heading', { name: 'Confirm your email' }).waitFor({ timeout: 5000 * SLOW });
-    await A.click('text=I’ve confirmed my email');
-    await A.getByText('Not confirmed yet').waitFor({ timeout: 3000 * SLOW });
-    await A.evaluate(() => window.__fakeVerify('rajesh@nirmaan.in'));
-    await A.click('text=I’ve confirmed my email');
+  await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
+  await step('log-in page shows straight away, with no loading screen', async () => {
+    await A.getByRole('heading', { name: 'Log in to Verth' }).waitFor({ timeout: 3000 * SLOW });
+    if (await A.getByText('Loading', { exact: false }).count()) throw new Error('a loading message is showing');
+  });
+  await step('A logs in with an email code (wrong code first)', async () => {
+    await A.fill('#a-email', 'not-an-email'); await A.click('button:has-text("Send code")');
+    await A.getByText('doesn’t look right').waitFor({ timeout: 3000 * SLOW });
+    await A.fill('#a-email', 'Rajesh@Nirmaan.in'); await A.click('button:has-text("Send code")');
+    await A.getByRole('heading', { name: 'Enter your code' }).waitFor({ timeout: 5000 * SLOW });
+    await A.getByText('rajesh@nirmaan.in').waitFor();
+    if (!(await A.locator('#a-resend').isDisabled())) throw new Error('resend should wait 30 seconds');
+    await shot(A, '00-A-code');
+    await A.fill('#a-code', '111111'); // six digits submit by themselves
+    await A.getByText('That code isn’t right').waitFor({ timeout: 3000 * SLOW });
+    await A.fill('#a-code', '482913');
+    await A.getByRole('heading', { name: /What’s your name/ }).waitFor({ timeout: 5000 * SLOW });
+    if (otpSeen[0][1].email !== 'Rajesh@Nirmaan.in' || otpSeen.at(-1)[1].email !== 'rajesh@nirmaan.in') throw new Error('bad otp calls ' + JSON.stringify(otpSeen));
+    await A.fill('#n-name', 'Rajesh Mehta'); await A.click('button:has-text("Continue")');
     await A.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 * SLOW });
+    const prof = (await fs(A))['users/u_rajesh'];
+    if (prof?.name !== 'Rajesh Mehta') throw new Error('profile name not saved: ' + JSON.stringify(prof));
   });
+  // The wrong code above was a deliberate 400 from the server; the browser logs it as an error.
+  { const keep = errors.filter((e) => !e.includes('status of 400')); errors.length = 0; errors.push(...keep); }
   await step('A creates an organisation', async () => {
     await A.click('text=Skip the tour'); await A.click('text=My organisation');
     await A.fill('#c-name', 'Nirmaan Infra'); await A.fill('#c-title', 'CEO');
@@ -287,8 +308,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.close();
   });
   await step('Payments: Team plan through Razorpay Checkout, then cancel renewal', async () => {
-    const PAY = 'https://pay.test.workers.dev';
-    const cors = { 'access-control-allow-origin': 'http://127.0.0.1:8765', 'access-control-allow-headers': 'authorization, content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
+    const cors = corsH;
     const seen = [];
     // A stand-in for Razorpay Checkout: "pays" straight away and returns a signed result.
     await A.route('https://checkout.razorpay.com/v1/checkout.js', (r) => r.fulfill({ contentType: 'text/javascript', body:

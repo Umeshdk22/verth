@@ -16,9 +16,10 @@ Verth protects decisions about money, bank details and account access, so it is 
 ## Controls
 
 ### Accounts
-- Email/password accounts must confirm their email before any data can be read or written; this is enforced in the database rules, not only in the app.
-- Passwords need at least 10 characters. Common passwords and passwords that contain the email name are refused, and a server-side password policy can be switched on in Firebase (see the checklist).
-- Error messages don't reveal whether an email is registered.
+- **No passwords.** People log in with Google or with a 6-digit code emailed to them, so there is no password to guess, reuse or phish. Every account's email is confirmed before any data can be read or written; this is enforced in the database rules, not only in the app.
+- Email codes: drawn uniformly at random, valid for 10 minutes, used once, and stored only as an HMAC (the email address is also stored only as an HMAC). Each code allows 5 tries; every try is counted with a Firestore precondition *before* the comparison, so guesses sent at the same moment can't get around the limit. Sending is limited to one code per 30 seconds and 5 per hour per email, and 20 per hour per network. Only the Verth site's origin may call these endpoints.
+- After a correct code, the worker looks up (or creates) the Firebase account for that email, marks the email as verified, and returns a one-hour Firebase custom token signed with the service account key.
+- Messages don't reveal whether an email is registered: the same steps log in or create an account.
 
 ### Circles and membership
 - **Admin approval.** Joining with an invite code creates a *pending* membership. Pending people can read only their own membership record, and can't see the circle, its people or its log, or send or receive checks.
@@ -97,7 +98,7 @@ Do these once in the consoles. They add protection the code can't provide by its
 2. **Authentication → Settings → User actions:** turn on **Email enumeration protection**.
 3. **Authentication → Settings → Password policy:** enforce it, minimum length **10**, require lowercase, uppercase and a number.
 4. **Authentication → Settings → Authorized domains:** keep only `umeshdk22.github.io` and your `…firebaseapp.com` domain (remove `localhost`).
-5. **Authentication → Sign-in method:** only **Email/Password** and **Google** enabled.
+5. **Authentication → Sign-in method:** only **Google** needs to be enabled (email codes use custom tokens from the worker). Email/Password can be switched off once no one uses it.
 6. **App Check:** register the web app with **reCAPTCHA Enterprise**, send the site key so it can be added to `src/config.js`, watch the metrics for a day, then **Enforce** for Firestore and Authentication.
 
 7a. *(Optional, for Gemini answers in Verth Helper)* **AI Logic → Get started → Gemini Developer API**. Keep the project on the free Spark plan (no billing account). After App Check is set up, set `AI_HELPER.enabled = true` in `src/config.js`.

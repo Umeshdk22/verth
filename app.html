@@ -10,14 +10,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Verth: check a request with the real person, on their own phone, before you pay, share or change anything.">
 <meta name="theme-color" content="#2A137A">
-<title>Verth app</title>
+<title>Verth</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..600&family=Kalam:wght@700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="assets/verth.css">
 </head>
 <body>
-<div id="app"><div class="shell narrow"><p class="muted">Loading Verth…</p></div></div>
+<div id="app"><div class="shell narrow" aria-busy="true"><a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Verth</span></a><div class="boot" aria-hidden="true"><div class="card"></div></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <noscript><p style="padding:16px">Verth needs JavaScript to run.</p></noscript>
 <script type="module" src="assets/app.js"></script>

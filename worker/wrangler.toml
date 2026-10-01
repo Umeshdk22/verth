@@ -12,7 +12,10 @@ ALLOWED_ORIGIN = "https://umeshdk22.github.io"
 PLAN_PERSONAL = "plan_REPLACE_PERSONAL"
 PLAN_FAMILY = "plan_REPLACE_FAMILY"
 PLAN_TEAM = "plan_REPLACE_TEAM"
+# The address sign-in codes come from (verified as a sender in Brevo).
+MAIL_FROM = "REPLACE_WITH_SENDER_EMAIL"
 
 # Secrets are NOT stored here. Add them with `npx wrangler secret put NAME` or in the dashboard
 # (Worker → Settings → Variables and Secrets → type "Secret"):
-#   RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT
+#   RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT,
+#   BREVO_API_KEY (Brevo → SMTP & API → API keys), OTP_SECRET (any long random text)

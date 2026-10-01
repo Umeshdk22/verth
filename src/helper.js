@@ -17,7 +17,7 @@ export const TOPICS = [
   {
     id: 'signup', q: 'How do I create an account?',
     keys: ['sign up', 'signup', 'register', 'create account', 'new account', 'make account', 'account banana', 'account kaise', 'join verth', 'get started', 'start using'],
-    a: 'Open the Verth app and choose “Create account”.\n• Enter your name, email and a strong password (at least 10 characters), or tap “Continue with Google”.\n• With email, Verth sends a link. Open it to confirm your email, then come back and tap “I’ve verified”.\n• A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.',
+    a: 'Open the Verth app and tap “Start free” or “Log in”.\n• Type your email and tap “Send code”. Verth emails you a 6-digit code. No password needed.\n• Type the code, then your name. Or just tap “Continue with Google”.\n• A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.',
     go: [['Open the app', 'app']],
   },
   {
@@ -27,8 +27,8 @@ export const TOPICS = [
   },
   {
     id: 'signin', q: 'I can’t sign in',
-    keys: ['sign in', 'signin', 'log in', 'login', 'cant login', 'cannot login', 'wrong password', 'forgot password', 'reset password', 'password bhool', 'login nahi', 'locked out', 'too many attempts'],
-    a: 'On the sign-in screen:\n• Forgot your password? Tap “Forgot password?” and Verth emails you a reset link.\n• Signed up with Google? Use “Continue with Google”, not the password box.\n• “Too many attempts” means wait a few minutes before trying again. This protects your account.\n• Never sign in to Verth on someone else’s phone.',
+    keys: ['sign in', 'signin', 'log in', 'login', 'cant login', 'cannot login', 'wrong password', 'forgot password', 'reset password', 'password bhool', 'login nahi', 'locked out', 'too many attempts', 'code nahi aaya', 'no code', 'didnt get code', 'otp not received', 'verification code', 'login code', 'get the code', 'got the code', 'code not', 'no email', 'email not', 'send code'],
+    a: 'Verth has no password to forget:\n• Type your email and tap “Send code”. Enter the 6-digit code from the email.\n• No email? Check spam or promotions, wait 30 seconds and tap “Send a new code”.\n• Signed up with Google? Tap “Continue with Google”.\n• “Too many codes” or “too many tries” means wait an hour and try again. This protects your account.\n• Never sign in to Verth on someone else’s phone.',
     go: [['Open the app', 'app']],
   },
   {
@@ -122,7 +122,7 @@ export const TOPICS = [
   {
     id: 'device', q: 'I got a new phone',
     keys: ['new phone', 'new device', 'change phone', 'changed phone', 'switch phone', 'another device', 'different device', 'lost phone', 'phone stolen', 'use this device', 'set up on another device'],
-    a: 'Verth ties your answers and codes to one device, so a stolen password alone isn’t enough.\n• On the new phone, sign in and tap “Use this device instead”.\n• Everyone in your circle sees that you changed device. Members (not admins) need an admin to approve them again.\n• Lost your phone? Change your password and ask your circle admin to check the device warning.',
+    a: 'Verth ties your answers and codes to one device, so a stolen password alone isn’t enough.\n• On the new phone, sign in and tap “Use this device instead”.\n• Everyone in your circle sees that you changed device. Members (not admins) need an admin to approve them again.\n• Lost your phone? Secure your email account and ask your circle admin to check the device warning.',
   },
   {
     id: 'device-warn', q: 'Why does it say someone has a new device?',

@@ -1,8 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  sendEmailVerification, GoogleAuthProvider, signInWithPopup, signOut, updateProfile,
-  sendPasswordResetEmail, connectAuthEmulator,
+  getAuth, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, updateProfile,
+  connectAuthEmulator,
 } from 'firebase/auth';
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit,
@@ -135,25 +134,11 @@ function makeInviteCode() {
   return out.join('');
 }
 
-const COMMON = ['password', '12345678', '123456789', '1234567890', 'qwerty', 'iloveyou', 'admin', 'welcome', 'india123', 'abc123', 'letmein', 'monkey', 'dragon', 'football', 'passw0rd', 'verth'];
-function passwordProblem(pass, email) {
-  if (pass.length < 10) return 'Use at least 10 characters.';
-  const low = pass.toLowerCase(), user = (email.split('@')[0] || '').toLowerCase();
-  if (COMMON.some((c) => low.includes(c))) return 'That password is too common. Try a short sentence you’ll remember.';
-  if (user.length >= 4 && low.includes(user)) return 'Don’t use your email name in your password.';
-  if (/^(.)\1+$/.test(pass)) return 'That password is too easy to guess.';
-  return '';
-}
-
 function friendlyError(e) {
   const c = e?.code || '';
   const map = {
-    'auth/invalid-credential': 'That email and password don’t match. Check them, or reset your password.',
-    'auth/wrong-password': 'That email and password don’t match.',
-    'auth/user-not-found': 'That email and password don’t match.',
-    'auth/email-already-in-use': 'Couldn’t create an account with that email. If it’s yours, sign in or reset your password.',
-    'auth/weak-password': 'Choose a stronger password with at least 10 characters.',
-    'auth/password-does-not-meet-requirements': 'Choose a stronger password: at least 10 characters with letters and numbers.',
+    'auth/invalid-custom-token': 'That sign-in didn’t work. Ask for a new code.',
+    'auth/user-disabled': 'This account has been switched off. Contact support.',
     'auth/invalid-email': 'That email address doesn’t look right.',
     'auth/too-many-requests': 'Too many attempts. Wait a few minutes and try again.',
     'auth/popup-closed-by-user': 'The Google window was closed before signing in.',
@@ -161,7 +146,7 @@ function friendlyError(e) {
     'auth/network-request-failed': 'You seem to be offline. Check your connection.',
     'permission-denied': 'Verth didn’t allow that. Refresh the page and try again.',
   };
-  return map[c] || 'Something went wrong. Try again.';
+  return map[c] || (e?.otp ? e.message : 'Something went wrong. Try again.');
 }
 
 let toastTimer;
@@ -179,6 +164,8 @@ function paint(html) {
   root.querySelectorAll('input[id],select[id],textarea[id]').forEach((el) => { if (el.type !== 'password') keep[el.id] = el.value; });
   const focused = document.activeElement?.id;
   root.innerHTML = html;
+  S.screen = '';
+  clearInterval(resendTimer);
   for (const [id, v] of Object.entries(keep)) {
     const el = document.getElementById(id);
     if (el && v !== '' && el.dataset.keep !== 'no') el.value = v;
@@ -219,42 +206,86 @@ function renderNotConfigured() {
     <a class="btn primary" href="demo.html">Try the demo</a></div></div>`);
 }
 
-function renderAuth(mode = 'signin', note = '') {
-  const signup = mode === 'signup', reset = mode === 'reset';
+// Log in or sign up: Google, or email + a 6-digit code (no passwords to remember or steal).
+let resendTimer;
+function renderAuth(note = '') {
+  const signup = params.get('mode') === 'signup';
   paint(`<div class="shell narrow">${brand}
-  <div class="panel">
-    <h1>${signup ? 'Create your Verth account' : reset ? 'Reset your password' : 'Sign in to Verth'}</h1>
-    <p class="muted">${signup ? 'Free for up to 5 people. We’ll send a link to confirm your email.' : reset ? 'We’ll email you a link to choose a new password.' : 'Check requests with the real person before you act.'}</p>
+  <div class="panel auth">
+    <h1>${signup ? 'Create your free account' : 'Log in to Verth'}</h1>
+    <p class="muted">${signup ? 'Free for up to 5 people. ' : ''}Enter your email and we’ll send you a 6-digit code. No password needed.</p>
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
-    ${reset ? '' : `<button class="btn google" type="button" data-act="google">${ICON.google}Continue with Google</button><div class="or"><span>or use email</span></div>`}
-    <form data-form="${mode}" class="stack" novalidate>
-      ${signup ? '<label>Your full name<input id="a-name" autocomplete="name" required maxlength="60" placeholder="Umesh Kumar"></label>' : ''}
-      <label>Email<input id="a-email" type="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
-      ${reset ? '' : `<label>Password<input id="a-pass" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="10" maxlength="128" placeholder="${signup ? 'At least 10 characters' : ''}"></label>`}
+    <form data-form="otp-email" class="stack" novalidate>
+      <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com" autofocus></label>
       <p class="err" id="a-err" role="alert"></p>
-      <button class="btn primary" type="submit">${signup ? 'Create account' : reset ? 'Send reset link' : 'Sign in'}</button>
+      <button class="btn primary big" type="submit">Send code</button>
     </form>
-    <div class="links">
-      ${signup ? '<button type="button" class="link" data-act="to-signin">I already have an account</button>'
-        : reset ? '<button type="button" class="link" data-act="to-signin">Back to sign in</button>'
-        : '<button type="button" class="link" data-act="to-signup">Create a free account</button><button type="button" class="link" data-act="to-reset">Forgot password?</button>'}
-    </div>
+    <div class="or"><span>or</span></div>
+    <button class="btn google" type="button" data-act="google">${ICON.google}Continue with Google</button>
+    <p class="muted small center">${signup ? 'Already have an account? Use the same email and you’ll be logged in.' : 'New to Verth? The same steps create your free account.'}</p>
   </div>
-  <p class="foot">New here? <a href="demo.html">Try the demo</a> first, no account needed.</p></div>`);
+  <p class="foot">Want to look around first? <a href="demo.html">Try the demo</a>, no account needed.</p></div>`);
+  S.screen = 'auth';
 }
 
-function renderVerifyEmail(note = '') {
+function renderCode(note = '') {
   paint(`<div class="shell narrow">${brand}
-  <div class="panel">
-    <div class="state-icon wait">${ICON.wait}</div>
-    <h1>Confirm your email</h1>
-    <p class="muted">We sent a link to <b>${esc(S.user.email)}</b>. Open it to confirm this address is yours, then come back here.</p>
-    <p class="muted small">Can’t find it? Check spam or promotions.</p>
+  <div class="panel auth">
+    <h1>Enter your code</h1>
+    <p class="muted">We sent a 6-digit code to <b>${esc(S.otpEmail)}</b>. It works for 10 minutes.</p>
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
-    <button class="btn primary" data-act="verified">I’ve confirmed my email</button>
-    <button class="btn ghost" data-act="resend">Send the link again</button>
-    <div class="links"><button class="link" data-act="signout">Use a different account</button></div>
+    <form data-form="otp-code" class="stack" novalidate>
+      <label>6-digit code<input id="a-code" class="otp" data-keep="no" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" required placeholder="••••••" autofocus></label>
+      <p class="err" id="a-err" role="alert"></p>
+      <button class="btn primary big" type="submit">Verify and continue</button>
+    </form>
+    <p class="muted small">Can’t find it? Check your spam or promotions folder.</p>
+    <div class="links"><button type="button" class="link" data-act="otp-resend" id="a-resend" disabled>Send a new code</button><button type="button" class="link" data-act="otp-change">Use a different email</button></div>
+    <p class="muted small">Never share this code with anyone. Verth will never call or message you to ask for it.</p>
   </div></div>`);
+  S.screen = 'code';
+  const btn = document.getElementById('a-resend');
+  const tickResend = () => {
+    const left = Math.ceil((S.otpResendAt - Date.now()) / 1000);
+    btn.disabled = left > 0; btn.textContent = left > 0 ? `Send a new code in ${left}s` : 'Send a new code';
+    if (left <= 0) clearInterval(resendTimer);
+  };
+  tickResend(); resendTimer = setInterval(tickResend, 1000);
+  const input = document.getElementById('a-code');
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, 6);
+    if (input.value.length === 6) input.form.requestSubmit();
+  });
+}
+
+function renderName() {
+  paint(`<div class="shell narrow">${brand}
+  <div class="panel auth">
+    <div class="state-icon ok">${ICON.ok}</div>
+    <h1>You’re in. What’s your name?</h1>
+    <p class="muted">So people in your family or team recognise you when you ask them to confirm something.</p>
+    <form data-form="set-name" class="stack" novalidate>
+      <label>Your full name<input id="n-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma" autofocus></label>
+      <p class="err" id="n-err" role="alert"></p>
+      <button class="btn primary big" type="submit">Continue</button>
+    </form>
+  </div></div>`);
+}
+
+// Talks to the Verth server for email codes.
+async function otpApi(path, body) {
+  if (!PAY_API) throw Object.assign(new Error('Email codes aren’t switched on yet. Use Continue with Google for now.'), { otp: true });
+  let r;
+  try { r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); }
+  catch { throw Object.assign(new Error('You seem to be offline. Check your connection.'), { otp: true }); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Try again in a minute.'), { otp: true });
+  return j;
+}
+async function sendCode(email) {
+  const j = await otpApi('/otp/send', { email });
+  S.otpEmail = email.trim().toLowerCase();
+  S.otpResendAt = Date.now() + (j.resendInSeconds || 30) * 1000;
 }
 
 /* ---------- onboarding ---------- */
@@ -936,7 +967,8 @@ async function afterSignIn(preferId) {
   const ref = doc(db, 'users', u.uid);
   let s = await getDoc(ref);
   if (!s.exists()) {
-    const name = (u.displayName || u.email.split('@')[0]).slice(0, 60);
+    if (!u.displayName) return renderName();
+    const name = u.displayName.slice(0, 60);
     await setDoc(ref, { name, email: u.email, plan: 'free', circles: [], activeCircle: null, onboarded: false, createdAt: serverTimestamp() });
     s = await getDoc(ref);
   }
@@ -966,22 +998,15 @@ const busy = (form, on) => form?.querySelectorAll('button').forEach((b) => (b.di
 
 const actions = {
   reload: () => location.reload(),
-  'to-signin': () => renderAuth('signin'),
-  'to-signup': () => renderAuth('signup'),
-  'to-reset': () => renderAuth('reset'),
+  'otp-change': () => { S.otpEmail = ''; renderAuth(); },
+  'otp-resend': async () => {
+    try { await sendCode(S.otpEmail); renderCode('We sent a new code. Use the newest email.'); }
+    catch (e) { setErr('a-err', friendlyError(e)); }
+  },
   google: async () => {
     try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { setErr('a-err', friendlyError(e)); }
   },
   signout: async () => { stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); await signOut(auth); },
-  resend: async () => {
-    try { await sendEmailVerification(S.user, { url: location.origin + location.pathname }); renderVerifyEmail('Sent. Check your inbox.'); }
-    catch (e) { renderVerifyEmail(friendlyError(e)); }
-  },
-  verified: async () => {
-    await S.user.reload();
-    if (auth.currentUser.emailVerified) { await auth.currentUser.getIdToken(true); S.user = auth.currentUser; route(); }
-    else renderVerifyEmail('Not confirmed yet. Open the link in the email, then try again.');
-  },
   'tour-next': () => { S.tourStep++; renderTour(); },
   'tour-back': () => { S.tourStep--; renderTour(); },
   'tour-skip': () => { S.tourStep = TOUR.length - 1; renderTour(); },
@@ -1146,26 +1171,32 @@ const forms = {
     document.getElementById('scan-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     loadReportCount(r);
   },
-  signin: async (f) => {
+  'otp-email': async (f) => {
+    const email = f.querySelector('#a-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
     busy(f, true); setErr('a-err', '');
-    try { await signInWithEmailAndPassword(auth, f.querySelector('#a-email').value.trim(), f.querySelector('#a-pass').value); }
+    try { await sendCode(email); renderCode(); }
     catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); }
   },
-  signup: async (f) => {
-    const name = f.querySelector('#a-name').value.trim(), email = f.querySelector('#a-email').value.trim(), pass = f.querySelector('#a-pass').value;
-    if (name.length < 2) return setErr('a-err', 'Add your full name so people in your circle recognise you.');
-    const p = passwordProblem(pass, email); if (p) return setErr('a-err', p);
+  'otp-code': async (f) => {
+    const code = f.querySelector('#a-code').value.replace(/\D/g, '');
+    if (code.length !== 6) return setErr('a-err', 'Enter all 6 digits from the email.');
     busy(f, true); setErr('a-err', '');
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      await updateProfile(cred.user, { displayName: name.slice(0, 60) });
-      await sendEmailVerification(cred.user, { url: location.origin + location.pathname });
-    } catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); }
+      const { token } = await otpApi('/otp/verify', { email: S.otpEmail, code });
+      if (auth.currentUser) await signOut(auth);
+      await signInWithCustomToken(auth, token);
+    } catch (e) {
+      setErr('a-err', friendlyError(e)); busy(f, false);
+      const input = f.querySelector('#a-code'); input.value = ''; input.focus();
+    }
   },
-  reset: async (f) => {
+  'set-name': async (f) => {
+    const name = f.querySelector('#n-name').value.trim().replace(/\s+/g, ' ');
+    if (name.length < 2) return setErr('n-err', 'Add your full name so people recognise you.');
     busy(f, true);
-    try { await sendPasswordResetEmail(auth, f.querySelector('#a-email').value.trim()); } catch {}
-    renderAuth('signin', 'If an account uses that email, a reset link is on its way.');
+    try { await updateProfile(auth.currentUser, { displayName: name.slice(0, 60) }); S.user = auth.currentUser; await afterSignIn(); }
+    catch (e) { setErr('n-err', friendlyError(e)); busy(f, false); }
   },
   create: async (f) => {
     const name = f.querySelector('#c-name').value.trim(), title = f.querySelector('#c-title').value.trim(), type = f.querySelector('#c-type').value;
@@ -1355,15 +1386,34 @@ const helper = mountHelper({ go: helperGo, ai: makeAI(), raised: true });
 /* ---------- routing ---------- */
 function route() {
   const u = S.user;
-  if (!u) { stopListeners(); Object.assign(S, { circle: null, circleId: null, profile: null, keys: null, circles: {}, pending: [] }); return renderAuth(params.get('mode') === 'signup' ? 'signup' : 'signin', SHARED ? 'Sign in or create a free account, and Verth will check what you shared.' : ''); }
-  if (!u.emailVerified) return renderVerifyEmail();
+  if (!u) {
+    stopListeners(); Object.assign(S, { circle: null, circleId: null, profile: null, keys: null, circles: {}, pending: [] });
+    if (S.screen === 'auth' || S.screen === 'code') return; // already showing; don't wipe what they typed
+    return renderAuth(SHARED ? 'Log in or create a free account, and Verth will check what you shared.' : '');
+  }
+  // Older accounts that never confirmed their email: confirm it with a code now.
+  if (!u.emailVerified) {
+    S.otpEmail = u.email;
+    signOut(auth).catch(() => {});
+    return sendCode(u.email).then(() => renderCode('Please confirm your email once.'), () => renderAuth());
+  }
   afterSignIn().catch((e) => errorScreen(friendlyError(e)));
 }
 
 if ('serviceWorker' in navigator && !EMU) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 if (!CONFIGURED) renderNotConfigured();
-else onAuthStateChanged(auth, (u) => { S.user = u; route(); });
+else {
+  // Show the log-in page straight away for people who aren't signed in on this device,
+  // instead of waiting for Firebase to check.
+  let hint = '';
+  try { hint = localStorage.getItem('verth-signed-in') || ''; } catch {}
+  if (!hint) route();
+  onAuthStateChanged(auth, (u) => {
+    try { if (u) localStorage.setItem('verth-signed-in', '1'); else localStorage.removeItem('verth-signed-in'); } catch {}
+    S.user = u; route();
+  });
+}
 
 // Exposed for automated tests only (never on the live site).
 if (EMU) window.__verth = { S };

@@ -77,6 +77,19 @@ Do this in **Test mode** first (toggle at the top of the dashboard), then repeat
 
 Switch the Razorpay dashboard to **Live mode** and repeat step 1 (live plans and live keys) and step 4 (live webhook). In Cloudflare, replace the three plan IDs and three Razorpay secrets with the live ones. Pay ₹29 once yourself to confirm, then refund it from **Transactions → Payments → Refund**.
 
+## 7. Email codes for logging in (Brevo)
+
+Verth logs people in with a 6-digit code sent to their email. The same worker sends and checks the codes.
+
+1. Create a free account at **brevo.com** (300 emails a day free). Under **Senders, domains & dedicated IPs → Senders**, add and verify the email address codes should come from. Once Verth has its own domain, authenticate the domain there too, so codes come from e.g. `codes@yourdomain.in` and don't land in spam.
+2. Brevo → **SMTP & API → API keys → Generate a new API key**. Copy it once.
+3. Cloudflare → `verth-pay` → **Settings → Variables and Secrets**:
+   - Secret `BREVO_API_KEY`: the key from step 2.
+   - Secret `OTP_SECRET`: any long random text (40+ letters and numbers). Never share it.
+   - Text variable `MAIL_FROM`: the sender address you verified in step 1.
+4. Google Cloud → **IAM & Admin → IAM** → the service account you made for payments (step 2) → **Edit** → **Add another role** → **Firebase Authentication Admin** → Save. (It lets the worker find or create the account for an email and mark it as verified.)
+5. Paste the latest `worker/src/index.js` into the worker and **Deploy**.
+
 ## If something goes wrong
 
 - **"Couldn't reach the payment service"**: check the worker address in `config.js`, and that `ALLOWED_ORIGIN` is exactly `https://umeshdk22.github.io` (no slash at the end).

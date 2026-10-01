@@ -117,7 +117,7 @@ Verth is an installable web app (manifest + service worker). On Android, after i
 
 - **Landing page** (`index.html`): what Verth is, Scam check, a wall of real-world scam examples, the demo video, examples for organisations and families, guidelines, plans and FAQ. Optional piano soundtrack (never autoplays).
 - **App** (`app.html`): real accounts and real checks between people.
-  - Sign up with email (confirmation link required) or Google.
+  - Log in with a 6-digit code sent to your email (no passwords), or with Google.
   - Welcome tour, then create an **organisation** or **family** circle, or join one with an invite code.
   - **Push checks**: the request goes to the named person's signed-in device, and they answer Yes or No in real time. Checks expire after 3 minutes.
   - **Rolling codes**: pairwise RFC 6238 codes that only the two people's devices can compute.
