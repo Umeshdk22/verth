@@ -220,13 +220,17 @@ function renderNotConfigured() {
 // fingerprint / face (passkey) once it's turned on.
 let resendTimer;
 const PHONE_RE = /^[6-9]\d{9}$/;
+const maskEmail = (e) => { const [u, d] = String(e || '').split('@'); return d ? `${u.slice(0, 2)}${'•'.repeat(Math.max(1, Math.min(6, u.length - 2)))}@${d}` : ''; };
+const STEPS3 = (n) => `<ol class="steps3" aria-label="Step ${n} of 3">${['Your details', 'Verify email', 'You’re in'].map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
   const pk = passkeySupported();
+  const last = store.get('verth-last');
   paint(`<div class="shell narrow">${brand}
   <div class="panel auth">
     <div class="seg auth-tabs" role="tablist"><button class="${signup ? '' : 'on'}" data-act="auth-tab" data-mode="login" role="tab" aria-selected="${!signup}">Log in</button><button class="${signup ? 'on' : ''}" data-act="auth-tab" data-mode="signup" role="tab" aria-selected="${signup}">Create account</button></div>
     ${signup ? `
+    ${STEPS3(1)}
     <h1>Create your Verth account</h1>
     <p class="muted">Free for up to 5 people. It takes about a minute, and there’s no password to remember.</p>
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
@@ -245,12 +249,12 @@ function renderAuth(note = '') {
     <button class="btn google" type="button" data-act="google">${ICON.google}Sign up with Google</button>
     <p class="muted small center">Already have an account? <button class="link" data-act="auth-tab" data-mode="login">Log in</button></p>`
     : `
-    <h1>Welcome back</h1>
-    <p class="muted">Log in to your Verth account.</p>
+    ${last?.name ? `<div class="me-card"><span class="me-av">${esc(last.name.charAt(0).toUpperCase())}</span><div><b>Welcome back, ${esc(last.name.split(/\s+/)[0])}</b><span class="muted small">${esc(maskEmail(last.email))}</span></div><button type="button" class="link" data-act="not-me">Not you?</button></div>`
+      : '<h1>Welcome back</h1><p class="muted">Log in to your Verth account.</p>'}
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
-    ${pk ? `<button class="btn bio big" type="button" data-act="pk-login">${ICON.finger}Log in with fingerprint or face</button><div class="or"><span>or use your email</span></div>` : ''}
+    ${pk ? `<button class="btn bio big${store.get('verth-pk') ? ' glow' : ''}" type="button" data-act="pk-login">${ICON.finger}Log in with fingerprint or face</button><div class="or"><span>or use your email</span></div>` : ''}
     <form data-form="otp-email" class="stack" novalidate>
-      <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
+      <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com" value="${esc(last?.email || '')}"></label>
       ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send code</button>
@@ -295,9 +299,10 @@ const needCaptcha = () => CAPTCHA_KEY && !S.captcha && !S.captchaFailed;
 function renderCode(note = '') {
   paint(`<div class="shell narrow">${brand}
   <div class="panel auth">
+    ${S.authMode === 'signup' ? STEPS3(2) : ''}
     <div class="state-icon mail">${ICON.mail}</div>
-    <h1>Check your email</h1>
-    <p class="muted">We sent a 6-digit code to <b>${esc(S.otpEmail)}</b>. It works for 10 minutes.</p>
+    <h1>${S.authMode === 'signup' ? 'Verify your email' : 'Check your email'}</h1>
+    <p class="muted">We sent a 6-digit code to <b>${esc(S.otpEmail)}</b>. ${S.authMode === 'signup' ? 'Typing it here proves this email really belongs to you. ' : ''}It works for 10 minutes.</p>
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
     <form data-form="otp-code" class="stack" novalidate>
       <label>6-digit code<input id="a-code" class="otp" data-keep="no" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" required placeholder="••••••" autofocus></label>
@@ -350,6 +355,7 @@ function renderWelcome() {
     <div class="confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.35}s;--c:${['#FFB224', '#6B3DF0', '#14A897', '#EF5A5A', '#FFD3A1'][i % 5]}"></i>`).join('')}</div>
     <div class="shell narrow">
       <div class="welcome-card">
+        ${STEPS3(4)}
         <div class="w-badge">${ICON.shield}</div>
         <span class="eyebrow">Your account is ready</span>
         <h1>Welcome to Verth, ${first}! 🎉</h1>
@@ -383,6 +389,7 @@ async function otpApi(path, body) {
 async function sendCode(email, extra = {}) {
   const j = await otpApi('/otp/send', { email, mode: S.authMode === 'signup' ? 'signup' : 'login', captcha: S.captcha || '', ...extra });
   S.otpEmail = email.trim().toLowerCase();
+  S.emailOk = '';
   S.otpResendAt = Date.now() + (j.resendInSeconds || 30) * 1000;
 }
 
@@ -957,7 +964,7 @@ function mySubscriptions() {
   }
   return out;
 }
-async function doSignout() { stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); S.passkeys = null; S.confirmDelete = false; S.authMode = 'login'; await signOut(auth); }
+async function doSignout() { store.set('verth-me', null); stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); S.passkeys = null; S.confirmDelete = false; S.authMode = 'login'; await signOut(auth); }
 function openSignout() {
   closeSignout();
   const subs = mySubscriptions();
@@ -1145,6 +1152,12 @@ function watchPending() {
   }
 }
 
+// Remembered on this device so the home page and Log in can greet the person by name.
+// 'verth-me' = signed in right now; 'verth-last' = who last used Verth here (kept after signing out,
+// removed when the account is deleted or they tap "Not you?").
+const store = { get: (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+function remember(name, email) { const first = String(name || '').trim(); store.set('verth-me', { name: first }); store.set('verth-last', { ...(store.get('verth-last') || {}), name: first, email }); }
+
 async function createProfile(name, phone) {
   const u = S.user;
   if (u.displayName !== name) { try { await updateProfile(u, { displayName: name }); } catch {} }
@@ -1173,6 +1186,7 @@ async function afterSignIn(preferId) {
   }
   S.authFlow = ''; S.signupInfo = null;
   S.profile = s.data();
+  remember(S.profile.name, u.email);
   if (isNew) { welcomeEmail(); return renderWelcome(); }
   S.keys = await deviceKeys(u.uid);
   await Promise.all([loadCircles(), loadUsage(), loadPhotoUsage()]);
@@ -1202,12 +1216,36 @@ async function logCheck(ref, data) {
   try { await b.commit(); }
   catch (e) { if (e?.code === 'permission-denied') throw Object.assign(new Error('slow'), { code: 'verth/slow-down' }); throw e; }
 }
+const setErrHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+// Catches common slips like "gmial.com" before a code is sent to the wrong inbox.
+const MAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'yahoo.in', 'yahoo.co.in', 'outlook.com', 'hotmail.com', 'live.com', 'icloud.com', 'rediffmail.com', 'protonmail.com', 'proton.me', 'zoho.com', 'aol.com'];
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function emailTypo(email) {
+  const [user, dom] = email.toLowerCase().split('@');
+  if (!dom || MAIL_DOMAINS.includes(dom)) return '';
+  let best = '', bd = 3;
+  for (const m of MAIL_DOMAINS) { const dd = editDistance(dom, m); if (dd < bd) { bd = dd; best = m; } }
+  return best && bd <= 2 ? `${user}@${best}` : '';
+}
+const DISPOSABLE = ['mailinator.com', 'guerrillamail.com', 'sharklasers.com', '10minutemail.com', 'tempmail.com', 'temp-mail.org', 'yopmail.com', 'trashmail.com', 'getnada.com', 'dispostable.com', 'maildrop.cc', 'throwawaymail.com', 'fakeinbox.com', 'mintemail.com', 'emailondeck.com', 'tempmailo.com', 'mohmal.com', 'tempr.email', 'discard.email', 'mailnesia.com'];
+const isDisposable = (email) => DISPOSABLE.includes(String(email).toLowerCase().split('@')[1] || '');
 const setErr = (id, msg) => { const el = document.getElementById(id); if (el) el.textContent = msg; };
-const busy = (form, on) => form?.querySelectorAll('button').forEach((b) => (b.disabled = on));
+const busy = (form, on) => {
+  form?.querySelectorAll('button').forEach((b) => (b.disabled = on));
+  const main = form?.querySelector('button[type=submit]');
+  if (main) { main.classList.toggle('is-loading', on); main.setAttribute('aria-busy', on ? 'true' : 'false'); }
+};
 
 const actions = {
   reload: () => location.reload(),
   'otp-change': () => { S.otpEmail = ''; renderAuth(); },
+  'not-me': () => { store.set('verth-last', null); store.set('verth-pk', null); renderAuth(); document.getElementById('a-email')?.focus(); },
+  'use-email': (el) => { const i = document.getElementById('a-email'); if (i) { i.value = el.dataset.email; setErr('a-err', ''); S.emailOk = el.dataset.email; } },
   'auth-tab': (el) => { S.authMode = el.dataset.mode === 'signup' ? 'signup' : 'login'; renderAuth(); },
   'pk-login': async (el) => {
     el.disabled = true; setErr('a-err', '');
@@ -1221,12 +1259,12 @@ const actions = {
   'welcome-go': () => { S.screen = ''; afterSignIn(); },
   'welcome-pk': async (el) => {
     el.disabled = true; setErr('w-err', '');
-    try { await registerPasskey(payApi, deviceLabel()); toast('Fingerprint / face login is on for this device.', 'ok'); afterSignIn(); }
+    try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', 1); toast('Fingerprint / face login is on for this device.', 'ok'); afterSignIn(); }
     catch (e) { el.disabled = false; setErr('w-err', passkeyError(e)); }
   },
   'pk-add': async (el) => {
     el.disabled = true;
-    try { await registerPasskey(payApi, deviceLabel()); toast('Fingerprint / face login is on for this device.', 'ok'); S.passkeys = null; rerender(); }
+    try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', 1); toast('Fingerprint / face login is on for this device.', 'ok'); S.passkeys = null; rerender(); }
     catch (e) { el.disabled = false; toast(passkeyError(e)); }
   },
   'pk-remove': async (el) => {
@@ -1437,6 +1475,9 @@ const forms = {
     const phone = f.querySelector('#a-phone').value.replace(/\D/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
     if (name.length < 2) return setErr('a-err', 'Please type your full name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
+    if (isDisposable(email)) return setErr('a-err', 'Please use your own email address. Temporary email addresses can’t be used for a Verth account.');
+    const fix = emailTypo(email);
+    if (fix && S.emailOk !== email) { S.emailOk = email; return setErrHtml('a-err', `Did you mean <button type="button" class="link" data-act="use-email" data-email="${esc(fix)}">${esc(fix)}</button>? If your email is right, tap “Send verification code” again.`); }
     if (!PHONE_RE.test(phone)) return setErr('a-err', 'Please type a 10-digit Indian mobile number.');
     if (needCaptcha()) return setErr('a-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
     if (!f.querySelector('#a-agree').checked) return setErr('a-err', 'Please tick the box to agree to the Terms and Privacy policy.');
@@ -1460,6 +1501,7 @@ const forms = {
     try {
       await payApi('/account/delete', { confirm: 'DELETE' });
       S.confirmDelete = false;
+      store.set('verth-last', null); store.set('verth-pk', null);
       await doSignout();
       S.authMode = 'login'; renderAuth('Your account has been deleted, and any subscription you paid for will not renew. Thank you for using Verth.');
     } catch (e) { setErr('d-err', e.message || 'Couldn’t delete the account. Try again.'); busy(f, false); }

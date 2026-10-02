@@ -392,6 +392,8 @@ async function webhook(raw, headers, env, fs, rp) {
 }
 
 /* ---------- Email codes (sign in without a password) ---------- */
+// Throwaway inboxes can't be used to open accounts (they'd make fake accounts and spam easy).
+const DISPOSABLE = new Set(['mailinator.com', 'guerrillamail.com', 'sharklasers.com', '10minutemail.com', 'tempmail.com', 'temp-mail.org', 'yopmail.com', 'trashmail.com', 'getnada.com', 'dispostable.com', 'maildrop.cc', 'throwawaymail.com', 'fakeinbox.com', 'mintemail.com', 'emailondeck.com', 'tempmailo.com', 'mohmal.com', 'tempr.email', 'discard.email', 'mailnesia.com']);
 const NO_ACCOUNT = 'No Verth account uses this email yet. Tap “Create account” to make one first.';
 export const cleanName = (n) => String(n || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
 export const OTP = { ttlMs: 10 * 60_000, resendMs: 30_000, perEmailHour: 5, perIpHour: 20, maxTries: 5, maxFailsDay: 10, verifyPerIpHour: 60, dailyCap: 280 };
@@ -421,6 +423,7 @@ async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
   const mode = body.mode === 'signup' ? 'signup' : 'login';
   const name = cleanName(body.name);
   if (mode === 'signup' && name.length < 2) throw new HttpError(400, 'Please type your full name.');
+  if (mode === 'signup' && DISPOSABLE.has(email.split('@')[1])) throw new HttpError(400, 'Please use your own email address. Temporary email addresses can’t be used for a Verth account.');
   await deps.captcha(body.captcha, ip);
   const id = await hmacHex(env.OTP_SECRET, 'email:' + email);
   const prev = await fs.get('otp/' + id);

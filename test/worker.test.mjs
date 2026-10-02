@@ -575,3 +575,9 @@ test('deleting an account stops the subscriptions it pays for, leaves circles an
   assert.ok(!Object.keys(f.db).some((k) => k.startsWith('passkeys/') || k.startsWith('pkusers/')));
   assert.deepEqual(f.deleted, ['uidA']);
 });
+
+test('temporary email addresses cannot open an account', async () => {
+  const f = otpFakes(); f.allExist = false;
+  const r = await otpCall(f, '/otp/send', { email: 'x@mailinator.com', mode: 'signup', name: 'Some One' });
+  assert.equal(r.status, 400); assert.match(r.body.error, /Temporary email/); assert.equal(f.mails.length, 0);
+});

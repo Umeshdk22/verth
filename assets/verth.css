@@ -466,3 +466,22 @@ label.check input{width:20px;height:20px;min-height:0;margin:2px 0 0;flex:none;a
 .danger-box{border:2px solid var(--bad);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--bad-bg)}
 .bio-hint{display:flex;gap:10px;align-items:flex-start;margin:0;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:13.5px;color:#34304D}
 .bio-hint svg{width:22px;height:22px;flex:none;color:var(--accent)}
+
+/* instant feedback on buttons that talk to the server */
+.btn.is-loading{position:relative;color:transparent!important;pointer-events:none}
+.btn.is-loading::after{content:"";position:absolute;inset:0;margin:auto;width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.45);border-top-color:#fff;animation:spin .7s linear infinite}
+.btn.ghost.is-loading::after{border-color:rgba(107,61,240,.3);border-top-color:var(--accent)}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* remembered person on Log in */
+.me-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#F1EBFF,#FFF6EA);border:1px solid #E9E1FB}
+.me-card .me-av{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:18px;flex:none}
+.me-card>div{flex:1;display:flex;flex-direction:column}.me-card b{font-family:var(--display);font-weight:400;font-size:22px;line-height:1.15}
+.btn.bio.glow{animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 12px 26px -14px rgba(42,19,122,.8)}50%{box-shadow:0 0 0 6px rgba(107,61,240,.18),0 12px 26px -14px rgba(42,19,122,.8)}}
+/* sign-up steps */
+.steps3{list-style:none;margin:0 0 2px;padding:0;display:flex;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.steps3 li{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;position:relative}
+.steps3 li span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#EEE9FB;color:var(--muted);font-weight:700}
+.steps3 li.now{color:var(--accent)}.steps3 li.now span{background:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-soft)}
+.steps3 li.done{color:var(--ok)}.steps3 li.done span{background:var(--ok);color:#fff}
+@media (prefers-reduced-motion:reduce){.btn.bio.glow{animation:none}}

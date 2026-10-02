@@ -24,6 +24,8 @@
 <meta name="twitter:image" content="https://umeshdk22.github.io/verth/assets/og.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Verth","url":"https://umeshdk22.github.io/verth/","applicationCategory":"SecurityApplication","operatingSystem":"Android, iOS, Web","description":"Checks scam messages, fake job offers, links, phone numbers and UPI QR codes, and confirms money requests with the real person on their own phone.","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"INR"},{"@type":"Offer","name":"Personal","price":"149","priceCurrency":"INR"},{"@type":"Offer","name":"Family","price":"199","priceCurrency":"INR"},{"@type":"Offer","name":"Team","price":"299","priceCurrency":"INR"}]}</script>
 <link rel="preload" href="assets/fonts/rozha-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="modulepreload" href="assets/app.js">
+<link rel="prefetch" href="app.html">
 <link rel="stylesheet" href="assets/fonts.css">
 <link rel="stylesheet" href="assets/verth.css">
 <style>
@@ -251,6 +253,22 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
 .trust-row b{font-size:16px}.trust-row b::before{content:"🔒 ";font-size:14px}
 .trust-row span{font-size:14px;color:var(--muted);line-height:1.4}
 @media (max-width:900px){.trust-row{grid-template-columns:1fr 1fr}}@media (max-width:520px){.trust-row{grid-template-columns:1fr}}
+.qband{position:relative;color:#fff;padding:90px 0;text-align:center;background:linear-gradient(180deg,rgba(18,8,47,.78),rgba(18,8,47,.45) 55%,rgba(18,8,47,.85)),url(assets/bg-dusk.webp) center 75%/cover,#12082F}
+.qband .kick{color:#FFD3A1}
+.qb-rot{display:grid;margin:22px auto 26px;max-width:900px}
+.qb-item{grid-area:1/1;margin:0;opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .8s ease,transform .8s ease,visibility .8s}
+.qb-item.on{opacity:1;visibility:visible;transform:none}
+.qb-item blockquote{margin:0;font-family:var(--display);font-size:clamp(30px,4.6vw,56px);line-height:1.12}
+.qb-item blockquote::before{content:"“";color:#FFB224}.qb-item blockquote::after{content:"”";color:#FFB224}
+.qb-item figcaption{margin-top:14px;font-size:clamp(17px,2vw,22px);color:rgba(255,255,255,.82)}
+.qb-dots{display:flex;gap:8px;justify-content:center}
+.qb-dots button{width:9px;height:9px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.35);transition:width .3s,background .3s;cursor:pointer}
+.qb-dots button.on{width:28px;background:#FFB224}
+.me-btn{gap:10px}.me-av{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:14px}
+.acct{display:contents}
+@media (max-width:760px){.nav .links .btn.line{display:inline-flex}.nav .links .btn{padding:8px 12px;font-size:14px;white-space:nowrap;min-height:40px}.qband{padding:64px 0}}
+@media (max-width:440px){.nav .sound{display:none}.nav .links{gap:8px}.nav .brand span{font-size:22px}}
+@media (prefers-reduced-motion:reduce){.qb-item{transition:none;transform:none}}
 /* Jharokha lettering: Rozha One for display text, Hind for reading */
 .hero h1,.slide h3,.sec h2,.fpanel h3,.story .quote,.final h2,.pcard .amt,.banner-card h3{font-family:var(--display);font-weight:400;letter-spacing:.005em}
 .hero h1{line-height:1.06}.hero h1 span{font-weight:400}
@@ -271,8 +289,9 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
         <a href="#demo">Demo</a>
         <a href="#plans">Plans</a>
         <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Play background music" title="Play background music"><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/></svg><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="sr" id="sound-label">Music off</span></button>
-        <a class="btn line" href="app.html">Sign in</a>
-        <a class="btn white" href="app.html?mode=signup">Start free</a>
+        <span class="acct" id="acct-out"><a class="btn line" href="app.html?mode=login">Log in</a>
+        <a class="btn white" href="app.html?mode=signup">Create account</a></span>
+        <a class="btn white me-btn" id="acct-in" href="app.html" hidden><span class="me-av" id="me-av">V</span><span>Open my Verth</span></a>
       </nav>
     </header>
     <audio id="theme" src="assets/verth-theme.mp3" loop preload="none"></audio>
@@ -288,7 +307,7 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
     <section class="hero">
       <h1>Is it really them?<span>Check before you pay.</span></h1>
       <p class="sub">Verth spots scam messages, fake job offers, risky links, unknown numbers and dodgy QR codes, and asks the real person on their own phone before you send money.</p>
-      <div class="cta"><a class="btn white" href="app.html?mode=signup">Create a free account</a><a class="btn line" href="#demo">Watch the demo</a></div>
+      <div class="cta"><a class="btn white" href="app.html?mode=signup">Create your free account</a><a class="btn line" href="#demo">Watch the demo</a></div>
       <div class="ticks"><span>Free to start</span><span>English and हिन्दी</span><span>Your messages never leave your phone</span><span>Made in India</span></div>
     </section>
   </div>
@@ -378,6 +397,15 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
         <ul><li>“I have a screenshot”, “A number called me”, “I lost money”</li><li>🔊 Listen to any answer</li><li>Understands English and Hinglish</li><li>Never asks for your OTP, PIN or password</li></ul>
         <a class="btn primary" href="app.html">Open Verth</a></div>
     </div>
+  </div>
+</section>
+
+
+<section class="qband" aria-label="Words to stay safe by">
+  <div class="wrap">
+    <span class="kick">Words to stay safe by</span>
+    <div class="qb-rot" id="qband"><figure class="qb-item on" aria-hidden="false"><blockquote>A minute of checking can save a lifetime of savings.</blockquote><figcaption lang="hi">एक मिनट की जाँच, ज़िंदगी भर की बचत बचा सकती है।</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>Real banks never rush you. Scammers always do.</blockquote><figcaption lang="hi">असली बैंक कभी जल्दबाज़ी नहीं करते, ठग हमेशा करते हैं।</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>Your OTP is the key to your money. Never hand it to anyone.</blockquote><figcaption lang="hi">OTP आपके पैसों की चाबी है, किसी को मत दीजिए।</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>Trust people. Verify requests.</blockquote><figcaption lang="hi">लोगों पर भरोसा रखिए, माँग की जाँच कीजिए।</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>No real job asks you to pay to get hired.</blockquote><figcaption lang="hi">कोई असली नौकरी पैसे देकर नहीं मिलती।</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>Protecting your family starts with one question: is it really them?</blockquote><figcaption lang="hi">परिवार की सुरक्षा एक सवाल से शुरू होती है: क्या सच में वही हैं?</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>Hurry is a scammer’s favourite weapon. Slow down and check.</blockquote><figcaption lang="hi">जल्दबाज़ी ठग का सबसे बड़ा हथियार है। रुकिए, जाँचिए।</figcaption></figure><figure class="qb-item" aria-hidden="true"><blockquote>Being careful isn’t rude. It’s smart.</blockquote><figcaption lang="hi">सावधान रहना बदतमीज़ी नहीं, समझदारी है।</figcaption></figure></div>
+    <div class="qb-dots" id="qband-dots"><button type="button" data-q="0" class="on" aria-label="Thought 1"></button><button type="button" data-q="1" class="" aria-label="Thought 2"></button><button type="button" data-q="2" class="" aria-label="Thought 3"></button><button type="button" data-q="3" class="" aria-label="Thought 4"></button><button type="button" data-q="4" class="" aria-label="Thought 5"></button><button type="button" data-q="5" class="" aria-label="Thought 6"></button><button type="button" data-q="6" class="" aria-label="Thought 7"></button><button type="button" data-q="7" class="" aria-label="Thought 8"></button></div>
   </div>
 </section>
 

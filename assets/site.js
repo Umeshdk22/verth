@@ -102,3 +102,33 @@
     });
   });
 })();
+
+// Returning visitors who are still logged in see "Open my Verth" instead of Log in / Create account.
+(function () {
+  var me = null;
+  try { me = JSON.parse(localStorage.getItem('verth-me') || 'null'); } catch (e) {}
+  if (!me || !me.name) return;
+  var out = document.getElementById('acct-out'), inn = document.getElementById('acct-in'), av = document.getElementById('me-av');
+  if (!out || !inn) return;
+  out.hidden = true; out.style.display = 'none'; inn.hidden = false;
+  if (av) av.textContent = String(me.name).trim().charAt(0).toUpperCase() || 'V';
+  inn.title = 'Logged in as ' + me.name;
+})();
+
+// "Words to stay safe by": changes every few seconds; pauses on hover; still for reduced motion.
+(function () {
+  var box = document.getElementById('qband'), dots = document.querySelectorAll('#qband-dots button');
+  if (!box) return;
+  var items = box.querySelectorAll('.qb-item'), i = 0, paused = false;
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function go(n) {
+    i = (n + items.length) % items.length;
+    items.forEach(function (el, k) { el.classList.toggle('on', k === i); el.setAttribute('aria-hidden', k === i ? 'false' : 'true'); });
+    dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
+  }
+  dots.forEach(function (d) { d.addEventListener('click', function () { go(+d.dataset.q); }); });
+  box.addEventListener('mouseenter', function () { paused = true; });
+  box.addEventListener('mouseleave', function () { paused = false; });
+  go(Math.floor(Date.now() / 86400000) % items.length);
+  if (!still) setInterval(function () { if (!paused && !document.hidden) go(i + 1); }, 5500);
+})();

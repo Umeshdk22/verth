@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-v13';
-const SHELL = ['app.html', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-v14';
+const SHELL = ['app.html', './', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/helper.js', 'assets/site.js', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -9,7 +9,6 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// Network first, so updates always arrive; fall back to the cached shell only when offline.
 // "Share → Verth" from WhatsApp, Gallery or Messages. A shared picture is kept in a private cache
 // for the app to pick up; shared text goes into the address, as before. Nothing is uploaded.
 async function receiveShare(req) {
@@ -25,14 +24,29 @@ async function receiveShare(req) {
   return Response.redirect('app.html' + (q.toString() ? '?' + q : '') + '#scan', 303);
 }
 
+// Pages: network first (so updates arrive), falling back to the saved copy when offline or slow.
+// Files under assets/ (code, styles, fonts, pictures): answered instantly from the saved copy and
+// refreshed in the background, so Verth opens without waiting. A new version replaces the cache name.
+const fromNetwork = (req) => fetch(req).then((res) => {
+  if (res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+  return res;
+});
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method === 'POST' && new URL(req.url).searchParams.has('share-target')) { e.respondWith(receiveShare(req)); return; }
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin || req.headers.has('range')) return;
+  if (url.pathname.includes('/assets/videos/')) return;
+  if (url.pathname.includes('/assets/')) {
+    e.respondWith(caches.match(req).then((hit) => {
+      const fresh = fromNetwork(req).catch(() => hit);
+      return hit || fresh;
+    }));
+    return;
+  }
   e.respondWith(
-    fetch(req).then((res) => {
-      if (res.ok && (SHELL.some((p) => req.url.endsWith(p)) || req.url.includes('/assets/fonts/'))) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
-      return res;
-    }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then((r) => r || caches.match('app.html')))
+    Promise.race([fromNetwork(req), new Promise((r) => setTimeout(r, 3500))])
+      .then((res) => res || caches.match(req, { ignoreSearch: true }).then((hit) => hit || fromNetwork(req)))
+      .catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then((r) => r || caches.match('app.html')))
   );
 });
