@@ -12,6 +12,7 @@ import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-ch
 import { makeServerAI } from './ai-client.js';
 import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS } from './config.js';
 import { mountHelper } from './helper.js';
+import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
 import {
@@ -395,7 +396,15 @@ function renderMain() {
   if (!S.circle || !me()) return;
   S.scanOnly = false;
   const circles = Object.entries(S.circles);
-  const body = { home: viewHome, scan: viewScan, verify: viewVerify, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const HEAD = {
+    scan: ['Scam check', 'Is it real or a scam?', 'Check a message, job offer, link, number or screenshot in seconds.', 'scan', 'violet'],
+    verify: ['Verify', 'Is it really them?', 'Ask the real person on their own phone, or check the code they read out.', 'shield', 'amber'],
+    circle: [S.circle.type === 'family' ? 'Your family' : 'Your organisation', 'Your people', 'Invite, approve and manage who is in this circle.', 'family', 'teal'],
+    log: ['Verification log', 'Every check, on record', 'A permanent history of who checked what, and what they answered.', 'chart', 'violet'],
+    plan: ['Plan & account', 'Plans and billing', 'Your plan, your subscription and this device.', 'key', 'amber'],
+    guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
+  }[S.tab];
+  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
   paint(`<div class="app">
     <header class="top">${brand}
@@ -451,20 +460,29 @@ function viewHome() {
   const mine = S.checks.filter((c) => c.toUid === S.user.uid && c.kind === 'push' && statusOf(c) === 'pending');
   const recent = S.checks.slice(0, 4);
   const used = monthChecks(), lim = plan().checksPerMonth;
+  const stopped = S.checks.filter((c) => ['denied', 'code-mismatch'].includes(c.status)).length;
   return `
-    ${'Notification' in window && Notification.permission === 'default' ? `<div class="banner"><span>Turn on alerts so you see checks while this tab is in the background.</span><button class="btn small" data-act="notify">Turn on</button></div>` : ''}
+    ${heroBanner(esc, { name: me()?.name || S.profile?.name, place: S.circle.name, people: active().length, checks: used, stopped })}
     ${mine.map(incomingCard).join('')}
+    ${'Notification' in window && Notification.permission === 'default' ? `<div class="banner"><span>Turn on alerts so you see checks while this tab is in the background.</span><button class="btn small" data-act="notify">Turn on</button></div>` : ''}
     ${others().length === 0 ? `<div class="banner accent"><span><b>Invite people to start.</b> A check needs the other person in your circle.</span><button class="btn small" data-act="tab" data-tab="circle">Invite</button></div>` : ''}
-    <section class="card"><h2>Your code</h2>${thisDeviceActive() ? codeCard() : '<p class="muted">Your code is shown on your registered device.</p>'}</section>
-    <section class="card"><div class="split"><h2>Check a request</h2>${lim !== Infinity ? `<span class="muted small">${used} of ${lim} free checks this month</span>` : ''}</div>
-      <p class="muted">Got a message, call or email asking you to pay, share or change something? Check it first.</p>
-      <div class="row gap"><button class="btn primary grow" data-act="goverify" data-mode="push">Ask on their phone</button><button class="btn ghost grow" data-act="goverify" data-mode="code">Check a code</button></div></section>
-    <section class="card"><h2>Got a suspicious message, link or call?</h2>
-      <p class="muted">Paste it into Scam check to see the red flags before you reply, click or pay.</p>
-      <button class="btn ghost" data-act="tab" data-tab="scan">Open Scam check</button>
+    ${quoteCarousel()}
+    <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
+    ${quickTiles([
+      ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet'],
+      ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal'],
+      ['goverify', 'Ask on their phone', 'Is it really them?', 'ask', 'data-mode="push"', 'amber'],
+      ['goverify', 'Check a caller’s code', 'For calls and video', 'code', 'data-mode="code"', 'red'],
+    ])}
+    <section class="card code-home"><div class="split"><h2>Your Verth code</h2>${lim !== Infinity ? `<span class="muted small">${used} of ${lim} free checks this month</span>` : ''}</div>${thisDeviceActive() ? codeCard() : '<p class="muted">Your code is shown on your registered device.</p>'}</section>
+    ${alertShow()}
+    ${stepsShow()}
+    ${rulesGrid()}
+    <section class="card"><div class="split"><h2>Recent checks</h2><button class="link" data-act="tab" data-tab="log">See all</button></div>
+      ${recent.length ? `<ul class="list">${recent.map(logRow).join('')}</ul>` : '<p class="muted">No checks yet. They’ll appear here.</p>'}
       <button class="link" data-act="tab" data-tab="guide">How to use Verth</button></section>
-    <section class="card"><div class="split"><h2>Recent</h2><button class="link" data-act="tab" data-tab="log">See all</button></div>
-      ${recent.length ? `<ul class="list">${recent.map(logRow).join('')}</ul>` : '<p class="muted">No checks yet. They’ll appear here.</p>'}</section>`;
+    ${helplineBand()}
+    ${signOff()}`;
 }
 
 function sentResult(sent) {
@@ -767,14 +785,20 @@ function renderScanOnly() {
   paint(`<div class="app">
     <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div></header>
     <main class="content">
+      ${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}
       ${S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : ''}
       ${viewScan()}
+      ${quoteCarousel()}
+      ${alertShow()}
       <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div>
         <button class="link" data-act="setup" data-type="join">I have an invite code</button></section>
       ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹149 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
         ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
+      ${rulesGrid()}
+      ${helplineBand()}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button><button class="link" data-act="signout">Sign out</button></div>
+      ${signOff()}
     </main></div>`);
 }
 
@@ -1031,7 +1055,13 @@ const actions = {
     renderSetup(el.dataset.type);
   },
   'scan-only': () => renderScanOnly(),
-  'scan-kind': (el) => { S.scanKind = el.dataset.kind; S.scanResult = null; renderScanView(); document.querySelector('.kinds')?.scrollIntoView({ block: 'nearest' }); },
+  'scan-kind': (el) => {
+    S.scanKind = el.dataset.kind; S.scanResult = null;
+    const jump = S.circle && S.tab !== 'scan';
+    if (jump) S.tab = 'scan';
+    renderScanView();
+    if (jump) window.scrollTo(0, 0); else document.querySelector('.kinds')?.scrollIntoView({ block: S.scanOnly ? 'start' : 'nearest', behavior: 'smooth' });
+  },
   'scan-again': () => { S.scanResult = null; clearPhoto(); renderScanView(); window.scrollTo(0, 0); },
   'photo-clear': () => { clearPhoto(); S.scanResult = null; renderScanView(); },
   'open-helper': () => helper?.open(),
@@ -1342,6 +1372,7 @@ async function tick() {
 let expiredRerender = 0;
 setInterval(() => {
   tick();
+  rotate();
   if (S.circle && S.checks.some((c) => c.status === 'pending' && Math.abs(tsMs(c.expiresAt) - Date.now()) < 1000) && Date.now() - expiredRerender > 1500) {
     expiredRerender = Date.now(); setTimeout(renderMain, 1100);
   }

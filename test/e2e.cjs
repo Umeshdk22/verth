@@ -89,7 +89,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor();
     await shot(A, '02-A-approval');
     await A.click('button:has-text("Approve")');
-    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 * SLOW });
+    await B.getByRole('heading', { name: 'Your Verth code' }).waitFor({ timeout: 6000 * SLOW });
   });
 
   await step('B sends a check; A denies (signed)', async () => {
@@ -173,7 +173,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('nav >> text=Circle');
     await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor({ timeout: 6000 * SLOW });
     await A.click('button:has-text("Approve")');
-    await B.getByRole('heading', { name: 'Your code' }).waitFor({ timeout: 6000 * SLOW });
+    await B.getByRole('heading', { name: 'Your Verth code' }).waitFor({ timeout: 6000 * SLOW });
     await A.getByText('New device').first().waitFor({ timeout: 5000 * SLOW });
   });
   await shot(A, '08-A-new-device-flag');
