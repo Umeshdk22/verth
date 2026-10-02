@@ -4,21 +4,22 @@
   --accent:#6B3DF0; --accent-2:#5A2FDB; --accent-ink:#FFFFFF; --accent-soft:rgba(107,61,240,.10);
   --teal:#0E8C7E;
   --ok:#0F9D6B; --ok-bg:rgba(15,157,107,.10); --bad:#DC3545; --bad-bg:rgba(220,53,69,.08); --wait:#B26A00; --wait-bg:rgba(245,166,35,.14);
-  --display:"DM Sans","Segoe UI",system-ui,sans-serif;
-  --body:"DM Sans","Segoe UI",system-ui,sans-serif;
+  --display:"Rozha One","Hind",Georgia,serif;
+  --body:"Hind","Segoe UI",system-ui,sans-serif;
   --arch:22px;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   --hand:"Kalam","Segoe Print","Comic Sans MS",cursive;
   --radius:18px;
   --shadow:0 1px 2px rgba(22,19,43,.05),0 10px 30px -14px rgba(48,24,140,.18);
 }
-/* Verth's look: clean and bright, with a deep-violet brand colour, DM Sans lettering and soft
+/* Verth's look: clean and bright, with a deep-violet brand colour, Rozha One headings with Hind text (the Jharokha look) and soft
    rounded cards. One light look on purpose; it doesn't switch to dark. */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:linear-gradient(180deg,#EDE7FF 0,#F6F4FF 340px) no-repeat,var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 ::selection{background:var(--accent);color:var(--accent-ink)}
-h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.025em;text-wrap:balance;font-weight:700;line-height:1.12}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:.005em;text-wrap:balance;font-weight:400;line-height:1.15}
+h3{font-family:var(--body);font-weight:600;letter-spacing:0;line-height:1.3}
 h1{font-size:34px}
 h2{font-size:23px}
 h3{font-size:18px}
@@ -38,7 +39,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .stack{display:flex;flex-direction:column;gap:14px}
 
 .brand{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-family:var(--display);font-weight:700;font-size:20px}
-.brand{font-size:24px;letter-spacing:-.03em;font-weight:800}
+.brand{font-size:26px;letter-spacing:.02em;font-weight:400}
 .brand svg{width:34px;height:34px;padding:6px;border-radius:10px;background:linear-gradient(135deg,#7C4DFF,#5A2FDB);color:#fff}
 
 /* buttons and fields */
@@ -265,7 +266,7 @@ label .muted.small{font-weight:400}
 .seg{background:var(--surface-2)}
 .seg button.on{box-shadow:0 6px 14px -8px rgba(107,61,240,.7)}
 .invite{background:var(--accent-soft)}
-.result.ok h2,.result.bad h2,.result.wait h2{letter-spacing:-.02em}
+
 .verdict h2{font-size:24px}
 .plan.current{border:2px solid var(--accent);box-shadow:0 14px 34px -18px rgba(107,61,240,.55)}
 .drop{background:rgba(107,61,240,.04)}
@@ -273,7 +274,7 @@ label .muted.small{font-weight:400}
 
 /* log in with an email code */
 .panel.auth{gap:16px}
-.panel.auth h1{font-size:28px;letter-spacing:-.03em}
+.panel.auth h1{font-size:30px}
 .center{text-align:center}
 input.otp{font-family:var(--mono);font-size:30px;letter-spacing:.45em;text-align:center;padding:14px 10px;font-weight:600}
 input.otp::placeholder{letter-spacing:.3em;color:#C9C3DF}
@@ -285,3 +286,26 @@ input.otp::placeholder{letter-spacing:.3em;color:#C9C3DF}
 .boot .card{height:300px;border-radius:var(--radius)}
 @keyframes boot{0%{background-position:100% 0}100%{background-position:-100% 0}}
 @media (prefers-reduced-motion:reduce){.boot .bar,.boot .card{animation:none}}
+
+/* plan cards: each plan has its own look */
+.plan{position:relative;overflow:visible;--pc:#5F5A78;--pcs:rgba(95,90,120,.10)}
+.plan:not(.p-team){border-top:5px solid var(--pc)}
+.plan-hd{display:flex;gap:12px;align-items:center}
+.plan-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--pcs);color:var(--pc);flex:none}
+.plan-ic svg{width:22px;height:22px}
+.plan h3{font-family:var(--body);font-weight:700;font-size:19px}
+.plan .who{display:block;font-size:13px;font-weight:600;color:var(--pc)}
+.plan ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:5px}
+.plan li{display:flex;gap:8px}.plan li::before{content:"✓";color:var(--pc);font-weight:700}
+.plan.p-personal{--pc:#6B3DF0;--pcs:rgba(107,61,240,.12)}
+.plan.p-family{--pc:#0E8C7E;--pcs:rgba(14,140,126,.12)}
+.plan.p-team{--pc:#F5B630;--pcs:rgba(255,255,255,.14);background:linear-gradient(160deg,#1E0F55,#3A1C99 60%,#5A2FDB);color:#fff;border-color:transparent;box-shadow:0 18px 40px -20px rgba(42,19,122,.8);margin-top:10px}
+.plan.p-team ul,.plan.p-team .price small{color:rgba(255,255,255,.82)}
+.plan.p-team .plan-ic{color:#FFD27A}
+.plan.p-team .who{color:#FFD27A}
+.plan.p-team .flag{position:absolute;top:-12px;right:16px;background:#F5B630;color:#2A1400;font-size:12px;font-weight:700;padding:3px 11px;border-radius:999px}
+.plan.p-team .btn.primary{background:#F5B630;color:#2A1400;box-shadow:none}
+.plan.p-team .pill.ok{background:rgba(255,255,255,.16);color:#fff}
+.plan.p-team .muted{color:rgba(255,255,255,.75)}
+.plan.current:not(.p-team){border:2px solid var(--pc);border-top-width:5px}
+.plan.p-team.current{outline:3px solid #F5B630;outline-offset:2px}

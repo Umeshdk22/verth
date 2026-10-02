@@ -65,6 +65,8 @@ Verth protects decisions about money, bank details and account access, so it is 
 - Optional Gemini mode uses Firebase AI Logic: no Gemini key ships to the browser, calls require App Check, and the project stays on the no-billing free tier so it cannot run up a bill. The system instruction limits answers to the Verth guide and scam safety; the model never sees account data. Output is rendered as escaped text, never HTML.
 
 ### Web security
+- **No third-party requests on the website**: fonts are self-hosted, so visiting the home page tells no one else (not even Google Fonts) who you are. The clickable demo runs from a file, not inline script.
+- A `/.well-known/security.txt` tells researchers how to report a problem.
 - A strict **Content Security Policy** on every page: scripts only from Verth itself and Google's sign-in and App Check services, no plugins, no `<base>` changes, no form submissions, and HTTPS only.
 - Verth refuses to run inside another site's frame (clickjacking).
 - All user-provided text is HTML-escaped before display. Exported CSV cells that start with `=`, `+`, `-` or `@` are neutralised (formula injection).

@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-v6';
-const SHELL = ['app.html', 'assets/verth.css', 'assets/app.js', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-v7';
+const SHELL = ['app.html', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -31,7 +31,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   e.respondWith(
     fetch(req).then((res) => {
-      if (res.ok && SHELL.some((p) => req.url.endsWith(p))) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+      if (res.ok && (SHELL.some((p) => req.url.endsWith(p)) || req.url.includes('/assets/fonts/'))) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then((r) => r || caches.match('app.html')))
   );

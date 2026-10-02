@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://umeshdk22.github.io/verth/sitemap.xml
