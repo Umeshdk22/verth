@@ -256,7 +256,7 @@ const isPaid = (b, now = Date.now()) => !!b && PAID_STATUSES.includes(b.status) 
 export async function syncSubscription(sub, fs, env) {
   const n = sub.notes || {};
   const product = PRODUCTS[n.product];
-  if (!product || !n.uid || sub.plan_id !== env[product.envKey]) return { ignored: true }; // not a Verth subscription
+  if (!product || !n.uid || sub.plan_id !== planId(env, product)) return { ignored: true }; // not a Verth subscription
   const paid = PAID_STATUSES.includes(sub.status);
   const billing = {
     product: n.product, subscriptionId: sub.id, status: sub.status, payerUid: n.uid,
@@ -282,9 +282,13 @@ export async function syncSubscription(sub, fs, env) {
   return { target: 'circle', paid };
 }
 
+// Plan IDs from the Cloudflare settings, ignoring stray spaces or line breaks pasted with them.
+const planId = (env, product) => String(env[product.envKey] || '').trim();
+
 async function subscribe(body, user, env, fs, rp) {
   const product = PRODUCTS[body.plan];
   if (!product) throw new HttpError(400, 'Unknown plan.');
+  if (!/^plan_[A-Za-z0-9]{14}$/.test(planId(env, product))) { console.error('bad plan id in setting', product.envKey); throw new HttpError(503, 'This plan isn’t available yet. Please try again later.'); }
   const notes = { product: body.plan, uid: user.uid };
   let quantity = 1;
   if (product.target === 'user') {
@@ -302,7 +306,7 @@ async function subscribe(body, user, env, fs, rp) {
     notes.circleId = cid;
   }
   const sub = await rp.createSubscription({
-    plan_id: env[product.envKey], total_count: TOTAL_COUNT, quantity, customer_notify: true,
+    plan_id: planId(env, product), total_count: TOTAL_COUNT, quantity, customer_notify: true,
     expire_by: Math.floor(Date.now() / 1000) + 3600, notes,
   });
   return { subscriptionId: sub.id, keyId: env.RAZORPAY_KEY_ID, description: product.label, quantity };

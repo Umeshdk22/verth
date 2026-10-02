@@ -6,7 +6,7 @@ import { handle, hmacHex, syncSubscription, verifyIdToken, firestore, toFs, from
 const PROJECT = 'verth-ece65', ORIGIN = 'https://umeshdk22.github.io';
 const env = {
   FIREBASE_PROJECT_ID: PROJECT, ALLOWED_ORIGIN: ORIGIN,
-  PLAN_PERSONAL: 'plan_P', PLAN_FAMILY: 'plan_F', PLAN_TEAM: 'plan_T',
+  PLAN_PERSONAL: 'plan_PPPPPPPPPPPPPP', PLAN_FAMILY: 'plan_FFFFFFFFFFFFFF', PLAN_TEAM: 'plan_TTTTTTTTTTTTTT',
   RAZORPAY_KEY_ID: 'rzp_live_x', RAZORPAY_KEY_SECRET: 'keysecret', RAZORPAY_WEBHOOK_SECRET: 'hooksecret',
 };
 
@@ -78,7 +78,7 @@ test('personal: subscribe → checkout → verify unlocks the plan, only with a 
   assert.equal(s.body.keyId, 'rzp_live_x');
   const sid = s.body.subscriptionId;
   assert.deepEqual(f.calls[0][1].notes, { product: 'personal', uid: 'uidA' });
-  assert.equal(f.calls[0][1].plan_id, 'plan_P');
+  assert.equal(f.calls[0][1].plan_id, 'plan_PPPPPPPPPPPPPP');
 
   const bad = await call(f, '/verify', { razorpay_payment_id: 'pay_1', razorpay_subscription_id: sid, razorpay_signature: 'f'.repeat(64) });
   assert.equal(bad.status, 400);
@@ -178,8 +178,8 @@ test('cancel: renewals stop, but the paid month is kept', async () => {
 
 test('an old finished subscription can’t switch off a newer paid one', async () => {
   const f = fakes({ 'users/uidA': { plan: 'free' } });
-  await syncSubscription({ id: 'sub_new', status: 'active', plan_id: 'plan_P', current_end: Math.floor(Date.now() / 1000) + 86400 * 20, notes: { product: 'personal', uid: 'uidA' } }, f.fs, env);
-  await syncSubscription({ id: 'sub_old', status: 'cancelled', plan_id: 'plan_P', notes: { product: 'personal', uid: 'uidA' } }, f.fs, env);
+  await syncSubscription({ id: 'sub_new', status: 'active', plan_id: 'plan_PPPPPPPPPPPPPP', current_end: Math.floor(Date.now() / 1000) + 86400 * 20, notes: { product: 'personal', uid: 'uidA' } }, f.fs, env);
+  await syncSubscription({ id: 'sub_old', status: 'cancelled', plan_id: 'plan_PPPPPPPPPPPPPP', notes: { product: 'personal', uid: 'uidA' } }, f.fs, env);
   assert.equal(f.db['users/uidA'].plan, 'personal');
   assert.equal(f.db['users/uidA'].billing.subscriptionId, 'sub_new');
 });
@@ -407,4 +407,13 @@ test('email codes: a clear message when the server is not set up yet', async () 
 test('the AI guide in the worker matches the helper guide (run tools/sync_ai_guide.mjs)', async () => {
   const { aiInstructions } = await import('../src/helper.js');
   assert.equal(AI_GUIDE, aiInstructions());
+});
+
+test('plan IDs pasted with spaces still work; a broken plan ID gives a calm message', async () => {
+  const f = fakes({ 'users/uidA': { plan: 'free' } });
+  const env2 = { ...env, PLAN_PERSONAL: '  plan_PPPPPPPPPPPPPP\n' };
+  const r = await handle(await req('/subscribe', { plan: 'personal' }, { token: await idToken() }), env2, { fs: f.fs, rp: f.rp, fetch: jwksFetch });
+  assert.equal(r.status, 200); assert.equal(f.calls[0][1].plan_id, 'plan_PPPPPPPPPPPPPP');
+  const bad = await handle(await req('/subscribe', { plan: 'personal' }, { token: await idToken() }), { ...env, PLAN_PERSONAL: 'plan_short' }, { fs: f.fs, rp: f.rp, fetch: jwksFetch });
+  assert.equal(bad.status, 503);
 });
