@@ -29,7 +29,7 @@ export const AI_HELPER = { enabled: true };
 
 // Cloudflare Turnstile ("I'm not a robot" check) on Log in and Create account. The site key is
 // public; its secret goes only into the Cloudflare worker as TURNSTILE_SECRET. Set both together.
-export const TURNSTILE_SITE_KEY = '';
+export const TURNSTILE_SITE_KEY = '0x4AAAAAAFMGGhM-8jOnLVGE';
 
 // Razorpay payments go through the Verth payments worker (worker/ folder, on Cloudflare).
 // Put its address here after deploying it, e.g. 'https://verth-pay.yourname.workers.dev'.

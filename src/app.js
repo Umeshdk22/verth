@@ -31,6 +31,8 @@ if (window.top !== window.self && typeof __TEST_ALLOW_FRAME__ === 'undefined') {
 /* ---------- setup ---------- */
 const params = new URLSearchParams(location.search);
 const EMU = ['localhost', '127.0.0.1'].includes(location.hostname) && params.has('emu');
+// The robot check is skipped in the local test build (it can't reach Cloudflare).
+const CAPTCHA_KEY = EMU ? '' : TURNSTILE_SITE_KEY;
 const cfg = EMU ? { apiKey: 'demo-key', authDomain: 'demo-verth.firebaseapp.com', projectId: 'demo-verth', appId: 'demo' } : firebaseConfig;
 const CONFIGURED = EMU || !String(cfg.apiKey).includes('REPLACE');
 const APP_URL = 'https://umeshdk22.github.io/verth/app.html';
@@ -233,7 +235,7 @@ function renderAuth(note = '') {
       <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
       <label>Mobile number<span class="phone-in"><span>+91</span><input id="a-phone" type="tel" inputmode="numeric" autocomplete="tel-national" required maxlength="14" placeholder="98765 43210"></span></label>
       <p class="muted small">We keep your number private and never share it. We’ll use it to help you get back into your account.</p>
-      ${TURNSTILE_SITE_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
+      ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
       <label class="check"><input type="checkbox" id="a-agree" required> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send verification code</button>
@@ -248,7 +250,7 @@ function renderAuth(note = '') {
     ${pk ? `<button class="btn bio big" type="button" data-act="pk-login">${ICON.finger}Log in with fingerprint or face</button><div class="or"><span>or use your email</span></div>` : ''}
     <form data-form="otp-email" class="stack" novalidate>
       <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
-      ${TURNSTILE_SITE_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
+      ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send code</button>
     </form>
@@ -266,7 +268,7 @@ let turnstileLoad = null;
 function mountCaptcha() {
   S.captcha = '';
   const box = document.getElementById('captcha');
-  if (!box || !TURNSTILE_SITE_KEY) return;
+  if (!box || !CAPTCHA_KEY) return;
   turnstileLoad ||= new Promise((resolve, reject) => {
     const sc = document.createElement('script');
     sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
@@ -275,7 +277,7 @@ function mountCaptcha() {
   });
   turnstileLoad.then(() => {
     if (!document.body.contains(box) || !window.turnstile) return;
-    window.turnstile.render(box, { sitekey: TURNSTILE_SITE_KEY, theme: 'light', callback: (t) => { S.captcha = t; }, 'expired-callback': () => { S.captcha = ''; }, 'error-callback': () => { S.captcha = ''; } });
+    window.turnstile.render(box, { sitekey: CAPTCHA_KEY, theme: 'light', callback: (t) => { S.captcha = t; }, 'expired-callback': () => { S.captcha = ''; }, 'error-callback': () => { S.captcha = ''; } });
   }).catch(() => setErr('a-err', 'Couldn’t load the “I’m not a robot” check. Check your connection and refresh.'));
 }
 const resetCaptcha = () => { S.captcha = ''; try { window.turnstile?.reset(); } catch {} };
@@ -1415,7 +1417,7 @@ const forms = {
   'otp-email': async (f) => {
     const email = f.querySelector('#a-email').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
-    if (TURNSTILE_SITE_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
+    if (CAPTCHA_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'login'; await sendCode(email); renderCode(); }
     catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); resetCaptcha(); }
@@ -1426,7 +1428,7 @@ const forms = {
     if (name.length < 2) return setErr('a-err', 'Please type your full name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
     if (!PHONE_RE.test(phone)) return setErr('a-err', 'Please type a 10-digit Indian mobile number.');
-    if (TURNSTILE_SITE_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
+    if (CAPTCHA_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
     if (!f.querySelector('#a-agree').checked) return setErr('a-err', 'Please tick the box to agree to the Terms and Privacy policy.');
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'signup'; S.signupInfo = { name: name.slice(0, 60), phone }; await sendCode(email, { name: name.slice(0, 60) }); renderCode(); }
