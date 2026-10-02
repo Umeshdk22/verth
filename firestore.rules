@@ -55,6 +55,13 @@ service cloud.firestore {
       return d is map && d.keys().hasOnly(['dh', 'sig', 'n', 'at', 'label']) && d.keys().hasAll(['dh', 'sig', 'n', 'at', 'label'])
         && validPub(d.dh) && validPub(d.sig) && d.n == n && d.at == request.time && text(d.label, 40);
     }
+    // Anti-flood: each person can log at most one check every 5 seconds. The app writes
+    // users/{uid}/meters/checks in the same batch as the check, stamped with the request time.
+    function checkMeter() { return /databases/$(database)/documents/users/$(me())/meters/checks; }
+    function throttledCheck() {
+      return existsAfter(checkMeter()) && getAfter(checkMeter()).data.at == request.time
+        && (!exists(checkMeter()) || get(checkMeter()).data.at < request.time - duration.value(5, 's'));
+    }
     function todayIST() { return string(int((request.time.toMillis() + 19800000) / 86400000)); }
     function channels() { return ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other', 'Call']; }
 
@@ -110,6 +117,14 @@ service cloud.firestore {
               || paidCircleFor(uid, request.resource.data.get('via', null)));
         allow delete: if false;
       }
+      match /meters/checks {
+        allow get: if signedIn() && me() == uid;
+        allow create, update: if signedIn() && me() == uid
+          && request.resource.data.keys().hasOnly(['at'])
+          && request.resource.data.at == request.time
+          && (resource == null || resource.data.at < request.time - duration.value(5, 's'));
+        allow delete: if false;
+      }
     }
 
     // ---------- community scam reports ----------
@@ -137,6 +152,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['circleId', 'circleName', 'type', 'createdBy', 'createdAt'])
         && request.resource.data.createdBy == me()
         && request.resource.data.createdAt == request.time
+        && text(request.resource.data.circleName, 60)
+        && request.resource.data.type in ['org', 'family']
         && getAfter(circlePath(request.resource.data.circleId)).data.inviteCode == code
         && isAdminAfter(request.resource.data.circleId);
       allow delete: if isAdmin(resource.data.circleId);
@@ -168,11 +185,16 @@ service cloud.firestore {
         && !exists(memberPath(cid, me()))
         && existsAfter(memberPath(cid, me()));
 
-      // Leaving, or an admin removing someone: exactly one fewer.
+      // Leaving, or an admin removing someone: exactly one fewer, and only together with
+      // deleting that person's member record (named in lastRemoved), so the count can't be faked.
       allow update: if signedIn()
-        && onlyChanges(['memberCount'])
+        && onlyChanges(['memberCount', 'lastRemoved'])
         && request.resource.data.memberCount == resource.data.memberCount - 1
-        && (isAdmin(cid) || (exists(memberPath(cid, me())) && !existsAfter(memberPath(cid, me()))));
+        && request.resource.data.memberCount >= 1
+        && request.resource.data.lastRemoved is string
+        && exists(memberPath(cid, request.resource.data.lastRemoved))
+        && !existsAfter(memberPath(cid, request.resource.data.lastRemoved))
+        && (request.resource.data.lastRemoved == me() || isAdmin(cid));
 
       // Admins: rename, change the invite code, open or close joining.
       allow update: if isAdmin(cid)
@@ -232,7 +254,8 @@ service cloud.firestore {
           && request.resource.data.approvedAt == request.time;
 
         // Leave, or be removed by an admin. Admins can't be removed or leave (so a circle is never orphaned).
-        allow delete: if signedIn() && resource.data.role != 'admin' && (uid == me() || isAdmin(cid));
+        allow delete: if signedIn() && resource.data.role != 'admin' && (uid == me() || isAdmin(cid))
+          && getAfter(circlePath(cid)).data.memberCount == get(circlePath(cid)).data.memberCount - 1;
       }
 
       // ---------- checks (the verification log) ----------
@@ -240,6 +263,7 @@ service cloud.firestore {
         allow read: if isMember(cid);
 
         allow create: if isMember(cid)
+          && throttledCheck()
           && request.resource.data.fromUid == me()
           && request.resource.data.toUid is string
           && request.resource.data.toUid != me()

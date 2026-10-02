@@ -316,7 +316,10 @@ test('email codes: sign-in token and account lookup talk to Firebase correctly',
   };
   const fa = firebaseAuth({ ...otpEnv, FIREBASE_SERVICE_ACCOUNT: JSON.stringify({ client_email: 'sa@verth-ece65.iam.gserviceaccount.com', private_key: pem }) }, fetchFn);
   assert.equal(await fa.verifiedUid('old@x.in'), 'old1');
-  assert.deepEqual(seen.find(([u]) => u.endsWith('accounts:update'))[1], { localId: 'old1', emailVerified: true });
+  const upd = seen.find(([u]) => u.endsWith('accounts:update'))[1];
+  // An unverified account gets its password removed and every old session signed out (stops pre-hijacking).
+  assert.equal(upd.localId, 'old1'); assert.equal(upd.emailVerified, true); assert.deepEqual(upd.deleteProvider, ['password']);
+  assert.ok(Math.abs(Number(upd.validSince) - Date.now() / 1000) < 60);
   assert.equal(await fa.verifiedUid('new@x.in'), 'new1');
   assert.deepEqual(seen.find(([u]) => u.endsWith('/accounts'))[1], { email: 'new@x.in', emailVerified: true });
   const tok = await fa.customToken('new1');
@@ -326,4 +329,35 @@ test('email codes: sign-in token and account lookup talk to Firebase correctly',
   assert.equal(claims.aud, 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit');
   assert.ok(claims.exp - claims.iat <= 3600);
   assert.ok(await crypto.subtle.verify('RSASSA-PKCS1-v1_5', pair.publicKey, Buffer.from(s, 'base64url'), new TextEncoder().encode(h + '.' + p)));
+});
+
+test('email codes: asking for new codes does not give more guesses (10 wrong a day locks the email)', async () => {
+  const f = otpFakes(); let t = Date.now();
+  let wrongs = 0;
+  for (let round = 0; round < 3; round++) {
+    await otpCall(f, '/otp/send', { email: 'v@x.in' }, { now: (t += OTP.resendMs + 1) });
+    const real = f.mails.at(-1).code;
+    for (let i = 0; i < OTP.maxTries && wrongs < OTP.maxFailsDay; i++, wrongs++) {
+      await otpCall(f, '/otp/verify', { email: 'v@x.in', code: real === '000000' ? '111111' : '000000' }, { now: ++t });
+    }
+  }
+  assert.equal(wrongs, OTP.maxFailsDay);
+  const sendAgain = await otpCall(f, '/otp/send', { email: 'v@x.in' }, { now: (t += OTP.resendMs + 1) });
+  assert.equal(sendAgain.status, 429); assert.match(sendAgain.body.error, /tomorrow/);
+  // The next day works again.
+  assert.equal((await otpCall(f, '/otp/send', { email: 'v@x.in' }, { now: t + 86400_000 + 1 })).status, 200);
+});
+
+test('email codes: a daily ceiling on all emails sent', async () => {
+  const f = otpFakes(); const t = Date.now();
+  const env2 = { ...otpEnv, OTP_DAILY_CAP: '3' };
+  const send = async (email, ip) => { const r = await handle(new Request('https://w.example/otp/send', { method: 'POST', headers: { origin: ORIGIN, 'cf-connecting-ip': ip }, body: JSON.stringify({ email }) }), env2, { ...f.deps, now: t }); return r.status; };
+  assert.equal(await send('a1@x.in', '1.1.1.1'), 200); assert.equal(await send('a2@x.in', '1.1.1.2'), 200); assert.equal(await send('a3@x.in', '1.1.1.3'), 200);
+  assert.equal(await send('a4@x.in', '1.1.1.4'), 429);
+});
+
+test('oversized requests are refused before reading them', async () => {
+  const f = otpFakes();
+  const r = await handle(new Request('https://w.example/otp/send', { method: 'POST', headers: { origin: ORIGIN, 'content-length': '5000000' }, body: '{}' }), otpEnv, f.deps);
+  assert.equal(r.status, 413);
 });

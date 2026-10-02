@@ -19,6 +19,8 @@ Verth protects decisions about money, bank details and account access, so it is 
 - **No passwords.** People log in with Google or with a 6-digit code emailed to them, so there is no password to guess, reuse or phish. Every account's email is confirmed before any data can be read or written; this is enforced in the database rules, not only in the app.
 - Email codes: drawn uniformly at random, valid for 10 minutes, used once, and stored only as an HMAC (the email address is also stored only as an HMAC). Each code allows 5 tries; every try is counted with a Firestore precondition *before* the comparison, so guesses sent at the same moment can't get around the limit. Sending is limited to one code per 30 seconds and 5 per hour per email, and 20 per hour per network. Only the Verth site's origin may call these endpoints.
 - After a correct code, the worker looks up (or creates) the Firebase account for that email, marks the email as verified, and returns a one-hour Firebase custom token signed with the service account key.
+- Wrong codes are also counted per email across new codes: 10 wrong in 24 hours locks that email until the next day. `/otp/verify` is limited to 60 tries per hour per network, and all code emails together are capped per day (`OTP_DAILY_CAP`, default 280, under Brevo's free 300) so nobody can burn the quota.
+- **Pre-hijacking is blocked:** if someone opened an account with a victim's email and a password before the victim arrived, the first email-code login removes that password and signs out every existing session (`validSince`) before the real owner gets in. Switch off the Email/Password provider in Firebase as well.
 - Messages don't reveal whether an email is registered: the same steps log in or create an account.
 
 ### Circles and membership
@@ -117,3 +119,13 @@ Do these once in the consoles. They add protection the code can't provide by its
 ## Reporting a vulnerability
 
 Please use GitHub's **Report a vulnerability** button on this repository (Security tab) rather than a public issue.
+
+## Hardening added in October 2026 (independent review)
+
+- **Member count can't be faked:** lowering `memberCount` must name the member being removed (`lastRemoved`), whose record must be deleted in the same write; removing a member must lower the count. The count can't go below 1.
+- **Anti-flood for checks:** every check is written together with `users/{uid}/meters/checks`, and the rules allow one check per person every 5 seconds, so a member can't run up database costs for a 2000-person circle.
+- **Invite records** are validated (name length, type).
+- **Worker:** Google key refresh for unknown key ids at most once a minute; request size checked from `Content-Length` before reading; payment-provider error text is logged, not shown.
+- **CI:** GitHub Actions are pinned to exact commit SHAs.
+- **Known soft limits (by design):** free scam-check and photo-check limits are enforced by counters the rules guard, but the checks themselves run on the user's phone, so a determined user who edits the app can skip the counter. The free plan's monthly verification-check limit is enforced in the app.
+- **Next step:** move Verth to its own domain. Today it shares the `umeshdk22.github.io` origin with any other GitHub Pages project on that account; a custom domain (with Cloudflare in front) also allows real security headers (HSTS, frame-ancestors, Permissions-Policy) that GitHub Pages can't send.

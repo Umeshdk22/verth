@@ -103,7 +103,7 @@ Monthly subscriptions (UPI Autopay or card) through Razorpay Checkout, with a sm
 
 - The app sends a signed-in request (Firebase ID token, verified against Google's keys) to start a subscription; only circle admins can buy Family or Team.
 - After Checkout, the worker checks Razorpay's HMAC signature, then **re-reads the subscription from Razorpay** and writes the plan to Firestore with a least-privilege service account. Signed webhooks (charged, halted, cancelled…) keep it in sync; the browser's word is never trusted.
-- Firestore rules stop the app from writing plans, seats or billing. Family circles stop at 10 people, Team (₹199/month) has no limit on people, and Family/Team members get unlimited scam checks only while they're active members of a paid circle.
+- Firestore rules stop the app from writing plans, seats or billing. Family circles stop at 10 people, Team (₹299/month) has no limit on people, and Family/Team members get unlimited scam checks only while they're active members of a paid circle.
 - Cancel any time from the Plan tab (renewal stops at the end of the paid month).
 - Policy pages Razorpay requires: [Pricing](pricing.html), [Terms](terms.html), [Privacy](privacy.html), [Refunds](refunds.html), [Shipping](shipping.html), [Contact](contact.html).
 

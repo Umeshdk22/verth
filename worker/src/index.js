@@ -21,9 +21,9 @@
 const enc = new TextEncoder();
 const PAID_STATUSES = ['authenticated', 'active', 'pending'];
 export const PRODUCTS = {
-  personal: { target: 'user', envKey: 'PLAN_PERSONAL', label: 'Verth Personal (₹49 / month)' },
-  family: { target: 'circle', envKey: 'PLAN_FAMILY', label: 'Verth Family (₹99 / month)', maxMembers: 10 },
-  team: { target: 'circle', envKey: 'PLAN_TEAM', label: 'Verth Team (₹199 / month, unlimited)', maxMembers: 2000 },
+  personal: { target: 'user', envKey: 'PLAN_PERSONAL', label: 'Verth Personal (₹149 / month)' },
+  family: { target: 'circle', envKey: 'PLAN_FAMILY', label: 'Verth Family (₹199 / month)', maxMembers: 10 },
+  team: { target: 'circle', envKey: 'PLAN_TEAM', label: 'Verth Team (₹299 / month, unlimited)', maxMembers: 2000 },
 };
 const TOTAL_COUNT = 120; // monthly cycles: 10 years, Razorpay's maximum for most methods
 
@@ -58,7 +58,8 @@ export async function verifyIdToken(token, projectId, fetchFn = fetch, now = Dat
   try { header = JSON.parse(new TextDecoder().decode(fromB64url(parts[0]))); claims = JSON.parse(new TextDecoder().decode(fromB64url(parts[1]))); }
   catch { throw new HttpError(401, 'Sign in again.'); }
   if (header.alg !== 'RS256' || !header.kid) throw new HttpError(401, 'Sign in again.');
-  if (now - jwksCache.at > 3600_000 || !jwksCache.keys.some((k) => k.kid === header.kid)) {
+  // Refresh Google's keys hourly, or for an unknown key id at most once a minute (so junk tokens can't make us fetch on every request).
+  if (now - jwksCache.at > 3600_000 || (!jwksCache.keys.some((k) => k.kid === header.kid) && now - jwksCache.at > 60_000)) {
     const r = await fetchFn(JWKS_URL);
     if (!r.ok) throw new HttpError(503, 'Try again in a minute.');
     jwksCache = { at: now, keys: (await r.json()).keys || [] };
@@ -184,7 +185,15 @@ export function firebaseAuth(env, fetchFn = fetch) {
       const found = (await call('accounts:lookup', { email: [email] })).users?.[0];
       if (found) {
         if (found.disabled) throw new HttpError(403, 'This account has been switched off. Contact support.');
-        if (!found.emailVerified) await call('accounts:update', { localId: found.localId, emailVerified: true });
+        // An account nobody ever verified may have been opened by someone else with a password,
+        // waiting for the real owner to arrive ("pre-hijacking"). Remove any password and sign out
+        // every existing session before the real owner, who just proved they own the inbox, gets in.
+        if (!found.emailVerified) {
+          await call('accounts:update', {
+            localId: found.localId, emailVerified: true, deleteProvider: ['password'],
+            validSince: String(Math.floor(Date.now() / 1000)),
+          });
+        }
         return found.localId;
       }
       return (await call('accounts', { email, emailVerified: true })).localId;
@@ -228,7 +237,7 @@ export function razorpay(env, fetchFn = fetch) {
       method, headers: { authorization: auth, 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined,
     });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new HttpError(r.status >= 500 ? 502 : 400, j?.error?.description || 'Payment provider error.');
+    if (!r.ok) { console.error('razorpay', r.status, j?.error?.description); throw new HttpError(r.status >= 500 ? 502 : 400, 'The payment provider refused this request. Try again, or contact support.'); }
     return j;
   };
   return {
@@ -334,7 +343,7 @@ async function webhook(raw, headers, env, fs, rp) {
 }
 
 /* ---------- Email codes (sign in without a password) ---------- */
-export const OTP = { ttlMs: 10 * 60_000, resendMs: 30_000, perEmailHour: 5, perIpHour: 20, maxTries: 5 };
+export const OTP = { ttlMs: 10 * 60_000, resendMs: 30_000, perEmailHour: 5, perIpHour: 20, maxTries: 5, maxFailsDay: 10, verifyPerIpHour: 60, dailyCap: 280 };
 const EMAIL_RE = /^[^\s@"<>()\[\],;:]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
 export function normEmail(e) {
   const v = String(e || '').trim().toLowerCase();
@@ -348,9 +357,9 @@ export function makeCode() {
   return String(a[0] % 1_000_000).padStart(6, '0');
 }
 // Counts events in a one-hour window; throws once the limit is reached.
-async function limit(fs, path, max, now, msg) {
+async function limit(fs, path, max, now, msg, windowMs = 3600_000) {
   const d = await fs.get(path);
-  const fresh = !d || now - new Date(d.windowStart).getTime() > 3600_000;
+  const fresh = !d || now - new Date(d.windowStart).getTime() > windowMs;
   const count = fresh ? 0 : Number(d.count) || 0;
   if (count >= max) throw new HttpError(429, msg);
   await fs.set(path, { windowStart: fresh ? new Date(now) : new Date(d.windowStart), count: count + 1 }, d);
@@ -361,7 +370,10 @@ async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
   const id = await hmacHex(env.OTP_SECRET, 'email:' + email);
   const prev = await fs.get('otp/' + id);
   if (prev?.sentAt && now - new Date(prev.sentAt).getTime() < OTP.resendMs) throw new HttpError(429, 'Wait 30 seconds before asking for a new code.');
+  if (lockedOut(prev, now)) throw new HttpError(429, 'Too many wrong codes for this email. Try again tomorrow.');
   await limit(fs, 'otpip/' + (await hmacHex(env.OTP_SECRET, 'ip:' + ip)), OTP.perIpHour, now, 'Too many codes from this network. Try again in an hour.');
+  // A ceiling on all emails sent in a day, so nobody can use up the email quota and block real logins for long.
+  await limit(fs, 'otpday/all', Number(env.OTP_DAILY_CAP) || OTP.dailyCap, now, 'Verth is very busy right now. Try again in a little while, or use Continue with Google.', 86400_000);
   const fresh = !prev?.windowStart || now - new Date(prev.windowStart).getTime() > 3600_000;
   const sends = fresh ? 0 : Number(prev.sends) || 0;
   if (sends >= OTP.perEmailHour) throw new HttpError(429, 'Too many codes for this email. Try again in an hour.');
@@ -369,29 +381,41 @@ async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
   await fs.set('otp/' + id, {
     codeHash: await hmacHex(env.OTP_SECRET, id + ':' + code), expires: new Date(now + OTP.ttlMs), tries: 0,
     sentAt: new Date(now), windowStart: fresh ? new Date(now) : new Date(prev.windowStart), sends: sends + 1,
+    ...failState(prev, now),
   }, prev);
   await deps.mail.sendCode(email, code);
   return { sent: true, resendInSeconds: OTP.resendMs / 1000 };
 }
 
-async function otpVerify(body, env, fs, deps, now = Date.now()) {
+// Wrong guesses are also counted per email across new codes: 10 in 24 hours locks that email
+// for the rest of the day, so asking for fresh codes doesn't give an attacker more guesses.
+function failState(d, now) {
+  const fresh = !d?.failStart || now - new Date(d.failStart).getTime() > 86400_000;
+  return { fails: fresh ? 0 : Number(d.fails) || 0, failStart: fresh ? new Date(now) : new Date(d.failStart) };
+}
+const lockedOut = (d, now) => failState(d, now).fails >= OTP.maxFailsDay;
+
+async function otpVerify(body, env, fs, deps, ip, now = Date.now()) {
   const email = normEmail(body.email);
   const code = String(body.code || '').replace(/\D/g, '');
   if (code.length !== 6) throw new HttpError(400, 'Enter the 6-digit code from the email.');
+  await limit(fs, 'otpvip/' + (await hmacHex(env.OTP_SECRET, 'ip:' + ip)), OTP.verifyPerIpHour, now, 'Too many tries from this network. Try again in an hour.');
   const id = await hmacHex(env.OTP_SECRET, 'email:' + email);
   const d = await fs.get('otp/' + id);
+  if (lockedOut(d, now)) throw new HttpError(429, 'Too many wrong codes for this email. Try again tomorrow.');
   if (!d?.codeHash || new Date(d.expires).getTime() < now) throw new HttpError(400, 'This code has expired. Send a new one.');
   const tries = (Number(d.tries) || 0) + 1;
   if (tries > OTP.maxTries) throw new HttpError(429, 'Too many wrong tries. Send a new code.');
   // Count the try before comparing, and only if nobody else tried in between,
   // so guesses sent at the same moment can't get around the limit.
-  await fs.update('otp/' + id, { tries }, d.updateTime);
+  const fs0 = failState(d, now);
+  await fs.update('otp/' + id, { tries, fails: fs0.fails + 1, failStart: fs0.failStart }, d.updateTime);
   if (!safeEqual(await hmacHex(env.OTP_SECRET, id + ':' + code), d.codeHash)) {
     const left = OTP.maxTries - tries;
     throw new HttpError(400, left > 0 ? `That code isn’t right. ${left} ${left === 1 ? 'try' : 'tries'} left.` : 'Too many wrong tries. Send a new code.');
   }
   // Used once: keep the send counters, drop the code.
-  await fs.set('otp/' + id, { sentAt: new Date(d.sentAt), windowStart: new Date(d.windowStart), sends: Number(d.sends) || 1, tries: 0 });
+  await fs.set('otp/' + id, { sentAt: new Date(d.sentAt), windowStart: new Date(d.windowStart), sends: Number(d.sends) || 1, tries: 0, fails: 0, failStart: new Date(now) });
   const uid = await deps.auth.verifiedUid(email);
   return { token: await deps.auth.customToken(uid, now) };
 }
@@ -415,6 +439,7 @@ export async function handle(request, env, deps = {}) {
     if (request.method === 'OPTIONS') return new Response(null, { status: h['access-control-allow-origin'] ? 204 : 403, headers: h });
     if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, h);
     const fs = deps.fs || firestore(env, fetchFn), rp = deps.rp || razorpay(env, fetchFn);
+    if (Number(request.headers.get('content-length') || 0) > 100_000) throw new HttpError(413, 'Too large.');
     const raw = await request.text();
     if (raw.length > 100_000) throw new HttpError(413, 'Too large.');
     if (url.pathname === '/webhook') return json(await webhook(raw, request.headers, env, fs, rp), 200);
@@ -426,7 +451,7 @@ export async function handle(request, env, deps = {}) {
       try { body = JSON.parse(raw || '{}'); } catch { throw new HttpError(400, 'Bad request.'); }
       const d = { mail: deps.mail || mailer(env, fetchFn), auth: deps.auth || firebaseAuth(env, fetchFn) };
       const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-      return json(url.pathname === '/otp/send' ? await otpSend(body, env, fs, d, ip, deps.now) : await otpVerify(body, env, fs, d, deps.now), 200, h);
+      return json(url.pathname === '/otp/send' ? await otpSend(body, env, fs, d, ip, deps.now) : await otpVerify(body, env, fs, d, ip, deps.now), 200, h);
     }
     // The rest needs a signed-in person.
     const user = await verifyIdToken((request.headers.get('authorization') || '').replace(/^Bearer /, ''), env.FIREBASE_PROJECT_ID, fetchFn);

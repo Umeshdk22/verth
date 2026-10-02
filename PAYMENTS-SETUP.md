@@ -19,9 +19,9 @@ Do this in **Test mode** first (toggle at the top of the dashboard), then repeat
 
    | Plan name | Billing | Amount |
    |---|---|---|
-   | Verth Personal | Monthly, every 1 month | ₹49 |
-   | Verth Family | Monthly, every 1 month | ₹99 |
-   | Verth Team | Monthly, every 1 month | ₹199 (whole organisation, unlimited people) |
+   | Verth Personal | Monthly, every 1 month | ₹149 |
+   | Verth Family | Monthly, every 1 month | ₹199 |
+   | Verth Team | Monthly, every 1 month | ₹299 (whole organisation, unlimited people) |
 
    Copy each **plan ID** (starts with `plan_`). Plan IDs aren't secret.
    If you can't see *Subscriptions*, ask Razorpay support to enable Subscriptions on your account.

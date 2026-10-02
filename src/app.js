@@ -137,6 +137,7 @@ function makeInviteCode() {
 function friendlyError(e) {
   const c = e?.code || '';
   const map = {
+    'verth/slow-down': 'Please wait a few seconds before sending another check.',
     'auth/invalid-custom-token': 'That sign-in didn’t work. Ask for a new code.',
     'auth/user-disabled': 'This account has been switched off. Contact support.',
     'auth/invalid-email': 'That email address doesn’t look right.',
@@ -696,7 +697,7 @@ function viewScan() {
   const counter = lim === Infinity ? `<span class="pill ok">Unlimited${img ? ' photo checks' : ''}</span>` : `<span class="muted small">${left} of ${lim} free ${img ? 'photo checks left' : 'checks left today'}</span>`;
   const limitCard = img
     ? `<section class="card attention"><h2>You’ve used your ${lim} free photo checks</h2>
-      <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹49 a month. You can still type or paste the message and check it free.</p>
+      <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹149 a month. You can still type or paste the message and check it free.</p>
       <div class="row gap"><button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button><button class="btn ghost" data-act="scan-kind" data-kind="message">Type the message instead</button></div></section>`
     : `<section class="card attention"><h2>You’ve used today’s free checks</h2>
       <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
@@ -769,8 +770,8 @@ function renderScanOnly() {
       <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div>
         <button class="link" data-act="setup" data-type="join">I have an invite code</button></section>
-      ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹29 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
-        ${PAY_API ? payButton('personal', 'Get Personal · ₹49 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
+      ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹149 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
+        ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button><button class="link" data-act="signout">Sign out</button></div>
     </main></div>`);
 }
@@ -818,9 +819,9 @@ function viewPlan() {
       <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
     <div class="plans">
       ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', 'Signed push checks and rolling codes'])}
-      ${card('personal', 'Personal', '₹49 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Messages, emails, jobs, links and numbers', 'Everything in Free'])}
-      ${card('family', 'Family', '₹99 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Log export'])}
-      ${card('team', 'Team', '₹199 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
+      ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Messages, emails, jobs, links and numbers', 'Everything in Free'])}
+      ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Log export'])}
+      ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     <section class="card"><h2>Account and device</h2><p class="muted">${esc(S.user.email)}</p>
@@ -997,6 +998,14 @@ async function afterSignIn(preferId) {
 const newDeviceRecord = (n) => ({ dh: S.keys.pub.dh, sig: S.keys.pub.sig, n, at: serverTimestamp(), label: deviceLabel() });
 
 /* ---------- actions ---------- */
+// A check is saved together with the sender's anti-flood meter (one check every 5 seconds).
+async function logCheck(ref, data) {
+  const b = writeBatch(db);
+  b.set(ref, data);
+  b.set(doc(db, 'users', S.user.uid, 'meters', 'checks'), { at: serverTimestamp() });
+  try { await b.commit(); }
+  catch (e) { if (e?.code === 'permission-denied') throw Object.assign(new Error('slow'), { code: 'verth/slow-down' }); throw e; }
+}
 const setErr = (id, msg) => { const el = document.getElementById(id); if (el) el.textContent = msg; };
 const busy = (form, on) => form?.querySelectorAll('button').forEach((b) => (b.disabled = on));
 
@@ -1089,7 +1098,7 @@ const actions = {
     try {
       const b = writeBatch(db);
       b.delete(doc(db, 'circles', cid, 'members', S.user.uid));
-      b.update(doc(db, 'circles', cid), { memberCount: increment(-1) });
+      b.update(doc(db, 'circles', cid), { memberCount: increment(-1), lastRemoved: S.user.uid });
       b.update(doc(db, 'users', S.user.uid), { circles: arrayRemove(cid), activeCircle: null });
       stopListeners();
       await b.commit();
@@ -1148,7 +1157,7 @@ async function removeMember(uid, word) {
   try {
     const b = writeBatch(db);
     b.delete(doc(db, 'circles', S.circleId, 'members', uid));
-    b.update(doc(db, 'circles', S.circleId), { memberCount: increment(-1) });
+    b.update(doc(db, 'circles', S.circleId), { memberCount: increment(-1), lastRemoved: uid });
     await b.commit();
     S.confirmRemove = null; toast(word); renderMain();
   } catch (e) { toast(friendlyError(e), 'bad'); }
@@ -1252,7 +1261,7 @@ const forms = {
     busy(f, true);
     try {
       const ref = doc(collection(db, 'circles', S.circleId, 'checks'));
-      await setDoc(ref, {
+      await logCheck(ref, {
         kind: 'push', fromUid: S.user.uid, fromName: me().name, toUid, toName: member(toUid).name,
         channel, summary: what.slice(0, 200), status: 'pending', createdAt: serverTimestamp(),
         expiresAt: Timestamp.fromMillis(Date.now() + CHECK_TTL_SECONDS * 1000),
@@ -1270,7 +1279,7 @@ const forms = {
     const ok = await checkCode(S.keys, m.device.dh, S.circleId, uid, S.user.uid, raw);
     S.codeResult = { ok, name: m.name, uid };
     try {
-      await setDoc(doc(collection(db, 'circles', S.circleId, 'checks')), {
+      await logCheck(doc(collection(db, 'circles', S.circleId, 'checks')), {
         kind: 'code', fromUid: S.user.uid, fromName: me().name, toUid: uid, toName: m.name,
         channel: 'Call', summary: 'Code check', status: ok ? 'code-match' : 'code-mismatch', createdAt: serverTimestamp(),
       });

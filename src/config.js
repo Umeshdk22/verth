@@ -13,9 +13,9 @@ export const firebaseConfig = {
 // Razorpay subscriptions are connected.
 export const PLANS = {
   free: { name: 'Free', maxMembers: 5, checksPerMonth: 20, scansPerDay: 2, photoChecks: 5 },
-  personal: { name: 'Personal', price: '₹49 / month', maxMembers: 5, checksPerMonth: 20, scansPerDay: Infinity, photoChecks: Infinity },
-  family: { name: 'Family', price: '₹99 / month', maxMembers: 10, checksPerMonth: Infinity, scansPerDay: Infinity, photoChecks: Infinity },
-  team: { name: 'Team', price: '₹199 / month', maxMembers: 2000, checksPerMonth: Infinity, scansPerDay: Infinity, photoChecks: Infinity },
+  personal: { name: 'Personal', price: '₹149 / month', maxMembers: 5, checksPerMonth: 20, scansPerDay: Infinity, photoChecks: Infinity },
+  family: { name: 'Family', price: '₹199 / month', maxMembers: 10, checksPerMonth: Infinity, scansPerDay: Infinity, photoChecks: Infinity },
+  team: { name: 'Team', price: '₹299 / month', maxMembers: 2000, checksPerMonth: Infinity, scansPerDay: Infinity, photoChecks: Infinity },
 };
 
 export const CHECK_TTL_SECONDS = 180;

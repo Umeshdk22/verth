@@ -166,10 +166,26 @@ test('cannot create an invite that points at someone else’s circle', async () 
   await assertFails(setDoc(doc(db('outsider'), 'invites/HJKM2345'), { circleId: 'c1', circleName: 'Nirmaan', type: 'org', createdBy: 'outsider', createdAt: serverTimestamp() }));
 });
 test('admin can remove members but not other admins; members cannot remove others', async () => {
-  const rm = (f, uid) => { const b = writeBatch(f); b.delete(doc(f, 'circles/c1/members', uid)); b.update(doc(f, 'circles/c1'), { memberCount: increment(-1) }); return b.commit(); };
+  const rm = (f, uid) => { const b = writeBatch(f); b.delete(doc(f, 'circles/c1/members', uid)); b.update(doc(f, 'circles/c1'), { memberCount: increment(-1), lastRemoved: uid }); return b.commit(); };
   await assertFails(rm(db('priya'), 'mallory'));
   await assertFails(rm(db('priya'), 'rajesh'));
   await assertSucceeds(rm(db('rajesh'), 'mallory'));
+});
+test('ATTACK: an admin cannot lower the member count without removing someone (to dodge the plan limit)', async () => {
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { memberCount: 2 }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { memberCount: 2, lastRemoved: 'mallory' }));  // mallory not actually removed
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { memberCount: 2, lastRemoved: 'nobody' }));
+  // removing someone without lowering the count is refused too
+  await assertFails(deleteDoc(doc(db('rajesh'), 'circles/c1/members/mallory')));
+});
+test('a member can leave a circle, lowering the count by one', async () => {
+  const b = writeBatch(db('priya')); b.delete(doc(db('priya'), 'circles/c1/members/priya')); b.update(doc(db('priya'), 'circles/c1'), { memberCount: increment(-1), lastRemoved: 'priya' });
+  await assertSucceeds(b.commit());
+});
+test('invite records must carry a sensible name and type', async () => {
+  const rotate = (f, extra) => { const b = writeBatch(f); b.update(doc(f, 'circles/c1'), { inviteCode: 'NEWCQDE2' }); b.set(doc(f, 'invites/NEWCQDE2'), { circleId: 'c1', circleName: 'Nirmaan', type: 'org', createdBy: 'rajesh', createdAt: serverTimestamp(), ...extra }); return b.commit(); };
+  await assertFails(rotate(db('rajesh'), { circleName: 'x'.repeat(500) }));
+  await assertFails(rotate(db('rajesh'), { type: 'bank' }));
 });
 
 /* ---------- devices ---------- */
@@ -189,7 +205,15 @@ test('device keys must look like real public keys', async () => {
 });
 
 /* ---------- checks ---------- */
-const newCheck = (f, data) => setDoc(doc(collection(f, 'circles/c1/checks')), data);
+// A check is written together with the sender's anti-flood meter, like the app does.
+const newCheck = (f, data, meterUid) => { const b = writeBatch(f); b.set(doc(collection(f, 'circles/c1/checks')), data); b.set(doc(f, `users/${meterUid || data.fromUid}/meters/checks`), { at: serverTimestamp() }); return b.commit(); };
+test('ATTACK: checks without the anti-flood meter, or faster than one per 5 seconds, are refused', async () => {
+  await assertFails(setDoc(doc(collection(db('priya'), 'circles/c1/checks')), push()));
+  await assertSucceeds(newCheck(db('priya'), push()));
+  await assertFails(newCheck(db('priya'), push()));
+  await assertFails(setDoc(doc(db('priya'), 'users/priya/meters/checks'), { at: serverTimestamp() }));
+  await assertFails(setDoc(doc(db('priya'), 'users/rajesh/meters/checks'), { at: serverTimestamp() }));
+});
 test('an active member can send a check', async () => { await assertSucceeds(newCheck(db('priya'), push())); });
 test('cannot fake who a check is from, or the names shown', async () => {
   await assertFails(newCheck(db('priya'), push({ fromUid: 'rajesh', fromName: 'Rajesh Mehta', toUid: 'priya', toName: 'Priya Nair' })));

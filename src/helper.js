@@ -40,7 +40,7 @@ export const TOPICS = [
   {
     id: 'org', q: 'How do employees join my organisation?',
     keys: ['employee', 'employees', 'staff join', 'team join', 'organisation join', 'organization join', 'company', 'office', 'link employees', 'add employees', 'add staff', 'how employee', 'colleagues', 'my team', 'business', 'company account'],
-    a: 'For a company or office:\n• Admin: sign up, choose My organisation and type the company name. You get an 8-character invite code.\n• Admin: open the Circle tab, tap Copy invite message, and send it to your office WhatsApp group or email.\n• Each employee: open the link, sign in, tap I have an invite code, and enter the code with their role (like Accounts).\n• Admin: approve each person in the Circle tab. Nobody gets in without approval.\n• Free for up to 5 people; the Team plan is ₹199 a month for the whole organisation, with no limit on people.',
+    a: 'For a company or office:\n• Admin: sign up, choose My organisation and type the company name. You get an 8-character invite code.\n• Admin: open the Circle tab, tap Copy invite message, and send it to your office WhatsApp group or email.\n• Each employee: open the link, sign in, tap I have an invite code, and enter the code with their role (like Accounts).\n• Admin: approve each person in the Circle tab. Nobody gets in without approval.\n• Free for up to 5 people; the Team plan is ₹299 a month for the whole organisation, with no limit on people.',
     go: [['Open Circle', 'circle']],
   },
   {
@@ -98,13 +98,13 @@ export const TOPICS = [
   {
     id: 'limit', q: 'Why can I only do 2 scam checks?',
     keys: ['limit', '2 per day', 'two per day', 'daily limit', 'free checks', 'used todays', 'no checks left', 'more checks', 'unlimited', 'reset', 'photo limit', '5 photos', 'free photo'],
-    a: 'Free accounts get 2 scam checks a day (they reset at midnight, India time) and 5 photo or screenshot checks in total.\n• The Personal plan (₹49 a month) gives unlimited scam and photo checks; Family and Team include them for everyone.\n• Verify checks are separate: free circles get 20 a month.',
+    a: 'Free accounts get 2 scam checks a day (they reset at midnight, India time) and 5 photo or screenshot checks in total.\n• The Personal plan (₹149 a month) gives unlimited scam and photo checks; Family and Team include them for everyone.\n• Verify checks are separate: free circles get 20 a month.',
     go: [['See plans', 'plan']],
   },
   {
     id: 'plans', q: 'What do the plans cost?',
     keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'charges', 'buy', 'subscribe'],
-    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹49/month: unlimited scam and photo checks.\n• Family ₹99/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹199/month for the whole organisation: everything unlimited, no limit on people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
+    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
   },
   {
