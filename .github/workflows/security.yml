@@ -24,7 +24,7 @@ jobs:
           java-version: 21
       - run: npm ci
       - name: Run rules tests against the Firestore emulator
-        run: npx --yes firebase-tools@15.32.0 emulators:exec --only firestore --project demo-verth "node --test test/rules.test.mjs"
+        run: npx --yes firebase-tools@15.32.0 emulators:exec --only firestore --project demo-verth "node --test --test-reporter=./test/gh-reporter.mjs test/rules.test.mjs"
 
   app:
     name: Two-person app test
