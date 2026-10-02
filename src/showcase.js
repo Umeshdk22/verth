@@ -67,7 +67,7 @@ const STEPS = [
 ];
 
 /* ---------- rotation state (survives repaints) ---------- */
-const ROT = { quotes: { i: 0, at: Date.now(), every: 6500, n: QUOTES.length }, alerts: { i: 0, at: Date.now(), every: 8000, n: ALERTS.length }, steps: { i: 0, at: Date.now(), every: 5000, n: STEPS.length } };
+const ROT = { quotes: { i: 0, at: Date.now(), every: 5000, n: QUOTES.length }, alerts: { i: 0, at: Date.now(), every: 6000, n: ALERTS.length }, steps: { i: 0, at: Date.now(), every: 3500, n: STEPS.length } };
 ROT.quotes.i = Math.floor(Date.now() / 86400000) % QUOTES.length; // a different first quote each day
 const still = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 let paused = '';

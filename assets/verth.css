@@ -325,7 +325,7 @@ input.otp::placeholder{letter-spacing:.3em;color:#C9C3DF}
 .hb b{font-size:15px}.hb i{display:inline-grid;width:16px;height:16px}.hb i svg{width:16px;height:16px;color:#9EF0C4}
 
 .rot{display:grid}
-.rot>.rot-item{grid-area:1/1;opacity:0;visibility:hidden;transform:translateX(14px);transition:opacity .6s ease,transform .6s ease,visibility .6s}
+.rot>.rot-item{grid-area:1/1;opacity:0;visibility:hidden;transform:translateX(14px);transition:opacity .4s ease,transform .4s ease,visibility .4s}
 .rot>.rot-item.on{opacity:1;visibility:visible;transform:none}
 .rot-dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .rot-dots button{width:8px;height:8px;border-radius:999px;border:0;padding:0;background:#D6CFF0;transition:width .3s,background .3s;min-height:0}

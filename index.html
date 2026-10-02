@@ -269,6 +269,28 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
 @media (max-width:760px){.nav .links .btn.line{display:inline-flex}.nav .links .btn{padding:8px 12px;font-size:14px;white-space:nowrap;min-height:40px}.qband{padding:64px 0}}
 @media (max-width:440px){.nav .sound{display:none}.nav .links{gap:8px}.nav .brand span{font-size:22px}}
 @media (prefers-reduced-motion:reduce){.qb-item{transition:none;transform:none}}
+
+/* showcase: each scam gets its own colour, a soft glow, a dot pattern and the dusk skyline */
+.show-card{background:#1B1047}
+.slide{transition:opacity .45s ease,visibility .45s,transform .6s ease;transform:scale(1.015);color:#fff;isolation:isolate;overflow:hidden}
+.slide.on{transform:none}
+.slide::before{content:"";position:absolute;inset:0;z-index:-1;background-image:radial-gradient(rgba(255,255,255,.13) 1.2px,transparent 1.3px);background-size:22px 22px;mask-image:linear-gradient(90deg,#000,transparent 70%);-webkit-mask-image:linear-gradient(90deg,#000,transparent 70%)}
+.slide::after{content:"";position:absolute;left:0;right:0;bottom:0;height:46%;z-index:-1;background:url(assets/bg-dusk.webp) center bottom/cover;opacity:.28;mix-blend-mode:screen;mask-image:linear-gradient(180deg,transparent,#000 60%);-webkit-mask-image:linear-gradient(180deg,transparent,#000 60%)}
+.slide.s1{background:radial-gradient(520px 320px at 85% 15%,rgba(255,120,140,.45),transparent 65%),linear-gradient(135deg,#8E1B3A 0%,#4B23C9 100%)}
+.slide.s2{background:radial-gradient(520px 320px at 85% 15%,rgba(255,206,120,.45),transparent 65%),linear-gradient(135deg,#B85E0B 0%,#5A2FDB 100%)}
+.slide.s3{background:radial-gradient(520px 320px at 85% 15%,rgba(120,255,226,.35),transparent 65%),linear-gradient(135deg,#0B7A6E 0%,#2A137A 100%)}
+.slide.s4{background:radial-gradient(520px 320px at 85% 15%,rgba(240,140,255,.4),transparent 65%),linear-gradient(135deg,#2A137A 0%,#8E2C93 100%)}
+.slide.s5{background:radial-gradient(520px 320px at 85% 15%,rgba(120,180,255,.45),transparent 65%),linear-gradient(135deg,#0E0A2A 0%,#1F4FC2 100%)}
+.slide .tag{color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28)}
+.slide h3{color:#fff}
+.slide p{color:rgba(255,255,255,.88)}
+.slide p b{color:#FFD27A}
+.verdict-chip.bad,.verdict-chip.ok{background:#fff;box-shadow:0 10px 24px -12px rgba(0,0,0,.6)}
+.verdict-chip.bad{color:#C2283A}.verdict-chip.ok{color:#0B8A5C}
+.shot .ph{box-shadow:0 34px 70px -20px rgba(0,0,0,.65),0 0 0 6px rgba(255,255,255,.08)}
+.shot .float{color:var(--ink)}
+.show-nav button.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+.show-nav button.on i{background:#FFB224}
 /* Jharokha lettering: Rozha One for display text, Hind for reading */
 .hero h1,.slide h3,.sec h2,.fpanel h3,.story .quote,.final h2,.pcard .amt,.banner-card h3{font-family:var(--display);font-weight:400;letter-spacing:.005em}
 .hero h1{line-height:1.06}.hero h1 span{font-weight:400}
@@ -315,23 +337,23 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
 
 <div class="show" id="show" aria-roledescription="carousel" aria-label="What Verth catches">
   <div class="show-card">
-    <div class="slide on" role="group" aria-roledescription="slide" aria-label="1 of 5">
+    <div class="slide s1 on" role="group" aria-roledescription="slide" aria-label="1 of 5">
       <div><span class="tag">SMS and WhatsApp</span><h3>“Your account will be blocked today.”</h3><p>Paste the message and Verth explains every red flag: a fake bank link, a KYC threat and pressure to act now.</p><span class="verdict-chip bad">✕ High risk: this looks like a scam</span></div>
       <div class="shot"><div class="ph"><img src="assets/slides/scan-sms.webp" alt="Verth showing a fake SBI KYC SMS as high risk" width="390" height="780"></div><div class="float"><b>sbi-yono-kyc.xyz</b>Pretends to be State Bank of India</div></div>
     </div>
-    <div class="slide" role="group" aria-roledescription="slide" aria-label="2 of 5">
+    <div class="slide s2" role="group" aria-roledescription="slide" aria-label="2 of 5">
       <div><span class="tag">Job and exam offers</span><h3>“Pay ₹1,500 to confirm your exam slot.”</h3><p>Verth flags exam fees, Gmail recruiters and look-alike company sites, and shows the company’s real email addresses.</p><span class="verdict-chip bad">✕ Real companies never charge you</span></div>
       <div class="shot"><div class="ph"><img src="assets/slides/scan-job.webp" alt="Verth flagging a fake TCS exam fee email" width="390" height="780" loading="lazy"></div><div class="float"><b>hr.tcs.careers@gmail.com</b>TCS hires only from @tcs.com</div></div>
     </div>
-    <div class="slide" role="group" aria-roledescription="slide" aria-label="3 of 5">
+    <div class="slide s3" role="group" aria-roledescription="slide" aria-label="3 of 5">
       <div><span class="tag">Screenshots and QR codes</span><h3>“Scan this QR to receive ₹4,999 cashback.”</h3><p>Just upload a screenshot. Verth reads it on your phone and decodes the QR code: this one actually <b>pays</b> a stranger.</p><span class="verdict-chip bad">✕ QR codes never give you money</span></div>
       <div class="shot"><div class="ph"><img src="assets/slides/scan-photo.webp" alt="Verth reading a cashback QR screenshot and warning it pays money out" width="390" height="780" loading="lazy"></div><div class="float"><b>Pays ₹4,999</b>to “Cashback Dept” (lucky.winner@ybl)</div></div>
     </div>
-    <div class="slide" role="group" aria-roledescription="slide" aria-label="4 of 5">
+    <div class="slide s4" role="group" aria-roledescription="slide" aria-label="4 of 5">
       <div><span class="tag">Fake boss on WhatsApp</span><h3>“Transfer ₹4,80,000 before 3 pm.”</h3><p>Priya taps Verify. Verth asks the real Rajesh on his own phone. He says no, and the payment is stopped.</p><span class="verdict-chip ok">✓ ₹4,80,000 saved</span></div>
       <div class="shot"><div class="ph"><img src="assets/slides/org-stopped.webp" alt="Verth telling Priya that Rajesh didn’t send the request" width="390" height="780" loading="lazy"></div><div class="float"><b>Rajesh Mehta didn’t send this</b>Don’t pay, share or reply</div></div>
     </div>
-    <div class="slide" role="group" aria-roledescription="slide" aria-label="5 of 5">
+    <div class="slide s5" role="group" aria-roledescription="slide" aria-label="5 of 5">
       <div><span class="tag">Deepfake calls</span><h3>A familiar face asks for money on video.</h3><p>Ask for their 6-digit Verth code. It changes every 30 seconds and lives only on their own phone.</p><span class="verdict-chip ok">✓ Code matches: it’s really them</span></div>
       <div class="shot"><div class="ph"><img src="assets/slides/org-code.webp" alt="Verth confirming a caller’s code matches" width="390" height="780" loading="lazy"></div><div class="float"><b>665 355</b>Their code, right now</div></div>
     </div>
