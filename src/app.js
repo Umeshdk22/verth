@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, updateProfile,
+  getAuth, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, deleteUser,
   connectAuthEmulator,
 } from 'firebase/auth';
 import {
@@ -10,7 +10,8 @@ import {
 } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { makeServerAI } from './ai-client.js';
-import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS } from './config.js';
+import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY } from './config.js';
+import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
 import { mountHelper } from './helper.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
@@ -197,6 +198,8 @@ const ICON = {
   ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
+  finger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 7.5A7 7 0 0119 12v1.5"/><path d="M5 11.5c0-.9.2-1.8.5-2.6M12 8.2a3.8 3.8 0 013.8 3.8v2.3c0 2.2.6 4.2 1.6 5.7"/><path d="M8.2 12a3.8 3.8 0 01.6-2M8.2 14c0 2.8.9 5.2 2.4 7"/><path d="M12 12v2.3c0 2.7.8 5 2.2 6.7"/><path d="M5.3 15.5c.2 1.4.6 2.8 1.2 4"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>',
   google: '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 01-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.2-2.7l-3.5-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.2v2.8A11 11 0 0012 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 010-4.2V7.1H2.2a11 11 0 000 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 002.2 7.1l3.6 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>',
 };
 
@@ -211,38 +214,83 @@ function renderNotConfigured() {
     <a class="btn primary" href="demo.html">Try the demo</a></div></div>`);
 }
 
-// Log in or sign up: Google, or email + a 6-digit code (no passwords to remember or steal).
+// Log in (existing accounts only) or Create account. No passwords: an email code, Google, or
+// fingerprint / face (passkey) once it's turned on.
 let resendTimer;
+const PHONE_RE = /^[6-9]\d{9}$/;
 function renderAuth(note = '') {
-  const signup = params.get('mode') === 'signup';
+  const signup = S.authMode === 'signup';
+  const pk = passkeySupported();
   paint(`<div class="shell narrow">${brand}
   <div class="panel auth">
-    <h1>${signup ? 'Create your free account' : 'Log in to Verth'}</h1>
-    <p class="muted">${signup ? 'Free for up to 5 people. ' : ''}Enter your email and we’ll send you a 6-digit code. No password needed.</p>
+    <div class="seg auth-tabs" role="tablist"><button class="${signup ? '' : 'on'}" data-act="auth-tab" data-mode="login" role="tab" aria-selected="${!signup}">Log in</button><button class="${signup ? 'on' : ''}" data-act="auth-tab" data-mode="signup" role="tab" aria-selected="${signup}">Create account</button></div>
+    ${signup ? `
+    <h1>Create your Verth account</h1>
+    <p class="muted">Free for up to 5 people. It takes about a minute, and there’s no password to remember.</p>
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
+    <form data-form="signup" class="stack" novalidate>
+      <label>Your full name<input id="a-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma"></label>
+      <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
+      <label>Mobile number<span class="phone-in"><span>+91</span><input id="a-phone" type="tel" inputmode="numeric" autocomplete="tel-national" required maxlength="14" placeholder="98765 43210"></span></label>
+      <p class="muted small">We keep your number private and never share it. We’ll use it to help you get back into your account.</p>
+      ${TURNSTILE_SITE_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
+      <label class="check"><input type="checkbox" id="a-agree" required> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>
+      <p class="err" id="a-err" role="alert"></p>
+      <button class="btn primary big" type="submit">Send verification code</button>
+    </form>
+    <div class="or"><span>or</span></div>
+    <button class="btn google" type="button" data-act="google">${ICON.google}Sign up with Google</button>
+    <p class="muted small center">Already have an account? <button class="link" data-act="auth-tab" data-mode="login">Log in</button></p>`
+    : `
+    <h1>Welcome back</h1>
+    <p class="muted">Log in to your Verth account.</p>
+    ${note ? `<div class="note">${esc(note)}</div>` : ''}
+    ${pk ? `<button class="btn bio big" type="button" data-act="pk-login">${ICON.finger}Log in with fingerprint or face</button><div class="or"><span>or use your email</span></div>` : ''}
     <form data-form="otp-email" class="stack" novalidate>
-      <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com" autofocus></label>
+      <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
+      ${TURNSTILE_SITE_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send code</button>
     </form>
     <div class="or"><span>or</span></div>
-    <button class="btn google" type="button" data-act="google">${ICON.google}Continue with Google</button>
-    <p class="muted small center">${signup ? 'Already have an account? Use the same email and you’ll be logged in.' : 'New to Verth? The same steps create your free account.'}</p>
+    <button class="btn google" type="button" data-act="google">${ICON.google}Log in with Google</button>
+    <p class="muted small center">New to Verth? <button class="link" data-act="auth-tab" data-mode="signup">Create an account</button></p>`}
   </div>
   <p class="foot">Want to look around first? <a href="demo.html">Try the demo</a>, no account needed.</p></div>`);
   S.screen = 'auth';
+  mountCaptcha();
 }
+
+// Cloudflare Turnstile, loaded only when it's switched on.
+let turnstileLoad = null;
+function mountCaptcha() {
+  S.captcha = '';
+  const box = document.getElementById('captcha');
+  if (!box || !TURNSTILE_SITE_KEY) return;
+  turnstileLoad ||= new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    sc.async = true; sc.onload = resolve; sc.onerror = () => { turnstileLoad = null; reject(new Error('captcha')); };
+    document.head.appendChild(sc);
+  });
+  turnstileLoad.then(() => {
+    if (!document.body.contains(box) || !window.turnstile) return;
+    window.turnstile.render(box, { sitekey: TURNSTILE_SITE_KEY, theme: 'light', callback: (t) => { S.captcha = t; }, 'expired-callback': () => { S.captcha = ''; }, 'error-callback': () => { S.captcha = ''; } });
+  }).catch(() => setErr('a-err', 'Couldn’t load the “I’m not a robot” check. Check your connection and refresh.'));
+}
+const resetCaptcha = () => { S.captcha = ''; try { window.turnstile?.reset(); } catch {} };
 
 function renderCode(note = '') {
   paint(`<div class="shell narrow">${brand}
   <div class="panel auth">
-    <h1>Enter your code</h1>
+    <div class="state-icon mail">${ICON.mail}</div>
+    <h1>Check your email</h1>
     <p class="muted">We sent a 6-digit code to <b>${esc(S.otpEmail)}</b>. It works for 10 minutes.</p>
     ${note ? `<div class="note">${esc(note)}</div>` : ''}
     <form data-form="otp-code" class="stack" novalidate>
       <label>6-digit code<input id="a-code" class="otp" data-keep="no" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" required placeholder="••••••" autofocus></label>
       <p class="err" id="a-err" role="alert"></p>
-      <button class="btn primary big" type="submit">Verify and continue</button>
+      <button class="btn primary big" type="submit">${S.authMode === 'signup' ? 'Verify and create my account' : 'Verify and log in'}</button>
     </form>
     <p class="muted small">Can’t find it? Check your spam or promotions folder.</p>
     <div class="links"><button type="button" class="link" data-act="otp-resend" id="a-resend" disabled>Send a new code</button><button type="button" class="link" data-act="otp-change">Use a different email</button></div>
@@ -263,21 +311,52 @@ function renderCode(note = '') {
   });
 }
 
-function renderName() {
+// For accounts that don't have a Verth profile yet (signed up with Google, or never finished).
+function renderCompleteProfile() {
+  const u = S.user;
   paint(`<div class="shell narrow">${brand}
   <div class="panel auth">
     <div class="state-icon ok">${ICON.ok}</div>
-    <h1>You’re in. What’s your name?</h1>
-    <p class="muted">So people in your family or team recognise you when you ask them to confirm something.</p>
-    <form data-form="set-name" class="stack" novalidate>
-      <label>Your full name<input id="n-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma" autofocus></label>
+    <h1>Almost done</h1>
+    <p class="muted">Your email <b>${esc(u.email)}</b> is verified. Just a couple of details to finish your account.</p>
+    <form data-form="complete-profile" class="stack" novalidate>
+      <label>Your full name<input id="n-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma" value="${esc(u.displayName || '')}"></label>
+      <label>Mobile number<span class="phone-in"><span>+91</span><input id="n-phone" type="tel" inputmode="numeric" autocomplete="tel-national" required maxlength="14" placeholder="98765 43210"></span></label>
+      <label class="check"><input type="checkbox" id="n-agree" required> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>
       <p class="err" id="n-err" role="alert"></p>
-      <button class="btn primary big" type="submit">Continue</button>
+      <button class="btn primary big" type="submit">Create my account</button>
     </form>
+    <div class="links"><button class="link" data-act="signout">Cancel</button></div>
   </div></div>`);
 }
 
-// Talks to the Verth server for email codes.
+// A special welcome for someone who has just joined.
+function renderWelcome() {
+  const first = esc(String(S.profile?.name || '').split(/\s+/)[0] || 'friend');
+  const pk = passkeySupported();
+  paint(`<div class="welcome">
+    <div class="confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.35}s;--c:${['#FFB224', '#6B3DF0', '#14A897', '#EF5A5A', '#FFD3A1'][i % 5]}"></i>`).join('')}</div>
+    <div class="shell narrow">
+      <div class="welcome-card">
+        <div class="w-badge">${ICON.shield}</div>
+        <span class="eyebrow">Your account is ready</span>
+        <h1>Welcome to Verth, ${first}! 🎉</h1>
+        <p class="lead">You’ve just made yourself a lot harder to scam. I’m really glad you’re here.</p>
+        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li><li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
+        <div class="w-note">
+          <p>I built Verth after I paid ₹1,500 for a job exam at a company that didn’t exist. I never want that to happen to you or your family. Before you pay, share an OTP or trust an “urgent” message, check it here first.</p>
+          <p class="sig">— Umesh, founder of Verth</p>
+        </div>
+        ${pk ? `<div class="w-bio"><div class="w-bio-ic">${ICON.finger}</div><div><b>Log in faster next time</b><span>Use your fingerprint or face instead of typing your email. You can change this any time in the Plan tab.</span></div></div>
+          <p class="err" id="w-err" role="alert"></p>
+          <button class="btn primary big" data-act="welcome-pk">Turn on fingerprint / face login</button>
+          <button class="btn ghost" data-act="welcome-go">Maybe later</button>`
+        : '<button class="btn primary big" data-act="welcome-go">Let’s get started</button>'}
+      </div>
+    </div></div>`);
+}
+
+// Talks to the Verth server (email codes, passkey login). Signed-in calls go through payApi.
 async function otpApi(path, body) {
   if (!PAY_API) throw Object.assign(new Error('Email codes aren’t switched on yet. Use Continue with Google for now.'), { otp: true });
   let r;
@@ -285,12 +364,12 @@ async function otpApi(path, body) {
   catch { throw Object.assign(new Error('You seem to be offline. Check your connection.'), { otp: true }); }
   const j = await r.json().catch(() => ({}));
   // An older server that doesn't know email codes answers "Sign in again." (401).
-  if (r.status === 401 || r.status === 404) throw Object.assign(new Error('Email codes aren’t switched on yet. Use Continue with Google for now.'), { otp: true });
-  if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Try again in a minute.'), { otp: true });
+  if ((r.status === 401 && j.error === 'Sign in again.') || (r.status === 404 && !j.error)) throw Object.assign(new Error('Email codes aren’t switched on yet. Use Continue with Google for now.'), { otp: true });
+  if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Try again in a minute.'), { otp: true, status: r.status });
   return j;
 }
-async function sendCode(email) {
-  const j = await otpApi('/otp/send', { email });
+async function sendCode(email, extra = {}) {
+  const j = await otpApi('/otp/send', { email, mode: S.authMode === 'signup' ? 'signup' : 'login', captcha: S.captcha || '', ...extra });
   S.otpEmail = email.trim().toLowerCase();
   S.otpResendAt = Date.now() + (j.resendInSeconds || 30) * 1000;
 }
@@ -797,7 +876,8 @@ function renderScanOnly() {
         ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
       ${rulesGrid()}
       ${helplineBand()}
-      <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button><button class="link" data-act="signout">Sign out</button></div>
+      ${accountCard()}
+      <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button></div>
       ${signOff()}
     </main></div>`);
 }
@@ -850,9 +930,69 @@ function viewPlan() {
       ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
-    <section class="card"><h2>Account and device</h2><p class="muted">${esc(S.user.email)}</p>
-      <p class="muted small">This device: ${esc(deviceLabel())}${thisDeviceActive() ? ' · registered' : ' · not registered'}</p>
-      <button class="btn ghost" data-act="signout">Sign out</button></section>`;
+    ${accountCard()}`;
+}
+
+/* ---------- account: fingerprint / face login, sign out, delete ---------- */
+const activeBilling = (b) => !!b && ['active', 'authenticated', 'pending'].includes(b.status) && !b.cancelAtEnd;
+// Subscriptions this person pays for and that will renew.
+function mySubscriptions() {
+  const out = [];
+  if (S.profile?.plan === 'personal' && activeBilling(S.profile.billing)) out.push({ target: 'user', name: 'Personal', price: PLANS.personal.price });
+  for (const c of Object.values(S.circles || {})) {
+    const b = (c.id === S.circleId && S.circle ? S.circle : c).billing;
+    if (b?.payerUid === S.user?.uid && activeBilling(b)) out.push({ target: 'circle', id: c.id, name: `${PLANS[c.plan]?.name || 'Paid'} for ${c.name}`, price: PLANS[c.plan]?.price || '' });
+  }
+  return out;
+}
+async function doSignout() { stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); S.passkeys = null; S.confirmDelete = false; S.authMode = 'login'; await signOut(auth); }
+function openSignout() {
+  closeSignout();
+  const subs = mySubscriptions();
+  const m = document.createElement('div');
+  m.className = 'modal'; m.id = 'signout-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-labelledby', 'so-title');
+  m.innerHTML = `<div class="modal-card"><h2 id="so-title">Before you sign out</h2>
+    <p>You have ${subs.length > 1 ? 'these subscriptions' : 'a subscription'} that will renew:</p>
+    <ul class="so-list">${subs.map((x) => `<li><b>${esc(x.name)}</b> <span class="muted">${esc(x.price)}</span></li>`).join('')}</ul>
+    <p class="muted small">Do you also want to cancel ${subs.length > 1 ? 'them' : 'it'}? If you cancel, you keep everything until the end of the month you paid for, and you won’t be charged again.</p>
+    <div class="stack"><button class="btn primary" data-act="signout-just">Just sign out (keep my plan)</button>
+    <button class="btn bad" data-act="signout-cancel">Sign out and cancel my subscription</button>
+    <button class="btn ghost" data-act="signout-no">Stay signed in</button></div></div>`;
+  m.addEventListener('click', (e) => { const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) { e.preventDefault(); actions[el.dataset.act](el, e); } else if (e.target === m) closeSignout(); });
+  m.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSignout(); });
+  document.body.appendChild(m);
+  m.querySelector('button')?.focus();
+}
+function closeSignout() { document.getElementById('signout-modal')?.remove(); }
+const rerender = () => (S.circle && !S.scanOnly ? renderMain() : renderScanOnly());
+
+function ensurePasskeys() {
+  if (S.passkeys || S.pkLoading || !PAY_API || !passkeySupported()) return;
+  S.pkLoading = true;
+  payApi('/passkey/list', {}).then((j) => { S.passkeys = j.keys || []; }).catch(() => { S.passkeys = []; })
+    .finally(() => { S.pkLoading = false; if (document.getElementById('pk-box')) rerender(); });
+}
+function accountCard() {
+  ensurePasskeys();
+  const pk = passkeySupported();
+  const keys = S.passkeys || [];
+  return `<section class="card"><h2>Account and device</h2>
+    <p class="muted">${esc(S.user.email)}${S.profile?.phone ? ` · ${esc(S.profile.phone)}` : ''}</p>
+    <p class="muted small">This device: ${esc(deviceLabel())}${S.circle ? (thisDeviceActive() ? ' · registered' : ' · not registered') : ''}</p>
+    <div class="pk-box" id="pk-box"><div class="pk-hd">${ICON.finger}<div><b>Fingerprint / face login</b><span class="muted small">Log in without typing your email. Your fingerprint or face never leaves your device.</span></div></div>
+      ${!pk || !PAY_API ? `<p class="muted small">${pk ? 'Fingerprint / face login isn’t available right now.' : 'This browser can’t do fingerprint / face login. Try Chrome, Safari or Edge on your phone.'}</p>`
+        : S.passkeys === null || S.passkeys === undefined ? '<p class="muted small">Checking…</p>'
+        : `${keys.length ? `<ul class="list pk-list">${keys.map((k) => `<li><span class="grow"><b>${esc(k.label)}</b><span class="muted small">Turned on ${k.createdAt ? fmtDate(k.createdAt) : ''}</span></span><button class="btn small ghost" data-act="pk-remove" data-id="${esc(k.id)}">Remove</button></li>`).join('')}</ul>` : '<p class="muted small">Not turned on yet.</p>'}
+          <button class="btn ghost" data-act="pk-add">${keys.length ? 'Add this device too' : 'Turn on for this device'}</button>`}
+    </div>
+    <button class="btn ghost" data-act="signout">Sign out</button>
+    ${S.confirmDelete ? `<div class="danger-box" id="delete-box"><b>Delete your Verth account?</b>
+      <p class="small">This stops any subscription you pay for (you won’t be charged again), removes you from circles where you’re a member, turns off fingerprint / face login and deletes your account. Entries you made in a circle’s verification log stay there for that circle’s records. This can’t be undone.</p>
+      <form data-form="delete-account" class="stack" novalidate><label>Type <b>DELETE</b> to confirm<input id="d-confirm" autocomplete="off" maxlength="10" data-keep="no"></label>
+      <p class="err" id="d-err" role="alert"></p>
+      <div class="row gap"><button class="btn bad grow" type="submit">Delete my account</button><button class="btn ghost grow" type="button" data-act="delete-no">Keep my account</button></div></form></div>`
+      : '<button class="link danger-link" data-act="delete-ask">Delete my account</button>'}
+  </section>`;
 }
 
 /* ---------- payments (Razorpay, through the Verth payments worker) ---------- */
@@ -993,17 +1133,35 @@ function watchPending() {
   }
 }
 
+async function createProfile(name, phone) {
+  const u = S.user;
+  if (u.displayName !== name) { try { await updateProfile(u, { displayName: name }); } catch {} }
+  await setDoc(doc(db, 'users', u.uid), { name: name.slice(0, 60), email: u.email, phone: '+91' + phone, plan: 'free', circles: [], activeCircle: null, onboarded: false, agreedAt: serverTimestamp(), createdAt: serverTimestamp() });
+}
+// One welcome email from Umesh per new account (the server makes sure it's only sent once).
+function welcomeEmail() { if (PAY_API) payApi('/account/welcome', { name: S.profile?.name || '' }).catch(() => {}); }
+
 async function afterSignIn(preferId) {
   const u = S.user;
   const ref = doc(db, 'users', u.uid);
   let s = await getDoc(ref);
+  let isNew = false;
   if (!s.exists()) {
-    if (!u.displayName) return renderName();
-    const name = u.displayName.slice(0, 60);
-    await setDoc(ref, { name, email: u.email, plan: 'free', circles: [], activeCircle: null, onboarded: false, createdAt: serverTimestamp() });
-    s = await getDoc(ref);
+    // "Log in with Google" by someone who never created a Verth account: undo and send them to Create account.
+    if (S.authFlow === 'google-login') {
+      S.authFlow = '';
+      try { await deleteUser(u); } catch { await signOut(auth); }
+      S.authMode = 'signup';
+      return renderAuth('There’s no Verth account for that Google account yet. Create one below, it takes a minute.');
+    }
+    const info = S.signupInfo;
+    if (!info?.name || !info?.phone) return renderCompleteProfile();
+    await createProfile(info.name, info.phone);
+    s = await getDoc(ref); isNew = true;
   }
+  S.authFlow = ''; S.signupInfo = null;
   S.profile = s.data();
+  if (isNew) { welcomeEmail(); return renderWelcome(); }
   S.keys = await deviceKeys(u.uid);
   await Promise.all([loadCircles(), loadUsage(), loadPhotoUsage()]);
   watchPending();
@@ -1038,14 +1196,52 @@ const busy = (form, on) => form?.querySelectorAll('button').forEach((b) => (b.di
 const actions = {
   reload: () => location.reload(),
   'otp-change': () => { S.otpEmail = ''; renderAuth(); },
+  'auth-tab': (el) => { S.authMode = el.dataset.mode === 'signup' ? 'signup' : 'login'; renderAuth(); },
+  'pk-login': async (el) => {
+    el.disabled = true; setErr('a-err', '');
+    try {
+      const token = await loginWithPasskey(otpApi);
+      S.authFlow = 'passkey';
+      if (auth.currentUser) await signOut(auth);
+      await signInWithCustomToken(auth, token);
+    } catch (e) { el.disabled = false; setErr('a-err', e?.otp ? e.message : passkeyError(e)); }
+  },
+  'welcome-go': () => { S.screen = ''; afterSignIn(); },
+  'welcome-pk': async (el) => {
+    el.disabled = true; setErr('w-err', '');
+    try { await registerPasskey(payApi, deviceLabel()); toast('Fingerprint / face login is on for this device.', 'ok'); afterSignIn(); }
+    catch (e) { el.disabled = false; setErr('w-err', passkeyError(e)); }
+  },
+  'pk-add': async (el) => {
+    el.disabled = true;
+    try { await registerPasskey(payApi, deviceLabel()); toast('Fingerprint / face login is on for this device.', 'ok'); S.passkeys = null; rerender(); }
+    catch (e) { el.disabled = false; toast(passkeyError(e)); }
+  },
+  'pk-remove': async (el) => {
+    try { await payApi('/passkey/remove', { id: el.dataset.id }); toast('Removed.'); S.passkeys = null; rerender(); }
+    catch (e) { toast(e.message || 'Couldn’t remove it. Try again.'); }
+  },
+  'delete-ask': () => { S.confirmDelete = true; rerender(); document.getElementById('delete-box')?.scrollIntoView({ block: 'center' }); },
+  'delete-no': () => { S.confirmDelete = false; rerender(); },
+  'signout-no': () => closeSignout(),
+  'signout-just': () => { closeSignout(); doSignout(); },
+  'signout-cancel': async (el) => {
+    el.disabled = true;
+    try {
+      for (const sub of mySubscriptions()) await payApi('/cancel', sub.target === 'user' ? { target: 'user' } : { target: 'circle', circleId: sub.id });
+      closeSignout(); toast('Subscription cancelled. Renewals have stopped.', 'ok'); doSignout();
+    } catch (e) { el.disabled = false; toast(e.message || 'Couldn’t cancel. Try again, or cancel from the Plan tab.'); }
+  },
   'otp-resend': async () => {
     try { await sendCode(S.otpEmail); renderCode('We sent a new code. Use the newest email.'); }
     catch (e) { setErr('a-err', friendlyError(e)); }
   },
   google: async () => {
-    try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { setErr('a-err', friendlyError(e)); }
+    S.authFlow = S.authMode === 'signup' ? 'google-signup' : 'google-login';
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { S.authFlow = ''; setErr('a-err', friendlyError(e)); }
   },
-  signout: async () => { stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); await signOut(auth); },
+  // Paid users choose whether signing out also stops their subscription.
+  signout: () => { if (mySubscriptions().length) openSignout(); else doSignout(); },
   'tour-next': () => { S.tourStep++; renderTour(); },
   'tour-back': () => { S.tourStep--; renderTour(); },
   'tour-skip': () => { S.tourStep = TOUR.length - 1; renderTour(); },
@@ -1219,9 +1415,42 @@ const forms = {
   'otp-email': async (f) => {
     const email = f.querySelector('#a-email').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
+    if (TURNSTILE_SITE_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
     busy(f, true); setErr('a-err', '');
-    try { await sendCode(email); renderCode(); }
-    catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); }
+    try { S.authMode = 'login'; await sendCode(email); renderCode(); }
+    catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); resetCaptcha(); }
+  },
+  signup: async (f) => {
+    const name = f.querySelector('#a-name').value.trim().replace(/\s+/g, ' '), email = f.querySelector('#a-email').value.trim();
+    const phone = f.querySelector('#a-phone').value.replace(/\D/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
+    if (name.length < 2) return setErr('a-err', 'Please type your full name.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
+    if (!PHONE_RE.test(phone)) return setErr('a-err', 'Please type a 10-digit Indian mobile number.');
+    if (TURNSTILE_SITE_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
+    if (!f.querySelector('#a-agree').checked) return setErr('a-err', 'Please tick the box to agree to the Terms and Privacy policy.');
+    busy(f, true); setErr('a-err', '');
+    try { S.authMode = 'signup'; S.signupInfo = { name: name.slice(0, 60), phone }; await sendCode(email, { name: name.slice(0, 60) }); renderCode(); }
+    catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); resetCaptcha(); }
+  },
+  'complete-profile': async (f) => {
+    const name = f.querySelector('#n-name').value.trim().replace(/\s+/g, ' ');
+    const phone = f.querySelector('#n-phone').value.replace(/\D/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
+    if (name.length < 2) return setErr('n-err', 'Please type your full name.');
+    if (!PHONE_RE.test(phone)) return setErr('n-err', 'Please type a 10-digit Indian mobile number.');
+    if (!f.querySelector('#n-agree').checked) return setErr('n-err', 'Please tick the box to agree to the Terms and Privacy policy.');
+    busy(f, true);
+    try { S.signupInfo = { name: name.slice(0, 60), phone }; await afterSignIn(); }
+    catch (e) { setErr('n-err', friendlyError(e)); busy(f, false); }
+  },
+  'delete-account': async (f) => {
+    if (f.querySelector('#d-confirm').value.trim() !== 'DELETE') return setErr('d-err', 'Type DELETE in capital letters to confirm.');
+    busy(f, true); setErr('d-err', '');
+    try {
+      await payApi('/account/delete', { confirm: 'DELETE' });
+      S.confirmDelete = false;
+      await doSignout();
+      S.authMode = 'login'; renderAuth('Your account has been deleted, and any subscription you paid for will not renew. Thank you for using Verth.');
+    } catch (e) { setErr('d-err', e.message || 'Couldn’t delete the account. Try again.'); busy(f, false); }
   },
   'otp-code': async (f) => {
     const code = f.querySelector('#a-code').value.replace(/\D/g, '');
@@ -1229,19 +1458,13 @@ const forms = {
     busy(f, true); setErr('a-err', '');
     try {
       const { token } = await otpApi('/otp/verify', { email: S.otpEmail, code });
+      S.authFlow = 'code';
       if (auth.currentUser) await signOut(auth);
       await signInWithCustomToken(auth, token);
     } catch (e) {
       setErr('a-err', friendlyError(e)); busy(f, false);
       const input = f.querySelector('#a-code'); input.value = ''; input.focus();
     }
-  },
-  'set-name': async (f) => {
-    const name = f.querySelector('#n-name').value.trim().replace(/\s+/g, ' ');
-    if (name.length < 2) return setErr('n-err', 'Add your full name so people recognise you.');
-    busy(f, true);
-    try { await updateProfile(auth.currentUser, { displayName: name.slice(0, 60) }); S.user = auth.currentUser; await afterSignIn(); }
-    catch (e) { setErr('n-err', friendlyError(e)); busy(f, false); }
   },
   create: async (f) => {
     const name = f.querySelector('#c-name').value.trim(), title = f.querySelector('#c-title').value.trim(), type = f.querySelector('#c-type').value;
@@ -1407,6 +1630,7 @@ function route() {
   if (!u) {
     stopListeners(); Object.assign(S, { circle: null, circleId: null, profile: null, keys: null, circles: {}, pending: [] });
     if (S.screen === 'auth' || S.screen === 'code') return; // already showing; don't wipe what they typed
+    S.authMode ||= params.get('mode') === 'signup' ? 'signup' : 'login';
     return renderAuth(SHARED ? 'Log in or create a free account, and Verth will check what you shared.' : '');
   }
   // Older accounts that never confirmed their email: confirm it with a code now.

@@ -147,6 +147,7 @@ export async function signInWithPopup() {
   setCurrent(email); return { user: auth.currentUser };
 }
 export async function signOut() { setCurrent(null); }
+export async function deleteUser(user) { const u = users(); delete u[user.email]; saveUsers(u); setCurrent(null); }
 // Stand-in for a token from the Verth server: the middle part carries { uid, email }.
 export async function signInWithCustomToken(_a, token) {
   let c; try { c = JSON.parse(atob(token.split('.')[1])); } catch { throw err('auth/invalid-custom-token'); }

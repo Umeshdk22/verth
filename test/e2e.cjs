@@ -26,38 +26,80 @@ const SLOW = process.env.CI ? 3 : 1;
   // A stand-in for the Verth server's email codes. The code in the "email" is always 482913.
   const PAY = 'https://pay.test.workers.dev';
   const corsH = { 'access-control-allow-origin': 'http://127.0.0.1:8765', 'access-control-allow-headers': 'authorization, content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
-  const otpSeen = [];
+  const otpSeen = [], registered = new Set(), serverCalls = [];
   await A.route(PAY + '/otp/**', async (r) => {
     if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH });
     const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
     otpSeen.push([path, body]);
-    if (path === '/otp/send') return r.fulfill({ headers: corsH, json: { sent: true, resendInSeconds: 30 } });
+    const email = String(body.email || '').trim().toLowerCase();
+    if (path === '/otp/send') {
+      if (body.mode === 'login' && !registered.has(email)) return r.fulfill({ status: 404, headers: corsH, json: { error: 'No Verth account uses this email yet. Tap “Create account” to make one first.' } });
+      if (body.mode === 'signup' && registered.has(email)) return r.fulfill({ status: 409, headers: corsH, json: { error: 'You already have a Verth account with this email. Tap “Log in” instead.' } });
+      return r.fulfill({ headers: corsH, json: { sent: true, resendInSeconds: 30 } });
+    }
     if (body.code !== '482913') return r.fulfill({ status: 400, headers: corsH, json: { error: 'That code isn’t right. 4 tries left.' } });
+    const isNew = !registered.has(email); registered.add(email);
     const tok = 'h.' + Buffer.from(JSON.stringify({ uid: 'u_rajesh', email: body.email })).toString('base64') + '.s';
-    return r.fulfill({ headers: corsH, json: { token: tok } });
+    return r.fulfill({ headers: corsH, json: { token: tok, isNew } });
   });
+  for (const pth of ['/account/**', '/passkey/**']) await A.route(PAY + pth, async (r) => {
+    if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH });
+    const path = new (require('node:url').URL)(r.request().url()).pathname;
+    serverCalls.push(path);
+    return r.fulfill({ headers: corsH, json: path === '/passkey/list' ? { keys: [] } : { sent: true } });
+  });
+  // New people sign up with Google, then finish their profile and see the welcome screen.
+  const googleSignup = async (p, email, name, phone) => {
+    await p.evaluate(([e, n]) => { window.__googleEmail = e; window.__googleName = n; }, [email, name]);
+    await p.click('.auth-tabs >> text=Create account');
+    await p.click('text=Sign up with Google');
+    await p.getByRole('heading', { name: 'Almost done' }).waitFor({ timeout: 5000 * SLOW });
+    if ((await p.locator('#n-name').inputValue()) !== name) throw new Error('name not prefilled from Google');
+    await p.fill('#n-phone', phone); await p.check('#n-agree');
+    await p.click('button:has-text("Create my account")');
+    await p.getByRole('heading', { name: /Welcome to Verth, / }).waitFor({ timeout: 5000 * SLOW });
+    await p.locator('.welcome-card button', { hasText: /Maybe later|Let’s get started/ }).click();
+  };
   await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
   await step('log-in page shows straight away, with no loading screen', async () => {
-    await A.getByRole('heading', { name: 'Log in to Verth' }).waitFor({ timeout: 3000 * SLOW });
+    await A.getByRole('heading', { name: 'Welcome back' }).waitFor({ timeout: 3000 * SLOW });
     if (await A.getByText('Loading', { exact: false }).count()) throw new Error('a loading message is showing');
   });
-  await step('A logs in with an email code (wrong code first)', async () => {
+  await step('someone without an account cannot log in', async () => {
     await A.fill('#a-email', 'not-an-email'); await A.click('button:has-text("Send code")');
     await A.getByText('doesn’t look right').waitFor({ timeout: 3000 * SLOW });
-    await A.fill('#a-email', 'Rajesh@Nirmaan.in'); await A.click('button:has-text("Send code")');
-    await A.getByRole('heading', { name: 'Enter your code' }).waitFor({ timeout: 5000 * SLOW });
+    await A.fill('#a-email', 'rajesh@nirmaan.in'); await A.click('button:has-text("Send code")');
+    await A.getByText('No Verth account uses this email').waitFor({ timeout: 3000 * SLOW });
+  });
+  { const keep = errors.filter((e) => !e.includes('status of 404')); errors.length = 0; errors.push(...keep); }
+  await step('A creates an account: name, email, phone, agree, email code (wrong code first), special welcome', async () => {
+    await A.click('.auth-tabs >> text=Create account');
+    await A.getByRole('heading', { name: 'Create your Verth account' }).waitFor();
+    await A.fill('#a-name', 'Rajesh Mehta'); await A.fill('#a-email', 'Rajesh@Nirmaan.in'); await A.fill('#a-phone', '12345');
+    await A.click('button:has-text("Send verification code")');
+    await A.getByText('10-digit Indian mobile number').waitFor({ timeout: 3000 * SLOW });
+    await A.fill('#a-phone', '98765 43210');
+    await A.click('button:has-text("Send verification code")');
+    await A.getByText('Please tick the box').waitFor({ timeout: 3000 * SLOW });
+    await A.check('#a-agree');
+    await A.click('button:has-text("Send verification code")');
+    await A.getByRole('heading', { name: 'Check your email' }).waitFor({ timeout: 5000 * SLOW });
     await A.getByText('rajesh@nirmaan.in').waitFor();
     if (!(await A.locator('#a-resend').isDisabled())) throw new Error('resend should wait 30 seconds');
     await shot(A, '00-A-code');
     await A.fill('#a-code', '111111'); // six digits submit by themselves
     await A.getByText('That code isn’t right').waitFor({ timeout: 3000 * SLOW });
     await A.fill('#a-code', '482913');
-    await A.getByRole('heading', { name: /What’s your name/ }).waitFor({ timeout: 5000 * SLOW });
-    if (otpSeen[0][1].email !== 'Rajesh@Nirmaan.in' || otpSeen.at(-1)[1].email !== 'rajesh@nirmaan.in') throw new Error('bad otp calls ' + JSON.stringify(otpSeen));
-    await A.fill('#n-name', 'Rajesh Mehta'); await A.click('button:has-text("Continue")');
-    await A.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 * SLOW });
+    await A.getByRole('heading', { name: /Welcome to Verth, Rajesh/ }).waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '00b-A-welcome');
+    const signupSend = otpSeen.filter(([pth, b]) => pth === '/otp/send' && b.mode === 'signup').at(-1);
+    if (!signupSend || signupSend[1].name !== 'Rajesh Mehta' || signupSend[1].email !== 'Rajesh@Nirmaan.in') throw new Error('bad signup call ' + JSON.stringify(otpSeen));
     const prof = (await fs(A))['users/u_rajesh'];
-    if (prof?.name !== 'Rajesh Mehta') throw new Error('profile name not saved: ' + JSON.stringify(prof));
+    if (prof?.name !== 'Rajesh Mehta' || prof?.phone !== '+919876543210' || !prof?.agreedAt) throw new Error('profile not saved: ' + JSON.stringify(prof));
+    await A.waitForTimeout(300);
+    if (!serverCalls.includes('/account/welcome')) throw new Error('welcome email not requested');
+    await A.locator('.welcome-card button', { hasText: /Maybe later|Let’s get started/ }).click();
+    await A.getByRole('heading', { name: 'Welcome to Verth' }).waitFor({ timeout: 5000 * SLOW });
   });
   // The wrong code above was a deliberate 400 from the server; the browser logs it as an error.
   { const keep = errors.filter((e) => !e.includes('status of 400')); errors.length = 0; errors.push(...keep); }
@@ -72,8 +114,7 @@ const SLOW = process.env.CI ? 3 : 1;
 
   await B.goto(URL);
   await step('B joins and waits for approval', async () => {
-    await B.evaluate(() => { window.__googleEmail = 'priya@nirmaan.in'; window.__googleName = 'Priya Nair'; });
-    await B.click('text=Continue with Google');
+    await googleSignup(B, 'priya@nirmaan.in', 'Priya Nair', '9123456780');
     await B.click('text=Skip the tour'); await B.click('text=I have an invite code');
     await B.fill('#j-code', code.toLowerCase()); await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
     await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 5000 * SLOW });
@@ -231,8 +272,12 @@ const SLOW = process.env.CI ? 3 : 1;
     const C = await ctx.newPage(); extra.push(['C', C]);
     C.on('pageerror', (e) => errors.push('C pageerror: ' + e.message));
     await C.goto(URL);
+    // "Log in with Google" without an account is refused and sends you to Create account.
     await C.evaluate(() => { window.__googleEmail = 'kamla@family.in'; window.__googleName = 'Kamla Devi'; });
-    await C.click('text=Continue with Google');
+    await C.click('text=Log in with Google');
+    await C.getByText('There’s no Verth account for that Google account yet').waitFor({ timeout: 5000 * SLOW });
+    if (await C.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('fakeauth') || '{}')).includes('kamla@family.in'))) throw new Error('the stray Google account was not removed');
+    await googleSignup(C, 'kamla@family.in', 'Kamla Devi', '9988776655');
     await C.click('text=Skip the tour');
     await C.click('text=Just check something suspicious');
     await C.getByRole('heading', { name: 'Scam check', exact: true }).waitFor({ timeout: 5000 * SLOW });
@@ -317,6 +362,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.route(PAY + '/**', async (r) => {
       if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: cors });
       const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
+      if (path === '/passkey/list') return r.fulfill({ headers: cors, json: { keys: [] } });
       seen.push([path, body, r.request().headers().authorization]);
       const end = Date.now() + 30 * 86400000;
       if (path === '/subscribe') return r.fulfill({ headers: cors, json: { subscriptionId: 'sub_T1', keyId: 'rzp_test_1', description: 'Verth Team', quantity: 1 } });
@@ -343,6 +389,20 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('text=Yes, stop renewing');
     await A.getByText('Renewal cancelled', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
     await shot(A, '16-A-cancelled');
+  });
+  await step('Signing out with an active subscription asks whether to cancel it', async () => {
+    await A.evaluate(() => { const cid = window.__verth.S.circleId; const db = JSON.parse(localStorage.getItem('fakefs')); Object.assign(db['circles/' + cid].billing, { status: 'active', cancelAtEnd: false, payerUid: 'u_rajesh' }); localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); });
+    await A.waitForTimeout(400);
+    await A.click('nav >> text=Plan');
+    await A.click('.card >> button:has-text("Sign out")');
+    await A.getByRole('dialog', { name: 'Before you sign out' }).waitFor({ timeout: 3000 * SLOW });
+    await A.getByText('Sign out and cancel my subscription').waitFor();
+    await shot(A, '17-A-signout-choice');
+    await A.click('text=Stay signed in');
+    if (await A.locator('#signout-modal').count()) throw new Error('dialog did not close');
+    await A.click('text=Delete my account');
+    await A.getByText('Type DELETE to confirm').waitFor();
+    await A.click('text=Keep my account');
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');

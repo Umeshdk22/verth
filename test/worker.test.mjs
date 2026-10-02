@@ -222,12 +222,22 @@ function otpFakes() {
     get: async (p) => { if (!db[p]) return null; const { __t, ...o } = structuredClone(db[p]); Object.defineProperty(o, 'updateTime', { value: __t }); return o; },
     set: async (p, data, prev) => { check(p, prev); db[p] = structuredClone(data); stamp(p); },
     update: async (p, data, since) => { if (!db[p] || (since && db[p].__t !== since)) throw new Error('conflict'); Object.assign(db[p], structuredClone(data)); stamp(p); },
+    remove: async (p, prev) => { if (prev && db[p]?.__t !== prev.updateTime) throw Object.assign(new Error('conflict'), { status: 429 }); delete db[p]; },
   };
-  const deps = {
-    fs, mail: { sendCode: async (to, code) => { mails.push({ to, code }); } },
-    auth: { verifiedUid: async (email) => { authCalls.push(email); return 'uid-' + email.split('@')[0]; }, customToken: async (uid) => 'custom.' + uid },
+  // accounts: email -> uid. allExist: pretend every email already has an account (older tests).
+  const f = { db, mails, authCalls, welcomes: [], deleted: [], accounts: new Map(), allExist: true, captchas: [] };
+  f.deps = {
+    fs, mail: { sendCode: async (to, code) => { mails.push({ to, code }); }, sendWelcome: async (to, name) => { f.welcomes.push({ to, name }); } },
+    captcha: async (token) => { f.captchas.push(token); if (f.needCaptcha && token !== 'ok') throw Object.assign(new Error('Please complete the “I’m not a robot” check.'), { status: 400 }); },
+    auth: {
+      lookup: async (email) => (f.accounts.has(email) || f.allExist ? { localId: f.accounts.get(email) || 'uid-' + email.split('@')[0] } : null),
+      byUid: async (uid) => ([...f.accounts.values()].includes(uid) || f.allExist ? { localId: uid } : null),
+      deleteUser: async (uid) => { f.deleted.push(uid); },
+      verifiedUid: async (email, o = {}) => { authCalls.push(email); if (!f.accounts.has(email) && !f.allExist && !o.create) throw Object.assign(new Error('No Verth account'), { status: 404 }); const uid = f.accounts.get(email) || 'uid-' + email.split('@')[0]; f.accounts.set(email, uid); f.lastCreate = o; return uid; },
+      customToken: async (uid) => 'custom.' + uid,
+    },
   };
-  return { db, mails, authCalls, deps };
+  return f;
 }
 const otpCall = async (f, path, body, { now = Date.now(), ip = '1.2.3.4', origin = ORIGIN } = {}) => {
   const r = await handle(new Request('https://w.example' + path, { method: 'POST', headers: { origin, 'content-type': 'application/json', 'cf-connecting-ip': ip }, body: JSON.stringify(body) }), otpEnv, { ...f.deps, now });
@@ -416,4 +426,152 @@ test('plan IDs pasted with spaces still work; a broken plan ID gives a calm mess
   assert.equal(r.status, 200); assert.equal(f.calls[0][1].plan_id, 'plan_PPPPPPPPPPPPPP');
   const bad = await handle(await req('/subscribe', { plan: 'personal' }, { token: await idToken() }), { ...env, PLAN_PERSONAL: 'plan_short' }, { fs: f.fs, rp: f.rp, fetch: jwksFetch });
   assert.equal(bad.status, 503);
+});
+
+/* ---------------- accounts: log in vs create account, captcha ---------------- */
+import { HttpError, PASSKEY, derToRaw, rpId, checkCaptcha, cleanName } from '../worker/src/index.js';
+test('log in only works for existing accounts; create account only for new emails', async () => {
+  const f = otpFakes(); f.allExist = false; f.accounts.set('old@x.in', 'uid-old');
+  const no = await otpCall(f, '/otp/send', { email: 'new@x.in', mode: 'login' });
+  assert.equal(no.status, 404); assert.match(no.body.error, /Create account/); assert.equal(f.mails.length, 0);
+  const dup = await otpCall(f, '/otp/send', { email: 'old@x.in', mode: 'signup', name: 'Old Person' });
+  assert.equal(dup.status, 409); assert.match(dup.body.error, /Log in/);
+  assert.equal((await otpCall(f, '/otp/send', { email: 'new@x.in', mode: 'signup', name: '' })).status, 400);
+  const ok = await otpCall(f, '/otp/send', { email: 'new@x.in', mode: 'signup', name: '  Asha   <b>Verma</b> ' });
+  assert.equal(ok.status, 200);
+  const v = await otpCall(f, '/otp/verify', { email: 'new@x.in', code: f.mails.at(-1).code });
+  assert.equal(v.status, 200); assert.equal(v.body.isNew, true);
+  assert.equal(f.lastCreate.create, true); assert.equal(f.lastCreate.name, 'Asha bVerma/b');
+  // Existing account logs in without being re-created.
+  await otpCall(f, '/otp/send', { email: 'old@x.in', mode: 'login' });
+  const l = await otpCall(f, '/otp/verify', { email: 'old@x.in', code: f.mails.at(-1).code });
+  assert.equal(l.status, 200); assert.equal(l.body.isNew, false); assert.equal(f.lastCreate.create, false);
+});
+test('the robot check is required when switched on', async () => {
+  const f = otpFakes(); f.needCaptcha = true;
+  f.deps.captcha = async (t) => { if (t !== 'ok') throw new HttpError(400, 'Please complete the “I’m not a robot” check.'); };
+  const r = await otpCall(f, '/otp/send', { email: 'a@x.in', mode: 'login' });
+  assert.equal(r.status, 400); assert.match(r.body.error, /robot/); assert.equal(f.mails.length, 0);
+  assert.equal((await otpCall(f, '/otp/send', { email: 'a@x.in', mode: 'login', captcha: 'ok' })).status, 200);
+  // The real check talks to Cloudflare with the secret and the person's IP.
+  let sent;
+  const fetchFn = async (url, init) => { sent = { url, form: Object.fromEntries(init.body) }; return new Response(JSON.stringify({ success: sent.form.response === 'good' })); };
+  await checkCaptcha({}, undefined, '1.1.1.1', fetchFn); // off: nothing to check
+  await assert.rejects(checkCaptcha({ TURNSTILE_SECRET: 's' }, '', '1.1.1.1', fetchFn), /robot/);
+  await assert.rejects(checkCaptcha({ TURNSTILE_SECRET: 's' }, 'bad', '1.1.1.1', fetchFn), /didn’t pass/);
+  await checkCaptcha({ TURNSTILE_SECRET: 's' }, 'good', '1.1.1.1', fetchFn);
+  assert.match(sent.url, /challenges\.cloudflare\.com\/turnstile\/v0\/siteverify/); assert.equal(sent.form.secret, 's'); assert.equal(sent.form.remoteip, '1.1.1.1');
+  assert.equal(cleanName(' a\u0000b  c '), 'ab c');
+});
+
+/* ---------------- fingerprint / face login (passkeys) ---------------- */
+// A pretend phone authenticator: makes a P-256 key, and signs like a real one (DER signatures).
+const u8 = (b) => new Uint8Array(b);
+const b64 = (b) => Buffer.from(b).toString('base64url');
+async function authenticator(rp) {
+  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const credId = crypto.getRandomValues(new Uint8Array(16)), rpHash = u8(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rp)));
+  let counter = 0;
+  const der = (raw) => { const int = (v) => { let i = 0; while (i < v.length - 1 && v[i] === 0) i++; v = v.slice(i); if (v[0] & 0x80) v = u8([0, ...v]); return [0x02, v.length, ...v]; }; const body = [...int(raw.slice(0, 32)), ...int(raw.slice(32))]; return u8([0x30, body.length, ...body]); };
+  const authData = (flags, extra = []) => { counter++; return u8([...rpHash, flags, (counter >>> 24) & 255, (counter >>> 16) & 255, (counter >>> 8) & 255, counter & 255, ...extra]); };
+  return {
+    credId: b64(credId),
+    async create(options, origin) {
+      const cd = new TextEncoder().encode(JSON.stringify({ type: 'webauthn.create', challenge: options.challenge, origin }));
+      const ad = authData(0x45, [...new Uint8Array(16), 0, credId.length, ...credId]);
+      return { id: b64(credId), clientDataJSON: b64(cd), authenticatorData: b64(ad), publicKey: b64(await crypto.subtle.exportKey('spki', kp.publicKey)), alg: -7, label: 'Test phone' };
+    },
+    async get(options, origin, { flags = 0x05, userHandle } = {}) {
+      const cd = new TextEncoder().encode(JSON.stringify({ type: 'webauthn.get', challenge: options.challenge, origin }));
+      const ad = authData(flags);
+      const sig = u8(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, kp.privateKey, u8([...ad, ...u8(await crypto.subtle.digest('SHA-256', cd))])));
+      return { id: b64(credId), clientDataJSON: b64(cd), authenticatorData: b64(ad), signature: b64(der(sig)), userHandle };
+    },
+  };
+}
+const pkCall = async (f, path, body, { token, now = Date.now(), origin = ORIGIN, ip = '7.7.7.7' } = {}) => {
+  const r = await handle(new Request('https://w.example' + path, { method: 'POST', headers: { origin, 'cf-connecting-ip': ip, ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(body) }), otpEnv, { ...f.deps, fetch: jwksFetch, now });
+  return { status: r.status, body: await r.json() };
+};
+test('fingerprint / face login: register while signed in, then log in without an email', async () => {
+  const f = otpFakes(); const token = await idToken({ sub: 'uidA' });
+  assert.equal(rpId(otpEnv), 'umeshdk22.github.io');
+  const dev = await authenticator('umeshdk22.github.io');
+  const opts = (await pkCall(f, '/passkey/register-options', {}, { token })).body;
+  assert.equal(opts.rp.id, 'umeshdk22.github.io'); assert.equal(Buffer.from(opts.user.id, 'base64url').toString(), 'uidA');
+  const reg = await pkCall(f, '/passkey/register', await dev.create(opts, ORIGIN), { token });
+  assert.equal(reg.status, 200, JSON.stringify(reg.body));
+  // The same challenge can't be used twice.
+  assert.equal((await pkCall(f, '/passkey/register', await dev.create(opts, ORIGIN), { token })).status, 400);
+  const list = (await pkCall(f, '/passkey/list', {}, { token })).body.keys;
+  assert.equal(list.length, 1); assert.equal(list[0].label, 'Test phone');
+  // Log in: no email, no token, just the signed challenge.
+  const lo = (await pkCall(f, '/passkey/login-options', {})).body;
+  const ok = await pkCall(f, '/passkey/login', await dev.get(lo, ORIGIN, { userHandle: b64(new TextEncoder().encode('uidA')) }));
+  assert.equal(ok.status, 200, JSON.stringify(ok.body)); assert.equal(ok.body.token, 'custom.uidA');
+  // Replaying the same signed login fails (challenge used up).
+  const lo2 = (await pkCall(f, '/passkey/login-options', {})).body;
+  const signed = await dev.get(lo2, ORIGIN);
+  assert.equal((await pkCall(f, '/passkey/login', signed)).status, 200);
+  assert.equal((await pkCall(f, '/passkey/login', signed)).status, 400);
+  // Remove it: login stops working.
+  assert.equal((await pkCall(f, '/passkey/remove', { id: list[0].id }, { token })).status, 200);
+  const lo3 = (await pkCall(f, '/passkey/login-options', {})).body;
+  assert.equal((await pkCall(f, '/passkey/login', await dev.get(lo3, ORIGIN))).status, 401);
+});
+test('ATTACK: passkey logins from another website, without the fingerprint check, or with a wrong key fail', async () => {
+  const f = otpFakes(); const token = await idToken({ sub: 'uidA' });
+  const dev = await authenticator('umeshdk22.github.io');
+  await pkCall(f, '/passkey/register', await dev.create((await pkCall(f, '/passkey/register-options', {}, { token })).body, ORIGIN), { token });
+  const opt = async () => (await pkCall(f, '/passkey/login-options', {})).body;
+  assert.equal((await pkCall(f, '/passkey/login', await dev.get(await opt(), 'https://evil.example'))).status, 400);   // phishing site origin
+  assert.equal((await pkCall(f, '/passkey/login', await dev.get(await opt(), ORIGIN, { flags: 0x01 }))).status, 400); // no user verification
+  const evil = await authenticator('evil.example');                                                                    // key for another site
+  const forged = await evil.get(await opt(), ORIGIN); forged.id = dev.credId;
+  assert.equal((await pkCall(f, '/passkey/login', forged)).status, 400);
+  const other = await authenticator('umeshdk22.github.io');                                                            // right site, wrong key
+  const forged2 = await other.get(await opt(), ORIGIN); forged2.id = dev.credId;
+  assert.equal((await pkCall(f, '/passkey/login', forged2)).status, 401);
+  assert.equal((await pkCall(f, '/passkey/login', await dev.get(await opt(), ORIGIN, { userHandle: b64(new TextEncoder().encode('uidB')) }))).status, 401);
+  // Registering needs a signed-in person, and someone else's challenge can't be used.
+  assert.equal((await pkCall(f, '/passkey/register-options', {})).status, 401);
+  const optsA = (await pkCall(f, '/passkey/register-options', {}, { token })).body;
+  assert.equal((await pkCall(f, '/passkey/register', await dev.create(optsA, ORIGIN), { token: await idToken({ sub: 'uidB' }) })).status, 403);
+  assert.equal(derToRaw(u8([0x30, 6, 2, 1, 5, 2, 1, 7])).length, 64);
+});
+test('passkey login is rate-limited per network', async () => {
+  const f = otpFakes();
+  for (let i = 0; i < PASSKEY.perIpHour; i++) assert.equal((await pkCall(f, '/passkey/login-options', {})).status, 200);
+  assert.equal((await pkCall(f, '/passkey/login-options', {})).status, 429);
+});
+
+/* ---------------- welcome email and deleting an account ---------------- */
+test('a new account gets exactly one welcome email', async () => {
+  const f = otpFakes(); const token = await idToken({ sub: 'uidA', email: 'asha@x.in' });
+  assert.equal((await pkCall(f, '/account/welcome', { name: 'Asha Verma' }, { token })).body.sent, true);
+  assert.equal((await pkCall(f, '/account/welcome', { name: 'Asha Verma' }, { token })).body.sent, false);
+  assert.deepEqual(f.welcomes, [{ to: 'asha@x.in', name: 'Asha Verma' }]);
+});
+test('deleting an account stops the subscriptions it pays for, leaves circles and removes logins', async () => {
+  const f = otpFakes(); const token = await idToken({ sub: 'uidA' });
+  const end = new Date(Date.now() + 20 * 86400000);
+  f.db['users/uidA'] = { plan: 'personal', circles: ['c1', 'c2'], billing: { subscriptionId: 'sub_me', status: 'active', currentEnd: end } };
+  f.db['circles/c1'] = { plan: 'family', memberCount: 4, billing: { subscriptionId: 'sub_fam', status: 'active', currentEnd: end, payerUid: 'uidA' } };
+  f.db['circles/c1/members/uidA'] = { role: 'admin', status: 'active' };
+  f.db['circles/c2'] = { plan: 'free', memberCount: 3 };
+  f.db['circles/c2/members/uidA'] = { role: 'member', status: 'active' };
+  const cancelled = [];
+  f.deps.rp = { cancelAtCycleEnd: async (id) => { cancelled.push(id); } };
+  const dev = await authenticator('umeshdk22.github.io');
+  await pkCall(f, '/passkey/register', await dev.create((await pkCall(f, '/passkey/register-options', {}, { token })).body, ORIGIN), { token });
+  assert.equal((await pkCall(f, '/account/delete', { confirm: 'yes' }, { token })).status, 400);
+  const r = await pkCall(f, '/account/delete', { confirm: 'DELETE' }, { token });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.deepEqual(cancelled.sort(), ['sub_fam', 'sub_me']);
+  assert.equal(f.db['circles/c1'].billing.cancelAtEnd, true);
+  assert.ok(f.db['circles/c1/members/uidA'], 'admins stay so the circle keeps an admin');
+  assert.equal(f.db['circles/c2/members/uidA'], undefined); assert.equal(f.db['circles/c2'].memberCount, 2);
+  assert.equal(f.db['users/uidA'], undefined);
+  assert.ok(!Object.keys(f.db).some((k) => k.startsWith('passkeys/') || k.startsWith('pkusers/')));
+  assert.deepEqual(f.deleted, ['uidA']);
 });

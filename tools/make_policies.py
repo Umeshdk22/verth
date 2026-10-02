@@ -34,14 +34,15 @@ PAGES = {
 <h2>Availability and liability</h2>
 <p>We work to keep Verth available and secure but can’t promise it will never be interrupted. To the extent the law allows, Verth is not liable for losses caused by scams, by acting or not acting on a Scam check result, or by the service being unavailable; and our total liability for any claim is limited to the amount you paid Verth in the 3 months before the claim.</p>
 <h2>Ending your use</h2>
-<p>You can stop using Verth and ask us to delete your account at any time by emailing {EMAIL}. Cancel any paid plan first.</p>
+<p>You can stop using Verth at any time. To delete your account, open the Plan tab, choose <b>Delete my account</b> and type DELETE: any subscription you pay for stops renewing and your account is removed. You can also email {EMAIL}. When you sign out while paying for a plan, Verth asks whether you want to cancel it too; signing out alone doesn’t cancel it.</p>
 <h2>Changes and law</h2>
 <p>We may update these terms; the date below shows the latest version and we’ll tell you by email about important changes. These terms are governed by the laws of India, and disputes are subject to the courts of India.</p>
 """),
     "privacy": ("Privacy Policy", f"""
 <p>This policy explains what Verth collects and why. Verth is run by {OWNER}, {PLACE}. We follow India’s Digital Personal Data Protection Act, 2023.</p>
 <h2>What we collect</h2>
-<ul><li><b>Account:</b> your name, email address, and whether your email is confirmed (handled by Google Firebase Authentication).</li>
+<ul><li><b>Account:</b> your name, email address, mobile number, when you agreed to these terms, and whether your email is confirmed (handled by Google Firebase Authentication). Your mobile number is kept private: it isn’t shown to anyone in your circles and isn’t shared or used for marketing.</li>
+<li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in the Plan tab.</li>
 <li><b>Circles and checks:</b> the circles you create or join, your role, the verification requests you send or answer (who, what was asked in your words, the channel, the answer and time).</li>
 <li><b>Device keys:</b> public keys that tie your answers to your own device, plus a simple device label like “Chrome on Android”. Private keys never leave your device.</li>
 <li><b>Scam check:</b> the text you paste, and any screenshot or photo you choose, is checked on your device and is <b>not</b> uploaded or stored. We keep only a count of checks (daily for text, in total for photos). If you report something as a scam, we store a one-way scrambled fingerprint of it, never the text.</li>

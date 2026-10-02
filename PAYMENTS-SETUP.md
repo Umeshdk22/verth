@@ -98,6 +98,14 @@ Verth logs people in with a 6-digit code sent to their email. The same worker se
 
 The key stays on the server; each network can ask 40 AI questions an hour, and there's a daily ceiling (`AI_DAILY_CAP`, default 1500).
 
+## 9. "I'm not a robot" check (Cloudflare Turnstile, optional)
+
+1. Cloudflare dashboard → **Turnstile** → **Add widget**. Name `Verth`, hostname `umeshdk22.github.io` (and later your own domain), mode **Managed**. Create.
+2. The **Site key** is public: put it in `src/config.js` as `TURNSTILE_SITE_KEY` and publish the site.
+3. The **Secret key** goes only into the worker: Secret `TURNSTILE_SECRET`. Deploy.
+
+Set both, or neither: with only the secret set, nobody can log in by email.
+
 ## If something goes wrong
 
 - **"Couldn't reach the payment service"**: check the worker address in `config.js`, and that `ALLOWED_ORIGIN` is exactly `https://umeshdk22.github.io` (no slash at the end).

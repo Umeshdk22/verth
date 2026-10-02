@@ -17,18 +17,30 @@ export const TOPICS = [
   {
     id: 'signup', q: 'How do I create an account?',
     keys: ['sign up', 'signup', 'register', 'create account', 'new account', 'make account', 'account banana', 'account kaise', 'join verth', 'get started', 'start using'],
-    a: 'Open the Verth app and tap “Start free” or “Log in”.\n• Type your email and tap “Send code”. Verth emails you a 6-digit code. No password needed.\n• Type the code, then your name. Or just tap “Continue with Google”.\n• A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.',
+    a: 'Open the Verth app and tap “Create account”.\n• Type your full name, email and 10-digit mobile number, tick the box to agree, and tap “Send verification code”.\n• Verth emails you a 6-digit code. Type it in. No password needed. Or tap “Sign up with Google”.\n• You can then turn on fingerprint / face login, so next time you don’t even type your email.\n• A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.',
     go: [['Open the app', 'app']],
   },
   {
     id: 'email', q: 'I didn’t get the verification email',
     keys: ['verification email', 'verify email', 'confirm email', 'email not received', 'no email', 'didnt get email', 'did not get email', 'mail nahi aaya', 'email nahi', 'link not received', 'resend'],
-    a: 'The email comes from noreply@verth-ece65.firebaseapp.com.\n• Check Spam, Promotions and Updates folders.\n• Wait a minute, then tap “Send the email again”.\n• Make sure the email address is spelled correctly. If not, sign out and create the account again.\n• In a hurry? “Continue with Google” needs no email link.',
+    a: 'The 6-digit code comes from Verth (sender “Verth”).\n• Check Spam, Promotions and Updates folders.\n• Wait 30 seconds, then tap “Send a new code”. Use the newest email.\n• Make sure the email address is spelled correctly, or tap “Use a different email”.\n• In a hurry? “Sign up with Google” or “Log in with Google” needs no code.',
   },
   {
     id: 'signin', q: 'I can’t sign in',
     keys: ['sign in', 'signin', 'log in', 'login', 'cant login', 'cannot login', 'wrong password', 'forgot password', 'reset password', 'password bhool', 'login nahi', 'locked out', 'too many attempts', 'code nahi aaya', 'no code', 'didnt get code', 'otp not received', 'verification code', 'login code', 'get the code', 'got the code', 'code not', 'no email', 'email not', 'send code'],
-    a: 'Verth has no password to forget:\n• Type your email and tap “Send code”. Enter the 6-digit code from the email.\n• No email? Check spam or promotions, wait 30 seconds and tap “Send a new code”.\n• Signed up with Google? Tap “Continue with Google”.\n• “Too many codes” or “too many tries” means wait an hour and try again. This protects your account.\n• Never sign in to Verth on someone else’s phone.',
+    a: 'Verth has no password to forget:\n• Tap “Log in”, type your email and tap “Send code”. Enter the 6-digit code from the email.\n• Turned on fingerprint / face login? Just tap “Log in with fingerprint or face”.\n• “No Verth account uses this email” means you need to tap “Create account” first.\n• No email? Check spam or promotions, wait 30 seconds and tap “Send a new code”.\n• Signed up with Google? Tap “Log in with Google”.\n• “Too many codes” or “too many tries” means wait an hour and try again. This protects your account.\n• Never sign in to Verth on someone else’s phone.',
+    go: [['Open the app', 'app']],
+  },
+  {
+    id: 'bio', q: 'How do I log in with fingerprint or face?',
+    keys: ['fingerprint', 'face', 'biometric', 'biometrics', 'face id', 'touch id', 'passkey', 'finger', 'face lock', 'screen lock', 'without email'],
+    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in the Plan tab under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• Lost the phone? Remove it in the Plan tab from another device, and log in with an email code.',
+    go: [['Open the app', 'app']],
+  },
+  {
+    id: 'delete', q: 'How do I sign out or delete my account?',
+    keys: ['sign out', 'signout', 'log out', 'logout', 'delete account', 'delete my account', 'close account', 'remove account', 'account delete'],
+    a: 'Open the Plan tab and scroll to “Account and device”.\n• Sign out: tap “Sign out”. If you pay for a plan, Verth asks whether to keep it or cancel it too.\n• Delete: tap “Delete my account” and type DELETE. Any subscription you pay for stops renewing, and your account is removed. This can’t be undone.',
     go: [['Open the app', 'app']],
   },
   {

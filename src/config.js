@@ -24,12 +24,12 @@ export const CHECK_TTL_SECONDS = 180;
 // requests coming from the real Verth site, which blocks scripts and bots.
 export const appCheckSiteKey = '';
 
-// Verth Helper's optional Gemini mode (Firebase AI Logic, Gemini Developer API free tier).
-// To switch it on: Firebase console → AI Logic → Get started → Gemini Developer API,
-// set up App Check (appCheckSiteKey above, required by Firebase from 2 Nov 2026),
-// then set enabled: true. Without it, the helper still answers from the built-in guide.
 // AI answers in Verth Helper go through the Verth server (/ai), which holds the Gemini key and limits use.
 export const AI_HELPER = { enabled: true };
+
+// Cloudflare Turnstile ("I'm not a robot" check) on Log in and Create account. The site key is
+// public; its secret goes only into the Cloudflare worker as TURNSTILE_SECRET. Set both together.
+export const TURNSTILE_SITE_KEY = '';
 
 // Razorpay payments go through the Verth payments worker (worker/ folder, on Cloudflare).
 // Put its address here after deploying it, e.g. 'https://verth-pay.yourname.workers.dev'.

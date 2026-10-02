@@ -73,6 +73,15 @@ test('new profile must be free and use your real email', async () => {
   await assertFails(setDoc(doc(f, 'users/newbie'), { name: 'N', email: 'newbie@x.in', plan: 'team', circles: [], activeCircle: null, onboarded: false, createdAt: serverTimestamp() }));
   await assertSucceeds(setDoc(doc(f, 'users/newbie'), { name: 'N', email: 'newbie@x.in', plan: 'free', circles: [], activeCircle: null, onboarded: false, createdAt: serverTimestamp() }));
 });
+test('a new profile can carry a private Indian mobile number and the time terms were agreed', async () => {
+  const f = db('newbie');
+  const base = { name: 'Newbie N', email: 'newbie@x.in', plan: 'free', circles: [], activeCircle: null, onboarded: false, createdAt: serverTimestamp() };
+  await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, phone: '12345' }));
+  await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, phone: '+919876543210', agreedAt: Timestamp.fromMillis(1000) }));
+  await assertSucceeds(setDoc(doc(f, 'users/newbie'), { ...base, phone: '+919876543210', agreedAt: serverTimestamp() }));
+  await assertFails(updateDoc(doc(f, 'users/newbie'), { phone: '+1 555 0100' }));
+  await assertSucceeds(updateDoc(doc(f, 'users/newbie'), { phone: '+918765432109' }));
+});
 
 /* ---------- creating circles ---------- */
 function createBatch(f, uid, over = {}, code = 'WXYZ6789') {

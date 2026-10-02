@@ -62,6 +62,7 @@ service cloud.firestore {
       return existsAfter(checkMeter()) && getAfter(checkMeter()).data.at == request.time
         && (!exists(checkMeter()) || get(checkMeter()).data.at < request.time - duration.value(5, 's'));
     }
+    function validPhone(p) { return p is string && p.matches('^[+]91[6-9][0-9]{9}$'); }
     function todayIST() { return string(int((request.time.toMillis() + 19800000) / 86400000)); }
     function channels() { return ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other', 'Call']; }
 
@@ -69,15 +70,18 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn() && me() == uid;
       allow create: if signedIn() && me() == uid
-        && request.resource.data.keys().hasOnly(['name', 'email', 'plan', 'circles', 'activeCircle', 'onboarded', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'plan', 'circles', 'activeCircle', 'onboarded', 'agreedAt', 'createdAt'])
         && text(request.resource.data.name, 60)
+        && (!('phone' in request.resource.data) || validPhone(request.resource.data.phone))
+        && (!('agreedAt' in request.resource.data) || request.resource.data.agreedAt == request.time)
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.plan == 'free'
         && request.resource.data.circles == []
         && request.resource.data.onboarded == false
         && request.resource.data.createdAt == request.time;
       allow update: if signedIn() && me() == uid
-        && onlyChanges(['name', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest'])
+        && onlyChanges(['name', 'phone', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest'])
+        && (!('phone' in request.resource.data) || validPhone(request.resource.data.phone))
         && text(request.resource.data.name, 60)
         && request.resource.data.circles is list && request.resource.data.circles.size() <= 20
         && request.resource.data.onboarded is bool;
