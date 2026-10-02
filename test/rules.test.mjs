@@ -179,7 +179,7 @@ test('ATTACK: an admin cannot lower the member count without removing someone (t
   await assertFails(deleteDoc(doc(db('rajesh'), 'circles/c1/members/mallory')));
 });
 test('a member can leave a circle, lowering the count by one', async () => {
-  const b = writeBatch(db('priya')); b.delete(doc(db('priya'), 'circles/c1/members/priya')); b.update(doc(db('priya'), 'circles/c1'), { memberCount: increment(-1), lastRemoved: 'priya' });
+  const f = db('priya'); const b = writeBatch(f); b.delete(doc(f, 'circles/c1/members/priya')); b.update(doc(f, 'circles/c1'), { memberCount: increment(-1), lastRemoved: 'priya' });
   await assertSucceeds(b.commit());
 });
 test('invite records must carry a sensible name and type', async () => {
