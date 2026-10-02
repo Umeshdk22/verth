@@ -90,6 +90,14 @@ Verth logs people in with a 6-digit code sent to their email. The same worker se
 4. Google Cloud → **IAM & Admin → IAM** → the service account you made for payments (step 2) → **Edit** → **Add another role** → **Firebase Authentication Admin** → Save. (It lets the worker find or create the account for an email and mark it as verified.)
 5. Paste the latest `worker/src/index.js` into the worker and **Deploy**.
 
+## 8. AI answers in Verth Helper (Google Gemini, optional)
+
+1. Open **aistudio.google.com** → sign in with your Google account → **Get API key → Create API key**. Copy it once.
+2. Cloudflare → `verth-pay` → **Settings → Variables and Secrets** → add a **Secret** `GEMINI_API_KEY` with that key.
+3. Deploy. Without the key, the helper still answers from its built-in guide.
+
+The key stays on the server; each network can ask 40 AI questions an hour, and there's a daily ceiling (`AI_DAILY_CAP`, default 1500).
+
 ## If something goes wrong
 
 - **"Couldn't reach the payment service"**: check the worker address in `config.js`, and that `ALLOWED_ORIGIN` is exactly `https://umeshdk22.github.io` (no slash at the end).

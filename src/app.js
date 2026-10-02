@@ -9,9 +9,9 @@ import {
   connectFirestoreEmulator,
 } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
+import { makeServerAI } from './ai-client.js';
 import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS } from './config.js';
-import { mountHelper, aiInstructions } from './helper.js';
+import { mountHelper } from './helper.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
 import {
@@ -283,6 +283,8 @@ async function otpApi(path, body) {
   try { r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); }
   catch { throw Object.assign(new Error('You seem to be offline. Check your connection.'), { otp: true }); }
   const j = await r.json().catch(() => ({}));
+  // An older server that doesn't know email codes answers "Sign in again." (401).
+  if (r.status === 401 || r.status === 404) throw Object.assign(new Error('Email codes aren’t switched on yet. Use Continue with Google for now.'), { otp: true });
   if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Try again in a minute.'), { otp: true });
   return j;
 }
@@ -1365,35 +1367,7 @@ function helperGo(to, text) {
 
 // Optional Gemini answers (Firebase AI Logic). Off unless switched on in config.js,
 // and only with App Check, so only the real Verth site can use the project's AI quota.
-function makeAI() {
-  if (!AI_HELPER.enabled || !fbApp || EMU || !appCheckSiteKey) return null;
-  let chatModel = null;
-  const KEY = 'verth-ai-' + todayKey();
-  return async (q, history) => {
-    let used = 0;
-    try { used = +localStorage.getItem(KEY) || 0; } catch {}
-    if (used >= AI_HELPER.perDay) throw new Error('limit');
-    chatModel ||= getGenerativeModel(getAI(fbApp, { backend: new GoogleAIBackend() }), {
-      model: AI_HELPER.model,
-      systemInstruction: aiInstructions(),
-      generationConfig: { maxOutputTokens: 400, temperature: 0.3 },
-    });
-    // Gemini wants the history to start with the user and alternate turns.
-    const past = [];
-    for (const m of history.slice(0, -1)) {
-      if (!past.length && m.role !== 'user') continue;
-      if (past.length && past[past.length - 1].role === m.role) past[past.length - 1].parts[0].text += '\n' + m.text;
-      else past.push({ role: m.role, parts: [{ text: m.text }] });
-    }
-    if (past.length && past[past.length - 1].role === 'user') past.pop();
-    const chat = chatModel.startChat({ history: past });
-    const r = await chat.sendMessage(q);
-    try { localStorage.setItem(KEY, String(used + 1)); } catch {}
-    const text = r.response.text().trim();
-    if (!text) throw new Error('empty');
-    return text.slice(0, 1500);
-  };
-}
+function makeAI() { return AI_HELPER.enabled ? makeServerAI(PAY_API) : null; }
 const helper = mountHelper({ go: helperGo, ai: makeAI(), raised: true });
 
 /* ---------- routing ---------- */

@@ -46,11 +46,12 @@ PAGES = {
 <li><b>Device keys:</b> public keys that tie your answers to your own device, plus a simple device label like “Chrome on Android”. Private keys never leave your device.</li>
 <li><b>Scam check:</b> the text you paste, and any screenshot or photo you choose, is checked on your device and is <b>not</b> uploaded or stored. We keep only a count of checks (daily for text, in total for photos). If you report something as a scam, we store a one-way scrambled fingerprint of it, never the text.</li>
 <li><b>Payments:</b> your subscription ID, plan, status and renewal date. Card, UPI and bank details are collected and processed by Razorpay, not by Verth.</li>
-<li><b>Verth Helper:</b> questions you type are answered on your device and not stored. If the optional AI mode is switched on, questions the built-in guide can’t answer are sent to Google Gemini to generate a reply.</li></ul>
+<li><b>Verth Helper:</b> common questions are answered on your device from the built-in guide. Questions the guide can’t answer are sent, with the last few messages of that chat, through our server to Google Gemini to write a reply. We don’t store the chat, and anything that looks like an OTP, PIN, password or card number is never sent. Please don’t type personal details into the helper.</li>
+<li><b>Email login codes:</b> to log in with a code, your email address is sent to our email provider (Brevo) to deliver the code. We keep only a scrambled fingerprint of your email and code for a short time to check it and to stop abuse.</li></ul>
 <h2>What we don’t do</h2>
 <p>Verth never reads your SMS, WhatsApp, calls or email. We don’t sell your data, show ads, or use your data for marketing by others.</p>
 <h2>Who processes data for us</h2>
-<p>Google Firebase (accounts and database), Razorpay (payments), Cloudflare (our payments server), GitHub Pages (website hosting), and Google Gemini (only if AI help is switched on). Each processes data only to provide their service.</p>
+<p>Google Firebase (accounts and database), Razorpay (payments), Cloudflare (our server for payments, login codes and AI help), Brevo (sends login codes by email), GitHub Pages (website hosting), and Google Gemini (AI answers in Verth Helper). Each processes data only to provide their service.</p>
 <h2>Keeping and deleting data</h2>
 <p>We keep your data while your account is active. The verification log of a circle is kept for the circle’s records. To see, correct or delete your data, or to withdraw consent, email {EMAIL}; we reply within 7 days and complete deletion within 30 days, except records we must keep by law (such as payment records).</p>
 <h2>Security</h2>

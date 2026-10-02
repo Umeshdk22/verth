@@ -28,7 +28,8 @@ export const appCheckSiteKey = '';
 // To switch it on: Firebase console → AI Logic → Get started → Gemini Developer API,
 // set up App Check (appCheckSiteKey above, required by Firebase from 2 Nov 2026),
 // then set enabled: true. Without it, the helper still answers from the built-in guide.
-export const AI_HELPER = { enabled: false, model: 'gemini-3.5-flash-lite', perDay: 15 };
+// AI answers in Verth Helper go through the Verth server (/ai), which holds the Gemini key and limits use.
+export const AI_HELPER = { enabled: true };
 
 // Razorpay payments go through the Verth payments worker (worker/ folder, on Cloudflare).
 // Put its address here after deploying it, e.g. 'https://verth-pay.yourname.workers.dev'.

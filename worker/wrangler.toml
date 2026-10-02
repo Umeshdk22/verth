@@ -18,4 +18,5 @@ MAIL_FROM = "REPLACE_WITH_SENDER_EMAIL"
 # Secrets are NOT stored here. Add them with `npx wrangler secret put NAME` or in the dashboard
 # (Worker → Settings → Variables and Secrets → type "Secret"):
 #   RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT,
-#   BREVO_API_KEY (Brevo → SMTP & API → API keys), OTP_SECRET (any long random text)
+#   BREVO_API_KEY (Brevo → SMTP & API → API keys), OTP_SECRET (any long random text),
+#   GEMINI_API_KEY (optional, aistudio.google.com → Get API key) for AI answers in Verth Helper
