@@ -411,7 +411,7 @@ test('the AI guide in the worker matches the helper guide (run tools/sync_ai_gui
 
 test('plan IDs pasted with spaces still work; a broken plan ID gives a calm message', async () => {
   const f = fakes({ 'users/uidA': { plan: 'free' } });
-  const env2 = { ...env, PLAN_PERSONAL: '  plan_PPPPPPPPPPPPPP\n' };
+  const env2 = { ...env, PLAN_PERSONAL: '\u200b plan_PPPPPPPPPPPPPP\t\n' };
   const r = await handle(await req('/subscribe', { plan: 'personal' }, { token: await idToken() }), env2, { fs: f.fs, rp: f.rp, fetch: jwksFetch });
   assert.equal(r.status, 200); assert.equal(f.calls[0][1].plan_id, 'plan_PPPPPPPPPPPPPP');
   const bad = await handle(await req('/subscribe', { plan: 'personal' }, { token: await idToken() }), { ...env, PLAN_PERSONAL: 'plan_short' }, { fs: f.fs, rp: f.rp, fetch: jwksFetch });

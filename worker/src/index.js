@@ -282,13 +282,14 @@ export async function syncSubscription(sub, fs, env) {
   return { target: 'circle', paid };
 }
 
-// Plan IDs from the Cloudflare settings, ignoring stray spaces or line breaks pasted with them.
-const planId = (env, product) => String(env[product.envKey] || '').trim();
+// Plan IDs from the Cloudflare settings. Copying from Razorpay's table can bring along spaces,
+// tabs, line breaks or invisible characters, so pick out just the plan_XXXXXXXXXXXXXX part.
+const planId = (env, product) => (String(env[product.envKey] || '').match(/plan_[A-Za-z0-9]{14}/) || [''])[0];
 
 async function subscribe(body, user, env, fs, rp) {
   const product = PRODUCTS[body.plan];
   if (!product) throw new HttpError(400, 'Unknown plan.');
-  if (!/^plan_[A-Za-z0-9]{14}$/.test(planId(env, product))) { console.error('bad plan id in setting', product.envKey); throw new HttpError(503, 'This plan isn’t available yet. Please try again later.'); }
+  if (!/^plan_[A-Za-z0-9]{14}$/.test(planId(env, product))) { console.error('bad plan id in setting', product.envKey, 'length', String(env[product.envKey] || '').length, JSON.stringify(String(env[product.envKey] || ''))); throw new HttpError(503, 'This plan isn’t available yet. Please try again later.'); }
   const notes = { product: body.plan, uid: user.uid };
   let quantity = 1;
   if (product.target === 'user') {
