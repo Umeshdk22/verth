@@ -464,3 +464,5 @@ label.check input{width:20px;height:20px;min-height:0;margin:2px 0 0;flex:none;a
 .pk-hd b{display:block}.pk-hd span{display:block}
 .pk-list li{background:#fff}
 .danger-box{border:2px solid var(--bad);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--bad-bg)}
+.bio-hint{display:flex;gap:10px;align-items:flex-start;margin:0;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:13.5px;color:#34304D}
+.bio-hint svg{width:22px;height:22px;flex:none;color:var(--accent)}

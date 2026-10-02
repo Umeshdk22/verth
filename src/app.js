@@ -240,6 +240,7 @@ function renderAuth(note = '') {
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send verification code</button>
     </form>
+    ${passkeySupported() ? `<p class="bio-hint">${ICON.finger}<span>Once your account is made, you can turn on <b>fingerprint / face login</b>, so next time you won’t need to type anything.</span></p>` : ''}
     <div class="or"><span>or</span></div>
     <button class="btn google" type="button" data-act="google">${ICON.google}Sign up with Google</button>
     <p class="muted small center">Already have an account? <button class="link" data-act="auth-tab" data-mode="login">Log in</button></p>`
@@ -277,10 +278,19 @@ function mountCaptcha() {
   });
   turnstileLoad.then(() => {
     if (!document.body.contains(box) || !window.turnstile) return;
-    window.turnstile.render(box, { sitekey: CAPTCHA_KEY, theme: 'light', callback: (t) => { S.captcha = t; }, 'expired-callback': () => { S.captcha = ''; }, 'error-callback': () => { S.captcha = ''; } });
-  }).catch(() => setErr('a-err', 'Couldn’t load the “I’m not a robot” check. Check your connection and refresh.'));
+    window.turnstile.render(box, {
+      sitekey: CAPTCHA_KEY, theme: 'light', retry: 'auto', 'refresh-expired': 'auto',
+      callback: (t) => { S.captcha = t; S.captchaFailed = ''; },
+      'expired-callback': () => { S.captcha = ''; },
+      // If the check can't run in this browser, don't trap the person here: the server decides.
+      'error-callback': (code) => { S.captcha = ''; S.captchaFailed = String(code || 'error'); return true; },
+    });
+  }).catch(() => { S.captchaFailed = 'load'; });
 }
 const resetCaptcha = () => { S.captcha = ''; try { window.turnstile?.reset(); } catch {} };
+// Ask for the robot check only while it's working; a broken check is reported but doesn't block.
+const captchaHint = (msg) => (S.captchaFailed && /robot/i.test(msg) ? `${msg} The check couldn’t run in this browser (code ${S.captchaFailed}). Try turning off ad-blockers or “strict” tracking prevention, use Chrome, or tap “Log in with Google”.` : msg);
+const needCaptcha = () => CAPTCHA_KEY && !S.captcha && !S.captchaFailed;
 
 function renderCode(note = '') {
   paint(`<div class="shell narrow">${brand}
@@ -1417,10 +1427,10 @@ const forms = {
   'otp-email': async (f) => {
     const email = f.querySelector('#a-email').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
-    if (CAPTCHA_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
+    if (needCaptcha()) return setErr('a-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'login'; await sendCode(email); renderCode(); }
-    catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); resetCaptcha(); }
+    catch (e) { setErr('a-err', captchaHint(friendlyError(e))); busy(f, false); resetCaptcha(); }
   },
   signup: async (f) => {
     const name = f.querySelector('#a-name').value.trim().replace(/\s+/g, ' '), email = f.querySelector('#a-email').value.trim();
@@ -1428,11 +1438,11 @@ const forms = {
     if (name.length < 2) return setErr('a-err', 'Please type your full name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
     if (!PHONE_RE.test(phone)) return setErr('a-err', 'Please type a 10-digit Indian mobile number.');
-    if (CAPTCHA_KEY && !S.captcha) return setErr('a-err', 'Please complete the “I’m not a robot” check.');
+    if (needCaptcha()) return setErr('a-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
     if (!f.querySelector('#a-agree').checked) return setErr('a-err', 'Please tick the box to agree to the Terms and Privacy policy.');
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'signup'; S.signupInfo = { name: name.slice(0, 60), phone }; await sendCode(email, { name: name.slice(0, 60) }); renderCode(); }
-    catch (e) { setErr('a-err', friendlyError(e)); busy(f, false); resetCaptcha(); }
+    catch (e) { setErr('a-err', captchaHint(friendlyError(e))); busy(f, false); resetCaptcha(); }
   },
   'complete-profile': async (f) => {
     const name = f.querySelector('#n-name').value.trim().replace(/\s+/g, ' ');
