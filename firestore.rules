@@ -384,6 +384,7 @@ service cloud.firestore {
           && get(circlePath(cid)).data.ownerUid == me()
           && resource.data.status == 'active'
           && onlyChanges(['role'])
+          && request.resource.data.role != resource.data.role
           && request.resource.data.role in ['admin', 'member'];
 
         // Leave, or be removed by an admin. Admins can't be removed or leave (so a circle is never orphaned).
