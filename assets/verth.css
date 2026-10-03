@@ -607,3 +607,7 @@ body.in-chat .vh-fab{display:none}
 .lock-step .small-ticks{display:flex;flex-direction:column;gap:8px}
 .lock-step .small-ticks li{background:none;padding:0;color:var(--ink);font-weight:500;font-size:14.5px;align-items:flex-start}
 .lock-step .small-ticks li svg{color:var(--ok);flex:none;margin-top:2px}
+.fields2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields2 label{min-width:0}
+.auth select{width:100%}
+@media (max-width:360px){.fields2{grid-template-columns:1fr}}

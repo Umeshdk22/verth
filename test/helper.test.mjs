@@ -92,3 +92,14 @@ test('private chat and Pay safely questions find the chat topic', () => {
     assert.equal(findAnswer(q)?.topic.id, 'chat', q);
   }
 });
+
+import { fullPhone } from '../src/countries.js';
+test('phone numbers follow the chosen country', () => {
+  assert.equal(fullPhone('IN', '91234 56780'), '+919123456780', 'Indian numbers can start with 91');
+  assert.equal(fullPhone('IN', '+91 98765 43210'), '+919876543210');
+  assert.equal(fullPhone('IN', '098765 43210'), '+919876543210');
+  assert.equal(fullPhone('IN', '12345'), '');
+  assert.equal(fullPhone('GB', '07700 900123'), '+447700900123');
+  assert.equal(fullPhone('GB', '+44 7700 900123'), '+447700900123');
+  assert.equal(fullPhone('US', '(415) 555-0100'), '+14155550100');
+});

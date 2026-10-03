@@ -62,7 +62,15 @@ service cloud.firestore {
       return existsAfter(checkMeter()) && getAfter(checkMeter()).data.at == request.time
         && (!exists(checkMeter()) || get(checkMeter()).data.at < request.time - duration.value(5, 's'));
     }
-    function validPhone(p) { return p is string && p.matches('^[+]91[6-9][0-9]{9}$'); }
+    // Indian mobiles must be +91 and 10 digits starting 6-9; other countries +code and 7-15 digits in all.
+    function validPhone(p) {
+      return p is string && (p.matches('^[+]91[6-9][0-9]{9}$') || (p.matches('^[+][1-9][0-9]{6,14}$') && !p.matches('^[+]91.*')));
+    }
+    function validPerson(d) {
+      return (!('gender' in d) || d.gender in ['female', 'male', 'other', 'unsaid'])
+        && (!('dob' in d) || (d.dob is string && d.dob.matches('^(19|20)[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')))
+        && (!('country' in d) || (d.country is string && d.country.matches('^[A-Z]{2}$')));
+    }
     function todayIST() { return string(int((request.time.toMillis() + 19800000) / 86400000)); }
     // Company email lock: free email providers can never be a company domain.
     function freeMail() {
@@ -98,7 +106,8 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn() && me() == uid;
       allow create: if signedIn() && me() == uid
-        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'plan', 'circles', 'activeCircle', 'onboarded', 'agreedAt', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'gender', 'dob', 'country', 'plan', 'circles', 'activeCircle', 'onboarded', 'agreedAt', 'createdAt'])
+        && validPerson(request.resource.data)
         && text(request.resource.data.name, 60)
         && (!('phone' in request.resource.data) || validPhone(request.resource.data.phone))
         && (!('agreedAt' in request.resource.data) || request.resource.data.agreedAt == request.time)
@@ -108,7 +117,8 @@ service cloud.firestore {
         && request.resource.data.onboarded == false
         && request.resource.data.createdAt == request.time;
       allow update: if signedIn() && me() == uid
-        && onlyChanges(['name', 'phone', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest'])
+        && onlyChanges(['name', 'phone', 'gender', 'dob', 'country', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest'])
+        && validPerson(request.resource.data)
         && (!('phone' in request.resource.data) || validPhone(request.resource.data.phone))
         && text(request.resource.data.name, 60)
         && request.resource.data.circles is list && request.resource.data.circles.size() <= 20

@@ -542,3 +542,14 @@ test('verified-mobile mark: only for a number the server verified, and nobody ca
   await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/priya'), { phoneVerified: '+919876543210' }));
   await assertSucceeds(setDoc(doc(db('priya'), 'circles/c1/contacts/priya'), { phone: '+919876543210', v: true }));
 });
+
+test('profiles can hold gender, date of birth, country and an international number', async () => {
+  const f = db('newbie');
+  const base = { name: 'Newbie N', email: 'newbie@x.in', plan: 'free', circles: [], activeCircle: null, onboarded: false, createdAt: serverTimestamp() };
+  await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, gender: 'robot' }));
+  await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, dob: '31/12/1990' }));
+  await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, country: 'india' }));
+  await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, phone: '+9112345' }));       // India must be a 10-digit mobile
+  await assertSucceeds(setDoc(doc(f, 'users/newbie'), { ...base, gender: 'female', dob: '1990-12-31', country: 'GB', phone: '+447700900123' }));
+  await assertSucceeds(updateDoc(doc(f, 'users/newbie'), { country: 'IN', phone: '+919876543210' }));
+});

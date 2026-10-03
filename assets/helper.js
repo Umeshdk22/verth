@@ -1,7 +1,7 @@
 var x=[{id:"what",q:"What is Verth?",keys:["what is verth","what does verth do","about verth","how does verth work","what is this","kya hai","explain verth","purpose"],a:`Verth helps you stop scams before you lose money. It does two things:
 \u2022 Scam check: paste a message, email, job offer, link or phone number and Verth shows the warning signs.
 \u2022 Verify: before you pay or share anything because \u201Csomeone you know\u201D asked, Verth asks that real person on their own phone. Only act on a green \u201CConfirmed\u201D.`,go:[["Open Scam check","scan"],["How to use Verth","guide"]]},{id:"signup",q:"How do I create an account?",keys:["sign up","signup","register","create account","new account","make account","account banana","account kaise","join verth","get started","start using"],a:`Open the Verth app and tap \u201CCreate account\u201D.
-\u2022 Type your full name, email and 10-digit mobile number, tick the box to agree, and tap \u201CSend verification code\u201D.
+\u2022 Type your full name and email, choose your gender, date of birth and country (the +code changes by itself), type your mobile number, tick the box to agree, and tap \u201CSend verification code\u201D.
 \u2022 Verth emails you a 6-digit code. Type it in. No password needed. Or tap \u201CSign up with Google\u201D.
 \u2022 Then lock your account to your phone with your fingerprint or face. Next time you log in with one touch.
 \u2022 You can then turn on fingerprint / face login, so next time you don\u2019t even type your email.

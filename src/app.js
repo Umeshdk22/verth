@@ -14,6 +14,7 @@ import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, P
 import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
+import { COUNTRIES, countryBy, fullPhone } from './countries.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
@@ -129,8 +130,8 @@ const domainOf = (email) => String(email || '').toLowerCase().split('@')[1] || '
 const companyDomain = (email) => { const d = domainOf(email); return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(d) && !FREE_MAIL.includes(d) ? d : ''; };
 // With two-admin approval, the first approval only counts for the device the person asked from.
 const firstApproval = (m) => (m.firstApproval && m.firstApproval.n === m.device?.n ? m.firstApproval : null);
-const fmtPhone = (p) => (/^\+91\d{10}$/.test(p || '') ? `+91 ${p.slice(3, 8)} ${p.slice(8)}` : '');
-const myPhone = () => (/^\+91[6-9]\d{9}$/.test(S.profile?.phone || '') ? S.profile.phone : '');
+const fmtPhone = (p) => (/^\+91\d{10}$/.test(p || '') ? `+91 ${p.slice(3, 8)} ${p.slice(8)}` : /^\+[1-9]\d{6,14}$/.test(p || '') ? p : '');
+const myPhone = () => (/^\+[1-9]\d{6,14}$/.test(S.profile?.phone || '') ? S.profile.phone : '');
 // Phone numbers live in an admins-only record, never on the member record other members can read.
 const phoneLink = (m) => { const p = S.contacts?.[m.uid]; return fmtPhone(p) ? ` · <a href="tel:${esc(p)}">${fmtPhone(p)}</a>${S.contactsV?.has(m.uid) ? ' <span class="ok-inline inline" title="Verified by SMS">✓ verified</span>' : ''}` : ''; };
 const fmtCode = (c) => (c ? c.slice(0, 3) + ' ' + c.slice(3) : '--- ---');
@@ -202,6 +203,7 @@ function paint(html) {
     if (el && v !== '' && el.dataset.keep !== 'no') el.value = v;
   }
   if (focused) document.getElementById(focused)?.focus();
+  root.querySelectorAll('select[data-dial]').forEach(syncDial);
   document.body.classList.toggle('in-chat', !!document.getElementById('chat-scroll')); // hide the help button over the message box
   tick();
 }
@@ -252,7 +254,41 @@ function renderNotConfigured() {
 let resendTimer;
 const PHONE_RE = /^[6-9]\d{9}$/;
 const maskEmail = (e) => { const [u, d] = String(e || '').split('@'); return d ? `${u.slice(0, 2)}${'•'.repeat(Math.max(1, Math.min(6, u.length - 2)))}@${d}` : ''; };
-const STEP_NAMES = () => ['Your details', 'Verify email', ...(S.smsOn ? ['Verify mobile'] : []), ...(passkeySupported() ? ['Fingerprint'] : []), 'You’re in'];
+// Gender, date of birth, country, and a phone box whose +code follows the chosen country.
+const GENDERS = [['female', 'Female'], ['male', 'Male'], ['other', 'Other'], ['unsaid', 'Prefer not to say']];
+const isoDay = (d) => d.toISOString().slice(0, 10);
+function personFields(p, phonePlaceholder = '98765 43210') {
+  const max = new Date(); max.setFullYear(max.getFullYear() - 13);
+  return `<div class="row2 fields2">
+      <label>Gender<select id="${p}-gender" required><option value="">Choose…</option>${GENDERS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>
+      <label>Date of birth<input id="${p}-dob" type="date" required min="1900-01-01" max="${isoDay(max)}" autocomplete="bday"></label>
+    </div>
+    <label>Country<select id="${p}-country" data-dial="${p}-dial" autocomplete="country">${COUNTRIES.map((c) => `<option value="${c.iso}">${c.flag} ${esc(c.name)} (+${c.dial})</option>`).join('')}</select></label>
+    <label>Mobile number<span class="phone-in"><span id="${p}-dial">+91</span><input id="${p}-phone" type="tel" inputmode="numeric" autocomplete="tel-national" required maxlength="16" placeholder="${phonePlaceholder}"></span></label>`;
+}
+// Keeps the +code next to the phone box in step with the country picker.
+function syncDial(sel) {
+  const c = countryBy(sel.value), out = document.getElementById(sel.dataset.dial);
+  if (!out) return;
+  out.textContent = '+' + c.dial;
+  const ph = document.getElementById(sel.dataset.dial.replace('-dial', '-phone'));
+  if (ph) ph.placeholder = c.iso === 'IN' ? '98765 43210' : 'Mobile number';
+}
+// Reads and checks the shared fields; returns { error } or the values.
+function readPerson(f, p) {
+  const gender = f.querySelector(`#${p}-gender`).value, dob = f.querySelector(`#${p}-dob`).value, country = f.querySelector(`#${p}-country`).value;
+  if (!GENDERS.some(([v]) => v === gender)) return { error: 'Please choose your gender (or “Prefer not to say”).' };
+  const born = new Date(dob + 'T00:00:00');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || isNaN(born)) return { error: 'Please enter your date of birth.' };
+  const age = (Date.now() - born.getTime()) / (365.25 * 864e5);
+  if (age < 13) return { error: 'You need to be at least 13 to use Verth. Ask a parent to add you to their family circle.' };
+  if (age > 120 || born.getFullYear() < 1900) return { error: 'Please check your date of birth.' };
+  const phone = fullPhone(country, f.querySelector(`#${p}-phone`).value);
+  if (!phone) return { error: country === 'IN' ? 'Please type a 10-digit Indian mobile number.' : `Please type your mobile number without the +${countryBy(country).dial}.` };
+  return { gender, dob, country, phone };
+}
+const smsStep = () => S.smsOn && (S.profile?.phone || S.signupInfo?.phone || '+91').startsWith('+91');
+const STEP_NAMES = () => ['Your details', 'Verify email', ...(smsStep() ? ['Verify mobile'] : []), ...(passkeySupported() ? ['Fingerprint'] : []), 'You’re in'];
 const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
@@ -269,14 +305,14 @@ function renderAuth(note = '') {
     <form data-form="signup" class="stack" novalidate>
       <label>Your full name<input id="a-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma"></label>
       <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
-      <label>Mobile number<span class="phone-in"><span>+91</span><input id="a-phone" type="tel" inputmode="numeric" autocomplete="tel-national" required maxlength="14" placeholder="98765 43210"></span></label>
-      <p class="muted small">We keep your number private and never share it. We’ll use it to help you get back into your account.</p>
+      ${personFields('a')}
+      <p class="muted small">We keep your number, birthday and gender private. Only admins of a circle you join see your number.</p>
       ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
       <label class="check"><input type="checkbox" id="a-agree" required> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send verification code</button>
     </form>
-    ${passkeySupported() ? `<p class="bio-hint">${ICON.finger}<span>Once your account is made, you can turn on <b>fingerprint / face login</b>, so next time you won’t need to type anything.</span></p>` : ''}
+    ${passkeySupported() ? `<p class="bio-hint">${ICON.finger}<span>After your email, you’ll lock your account to your <b>fingerprint or face</b>, so next time you log in with one touch.</span></p>` : ''}
     <div class="or"><span>or</span></div>
     <button class="btn google" type="button" data-act="google">${ICON.google}Sign up with Google</button>
     <p class="muted small center">Already have an account? <button class="link" data-act="auth-tab" data-mode="login">Log in</button></p>`
@@ -371,7 +407,7 @@ function renderCompleteProfile() {
     <p class="muted">Your email <b>${esc(u.email)}</b> is verified. Just a couple of details to finish your account.</p>
     <form data-form="complete-profile" class="stack" novalidate>
       <label>Your full name<input id="n-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma" value="${esc(u.displayName || '')}"></label>
-      <label>Mobile number<span class="phone-in"><span>+91</span><input id="n-phone" type="tel" inputmode="numeric" autocomplete="tel-national" required maxlength="14" placeholder="98765 43210"></span></label>
+      ${personFields('n')}
       <label class="check"><input type="checkbox" id="n-agree" required> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>
       <p class="err" id="n-err" role="alert"></p>
       <button class="btn primary big" type="submit">Create my account</button>
@@ -1117,7 +1153,7 @@ function accountCard() {
   const keys = S.passkeys || [];
   return `<section class="card"><h2>Account and device</h2>
     <p class="muted">${esc(S.user.email)}${S.profile?.phone ? ` · ${esc(S.profile.phone)}` : ''}${phoneOk() ? ' <span class="ok-inline inline">✓ verified</span>' : ''}</p>
-    ${S.smsOn && !phoneOk() ? '<div class="banner accent"><span><b>Verify your mobile number</b> so your circle knows it’s really you.</span><button class="btn small" data-act="verify-mobile">Verify now</button></div>' : ''}
+    ${S.smsOn && smsApplies() && !phoneOk() ? '<div class="banner accent"><span><b>Verify your mobile number</b> so your circle knows it’s really you.</span><button class="btn small" data-act="verify-mobile">Verify now</button></div>' : ''}
     <p class="muted small">This device: ${esc(deviceLabel())}${S.circle ? (thisDeviceActive() ? ' · registered' : ' · not registered') : ''}</p>
     <div class="pk-box" id="pk-box"><div class="pk-hd">${ICON.finger}<div><b>Fingerprint / face login</b><span class="muted small">Log in without typing your email. Your fingerprint or face never leaves your device.</span></div></div>
       ${!pk || !PAY_API ? `<p class="muted small">${pk ? 'Fingerprint / face login isn’t available right now.' : 'This browser can’t do fingerprint / face login. Try Chrome, Safari or Edge on your phone.'}</p>`
@@ -1293,10 +1329,10 @@ function watchPending() {
 const store = { get: (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } }, set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 function remember(name, email) { const first = String(name || '').trim(); store.set('verth-me', { name: first }); store.set('verth-last', { ...(store.get('verth-last') || {}), name: first, email }); }
 
-async function createProfile(name, phone) {
+async function createProfile({ name, phone, gender, dob, country }) {
   const u = S.user;
   if (u.displayName !== name) { try { await updateProfile(u, { displayName: name }); } catch {} }
-  await setDoc(doc(db, 'users', u.uid), { name: name.slice(0, 60), email: u.email, phone: '+91' + phone, plan: 'free', circles: [], activeCircle: null, onboarded: false, agreedAt: serverTimestamp(), createdAt: serverTimestamp() });
+  await setDoc(doc(db, 'users', u.uid), { name: name.slice(0, 60), email: u.email, phone, gender, dob, country, plan: 'free', circles: [], activeCircle: null, onboarded: false, agreedAt: serverTimestamp(), createdAt: serverTimestamp() });
 }
 // One welcome email from Umesh per new account (the server makes sure it's only sent once).
 function welcomeEmail() { if (PAY_API) payApi('/account/welcome', { name: S.profile?.name || '' }).catch(() => {}); }
@@ -1315,8 +1351,8 @@ async function afterSignIn(preferId) {
       return renderAuth('There’s no Verth account for that Google account yet. Create one below, it takes a minute.');
     }
     const info = S.signupInfo;
-    if (!info?.name || !info?.phone) return renderCompleteProfile();
-    await createProfile(info.name, info.phone);
+    if (!info?.name || !info?.phone || !info?.dob) return renderCompleteProfile();
+    await createProfile(info);
     s = await getDoc(ref); isNew = true;
   }
   S.authFlow = ''; S.signupInfo = null;
@@ -1324,13 +1360,13 @@ async function afterSignIn(preferId) {
   remember(S.profile.name, u.email);
   if (isNew) {
     welcomeEmail();
-    if ((await smsEnabled()) && !phoneOk()) return startPhone('signup');
+    if ((await smsEnabled()) && smsApplies() && !phoneOk()) return startPhone('signup');
     return afterPhone();
   }
   S.keys = await deviceKeys(u.uid);
   const [smsOn] = await Promise.all([smsEnabled(), loadCircles(), loadUsage(), loadPhotoUsage()]);
   // Strong sign-up: once mobile checks are switched on, everyone verifies their number once.
-  if (smsOn && !phoneOk() && !S.smsLater) return startPhone('gate');
+  if (smsOn && smsApplies() && !phoneOk() && !S.smsLater) return startPhone('gate');
   watchPending();
   const ids = Object.keys(S.circles);
   const inv = pendingInvite();
@@ -1679,27 +1715,27 @@ const forms = {
   },
   signup: async (f) => {
     const name = f.querySelector('#a-name').value.trim().replace(/\s+/g, ' '), email = f.querySelector('#a-email').value.trim();
-    const phone = f.querySelector('#a-phone').value.replace(/\D/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
+    const who = readPerson(f, 'a');
     if (name.length < 2) return setErr('a-err', 'Please type your full name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
     if (isDisposable(email)) return setErr('a-err', 'Please use your own email address. Temporary email addresses can’t be used for a Verth account.');
     const fix = emailTypo(email);
     if (fix && S.emailOk !== email) { S.emailOk = email; return setErrHtml('a-err', `Did you mean <button type="button" class="link" data-act="use-email" data-email="${esc(fix)}">${esc(fix)}</button>? If your email is right, tap “Send verification code” again.`); }
-    if (!PHONE_RE.test(phone)) return setErr('a-err', 'Please type a 10-digit Indian mobile number.');
+    if (who.error) return setErr('a-err', who.error);
     if (needCaptcha()) return setErr('a-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
     if (!f.querySelector('#a-agree').checked) return setErr('a-err', 'Please tick the box to agree to the Terms and Privacy policy.');
     busy(f, true); setErr('a-err', '');
-    try { S.authMode = 'signup'; S.signupInfo = { name: name.slice(0, 60), phone }; await sendCode(email, { name: name.slice(0, 60) }); renderCode(); }
+    try { S.authMode = 'signup'; S.signupInfo = { name: name.slice(0, 60), ...who }; await sendCode(email, { name: name.slice(0, 60) }); renderCode(); }
     catch (e) { setErr('a-err', captchaHint(friendlyError(e))); busy(f, false); resetCaptcha(); }
   },
   'complete-profile': async (f) => {
     const name = f.querySelector('#n-name').value.trim().replace(/\s+/g, ' ');
-    const phone = f.querySelector('#n-phone').value.replace(/\D/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
+    const who = readPerson(f, 'n');
     if (name.length < 2) return setErr('n-err', 'Please type your full name.');
-    if (!PHONE_RE.test(phone)) return setErr('n-err', 'Please type a 10-digit Indian mobile number.');
+    if (who.error) return setErr('n-err', who.error);
     if (!f.querySelector('#n-agree').checked) return setErr('n-err', 'Please tick the box to agree to the Terms and Privacy policy.');
     busy(f, true);
-    try { S.signupInfo = { name: name.slice(0, 60), phone }; await afterSignIn(); }
+    try { S.signupInfo = { name: name.slice(0, 60), ...who }; await afterSignIn(); }
     catch (e) { setErr('n-err', friendlyError(e)); busy(f, false); }
   },
   'delete-account': async (f) => {
@@ -2250,6 +2286,8 @@ function smsEnabled() {
   }));
 }
 const phoneOk = () => !!S.profile?.phoneVerified && S.profile.phoneVerified === S.profile.phone;
+// SMS checks only cover Indian numbers for now.
+const smsApplies = () => /^\+91\d{10}$/.test(S.profile?.phone || '');
 const fmt10 = (p) => `${p.slice(0, 5)} ${p.slice(5)}`;
 function startPhone(flow) { Object.assign(S, { phoneFlow: flow, smsSentTo: null, smsFailed: false }); renderPhone(); }
 
@@ -2357,6 +2395,7 @@ root.addEventListener('input', (e) => {
   if (e.target.id === 'c-text') { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px'; }
 });
 root.addEventListener('change', (e) => {
+  if (e.target.dataset?.dial) syncDial(e.target);
   if (e.target.id === 'c-file' && e.target.files?.[0]) {
     const f = e.target.files[0], t = document.getElementById('c-text');
     if (t) t.placeholder = `Add a note to “${f.name.slice(0, 30)}”, then send`;
