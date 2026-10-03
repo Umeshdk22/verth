@@ -503,3 +503,93 @@ hr.soft{border:0;border-top:1px dashed var(--line);margin:18px 0}
 .vbadge-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
 .vbadge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--ok-bg,#e7f7ef);color:var(--ok,#0f7a4a);font-weight:700;font-size:14px}
 .vbadge svg{width:16px;height:16px}
+
+/* ---------- Private chat & Pay safely ---------- */
+.tabs button{position:relative}
+.tabs .badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#E5484D;color:#fff;font-size:11px;font-style:normal;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px #fff}
+.btn.gold{background:linear-gradient(135deg,#FFD66B,#F5B630);color:#2A1400;border-color:transparent;box-shadow:0 8px 18px -10px rgba(245,182,48,.9)}
+.btn.gold:hover{filter:brightness(1.04)}
+.lock-card{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,rgba(15,157,107,.10),rgba(107,61,240,.08));border-color:rgba(15,157,107,.25)}
+.lock-card b{display:block;font-size:16px}
+.lock-ic{flex:none;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#12B886,#0B7A55);box-shadow:0 8px 18px -10px rgba(15,157,107,.9)}
+.lock-ic svg{width:22px;height:22px}
+.chat-list{gap:4px}
+.chat-list li{padding:0;border:0}
+.chat-row{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:16px;transition:background .15s}
+.chat-row:hover,.chat-row:focus-visible{background:var(--accent-soft)}
+.chat-row .grow{display:flex;flex-direction:column;min-width:0}
+.chat-row .last{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-row.unread b,.chat-row.unread .last{color:var(--ink);font-weight:700}
+.chat-row .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.chat-row .chev{color:var(--muted);font-size:24px;line-height:1}
+.avatar.big{width:46px;height:46px;font-size:15px;color:#fff;background:linear-gradient(135deg,#8B5CF6,#4B23C9)}
+.upi-form input{flex:1;min-width:0}
+
+.chat-room{display:flex;flex-direction:column;height:calc(100dvh - 150px);min-height:440px;border-radius:24px;overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:0 18px 40px -28px rgba(48,24,140,.55);position:relative}
+.chat-head{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#fff;background:radial-gradient(500px 160px at 90% 0,rgba(139,92,246,.6),transparent 60%),linear-gradient(135deg,#1B0D4A,#3B1BA8 60%,#5B2FE0)}
+.chat-head .back{all:unset;cursor:pointer;font-size:30px;line-height:1;padding:0 6px 4px 0;color:#fff}
+.chat-head .avatar{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.chat-head .grow{display:flex;flex-direction:column;min-width:0}
+.chat-head b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-head .small{display:inline-flex;align-items:center;gap:4px;color:rgba(255,255,255,.78)}
+.chat-head .small svg{width:12px;height:12px}
+.chat-scroll{flex:1;overflow-y:auto;padding:16px 12px 10px;display:flex;flex-direction:column;gap:6px;
+  background:radial-gradient(circle at 1px 1px,rgba(107,61,240,.09) 1px,transparent 0) 0 0/18px 18px,linear-gradient(180deg,#F7F4FF,#FBFAFF)}
+.chat-empty{margin:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:280px;color:var(--muted);padding:24px}
+.chat-empty svg{width:44px;height:44px;color:var(--accent);background:var(--accent-soft);padding:10px;border-radius:16px}
+.chat-empty b{color:var(--ink);font-family:var(--display);font-size:20px;font-weight:400}
+.day-sep{text-align:center;margin:8px 0}
+.day-sep span{font-size:12px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.9);border:1px solid var(--line);padding:3px 10px;border-radius:999px}
+.msg{display:flex;flex-direction:column;max-width:80%}
+.msg.new{animation:pop .2s ease-out}
+.msg.me{align-self:flex-end;align-items:flex-end}
+.msg.them{align-self:flex-start;align-items:flex-start}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.bub{padding:9px 13px;border-radius:18px;font-size:15.5px;line-height:1.45;word-wrap:break-word;overflow-wrap:anywhere}
+.bub p{margin:0;white-space:pre-wrap}
+.msg.me .bub{background:linear-gradient(135deg,#7C4DFF,#5A2FDB);color:#fff;border-bottom-right-radius:5px;box-shadow:0 6px 14px -10px rgba(90,47,219,.9)}
+.msg.them .bub{background:#fff;color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:5px}
+.msg.me .bub .muted{color:rgba(255,255,255,.8)}
+.msg.me .bub .link{color:#fff}
+.bub.sending{display:inline-flex;align-items:center;gap:8px;opacity:.85}
+.bub.sending .spin{width:14px;height:14px}
+.msg time{font-size:11px;color:var(--muted);margin:3px 6px 0}
+.link.tiny{font-size:11px;padding:0;margin-left:2px}
+.bub img.att{display:block;max-width:240px;max-height:300px;border-radius:12px;margin-bottom:8px}
+.file-card{display:flex;align-items:center;gap:10px;min-width:220px;padding:6px 2px}
+.file-card .grow{display:flex;flex-direction:column;min-width:0}
+.file-card b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+.file-ic{font-size:26px}
+.msg.me .file-card .btn{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.35)}
+.msg.pay .pay-card{display:flex;flex-direction:column;gap:2px;min-width:220px;padding:12px 16px;border-radius:18px;color:#2A1400;
+  background:radial-gradient(240px 120px at 100% 0,rgba(255,255,255,.55),transparent 60%),linear-gradient(135deg,#FFE29A,#F5B630);box-shadow:0 10px 22px -14px rgba(180,120,0,.9)}
+.pay-card .eyebrow{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;opacity:.75}
+.pay-card .amt{font-family:var(--display);font-size:30px;font-weight:400;line-height:1.1}
+.pay-card .pay-note{font-weight:600;font-size:15px}
+.pay-card .muted{color:rgba(42,20,0,.7)}
+.composer{display:flex;align-items:flex-end;gap:8px;padding:10px 10px 8px;border-top:1px solid var(--line);background:#fff}
+.composer textarea{flex:1;resize:none;min-height:44px;max-height:140px;padding:11px 16px;border-radius:22px;border:1px solid var(--line);background:var(--surface-2);font:inherit;font-size:15.5px;line-height:1.4}
+.composer textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.composer .attach,.composer .send{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;border:0}
+.composer .attach{color:var(--muted);background:var(--surface-2);border:1px solid var(--line);position:relative}
+.composer.has-file .attach{color:#fff;background:var(--ok)}
+.composer .attach svg{width:21px;height:21px}
+.composer .send{color:#fff;background:linear-gradient(135deg,#7C4DFF,#5A2FDB);box-shadow:0 8px 16px -10px rgba(90,47,219,.9)}
+.composer .send svg{width:19px;height:19px;margin-left:2px}
+.composer .send.is-loading svg{opacity:.3}
+.quota{margin:0;padding:0 14px 8px;font-size:12px;color:var(--muted);text-align:center;background:#fff}
+.chat-room .warn{margin:10px}
+.pay-sheet{border-top:1px solid var(--line);padding:14px 16px;background:linear-gradient(180deg,#FFFBEF,#fff);box-shadow:0 -14px 30px -24px rgba(180,120,0,.7)}
+.pay-sheet h3{font-size:20px}
+.pay-sheet .stack{gap:10px;margin-top:8px}
+.qr-box{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin-top:8px}
+.qr-box .qr svg{width:200px;height:200px;background:#fff;border-radius:12px;padding:6px;border:1px solid var(--line)}
+.upsell{margin:10px;padding:16px;border-radius:18px;color:#fff;display:flex;flex-direction:column;gap:6px;
+  background:radial-gradient(300px 120px at 100% 0,rgba(255,214,107,.35),transparent 60%),linear-gradient(135deg,#2A137A,#5B2FE0)}
+.upsell span{color:rgba(255,255,255,.85);font-size:14px}
+.upsell .btn{align-self:flex-start;background:#fff;color:var(--accent)}
+.app.in-chat .content{padding-bottom:84px}
+@media (max-width:560px){.chat-room{height:calc(100dvh - 140px);border-radius:20px}.msg{max-width:86%}}
+
+body.in-chat .vh-fab{display:none}
+.pay-card .eyebrow{color:#7A4B00;opacity:1}

@@ -186,6 +186,60 @@ const SLOW = process.env.CI ? 3 : 1;
     if (d['circles/' + cid].twoAdmins || d['circles/' + cid].listOnly || d['circles/' + cid].domain) throw new Error('settings not turned off');
   });
 
+  await step('Private chat: encrypted messages and files, Pay safely, daily limit', async () => {
+    // Priya adds her UPI ID so her circle can pay her safely.
+    await B.click('nav >> text=Chat');
+    await B.getByRole('heading', { name: 'Talk privately' }).waitFor({ timeout: 5000 * SLOW });
+    await B.fill('#u-upi', 'not a upi'); await B.click('button:has-text("Save")');
+    await B.getByText('doesn’t look like a UPI ID').waitFor();
+    await B.fill('#u-upi', 'Priya.Nair@okaxis'); await B.click('button:has-text("Save")');
+    await B.getByText('Saved: priya.nair@okaxis').waitFor({ timeout: 5000 * SLOW });
+    await shot(B, '04-B-chat-list');
+    // Rajesh writes to Priya.
+    await A.click('nav >> text=Chat');
+    await A.click('.chat-row:has-text("Priya Nair")');
+    await A.getByText('Say hello to Priya').waitFor({ timeout: 5000 * SLOW });
+    await A.fill('#c-text', 'Hi Priya, sending the GST certificate now');
+    await A.press('#c-text', 'Enter');
+    await A.locator('.msg.me', { hasText: 'Hi Priya, sending the GST certificate now' }).waitFor({ timeout: 5000 * SLOW });
+    await A.fill('#c-text', 'my otp is 482913'); await A.click('.composer .send');
+    await A.getByText('That looks like an OTP').waitFor();
+    await A.fill('#c-text', '');
+    await A.setInputFiles('#c-file', { name: 'GST-certificate.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% Verth test certificate\n' + 'x'.repeat(3000)) });
+    await A.fill('#c-text', 'Certificate attached');
+    await A.click('.composer .send');
+    await A.locator('.msg.me .file-card', { hasText: 'GST-certificate.pdf' }).waitFor({ timeout: 8000 * SLOW });
+    // Nothing readable is stored: only ciphertext.
+    const raw = JSON.stringify(Object.entries(await fs(A)).filter(([k]) => k.includes('/chats/')));
+    if (/sending the GST|GST-certificate|Verth test certificate|Certificate attached/.test(raw) || raw.includes(Buffer.from('%PDF-1.4').toString('base64'))) throw new Error('chat stored in plain text');
+    // Priya sees an unread badge, then the decrypted messages.
+    await B.locator('.tabs .badge').waitFor({ timeout: 6000 * SLOW });
+    await B.click('nav >> text=Chat');
+    await B.click('.chat-row:has-text("Rajesh Mehta")');
+    await B.locator('.msg.them', { hasText: 'Hi Priya, sending the GST certificate now' }).waitFor({ timeout: 6000 * SLOW });
+    await B.locator('.msg.them .file-card', { hasText: 'GST-certificate.pdf' }).waitFor();
+    // Pay safely: the payee's own UPI ID is used; on a computer a QR code is shown.
+    await A.click('.chat-head >> text=Pay');
+    await A.getByText('To priya.nair@okaxis').waitFor({ timeout: 5000 * SLOW });
+    await A.getByText('changed this UPI ID').waitFor(); // set minutes ago, so payers are warned
+    await A.fill('#p-amt', '0'); await A.click('button:has-text("Pay with my UPI app")');
+    await A.getByText('between ₹1 and ₹1,00,000').waitFor();
+    await A.fill('#p-amt', '2,500'); await A.fill('#p-note', 'Vendor advance');
+    await A.click('button:has-text("Pay with my UPI app")');
+    await A.locator('.qr-box svg').waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '04a-A-chat');
+    await B.locator('.msg.them .pay-card', { hasText: '₹2,500' }).waitFor({ timeout: 6000 * SLOW });
+    await shot(B, '04b-B-chat');
+    // Free plan: after 12 messages today, plans are offered instead of the message box.
+    await A.click('.pay-sheet >> text=Close');
+    await A.evaluate(() => { const S = window.__verth.S; S.daily.chat.count = 12; });
+    await A.click('.chat-head .back'); await A.click('.chat-row:has-text("Priya Nair")');
+    await A.getByText('You’ve used today’s 12 free messages.').waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '04c-A-limit');
+    await A.evaluate(() => { const S = window.__verth.S; S.daily.chat.count = 2; });
+    await A.click('nav >> text=Home'); await B.click('nav >> text=Home');
+  });
+
   await step('B sends a check; A denies (signed)', async () => {
     await B.click('nav >> text=Verify');
     await B.selectOption('#v-channel', 'WhatsApp');
@@ -273,8 +327,8 @@ const SLOW = process.env.CI ? 3 : 1;
   await shot(A, '08-A-new-device-flag');
 
   await step('Old signed answers from the previous device no longer verify as current', async () => {
-    await A.click('nav >> text=Log');
-    await A.getByRole('heading', { name: 'Verification log' }).waitFor();
+    await A.click('nav >> text=Circle'); await A.click('button:has-text("Open the log")');
+    await A.getByRole('heading', { name: 'Every check, on record' }).waitFor();
   });
 
   await step('Admin changes the invite code; old code stops working', async () => {

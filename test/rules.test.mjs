@@ -472,3 +472,64 @@ test('two-admin approval: a first approval for an old device doesn’t count', a
   });
   await assertFails(approve(db('priya'), 'mallory', 'priya'));
 });
+
+/* ---------- private chat & Pay safely ---------- */
+const PID = 'priya~rajesh'; // pair ids are the two uids, sorted, joined by "~"
+const DAY = () => String(Math.floor((Date.now() + 19800000) / 86400000));
+const IV = 'AAAAAAAAAAAAAAAA';
+function chatBatch(f, from, to, { kind = 'm', mid = 'm1', meter = true, count = 1, extra = {}, chat = {}, parts = 0, partSize = 100 } = {}) {
+  const b = writeBatch(f), base = `circles/c1/chats/${PID}`;
+  if (meter) b.set(doc(f, `users/${from}/daily/${kind === 'p' ? 'pay' : 'chat'}-${DAY()}`), { count, at: serverTimestamp() });
+  b.set(doc(f, base), { members: ['priya', 'rajesh'], lastAt: serverTimestamp(), lastFrom: from, lastKind: kind, ...chat });
+  b.set(doc(f, `${base}/msgs/${mid}`), { from, to, kind, ct: 'Q2lwaGVydGV4dA==', iv: IV, kf: 'abc.def', at: serverTimestamp(), ...(kind === 'f' ? { parts } : {}), ...extra });
+  for (let i = 0; i < parts; i++) b.set(doc(f, `${base}/msgs/${mid}/parts/${i}`), { ct: 'x'.repeat(partSize), iv: IV });
+  return b.commit();
+}
+test('chat: the two people can talk; nobody else can read or write, not even the admin', async () => {
+  await assertSucceeds(chatBatch(db('priya'), 'priya', 'rajesh'));
+  await assertSucceeds(getDoc(doc(db('rajesh'), `circles/c1/chats/${PID}/msgs/m1`)));
+  await env.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), 'circles/c1/members/anita'), { uid: 'anita', name: 'Anita', title: 't', email: 'anita@x.in', role: 'admin', status: 'active', device: { dh: PUB, sig: PUB, n: 1, at: Timestamp.now(), label: 'x' }, joinedAt: Timestamp.now() });
+  });
+  await assertFails(getDoc(doc(db('anita'), `circles/c1/chats/${PID}/msgs/m1`)));
+  await assertFails(getDocs(collection(db('anita'), `circles/c1/chats/${PID}/msgs`)));
+  await assertFails(getDoc(doc(db('outsider'), `circles/c1/chats/${PID}`)));
+});
+test('chat: can’t write as someone else, to a pending person, or without counting it', async () => {
+  await assertFails(chatBatch(db('anita'), 'priya', 'rajesh'));
+  await assertFails(chatBatch(db('priya'), 'priya', 'rajesh', { extra: { from: 'rajesh', to: 'priya' } }));
+  await assertFails(chatBatch(db('priya'), 'priya', 'rajesh', { meter: false }));
+  await assertFails(chatBatch(db('mallory'), 'mallory', 'rajesh'));
+  await assertFails(chatBatch(db('priya'), 'priya', 'rajesh', { extra: { body: 'plain text' } }));
+});
+test('chat: messages can’t be edited; only the sender can delete', async () => {
+  await assertSucceeds(chatBatch(db('priya'), 'priya', 'rajesh'));
+  await assertFails(updateDoc(doc(db('priya'), `circles/c1/chats/${PID}/msgs/m1`), { ct: 'changed' }));
+  await assertFails(deleteDoc(doc(db('rajesh'), `circles/c1/chats/${PID}/msgs/m1`)));
+  await assertSucceeds(deleteDoc(doc(db('priya'), `circles/c1/chats/${PID}/msgs/m1`)));
+});
+test('chat: files come in up to 4 encrypted pieces, written with their message', async () => {
+  await assertSucceeds(chatBatch(db('priya'), 'priya', 'rajesh', { kind: 'f', parts: 2 }));
+  await assertFails(chatBatch(db('priya'), 'priya', 'rajesh', { kind: 'f', mid: 'm2', parts: 5 }));
+  await assertFails(setDoc(doc(db('priya'), `circles/c1/chats/${PID}/msgs/m1/parts/3`), { ct: 'x', iv: IV })); // added later
+});
+test('daily allowance: 12 messages and 3 payments on the free plan, unlimited on a paid circle', async () => {
+  const meter = (f, key, count) => updateDoc(doc(f, `users/priya/daily/${key}-${DAY()}`), { count, at: serverTimestamp() });
+  await env.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), `users/priya/daily/chat-${DAY()}`), { count: 12, at: Timestamp.now() });
+    await setDoc(doc(c.firestore(), `users/priya/daily/pay-${DAY()}`), { count: 3, at: Timestamp.now() });
+  });
+  await assertFails(meter(db('priya'), 'chat', 13));
+  await assertFails(meter(db('priya'), 'pay', 4));
+  await assertFails(setDoc(doc(db('priya'), `users/priya/daily/chat-${DAY()}`), { count: 1, at: serverTimestamp() })); // can't reset
+  await assertFails(setDoc(doc(db('priya'), 'users/priya/daily/chat-1'), { count: 1, at: serverTimestamp() }));  // another day
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'circles/c1'), { plan: 'team' }));
+  await assertSucceeds(updateDoc(doc(db('priya'), `users/priya/daily/chat-${DAY()}`), { count: 13, at: serverTimestamp(), via: 'c1' }));
+});
+test('UPI ID: only you can set yours, it must look like a UPI ID, and the change time is recorded', async () => {
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { upi: 'scammer@ybl', upiAt: serverTimestamp() }));
+  await assertFails(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: 'not a upi', upiAt: serverTimestamp() }));
+  await assertFails(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: 'priya@okaxis', upiAt: Timestamp.fromMillis(1000) }));
+  await assertSucceeds(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: 'priya@okaxis', upiAt: serverTimestamp() }));
+  await assertSucceeds(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: null, upiAt: serverTimestamp() }));
+});

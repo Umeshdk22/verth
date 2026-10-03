@@ -4,7 +4,7 @@ import {
   connectAuthEmulator,
 } from 'firebase/auth';
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit,
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit,
   onSnapshot, serverTimestamp, Timestamp, writeBatch, arrayUnion, arrayRemove, increment, getCountFromServer,
   connectFirestoreEmulator,
 } from 'firebase/firestore';
@@ -12,12 +12,14 @@ import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-ch
 import { makeServerAI } from './ai-client.js';
 import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY } from './config.js';
 import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
-import { mountHelper } from './helper.js';
+import { mountHelper, looksSensitive } from './helper.js';
+import qrcode from 'qrcode-generator';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
 import {
   deviceKeys, samePub, codeFor, checkCode, answerPayload, signAnswer, verifyAnswer, deviceLabel,
+  chatKey, chatKeyId, sealBytes, openBytes, sealJson, openJson,
 } from './devicekeys.js';
 
 /* ---------- refuse to run inside another site's frame (clickjacking) ---------- */
@@ -200,6 +202,7 @@ function paint(html) {
     if (el && v !== '' && el.dataset.keep !== 'no') el.value = v;
   }
   if (focused) document.getElementById(focused)?.focus();
+  document.body.classList.toggle('in-chat', !!document.getElementById('chat-scroll')); // hide the help button over the message box
   tick();
 }
 
@@ -216,6 +219,9 @@ const ICON = {
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.7-3.8 3.4-5.6 7-5.6s6.3 1.8 7 5.6"/></svg>',
   building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5l8-2v18M12 8h8v13M2 21h20"/><path d="M7.5 8h1M7.5 12h1M7.5 16h1M15.5 12h1M15.5 16h1"/></svg>',
   gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11M12 9c-1.5-3.5-5-4-5-1.5S10 9 12 9zm0 0c1.5-3.5 5-4 5-1.5S14 9 12 9z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  clip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5l-8.2 8.2a5 5 0 01-7.1-7.1l8.5-8.5a3.4 3.4 0 014.8 4.8l-8.4 8.4a1.7 1.7 0 01-2.4-2.4l7.7-7.7"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.6L21 12 3.4 3.4 3 10l12 2-12 2z"/></svg>',
   people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5 6-5s5.4 1.6 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5c2.6.2 4.4 1.8 5 4.5"/></svg>',
   log: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
   book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 21V5"/><path d="M8 7h7"/></svg>',
@@ -492,7 +498,7 @@ function renderPending() {
 /* ---------- main app ---------- */
 const TABS = [
   ['home', 'Home', ICON.home], ['scan', 'Scan', ICON.scan], ['verify', 'Verify', ICON.check],
-  ['circle', 'Circle', ICON.people], ['log', 'Log', ICON.log], ['plan', 'Plan', ICON.star],
+  ['chat', 'Chat', ICON.chat], ['circle', 'Circle', ICON.people], ['plan', 'Plan', ICON.star],
 ];
 
 const isExpired = (c) => c.status === 'pending' && tsMs(c.expiresAt) < Date.now();
@@ -524,12 +530,17 @@ function renderMain() {
     verify: ['Verify', 'Is it really them?', 'Ask the real person on their own phone, or check the code they read out.', 'shield', 'amber'],
     circle: [S.circle.type === 'family' ? 'Your family' : 'Your organisation', 'Your people', 'Invite, approve and manage who is in this circle.', 'family', 'teal'],
     log: ['Verification log', 'Every check, on record', 'A permanent history of who checked what, and what they answered.', 'chart', 'violet'],
+    chat: S.chatWith ? null : ['Private chat', 'Talk privately', 'Messages, documents and payments between two people. Locked to your two phones.', 'sms', 'teal'],
     plan: ['Plan & account', 'Plans and billing', 'Your plan, your subscription and this device.', 'key', 'amber'],
     guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
   }[S.tab];
-  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
-  paint(`<div class="app">
+  const unread = unreadCount();
+  // Keep the chat scrolled to the newest message, unless the person scrolled up to read.
+  const box = document.getElementById('chat-scroll');
+  const keepPos = box ? { top: box.scrollTop, stick: box.scrollHeight - box.scrollTop - box.clientHeight < 90, who: S.chatShown } : null;
+  paint(`<div class="app${S.tab === 'chat' && S.chatWith ? ' in-chat' : ''}">
     <header class="top">${brand}
       <div class="circle-pick">
         ${circles.length > 1
@@ -544,8 +555,11 @@ function renderMain() {
       ${waiting ? `<div class="banner accent"><span><b>${waiting} ${waiting > 1 ? 'people are' : 'person is'} waiting</b> for your approval to join.</span><button class="btn small" data-act="tab" data-tab="circle">Review</button></div>` : ''}
       ${body}
     </main>
-    <nav class="tabs" aria-label="Sections">${TABS.map(([id, label, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}" aria-current="${S.tab === id ? 'page' : 'false'}">${ic}<span>${label}</span></button>`).join('')}</nav>
+    <nav class="tabs" aria-label="Sections">${TABS.map(([id, label, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}" aria-current="${S.tab === id ? 'page' : 'false'}">${ic}<span>${label}</span>${id === 'chat' && unread ? `<i class="badge" aria-label="${unread} unread">${unread}</i>` : ''}</button>`).join('')}</nav>
   </div>`);
+  const nb = document.getElementById('chat-scroll');
+  if (nb) nb.scrollTop = !keepPos || keepPos.stick || keepPos.who !== S.chatWith ? nb.scrollHeight : keepPos.top;
+  S.chatShown = nb ? S.chatWith : null;
 }
 
 function incomingCard(c) {
@@ -752,6 +766,8 @@ function viewCircle() {
   <section class="card"><h2>People in ${esc(c.name)}</h2><ul class="list people">${active().map(row).join('')}</ul>
     ${isOwner() && c.type === 'org' && admins().length < 2 ? '<p class="muted small">Tip: make a second trusted person an admin, so someone can approve people when you’re busy.</p>' : ''}</section>
   ${admin && c.type === 'org' ? companyCard() : ''}
+  <section class="card"><div class="split"><h2>Verification log</h2><button class="btn small" data-act="tab" data-tab="log">${ICON.log}Open the log</button></div>
+    <p class="muted small">Every check in ${esc(c.name)}, who asked and what they answered. It can’t be edited or deleted.</p></section>
   <section class="card"><h2>More circles</h2><p class="muted">Protect your workplace and your family separately.</p>
     <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="${c.type === 'family' ? 'org' : 'family'}">New ${c.type === 'family' ? 'organisation' : 'family'} circle</button><button class="btn ghost grow" data-act="setup" data-type="join">Join with a code</button></div>
     ${me().role !== 'admin' ? `${S.confirmRemove === 'leave' ? `<div class="row gap"><button class="btn small bad" data-act="leave">Leave ${esc(c.name)}</button><button class="btn small" data-act="cancel-remove">Stay</button></div>` : '<button class="link" data-act="ask-leave">Leave this circle</button>'}` : ''}</section>`;
@@ -922,7 +938,7 @@ function viewScan() {
     : `<section class="card attention"><h2>You’ve used today’s free checks</h2>
       <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
       <button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button></section>`;
-  const banner = S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : '';
+  const banner = S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : S.prefill.from === 'chat' ? 'From a private chat.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : '';
   return `${banner}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
       <p class="muted">What do you want to check? Tap one.</p>
       ${tiles}
@@ -1045,10 +1061,10 @@ function viewPlan() {
     <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p>
       <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
     <div class="plans">
-      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', 'Signed push checks and rolling codes'])}
-      ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Messages, emails, jobs, links and numbers', 'Everything in Free'])}
-      ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Log export'])}
-      ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
+      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', '12 private messages and 3 Pay safely payments a day', 'Signed push checks and rolling codes'])}
+      ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Unlimited private chat and Pay safely for you', 'Everything in Free'])}
+      ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Unlimited private chat and Pay safely', 'Log export'])}
+      ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     ${accountCard()}`;
@@ -1184,11 +1200,12 @@ async function verifySigs() {
 }
 
 /* ---------- live data ---------- */
-function stopListeners() { S.unsubs.forEach((u) => u()); S.unsubs = []; }
+function stopListeners() { S.unsubs.forEach((u) => u()); S.unsubs = []; S.chatUnsub?.(); S.chatUnsub = null; S.chatWith = null; }
 
 async function openCircle(cid) {
   stopListeners();
-  Object.assign(S, { circleId: cid, circle: S.circles[cid] || null, members: [], checks: [], lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null, allow: null, allowSub: false, contacts: {} });
+  Object.assign(S, { circleId: cid, circle: S.circles[cid] || null, members: [], checks: [], lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null, allow: null, allowSub: false, contacts: {}, chats: {}, daily: null });
+  closeChat();
   S.sig = new Map();
   let first = true;
   S.unsubs.push(onSnapshot(doc(db, 'circles', cid), (s) => {
@@ -1212,6 +1229,7 @@ async function openCircle(cid) {
     }
     renderMain(); verifySigs();
   }, () => {}));
+  watchChats(cid);
   S.unsubs.push(onSnapshot(query(collection(db, 'circles', cid, 'checks'), orderBy('createdAt', 'desc'), limit(100)), (s) => {
     S.checks = s.docs.map((d) => ({ id: d.id, ...d.data() }));
     for (const c of S.checks) {
@@ -1459,7 +1477,7 @@ const actions = {
   'setup-back': () => (clearInvite(), S.circle ? renderMain() : S.pending.length ? renderPending() : S.profile?.onboarded ? renderScanOnly() : (S.tourStep = TOUR.length - 1, renderTour())),
   setup: (el) => renderSetup(el.dataset.type),
   replay: () => { S.tourStep = 0; renderTour(); },
-  tab: (el) => { S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
+  tab: (el) => { if (S.chatWith) closeChat(); S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
   goverify: (el) => { S.tab = 'verify'; S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   vmode: (el) => { S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   newcheck: () => { S.lastSentId = null; renderMain(); },
@@ -1808,6 +1826,368 @@ const forms = {
   },
 };
 
+/* ---------- private chat & Pay safely ---------- */
+// One-to-one, end-to-end encrypted chat between two members of a circle. Other members, admins
+// and Verth only ever see who wrote to whom and when. Pay safely hands a payment to the person's
+// own UPI app, filled in with the UPI ID the payee set from their own account.
+const CHAT_FREE = 12, PAY_FREE = 3, FILE_MAX = 2 * 1024 * 1024, PART = 512 * 1024;
+const pairOf = (a, b) => (a < b ? [a, b] : [b, a]);
+const pairId = (uid) => pairOf(S.user.uid, uid).join('~');
+const unlimitedTalk = () => (S.profile?.plan && S.profile.plan !== 'free') || circlePaid();
+const UPI_RE = /^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/;
+const isPhone = () => /Android|iPhone|iPad/i.test(navigator.userAgent);
+const VIEWABLE = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+const readKey = (pid) => `verth-read:${S.circleId}:${pid}`;
+const lastRead = (pid) => +(store.get(readKey(pid)) || 0);
+const fmtBytes = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+const rupees = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const talkable = () => active().filter((m) => m.uid !== S.user.uid);
+
+function chatAad(pid, mid, from, kind) { return [S.circleId, pid, mid, from, kind].join('|'); }
+async function keyFor(uid) {
+  const o = member(uid);
+  if (!S.keys || !o?.device?.dh || !thisDeviceActive()) return null;
+  const [a] = pairOf(S.user.uid, uid);
+  const k = await chatKey(S.keys, o.device.dh, S.circleId, ...pairOf(S.user.uid, uid));
+  const kf = a === S.user.uid ? chatKeyId(S.keys.pub.dh, o.device.dh) : chatKeyId(o.device.dh, S.keys.pub.dh);
+  return { k, kf };
+}
+
+// Daily allowance (free plan): counted in the same write as the message.
+async function loadDaily(kind) {
+  const day = todayKey(), id = `${kind}-${day}`;
+  if (S.daily?.[kind]?.day === day) return S.daily[kind].count;
+  let count = 0;
+  try { const s = await getDoc(doc(db, 'users', S.user.uid, 'daily', id)); count = s.exists() ? s.data().count : 0; } catch {}
+  S.daily = { ...(S.daily || {}), [kind]: { day, count } };
+  return count;
+}
+function meterOp(b, kind) {
+  const day = todayKey(), cur = S.daily?.[kind]?.day === day ? S.daily[kind].count : 0;
+  const ref = doc(db, 'users', S.user.uid, 'daily', `${kind}-${day}`);
+  const via = circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {};
+  if (!cur) b.set(ref, { count: 1, at: serverTimestamp(), ...via });
+  else b.update(ref, { count: increment(1), at: serverTimestamp(), ...via });
+  return () => { S.daily[kind] = { day, count: cur + 1 }; };
+}
+const leftToday = (kind) => {
+  if (unlimitedTalk()) return Infinity;
+  const d = S.daily?.[kind];
+  return (kind === 'pay' ? PAY_FREE : CHAT_FREE) - (d && d.day === todayKey() ? d.count : 0);
+};
+
+// Conversation list: live, so new messages show up anywhere in the app.
+function watchChats(cid) {
+  S.chats = {};
+  let first = true;
+  S.unsubs.push(onSnapshot(query(collection(db, 'circles', cid, 'chats'), where('members', 'array-contains', S.user.uid)), (s) => {
+    const prev = S.chats; S.chats = {};
+    for (const d of s.docs) S.chats[d.id] = d.data({ serverTimestamps: 'estimate' });
+    if (!first) {
+      for (const [pid, c] of Object.entries(S.chats)) {
+        const was = prev[pid];
+        if (c.lastFrom !== S.user.uid && tsMs(c.lastAt) > tsMs(was?.lastAt || 0) && !(S.tab === 'chat' && S.chatWith && pairId(S.chatWith) === pid && !document.hidden)) {
+          const who = member(c.lastFrom)?.name || 'Someone';
+          toast(c.lastKind === 'p' ? `${who} sent you a payment note` : `New private message from ${who}`, 'accent');
+          try { navigator.vibrate?.(120); } catch {}
+        }
+      }
+    }
+    first = false;
+    renderMain();
+  }, () => {}));
+}
+const unreadCount = () => Object.entries(S.chats || {}).filter(([pid, c]) => c.lastFrom !== S.user.uid && tsMs(c.lastAt) > lastRead(pid)).length;
+
+function openChat(uid) {
+  closeChat();
+  S.chatWith = uid; S.msgs = []; S.plain = new Map(); S.chatErr = ''; S.payOpen = false; S.chatPending = null; S.chatReady = false; S.animated = new Set();
+  const pid = pairId(uid);
+  S.chatUnsub = onSnapshot(query(collection(db, 'circles', S.circleId, 'chats', pid, 'msgs'), orderBy('at', 'desc'), limit(200)), (s) => {
+    S.msgs = s.docs.map((d) => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) })).reverse();
+    store.set(readKey(pid), Date.now());
+    decryptAll(); renderMain();
+  }, () => { S.chatErr = 'This conversation couldn’t be opened.'; renderMain(); });
+  Promise.all([loadDaily('chat'), loadDaily('pay')]).then(() => renderMain());
+}
+function closeChat() { S.chatUnsub?.(); S.chatUnsub = null; S.chatWith = null; S.msgs = []; S.payOpen = false; }
+
+async function decryptAll() {
+  const uid = S.chatWith; if (!uid) return;
+  const kk = await keyFor(uid).catch(() => null), pid = pairId(uid);
+  let changed = false;
+  for (const m of S.msgs) {
+    if (S.plain.has(m.id)) continue;
+    if (!kk || m.kf !== kk.kf) { S.plain.set(m.id, { locked: true }); changed = true; continue; }
+    try { S.plain.set(m.id, await openJson(kk.k, m.ct, m.iv, chatAad(pid, m.id, m.from, m.kind))); }
+    catch { S.plain.set(m.id, { bad: true }); }
+    changed = true;
+  }
+  if (changed && S.chatWith === uid) renderMain();
+  if (S.chatWith === uid) S.chatReady = true;
+}
+
+function viewChat() {
+  if (S.chatWith && member(S.chatWith)?.status === 'active') return chatRoom(member(S.chatWith));
+  if (S.chatWith) closeChat();
+  const people = talkable();
+  const meUpi = me()?.upi;
+  const rows = people.map((m) => {
+    const pid = pairId(m.uid), c = S.chats?.[pid], unread = c && c.lastFrom !== S.user.uid && tsMs(c.lastAt) > lastRead(pid);
+    const last = c ? (c.lastKind === 'p' ? 'Payment' : c.lastKind === 'f' ? 'File' : 'Message') + (c.lastFrom === S.user.uid ? ' you sent' : ' received') + ` · ${ago(tsMs(c.lastAt))}` : 'Start a private conversation';
+    return `<li><button class="chat-row${unread ? ' unread' : ''}" data-act="chat-open" data-uid="${esc(m.uid)}">
+      <span class="avatar big">${initials(m.name)}</span>
+      <span class="grow"><b>${esc(m.name)}</b><span class="muted small">${esc(m.title || '')}${m.upi ? ' · ₹ UPI ready' : ''}</span><span class="small last">${esc(last)}</span></span>
+      ${unread ? '<span class="dot" aria-label="Unread"></span>' : ''}<span class="chev" aria-hidden="true">›</span></button></li>`;
+  }).join('');
+  return `<section class="card lock-card"><div class="lock-ic">${ICON.lock}</div><div><b>Only the two of you can read it.</b>
+      <span class="muted small">Messages, files and payment notes are encrypted on your phones. Other members, admins and Verth can’t read them.</span></div></section>
+    <section class="card"><h2>People in ${esc(S.circle.name)}</h2>
+      ${people.length ? `<ul class="list chat-list">${rows}</ul>` : '<p class="muted">Nobody to chat with yet. Invite people from the Circle tab.</p>'}
+      ${unlimitedTalk() ? '' : `<p class="muted small">Free plan: ${CHAT_FREE} messages and ${PAY_FREE} payments a day. Family and Team plans are unlimited.</p>`}</section>
+    <section class="card"><h2>Receive money safely</h2>
+      <p class="muted">Add your UPI ID so people in ${esc(S.circle.name)} can pay you with “Pay safely”. They’ll always pay the ID you set here, never one sent in a message.</p>
+      <form data-form="set-upi" class="row gap upi-form" novalidate><input id="u-upi" placeholder="yourname@okhdfcbank" value="${esc(meUpi || '')}" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="100" aria-label="Your UPI ID">
+        <button class="btn primary" type="submit">${meUpi ? 'Update' : 'Save'}</button></form>
+      ${meUpi ? `<p class="small ok-inline">Saved: ${esc(meUpi)}. <button class="link" data-act="upi-clear">Remove</button></p>` : ''}
+      <p class="err" id="u-err" role="alert"></p></section>`;
+}
+
+function bubble(m, other) {
+  const mine = m.from === S.user.uid, p = S.plain.get(m.id), t = fmtTime(m.at);
+  // Only messages that just arrived animate in; re-renders don't replay it.
+  S.animated ||= new Set();
+  const fresh = S.chatReady && !S.animated.has(m.id) ? ' new' : '';
+  if (p) S.animated.add(m.id);
+  let body;
+  if (!p) body = '<span class="muted small">Unlocking…</span>';
+  else if (p.locked) body = `<span class="muted small">🔒 Locked to ${mine ? 'your' : `${esc(other.name.split(' ')[0])}’s`} previous device. It can’t be opened here.</span>`;
+  else if (p.bad) body = '<span class="muted small">⚠️ This message was changed or damaged and can’t be trusted.</span>';
+  else if (m.kind === 'p') {
+    return `<div class="msg pay ${mine ? 'me' : 'them'}${fresh}"><div class="pay-card"><span class="eyebrow">${mine ? `You paid ${esc(other.name.split(' ')[0])}` : `${esc(other.name.split(' ')[0])} is paying you`} · UPI</span>
+      <b class="amt">${rupees(p.amount)}</b>${p.note ? `<span class="pay-note">${esc(p.note)}</span>` : ''}
+      <span class="small">To ${esc(p.upi)}</span>
+      <span class="small muted">${mine ? 'Opened in your UPI app. Check your bank app to be sure it went through.' : 'Check your bank app to confirm the money arrived.'}</span></div><time>${t}</time></div>`;
+  } else if (m.kind === 'f') {
+    const img = VIEWABLE.includes(p.type), shown = S.fileUrls?.get(m.id);
+    body = `${img && shown ? `<img class="att" src="${shown}" alt="${esc(p.name)}">` : ''}
+      <span class="file-card"><span class="file-ic">${img ? '🖼️' : /pdf/.test(p.type) ? '📄' : '📎'}</span><span class="grow"><b>${esc(p.name)}</b><span class="small">${fmtBytes(p.size)} · encrypted</span></span>
+      <button class="btn small" data-act="file-open" data-id="${esc(m.id)}">${S.fileBusy === m.id ? 'Opening…' : img && !shown ? 'View' : 'Open'}</button></span>
+      ${p.caption ? `<p>${esc(p.caption)}</p>` : ''}`;
+  } else {
+    const link = /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(?:com|in|net|org|xyz|top|info|online|site|co)\b\S*/i.exec(p.body || '');
+    body = `<p>${esc(p.body)}</p>${!mine && link ? `<button class="link small" data-act="chat-check" data-text="${esc(link[0])}">Check this link in Scam check</button>` : ''}`;
+  }
+  return `<div class="msg ${mine ? 'me' : 'them'}${fresh}"><div class="bub">${body}</div><time>${t}${mine ? ` · <button class="link tiny" data-act="msg-del" data-id="${esc(m.id)}">Delete</button>` : ''}</time></div>`;
+}
+
+function chatRoom(o) {
+  const first = o.name.split(' ')[0], left = leftToday('chat'), payLeft = leftToday('pay');
+  const ready = thisDeviceActive() && !!o.device?.dh;
+  let lastDay = '';
+  const items = S.msgs.map((m) => {
+    const d = new Date(tsMs(m.at)), day = d.toDateString();
+    const sep = day !== lastDay ? `<div class="day-sep"><span>${day === new Date().toDateString() ? 'Today' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span></div>` : '';
+    lastDay = day;
+    return sep + bubble(m, o);
+  }).join('');
+  const recentUpi = o.upiAt && Date.now() - tsMs(o.upiAt) < 48 * 3600e3;
+  const pay = S.payOpen ? `<div class="pay-sheet" role="dialog" aria-label="Pay ${esc(first)}">
+      <div class="split"><h3>Pay ${esc(first)} safely</h3><button class="link" data-act="pay-close">Close</button></div>
+      ${o.upi ? `<p class="small">To <b>${esc(o.upi)}</b>, the UPI ID ${esc(first)} saved in Verth.${recentUpi ? '' : ' ✓'}</p>
+        ${recentUpi ? `<p class="small warn-inline">${esc(first)} changed this UPI ID ${ago(tsMs(o.upiAt))}. If you weren’t expecting that, ask them on a call before paying.</p>` : ''}
+        ${S.payQr ? `<div class="qr-box"><div class="qr">${S.payQr}</div><p class="small">Scan with any UPI app on your phone. On a phone, the UPI app opens by itself.</p>
+          <button class="btn small" data-act="copy" data-text="${esc(o.upi)}">Copy UPI ID</button></div>`
+        : payLeft <= 0 ? upsell('pay')
+        : `<form data-form="pay" class="stack" novalidate>
+          <label>Amount (₹)<input id="p-amt" inputmode="decimal" placeholder="e.g. 5000" maxlength="9" autocomplete="off"></label>
+          <label>What’s it for? <span class="muted small">(optional, only the two of you see it)</span><input id="p-note" maxlength="60" placeholder="e.g. Rent for March"></label>
+          <p class="err" id="p-err" role="alert"></p>
+          <button class="btn gold big" type="submit">Pay with my UPI app</button>
+          <p class="muted small">Your own UPI app (GPay, PhonePe, Paytm…) makes the payment and asks for your PIN. Verth never touches your money.${payLeft !== Infinity ? ` ${payLeft} of ${PAY_FREE} free payments left today.` : ''}</p></form>`}`
+      : `<p class="muted">${esc(first)} hasn’t added a UPI ID in Verth yet, so there’s nothing safe to pay. Ask ${esc(first)} to add one in the Chat tab. Don’t pay an ID someone sends you in a message.</p>`}
+    </div>` : '';
+  return `<div class="chat-room">
+    <header class="chat-head"><button class="back" data-act="chat-back" aria-label="Back to chats">‹</button>
+      <span class="avatar">${initials(o.name)}</span>
+      <span class="grow"><b>${esc(o.name)}</b><span class="small">${ICON.lock} End-to-end encrypted</span></span>
+      <button class="btn small gold" data-act="pay-open">₹ Pay</button></header>
+    <div class="chat-scroll" id="chat-scroll">
+      ${S.chatErr ? `<p class="muted center">${esc(S.chatErr)}</p>` : ''}
+      ${items || `<div class="chat-empty">${ICON.lock}<b>Say hello to ${esc(first)}</b><span class="small">Messages and files here are locked to your two phones. Not even the circle admin can read them.</span></div>`}
+      ${S.chatPending ? `<div class="msg me"><div class="bub sending"><span class="spin"></span> ${esc(S.chatPending)}</div></div>` : ''}
+    </div>
+    ${pay}
+    ${!ready ? `<p class="warn">${thisDeviceActive() ? `${esc(first)} needs to open Verth once before you can chat.` : 'Chat works on the device Verth is set up on.'}</p>`
+      : left <= 0 ? upsell('chat')
+      : `<form data-form="chat" class="composer" novalidate>
+        <label class="attach" title="Send a photo or document">${ICON.clip}<input id="c-file" type="file" class="sr-file" data-keep="no" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt" aria-label="Attach a photo or document"></label>
+        <textarea id="c-text" rows="1" maxlength="4000" placeholder="Message ${esc(first)}…" aria-label="Message"></textarea>
+        <button class="send" type="submit" aria-label="Send">${ICON.send}</button></form>
+        ${left !== Infinity ? `<p class="quota">${left} of ${CHAT_FREE} free messages left today</p>` : ''}`}
+  </div>`;
+}
+
+function upsell(kind) {
+  return `<div class="upsell"><b>${kind === 'pay' ? `You’ve used today’s ${PAY_FREE} free payments.` : `You’ve used today’s ${CHAT_FREE} free messages.`}</b>
+    <span>Upgrade to a Family or Team plan for unlimited private chat and payments, for everyone in your circle. Your free allowance comes back tomorrow.</span>
+    <button class="btn primary" data-act="tab" data-tab="plan">See plans</button></div>`;
+}
+
+async function sendChat({ kind, payload, file }) {
+  const uid = S.chatWith, o = member(uid), pid = pairId(uid);
+  const kk = await keyFor(uid);
+  if (!kk) throw new Error(`${o?.name?.split(' ')[0] || 'They'} need to open Verth once before you can chat.`);
+  await loadDaily(kind === 'p' ? 'pay' : 'chat');
+  const ref = doc(collection(db, 'circles', S.circleId, 'chats', pid, 'msgs'));
+  const aad = chatAad(pid, ref.id, S.user.uid, kind);
+  const b = writeBatch(db);
+  const done = meterOp(b, kind === 'p' ? 'pay' : 'chat');
+  const sealed = await sealJson(kk.k, payload, aad);
+  const msg = { from: S.user.uid, to: uid, kind, ct: sealed.ct, iv: sealed.iv, kf: kk.kf, at: serverTimestamp() };
+  if (file) {
+    const parts = Math.ceil(file.length / PART) || 1;
+    msg.parts = parts;
+    for (let i = 0; i < parts; i++) {
+      const piece = await sealBytes(kk.k, file.subarray(i * PART, (i + 1) * PART), `${aad}|part${i}`);
+      b.set(doc(db, 'circles', S.circleId, 'chats', pid, 'msgs', ref.id, 'parts', String(i)), piece);
+    }
+  }
+  b.set(ref, msg);
+  b.set(doc(db, 'circles', S.circleId, 'chats', pid), { members: pairOf(S.user.uid, uid), lastAt: serverTimestamp(), lastFrom: S.user.uid, lastKind: kind });
+  try { await b.commit(); }
+  catch (e) {
+    if (e?.code === 'permission-denied') { S.daily = null; await loadDaily(kind === 'p' ? 'pay' : 'chat'); }
+    throw e;
+  }
+  done();
+  return ref.id;
+}
+
+async function readFile(f) {
+  let bytes = new Uint8Array(await f.arrayBuffer()), type = f.type || 'application/octet-stream', name = f.name || 'file';
+  // Big photos are shrunk so they fit; documents must already be under 2 MB.
+  if (bytes.length > FILE_MAX && /^image\/(jpeg|png|webp)$/.test(type)) {
+    const img = await createImageBitmap(f), scale = Math.min(1, 1800 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.82));
+    bytes = new Uint8Array(await blob.arrayBuffer()); type = 'image/jpeg'; name = name.replace(/\.\w+$/, '') + '.jpg';
+  }
+  if (bytes.length > FILE_MAX) throw new Error('That file is bigger than 2 MB. Send a smaller PDF, or a photo of it.');
+  return { bytes, type: type.slice(0, 80), name: name.replace(/[\\/<>:"|?*\u0000-\u001f]/g, '_').slice(0, 80) };
+}
+
+function payLink(o, amount, note) {
+  const q = new URLSearchParams({ pa: o.upi, pn: o.name.slice(0, 40), am: amount.toFixed(2), cu: 'INR' });
+  if (note) q.set('tn', note.slice(0, 50));
+  return 'upi://pay?' + q.toString().replace(/\+/g, '%20');
+}
+function qrSvg(text) {
+  const q = qrcode(0, 'M'); q.addData(text); q.make();
+  return q.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+}
+
+Object.assign(actions, {
+  'chat-open': (el) => { S.tab = 'chat'; openChat(el.dataset.uid); renderMain(); },
+  'chat-back': () => { closeChat(); renderMain(); },
+  'chat-check': (el) => { closeChat(); S.tab = 'scan'; S.scanKind = 'link'; S.prefill = { kind: 'link', text: el.dataset.text, from: 'chat' }; renderMain(); },
+  'pay-open': () => { S.payOpen = !S.payOpen; S.payQr = null; loadDaily('pay').then(renderMain); renderMain(); },
+  'pay-close': () => { S.payOpen = false; S.payQr = null; renderMain(); },
+  'upi-clear': async () => {
+    try { await updateDoc(doc(db, 'circles', S.circleId, 'members', S.user.uid), { upi: null, upiAt: serverTimestamp() }); toast('UPI ID removed.'); }
+    catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'msg-del': async (el) => {
+    const m = S.msgs.find((x) => x.id === el.dataset.id); if (!m) return;
+    if (S.confirmDel !== m.id) { S.confirmDel = m.id; toast('Tap Delete again to delete it for both of you.'); return; }
+    S.confirmDel = null;
+    try {
+      const b = writeBatch(db), base = ['circles', S.circleId, 'chats', pairId(S.chatWith), 'msgs', m.id];
+      for (let i = 0; i < (m.parts || 0); i++) b.delete(doc(db, ...base, 'parts', String(i)));
+      b.delete(doc(db, ...base));
+      await b.commit(); toast('Deleted for both of you.');
+    } catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'file-open': async (el) => {
+    const m = S.msgs.find((x) => x.id === el.dataset.id), p = S.plain.get(m?.id);
+    if (!m || !p || p.locked || p.bad) return;
+    S.fileUrls ||= new Map();
+    const view = VIEWABLE.includes(p.type);
+    if (!S.fileUrls.has(m.id)) {
+      S.fileBusy = m.id; renderMain();
+      try {
+        const kk = await keyFor(S.chatWith), pid = pairId(S.chatWith), aad = chatAad(pid, m.id, m.from, 'f');
+        const chunks = [];
+        for (let i = 0; i < m.parts; i++) {
+          const s = await getDoc(doc(db, 'circles', S.circleId, 'chats', pid, 'msgs', m.id, 'parts', String(i)));
+          if (!s.exists()) throw new Error('Part of this file is missing.');
+          chunks.push(await openBytes(kk.k, s.data().ct, s.data().iv, `${aad}|part${i}`));
+        }
+        // Only plain pictures and PDFs open in the browser; anything else downloads, so it can't run as a web page.
+        const safeType = view || p.type === 'application/pdf' ? p.type : 'application/octet-stream';
+        S.fileUrls.set(m.id, URL.createObjectURL(new Blob(chunks, { type: safeType })));
+      } catch (e) { toast(e.message?.includes('missing') ? e.message : 'This file couldn’t be opened.', 'bad'); S.fileBusy = null; return renderMain(); }
+      S.fileBusy = null;
+    }
+    if (view && el.textContent.trim() === 'View') return renderMain();
+    const a = document.createElement('a'); a.href = S.fileUrls.get(m.id); a.download = p.name; a.rel = 'noopener';
+    if (p.type === 'application/pdf' || view) a.target = '_blank';
+    a.click(); renderMain();
+  },
+});
+
+Object.assign(forms, {
+  chat: async (f) => {
+    const ta = f.querySelector('#c-text'), text = ta.value.trim(), fileIn = f.querySelector('#c-file'), file = fileIn.files?.[0];
+    if (!text && !file) return;
+    if (leftToday('chat') <= 0) return renderMain();
+    if (looksSensitive(text)) { toast('That looks like an OTP, PIN or password. Never send those, not even here.', 'bad'); return; }
+    busy(f, true);
+    try {
+      if (file) {
+        S.chatPending = `Encrypting ${file.name}…`; renderMain();
+        const r = await readFile(file);
+        await sendChat({ kind: 'f', payload: { name: r.name, type: r.type, size: r.bytes.length, caption: text.slice(0, 500) }, file: r.bytes });
+      } else {
+        await sendChat({ kind: 'm', payload: { body: text } });
+      }
+      const t = document.getElementById('c-text'); if (t) t.value = '';
+      S.chatPending = null; renderMain();
+    } catch (e) {
+      S.chatPending = null; renderMain();
+      toast(e?.code === 'permission-denied' ? (leftToday('chat') <= 0 ? 'You’ve used today’s free messages.' : 'Couldn’t send. Check that you’re both still in the circle.') : (e.message || friendlyError(e)), 'bad');
+    }
+    busy(document.querySelector('form[data-form="chat"]'), false);
+  },
+  pay: async (f) => {
+    const o = member(S.chatWith);
+    const amount = Math.round(parseFloat(String(f.querySelector('#p-amt').value).replace(/[,\s₹]/g, '')) * 100) / 100;
+    const note = f.querySelector('#p-note').value.trim().replace(/[^\p{L}\p{N} .,'()/-]/gu, '').slice(0, 50);
+    if (!o?.upi || !UPI_RE.test(o.upi)) return setErr('p-err', 'This person has no valid UPI ID in Verth.');
+    if (!(amount >= 1 && amount <= 100000)) return setErr('p-err', 'Enter an amount between ₹1 and ₹1,00,000 (the UPI limit).');
+    busy(f, true);
+    try {
+      await sendChat({ kind: 'p', payload: { amount, note, upi: o.upi } });
+      const link = payLink(o, amount, note);
+      if (isPhone()) { S.payOpen = false; renderMain(); location.href = link; }
+      else { S.payQr = qrSvg(link); renderMain(); }
+    } catch (e) {
+      busy(f, false);
+      setErr('p-err', e?.code === 'permission-denied' ? 'You’ve used today’s free payments. Upgrade for unlimited.' : (e.message || friendlyError(e)));
+    }
+  },
+  'set-upi': async (f) => {
+    const v = f.querySelector('#u-upi').value.trim().toLowerCase();
+    if (!UPI_RE.test(v)) return setErr('u-err', 'That doesn’t look like a UPI ID. It looks like name@bank, for example priya@okhdfcbank.');
+    f.querySelector('#u-upi').value = v;
+    busy(f, true);
+    try { await updateDoc(doc(db, 'circles', S.circleId, 'members', S.user.uid), { upi: v, upiAt: serverTimestamp() }); toast('UPI ID saved. People in your circle can now pay you safely.', 'ok'); }
+    catch (e) { setErr('u-err', friendlyError(e)); }
+    busy(f, false);
+  },
+});
+
 root.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
   if (el && actions[el.dataset.act]) { e.preventDefault(); actions[el.dataset.act](el, e); }
@@ -1816,7 +2196,20 @@ root.addEventListener('submit', (e) => {
   const f = e.target.closest('form[data-form]');
   if (f && forms[f.dataset.form]) { e.preventDefault(); forms[f.dataset.form](f); }
 });
+root.addEventListener('keydown', (e) => {
+  if (e.target.id === 'c-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && isPhone() === false) {
+    e.preventDefault(); e.target.form?.requestSubmit();
+  }
+});
+root.addEventListener('input', (e) => {
+  if (e.target.id === 'c-text') { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px'; }
+});
 root.addEventListener('change', (e) => {
+  if (e.target.id === 'c-file' && e.target.files?.[0]) {
+    const f = e.target.files[0], t = document.getElementById('c-text');
+    if (t) t.placeholder = `Add a note to “${f.name.slice(0, 30)}”, then send`;
+    document.querySelector('.composer')?.classList.add('has-file');
+  }
   if (e.target.id === 'circle-switch') openCircle(e.target.value);
   if (e.target.id === 'code-for') { S.codeFor = e.target.value; lastCodeKey = ''; tick(); }
   if (e.target.id === 's-image') setPhoto(e.target.files?.[0]);

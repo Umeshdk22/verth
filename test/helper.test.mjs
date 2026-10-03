@@ -86,3 +86,9 @@ test('company security questions find the company topic', () => {
     assert.equal(findAnswer(q)?.topic.id, 'company', q);
   }
 });
+
+test('private chat and Pay safely questions find the chat topic', () => {
+  for (const q of ['how do I send a certificate privately', 'how to pay someone in my circle safely', 'where do I add my upi id']) {
+    assert.equal(findAnswer(q)?.topic.id, 'chat', q);
+  }
+});

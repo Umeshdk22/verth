@@ -86,6 +86,12 @@ service cloud.firestore {
             || exists(/databases/$(database)/documents/circles/$(cid)/allow/$(myEmail())));
     }
     function twoAdmins(cid) { return get(circlePath(cid)).data.get('twoAdmins', false) == true; }
+    function validUpi(u) { return u is string && u.size() <= 100 && u.matches('^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$'); }
+    function dailyPath(kind) {
+      return /databases/$(database)/documents/users/$(me())/daily/$((kind == 'p' ? 'pay-' : 'chat-') + todayIST());
+    }
+    // The person's daily allowance was counted in the same write.
+    function metered(kind) { return getAfter(dailyPath(kind)).data.at == request.time; }
     function channels() { return ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other', 'Call']; }
 
     // ---------- your profile ----------
@@ -139,6 +145,24 @@ service cloud.firestore {
           && request.resource.data.count == resource.data.count + 1
           && request.resource.data.at == request.time
           && (request.resource.data.count <= 5
+              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+              || paidCircleFor(uid, request.resource.data.get('via', null)));
+        allow delete: if false;
+      }
+      // Daily allowance for private chat (12 messages) and Pay safely (3 payments) on the free
+      // plan. The document name must be today's date (India time); counts only go up by one,
+      // and a Family or Team circle the person is active in lifts the limit (named in "via").
+      match /daily/{key} {
+        allow get: if signedIn() && me() == uid;
+        allow create: if signedIn() && me() == uid && key in ['chat-' + todayIST(), 'pay-' + todayIST()]
+          && request.resource.data.keys().hasOnly(['count', 'at', 'via'])
+          && request.resource.data.count == 1
+          && request.resource.data.at == request.time;
+        allow update: if signedIn() && me() == uid && key in ['chat-' + todayIST(), 'pay-' + todayIST()]
+          && onlyChanges(['count', 'at', 'via'])
+          && request.resource.data.count == resource.data.count + 1
+          && request.resource.data.at == request.time
+          && (request.resource.data.count <= (key.matches('^pay-.*') ? 3 : 12)
               || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
               || paidCircleFor(uid, request.resource.data.get('via', null)));
         allow delete: if false;
@@ -272,6 +296,13 @@ service cloud.firestore {
         // You can change your title, or register a new device. The device counter always goes up,
         // so everyone sees the change, and non-admins go back to "pending" until an admin re-approves
         // them (so a stolen password alone can't produce trusted answers).
+        // Your UPI ID for "Pay safely": only you can set it, from your own account, and the time
+        // of the change is recorded so payers are warned about a recent change.
+        allow update: if signedIn() && uid == me()
+          && onlyChanges(['upi', 'upiAt'])
+          && (request.resource.data.upi == null || validUpi(request.resource.data.upi))
+          && request.resource.data.upiAt == request.time;
+
         allow update: if signedIn() && uid == me()
           && onlyChanges(['title', 'device', 'status'])
           && text(request.resource.data.title, 40)
@@ -320,6 +351,65 @@ service cloud.firestore {
         // Leave, or be removed by an admin. Admins can't be removed or leave (so a circle is never orphaned).
         allow delete: if signedIn() && resource.data.role != 'admin' && (uid == me() || isAdmin(cid))
           && getAfter(circlePath(cid)).data.memberCount == get(circlePath(cid)).data.memberCount - 1;
+      }
+
+      // ---------- private chat (end-to-end encrypted) ----------
+      // One conversation per pair, named "uidA~uidB" (sorted). Only those two people can read
+      // or write it, never other members or admins. Messages are encrypted on the devices; the
+      // database only checks who, when and how big. Messages can't be edited; the sender can delete.
+      match /chats/{pid} {
+        function pair() { return pid.split('~'); }
+        function inPair() { return pair().size() == 2 && pair()[0] < pair()[1] && me() in pair(); }
+        function other() { return pair()[0] == me() ? pair()[1] : pair()[0]; }
+        function canTalk() { return isMember(cid) && inPair() && activeMember(cid, other()); }
+        function chatPath() { return /databases/$(database)/documents/circles/$(cid)/chats/$(pid); }
+
+        allow get: if isMember(cid) && inPair();
+        allow list: if isMember(cid) && me() in resource.data.members;
+        allow create, update: if canTalk()
+          && request.resource.data.keys().hasOnly(['members', 'lastAt', 'lastFrom', 'lastKind'])
+          && request.resource.data.members == pair()
+          && request.resource.data.lastAt == request.time
+          && request.resource.data.lastFrom == me()
+          && request.resource.data.lastKind in ['m', 'f', 'p']
+          && metered(request.resource.data.lastKind);
+        allow delete: if false;
+
+        match /msgs/{mid} {
+          function msgPath() { return /databases/$(database)/documents/circles/$(cid)/chats/$(pid)/msgs/$(mid); }
+          allow read: if isMember(cid) && inPair();
+          allow create: if canTalk()
+            && request.resource.data.keys().hasOnly(['from', 'to', 'kind', 'ct', 'iv', 'kf', 'parts', 'at'])
+            && request.resource.data.from == me()
+            && request.resource.data.to == other()
+            && request.resource.data.at == request.time
+            && request.resource.data.kind in ['m', 'f', 'p']
+            && request.resource.data.ct is string && request.resource.data.ct.size() > 0 && request.resource.data.ct.size() <= 24000
+            && request.resource.data.iv is string && request.resource.data.iv.matches('^[A-Za-z0-9+/]{16}$')
+            && request.resource.data.kf is string && request.resource.data.kf.size() <= 40
+            && (request.resource.data.kind == 'f'
+                ? (request.resource.data.parts is int && request.resource.data.parts >= 1 && request.resource.data.parts <= 4)
+                : !('parts' in request.resource.data))
+            && metered(request.resource.data.kind)
+            && getAfter(chatPath()).data.lastAt == request.time;
+          allow delete: if isMember(cid) && inPair() && resource.data.from == me();
+          allow update: if false;
+
+          // Encrypted pieces of a file (up to 4 × 512 KB), written together with their message.
+          match /parts/{i} {
+            allow read: if isMember(cid) && inPair();
+            allow create: if canTalk() && i in ['0', '1', '2', '3']
+              && request.resource.data.keys().hasOnly(['ct', 'iv'])
+              && request.resource.data.ct is string && request.resource.data.ct.size() <= 760000
+              && request.resource.data.iv is string && request.resource.data.iv.matches('^[A-Za-z0-9+/]{16}$')
+              && getAfter(msgPath()).data.from == me()
+              && getAfter(msgPath()).data.at == request.time
+              && getAfter(msgPath()).data.kind == 'f'
+              && int(i) < getAfter(msgPath()).data.parts;
+            allow delete: if isMember(cid) && inPair() && get(msgPath()).data.from == me();
+            allow update: if false;
+          }
+        }
       }
 
       // ---------- contact numbers ----------

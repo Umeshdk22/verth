@@ -56,6 +56,12 @@ export const TOPICS = [
     go: [['Open Circle', 'circle']],
   },
   {
+    id: 'chat', q: 'How do I chat privately or send money safely?',
+    keys: ['private chat', 'chat privately', 'chat tab', 'privately', 'personal message', 'confidential', 'secret message', 'send a document', 'send document', 'certificate', 'send a file', 'send file', 'send pdf', 'pay safely', 'pay someone in my circle', 'pay a member', 'pay my family', 'in my circle safely', 'upi id', 'my upi', 'receive money', 'end to end', 'encrypted chat'],
+    a: 'Open the Chat tab and tap a person in your circle.\n• Chat is end-to-end encrypted: only the two of you can read it, not other members, admins or Verth.\n• Send documents and photos up to 2 MB with the paperclip.\n• Pay safely: tap “₹ Pay”, enter the amount, and your own UPI app (GPay, PhonePe, Paytm) opens with that person’s saved UPI ID filled in. You approve with your PIN; Verth never touches your money.\n• To be paid, add your UPI ID at the bottom of the Chat tab.\n• Free plan: 12 messages and 3 payments a day. Paid plans are unlimited.',
+    go: [['Open Chat', 'chat']],
+  },
+  {
     id: 'company', q: 'How do I keep strangers out of my company circle?',
     keys: ['verified company', 'company email', 'work email', 'email lock', 'company lock', 'domain', 'staff list', 'employee list', 'allowed emails', 'two admin', 'two admins', 'second admin', 'make admin', 'co-admin', 'another admin', 'only employees', 'only staff', 'fake employee', 'stranger joined'],
     a: 'Open the Circle tab and scroll to “Company security” (organisation circles, admins only):\n• Company email lock: if you log in with your work email (like you@yourcompany.in), tap “Lock to @yourcompany.in”. Only that email can ask to join, and your circle gets a “Verified company” badge. Gmail, Yahoo and other free emails can’t be used.\n• Staff list: paste names and work emails (one per line, even from Excel), then tap “Only people on the list”.\n• Two-admin approval: the owner taps “Make admin” next to a trusted person, then turns it on. Every new person needs two different admins to approve.\n• You still approve everyone, and you see their email and phone number first.',

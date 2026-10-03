@@ -31,6 +31,8 @@ PAGES = {
 <li>If a renewal payment fails and Razorpay can’t collect it after retrying, the plan returns to Free.</li>
 <li>We’ll give at least 30 days’ notice by email before any price change applies to you.</li>
 <li>Refunds follow our <a href="refunds.html">Cancellation and Refund Policy</a>.</li></ul>
+<h2>Pay safely</h2>
+<p>Verth does not hold, send or receive money and is not a payment service. “Pay safely” only opens your own UPI app (for example Google Pay, PhonePe or Paytm) with the UPI ID that the other circle member saved in Verth and the amount you entered. The payment itself happens in your UPI app, under your bank’s and your UPI app’s terms, and you approve it with your own UPI PIN. Verth can’t see, reverse or refund UPI payments; check with the person and your bank app that money arrived. Only pay people you know.</p>
 <h2>Availability and liability</h2>
 <p>We work to keep Verth available and secure but can’t promise it will never be interrupted. To the extent the law allows, Verth is not liable for losses caused by scams, by acting or not acting on a Scam check result, or by the service being unavailable; and our total liability for any claim is limited to the amount you paid Verth in the 3 months before the claim.</p>
 <h2>Ending your use</h2>
@@ -42,6 +44,8 @@ PAGES = {
 <p>This policy explains what Verth collects and why. Verth is run by {OWNER}, {PLACE}. We follow India’s Digital Personal Data Protection Act, 2023.</p>
 <h2>What we collect</h2>
 <ul><li><b>Account:</b> your name, email address, mobile number, when you agreed to these terms, and whether your email is confirmed (handled by Google Firebase Authentication). Your mobile number is kept private: only the admins of a circle you ask to join can see it, so they can recognise you before approving. Other members never see it, and it isn’t shared or used for marketing.</li>
+<li><b>Private chat:</b> messages, files and payment notes between two circle members are end-to-end encrypted on their devices. Verth stores only the encrypted text, who sent it to whom, and when; nobody else, including circle admins and Verth, can read it. Senders can delete their messages for both people.</li>
+<li><b>UPI ID (optional):</b> if you add a UPI ID for “Pay safely”, the people in that circle can see it and when you last changed it. Verth never sees or processes your payments.</li>
 <li><b>Organisation staff lists (optional):</b> an organisation’s admins can add the names and work emails of people they expect to join, and can limit joining to their company’s email domain. Only that circle’s admins can see the list, and they can remove entries at any time.</li>
 <li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in the Plan tab.</li>
 <li><b>Circles and checks:</b> the circles you create or join, your role, the verification requests you send or answer (who, what was asked in your words, the channel, the answer and time).</li>
@@ -97,10 +101,10 @@ PAGES = {
     "pricing": ("Pricing", """
 <p>All prices are in Indian Rupees, per month, and include applicable taxes. Paid plans renew monthly until you cancel.</p>
 <div class="price-table">
-<div><h2>Free</h2><p class="amt">₹0</p><ul><li>Up to 5 people in a circle</li><li>20 verification checks a month</li><li>2 scam checks a day</li><li>5 free photo / screenshot checks</li></ul></div>
-<div><h2>Personal</h2><p class="amt">₹149 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Unlimited photo / screenshot checks</li><li>Everything in Free</li></ul></div>
-<div><h2>Family</h2><p class="amt">₹199 <small>/ month</small></p><ul><li>Up to 10 people</li><li>Unlimited verification checks</li><li>Unlimited scam and photo checks for everyone in the circle</li><li>Log export</li></ul></div>
-<div><h2>Team</h2><p class="amt">₹299 <small>/ month</small></p><ul><li>Your whole organisation, no limit on people</li><li>Everything in every plan</li><li>Unlimited checks, scam and photo checks for everyone</li><li>Log export for auditors</li><li>Priority support</li></ul></div>
+<div><h2>Free</h2><p class="amt">₹0</p><ul><li>Up to 5 people in a circle</li><li>20 verification checks a month</li><li>2 scam checks a day</li><li>5 free photo / screenshot checks</li><li>12 private messages and 3 Pay safely payments a day</li></ul></div>
+<div><h2>Personal</h2><p class="amt">₹149 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Unlimited photo / screenshot checks</li><li>Unlimited private chat and Pay safely</li><li>Everything in Free</li></ul></div>
+<div><h2>Family</h2><p class="amt">₹199 <small>/ month</small></p><ul><li>Up to 10 people</li><li>Unlimited verification checks</li><li>Unlimited scam and photo checks for everyone in the circle</li><li>Unlimited private chat and Pay safely</li><li>Log export</li></ul></div>
+<div><h2>Team</h2><p class="amt">₹299 <small>/ month</small></p><ul><li>Your whole organisation, no limit on people</li><li>Everything in every plan</li><li>Unlimited checks, scam and photo checks for everyone</li><li>Unlimited private chat and Pay safely</li><li>Log export for auditors</li><li>Priority support</li></ul></div>
 </div>
 <p>Pay with UPI Autopay, cards and other methods through Razorpay. See the <a href="refunds.html">Cancellation and Refund Policy</a> and <a href="terms.html">Terms</a>.</p>
 """),

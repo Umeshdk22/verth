@@ -75,6 +75,7 @@ export function doc(a, ...segs) {
 }
 export const orderBy = (field, dir = 'asc') => ({ t: 'order', field, dir });
 export const limit = (n) => ({ t: 'limit', n });
+export const where = (field, op, value) => ({ t: 'where', field, op, value });
 export const query = (col, ...c) => ({ kind: 'query', path: col.path, c });
 
 function snapDoc(path) {
@@ -86,6 +87,7 @@ function runQuery(q) {
   let docs = Object.keys(db).filter((p) => p.startsWith(q.path + '/') && p.split('/').length === depth)
     .map((p) => ({ id: p.split('/').pop(), _d: revive(db[p]), data() { return this._d; } }));
   for (const c of q.c || []) {
+    if (c.t === 'where') docs = docs.filter((d) => (c.op === 'array-contains' ? (d._d[c.field] || []).includes(c.value) : c.op === '==' ? d._d[c.field] === c.value : true));
     if (c.t === 'order') docs.sort((a, b) => { const va = a._d[c.field]?.ms ?? a._d[c.field], vb = b._d[c.field]?.ms ?? b._d[c.field]; return (va > vb ? 1 : va < vb ? -1 : 0) * (c.dir === 'desc' ? -1 : 1); });
     if (c.t === 'limit') docs = docs.slice(0, c.n);
   }

@@ -110,3 +110,43 @@ export function deviceLabel() {
   const br = /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'browser';
   return `${br} on ${os}`;
 }
+
+// ---------- private chat (end-to-end encrypted) ----------
+// Each pair of devices derives one AES-256-GCM key from their ECDH keys. Only those two
+// devices can compute it, so circle admins, Verth and the database only ever see ciphertext.
+// If either person moves to a new device the key changes, and older messages can't be opened there.
+export function bytesToB64(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+export const b64ToBytes = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+const chatCache = new Map();
+// uidA/uidB in pair order (uidA < uidB); the key is the same whichever of the two derives it.
+export async function chatKey(myKeys, otherDhPub, circleId, uidA, uidB) {
+  const id = [circleId, uidA, uidB, otherDhPub.x, otherDhPub.y, myKeys.pub.dh.x].join('|');
+  if (chatCache.has(id)) return chatCache.get(id);
+  const other = await importPub(otherDhPub, { name: 'ECDH', namedCurve: 'P-256' }, []);
+  const shared = await crypto.subtle.deriveBits({ name: 'ECDH', public: other }, myKeys.dh.privateKey, 256);
+  const hk = await crypto.subtle.importKey('raw', shared, 'HKDF', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'HKDF', hash: 'SHA-256', salt: enc.encode('verth-chat-v1|' + circleId), info: enc.encode(uidA + '~' + uidB) },
+    hk, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  chatCache.set(id, key);
+  return key;
+}
+// Which pair of device keys a message was locked with (public key prefixes, in pair order).
+export const chatKeyId = (pubA, pubB) => `${pubA.x.slice(0, 12)}.${pubB.x.slice(0, 12)}`;
+
+export async function sealBytes(key, bytes, aad) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(aad) }, key, bytes);
+  return { ct: bytesToB64(new Uint8Array(ct)), iv: bytesToB64(iv) };
+}
+export async function openBytes(key, ct, iv, aad) {
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(iv), additionalData: enc.encode(aad) }, key, b64ToBytes(ct));
+  return new Uint8Array(pt);
+}
+export const sealJson = (key, obj, aad) => sealBytes(key, enc.encode(JSON.stringify(obj)), aad);
+export async function openJson(key, ct, iv, aad) { return JSON.parse(new TextDecoder().decode(await openBytes(key, ct, iv, aad))); }
