@@ -200,6 +200,16 @@ service cloud.firestore {
     // Only a SHA-256 fingerprint of the reported link, number or message is stored, never the
     // content itself. One report per person per item; anyone signed in can see the count.
     match /reports/{fp} {
+      // Automatic flags: recorded when Verth's own check finds a scam (high risk), once per person.
+      match /auto/{uid} {
+        allow read: if signedIn();
+        allow create: if signedIn() && uid == me()
+          && fp.matches('^[a-f0-9]{64}$')
+          && request.resource.data.keys().hasOnly(['kind', 'at'])
+          && request.resource.data.kind in ['link', 'phone', 'message']
+          && request.resource.data.at == request.time;
+        allow update, delete: if false;
+      }
       match /by/{uid} {
         allow read: if signedIn();
         allow create: if signedIn() && uid == me()
@@ -377,6 +387,7 @@ service cloud.firestore {
       // One conversation per pair, named "uidA~uidB" (sorted). Only those two people can read
       // or write it, never other members or admins. Messages are encrypted on the devices; the
       // database only checks who, when and how big. Messages can't be edited; the sender can delete.
+      // Kinds: m message, f file, p payment (counts as a payment), c payment confirmation (paid / received).
       match /chats/{pid} {
         function pair() { return pid.split('~'); }
         function inPair() { return pair().size() == 2 && pair()[0] < pair()[1] && me() in pair(); }
@@ -391,7 +402,7 @@ service cloud.firestore {
           && request.resource.data.members == pair()
           && request.resource.data.lastAt == request.time
           && request.resource.data.lastFrom == me()
-          && request.resource.data.lastKind in ['m', 'f', 'p']
+          && request.resource.data.lastKind in ['m', 'f', 'p', 'c']
           && metered(request.resource.data.lastKind);
         allow delete: if false;
 
@@ -403,7 +414,7 @@ service cloud.firestore {
             && request.resource.data.from == me()
             && request.resource.data.to == other()
             && request.resource.data.at == request.time
-            && request.resource.data.kind in ['m', 'f', 'p']
+            && request.resource.data.kind in ['m', 'f', 'p', 'c']
             && request.resource.data.ct is string && request.resource.data.ct.size() > 0 && request.resource.data.ct.size() <= 24000
             && request.resource.data.iv is string && request.resource.data.iv.matches('^[A-Za-z0-9+/]{16}$')
             && request.resource.data.kf is string && request.resource.data.kf.size() <= 40

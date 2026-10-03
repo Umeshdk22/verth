@@ -582,3 +582,17 @@ test('trial: a circle whose owner is in their trial can grow past 5 people (up t
   await startTrial('rajesh', 1);
   await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
 });
+test('chat: payment confirmations are a message kind and count as chat messages', async () => {
+  await assertSucceeds(chatBatch(db('priya'), 'priya', 'rajesh', { kind: 'c' }));
+  await assertFails(chatBatch(db('priya'), 'priya', 'rajesh', { kind: 'x', mid: 'm9' }));
+});
+
+test('scam database: automatic high-risk flags are once per person, fingerprint-only, and countable by everyone', async () => {
+  const FP = 'a'.repeat(64);
+  await assertSucceeds(setDoc(doc(db('priya'), `reports/${FP}/auto/priya`), { kind: 'link', at: serverTimestamp() }));
+  await assertFails(setDoc(doc(db('priya'), `reports/${FP}/auto/priya`), { kind: 'link', at: serverTimestamp() }));      // once
+  await assertFails(setDoc(doc(db('priya'), `reports/${FP}/auto/rajesh`), { kind: 'link', at: serverTimestamp() }));     // as someone else
+  await assertFails(setDoc(doc(db('rajesh'), `reports/${FP}/auto/rajesh`), { kind: 'link', text: 'sbi-kyc.xyz', at: serverTimestamp() })); // no content
+  await assertFails(setDoc(doc(db('rajesh'), 'reports/not-a-hash/auto/rajesh'), { kind: 'link', at: serverTimestamp() }));
+  await assertSucceeds(getDocs(collection(db('outsider'), `reports/${FP}/auto`)));
+});

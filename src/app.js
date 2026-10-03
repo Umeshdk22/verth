@@ -4,7 +4,7 @@ import {
   connectAuthEmulator,
 } from 'firebase/auth';
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, orderBy, limit,
+  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, limit,
   onSnapshot, serverTimestamp, Timestamp, writeBatch, arrayUnion, arrayRemove, increment, getCountFromServer,
   connectFirestoreEmulator,
 } from 'firebase/firestore';
@@ -192,6 +192,12 @@ function toast(msg, kind = '') {
 }
 
 // Re-render without losing what the person was typing. Passwords are never restored.
+// A branded loading screen with rotating safety tips, so waiting is never a blank white page.
+const LOAD_TIPS = ['Real banks never ask for your OTP or UPI PIN.', 'Pause. Verify. Then pay.', 'Never install an app from a link someone sends you.', 'To receive money, you never need to enter your PIN.', '“Urgent” is a scammer’s favourite word.'];
+function renderLoading(msg = 'Opening your Verth…') {
+  paint(`<div class="loader" role="status" aria-live="polite"><div class="ld-orb"><i></i><i></i>${ICON.check}</div><p class="ld-msg">${esc(msg)}</p><div class="ld-bar"><i></i></div><div class="ld-tips" aria-hidden="true">${LOAD_TIPS.map((t, i) => `<span style="--i:${i}">${esc(t)}</span>`).join('')}</div></div>`);
+  S.screen = 'loading';
+}
 function paint(html) {
   const keep = {};
   root.querySelectorAll('input[id],select[id],textarea[id]').forEach((el) => { if (el.type !== 'password') keep[el.id] = el.value; });
@@ -593,7 +599,7 @@ function renderMain() {
     <main class="content">
       ${thisDeviceActive() ? '' : `<div class="warn strong"><b>Verth is set up on another device${me()?.device?.label ? ` (${esc(me().device.label)})` : ''}.</b> Answers and codes only work there. If you’ve switched phones, move Verth here. Everyone in your circle will be told you changed device.
         <button class="btn small" data-act="move-device">Use this device instead</button></div>`}
-      ${trialBanner()}
+      ${S.tab === 'chat' && S.chatWith ? '' : trialBanner()}
       ${waiting ? `<div class="banner accent"><span><b>${waiting} ${waiting > 1 ? 'people are' : 'person is'} waiting</b> for your approval to join.</span><button class="btn small" data-act="tab" data-tab="circle">Review</button></div>` : ''}
       ${body}
     </main>
@@ -922,11 +928,24 @@ async function useScan() {
   await updateDoc(ref, { scans: increment(1), at: serverTimestamp(), ...(circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {}) });
   S.scanUsed += 1;
 }
+// Shared scam database. When a check finds a scam (high risk), this phone records it for everyone:
+// only a scrambled fingerprint of the message, link, number or picture text is stored, never the
+// content. Everyone who later checks the same thing sees how many times it was flagged and reported.
+async function autoFlag(r) {
+  if (r?.verdict !== 'danger') return;
+  const kind = (k) => (k === 'link' || k === 'phone' ? k : 'message');
+  const fps = [];
+  if (r.fp) fps.push([r.fp, kind(r.kind)]);
+  for (const l of r.links || []) if (l.verdict === 'danger' && l.normalized) fps.push([await fingerprint('link', l.normalized), 'link']);
+  await Promise.all(fps.map(([fp, k]) => setDoc(doc(db, 'reports', fp, 'auto', S.user.uid), { kind: k, at: serverTimestamp() }).catch(() => {})));
+}
 async function loadReportCount(r) {
   if (!r?.fp) return;
+  await autoFlag(r).catch(() => {});
   try {
-    const [n, mine] = await Promise.all([getCountFromServer(collection(db, 'reports', r.fp, 'by')), getDoc(doc(db, 'reports', r.fp, 'by', S.user.uid))]);
+    const [n, a, mine] = await Promise.all([getCountFromServer(collection(db, 'reports', r.fp, 'by')), getCountFromServer(collection(db, 'reports', r.fp, 'auto')), getDoc(doc(db, 'reports', r.fp, 'by', S.user.uid))]);
     S.reports[r.fp] = n.data().count;
+    S.flags ||= {}; S.flags[r.fp] = a.data().count;
     if (mine.exists()) S.myReports.add(r.fp);
   } catch {}
   renderScanView();
@@ -940,7 +959,9 @@ const VERDICT = {
 };
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
-  const n = S.reports[r.fp] || 0, mine = S.myReports.has(r.fp);
+  const n = S.reports[r.fp] || 0, mine = S.myReports.has(r.fp), flagged = S.flags?.[r.fp] || 0;
+  // Others reporting it outweighs a clean automatic result (for example a scammer's phone number).
+  const crowd = n >= 3 || (n >= 1 && flagged >= 2);
   const what = { link: 'link', phone: 'number', message: 'message', job: 'offer', image: 'message' }[r.kind];
   const isJob = r.kind === 'job' || r.sub === 'job';
   const qr = r.qr;
@@ -948,11 +969,13 @@ function scanResultCard(r) {
     <div class="split"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
       <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div></div>
     <h2>${head}</h2>
+    ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Other Verth users say this is a scam.</b> It was reported ${n} ${n === 1 ? 'time' : 'times'}${flagged ? ` and flagged as high risk ${flagged} ${flagged === 1 ? 'time' : 'times'}` : ''}. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
     ${flags.length ? `<ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul>` : ''}
     ${r.good.length ? `<ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>` : ''}
     ${r.links?.length ? `<div class="found"><b>Links found</b>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
-    <div class="community">${n ? `<b>Reported as a scam by ${n} Verth ${n === 1 ? 'user' : 'users'}.</b>` : 'No Verth user has reported this yet.'}
+    <div class="community">${n || flagged ? `<span class="cm-stats">${n ? `<b>🚩 Reported by ${n} Verth ${n === 1 ? 'user' : 'users'}</b>` : ''}${flagged ? `<b>🛡️ Flagged high-risk ${flagged} ${flagged === 1 ? 'time' : 'times'}</b>` : ''}</span>` : `<span>${r.kind === 'phone' ? 'No Verth user has reported this number yet. If it tried to scam you, report it to warn others.' : 'No Verth user has reported this yet.'}</span>`}
+      ${r.verdict === 'danger' ? '<span class="small muted">Saved to Verth’s scam database (only a scrambled fingerprint, never the content), so others are warned.</span>' : ''}
       ${mine ? '<span class="pill bad">You reported this</span>' : `<button class="btn small" data-act="report-scam">Report this ${what} as a scam</button>`}</div>
     ${r.kind === 'image' ? `<div class="found"><b>What Verth found in your picture</b>
       ${qr?.type === 'upi' ? `<span>A UPI QR code that pays ${qr.amount ? esc(qr.amount) + ' to ' : ''}<b>${esc(qr.name || qr.payee)}</b>${qr.name && qr.payee ? ` (${esc(qr.payee)})` : ''}.</span>` : qr?.type === 'link' ? `<span>A QR code that opens <span class="mono">${esc(qr.host)}</span>.</span>` : qr ? '<span>A QR code with some text in it.</span>' : ''}
@@ -1271,7 +1294,7 @@ function stopListeners() { S.unsubs.forEach((u) => u()); S.unsubs = []; S.chatUn
 
 async function openCircle(cid) {
   stopListeners();
-  Object.assign(S, { circleId: cid, circle: S.circles[cid] || null, members: [], checks: [], lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null, allow: null, allowSub: false, contacts: {}, chats: {}, daily: null });
+  Object.assign(S, { circleId: cid, circle: S.circles[cid] || null, members: [], checks: [], lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null, allow: null, allowSub: false, contacts: {}, chats: {}, daily: null, payHist: null, payAwait: null });
   closeChat();
   S.sig = new Map();
   let first = true;
@@ -1969,7 +1992,7 @@ function watchChats(cid) {
         const was = prev[pid];
         if (c.lastFrom !== S.user.uid && tsMs(c.lastAt) > tsMs(was?.lastAt || 0) && !(S.tab === 'chat' && S.chatWith && pairId(S.chatWith) === pid && !document.hidden)) {
           const who = member(c.lastFrom)?.name || 'Someone';
-          toast(c.lastKind === 'p' ? `${who} sent you a payment note` : `New private message from ${who}`, 'accent');
+          toast(c.lastKind === 'p' ? `${who} sent you a payment` : c.lastKind === 'c' ? `${who} updated a payment receipt` : `New private message from ${who}`, 'accent');
           try { navigator.vibrate?.(120); } catch {}
         }
       }
@@ -2015,7 +2038,7 @@ function viewChat() {
   const meUpi = me()?.upi;
   const rows = people.map((m) => {
     const pid = pairId(m.uid), c = S.chats?.[pid], unread = c && c.lastFrom !== S.user.uid && tsMs(c.lastAt) > lastRead(pid);
-    const last = c ? (c.lastKind === 'p' ? 'Payment' : c.lastKind === 'f' ? 'File' : 'Message') + (c.lastFrom === S.user.uid ? ' you sent' : ' received') + ` · ${ago(tsMs(c.lastAt))}` : 'Start a private conversation';
+    const last = c ? (c.lastKind === 'p' ? 'Payment' : c.lastKind === 'c' ? 'Payment update' : c.lastKind === 'f' ? 'File' : 'Message') + (c.lastFrom === S.user.uid ? ' you sent' : ' received') + ` · ${ago(tsMs(c.lastAt))}` : 'Start a private conversation';
     return `<li><button class="chat-row${unread ? ' unread' : ''}" data-act="chat-open" data-uid="${esc(m.uid)}">
       <span class="avatar big">${initials(m.name)}</span>
       <span class="grow"><b>${esc(m.name)}</b><span class="muted small">${esc(m.title || '')}${m.upi ? ' · ₹ UPI ready' : ''}</span><span class="small last">${esc(last)}</span></span>
@@ -2026,6 +2049,7 @@ function viewChat() {
     <section class="card"><h2>People in ${esc(S.circle.name)}</h2>
       ${people.length ? `<ul class="list chat-list">${rows}</ul>` : '<p class="muted">Nobody to chat with yet. Invite people from the Circle tab.</p>'}
       ${unlimitedTalk() ? '' : `<p class="muted small">Free plan: ${CHAT_FREE} messages and ${PAY_FREE} payments a day. Family and Team plans are unlimited.</p>`}</section>
+    ${payHistoryCard()}
     <section class="card"><h2>Receive money safely</h2>
       <p class="muted">Add your UPI ID so people in ${esc(S.circle.name)} can pay you with “Pay safely”. They’ll always pay the ID you set here, never one sent in a message.</p>
       <form data-form="set-upi" class="row gap upi-form" novalidate><input id="u-upi" placeholder="yourname@okhdfcbank" value="${esc(meUpi || '')}" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="100" aria-label="Your UPI ID">
@@ -2044,14 +2068,24 @@ function bubble(m, other) {
   if (!p) body = '<span class="muted small">Unlocking…</span>';
   else if (p.locked) body = `<span class="muted small">🔒 Locked to ${mine ? 'your' : `${esc(other.name.split(' ')[0])}’s`} previous device. It can’t be opened here.</span>`;
   else if (p.bad) body = '<span class="muted small">⚠️ This message was changed or damaged and can’t be trusted.</span>';
-  else if (m.kind === 'p') {
-    return `<div class="msg pay ${mine ? 'me' : 'them'}${fresh}"><div class="pay-card"><span class="eyebrow">${mine ? `You paid ${esc(other.name.split(' ')[0])}` : `${esc(other.name.split(' ')[0])} is paying you`} · UPI</span>
+  else if (m.kind === 'c') {
+    const who = mine ? 'You' : esc(other.name.split(' ')[0]);
+    const txt = p.status === 'paid' ? `${who} marked ${rupees(p.amount)} as paid${p.utr ? ` · UPI ref ${esc(p.utr)}` : ''}` : p.status === 'received' ? `${who} confirmed receiving ${rupees(p.amount)}` : `${who} said the ${rupees(p.amount)} payment didn’t go through`;
+    return `<div class="msg sys${fresh}"><span class="sys-pill ${p.status}">${p.status === 'failed' ? '⚠️' : '✓'} ${txt}</span></div>`;
+  } else if (m.kind === 'p') {
+    const st = payStatus(m.id), first = esc(other.name.split(' ')[0]);
+    const chips = `${st.paid ? `<span class="pc-chip ok">✓ Paid${st.paid.utr ? ` · ref ${esc(st.paid.utr)}` : ''}</span>` : ''}${st.received ? '<span class="pc-chip ok">✓ Received</span>' : ''}${st.failed && !st.paid ? '<span class="pc-chip bad">Didn’t go through</span>' : ''}`;
+    const acts = mine
+      ? (!st.paid && !st.failed ? `<button class="btn small dark" data-act="pay-mark" data-id="${esc(m.id)}" data-v="paid">Mark as paid</button><button class="link small" data-act="pay-mark" data-id="${esc(m.id)}" data-v="failed">It didn’t go through</button>` : '')
+      : (!st.received ? `<button class="btn small dark" data-act="pay-mark" data-id="${esc(m.id)}" data-v="received">I received it</button>` : '');
+    return `<div class="msg pay ${mine ? 'me' : 'them'}${fresh}"><div class="pay-card"><span class="eyebrow">${mine ? `You paid ${first}` : `${first} is paying you`} · UPI</span>
       <b class="amt">${rupees(p.amount)}</b>${p.note ? `<span class="pay-note">${esc(p.note)}</span>` : ''}
       <span class="small">To ${esc(p.upi)}</span>
-      <span class="small muted">${mine ? 'Opened in your UPI app. Check your bank app to be sure it went through.' : 'Check your bank app to confirm the money arrived.'}</span></div><time>${t}</time></div>`;
+      ${chips ? `<span class="pc-chips">${chips}</span>` : `<span class="small muted">${mine ? 'Opened in your UPI app. Check your bank app, then mark it as paid.' : 'Check your bank app, then confirm you received it.'}</span>`}
+      <span class="pc-acts">${acts}<button class="link small" data-act="receipt" data-id="${esc(m.id)}">View receipt</button></span></div><time>${t}</time></div>`;
   } else if (m.kind === 'f') {
     const img = VIEWABLE.includes(p.type), shown = S.fileUrls?.get(m.id);
-    body = `${img && shown ? `<img class="att" src="${shown}" alt="${esc(p.name)}">` : ''}
+    body = `${img && shown ? `<img class="att" src="${shown}" alt="${esc(p.name)}" draggable="false">` : ''}
       <span class="file-card"><span class="file-ic">${img ? '🖼️' : /pdf/.test(p.type) ? '📄' : '📎'}</span><span class="grow"><b>${esc(p.name)}</b><span class="small">${fmtBytes(p.size)} · encrypted</span></span>
       <button class="btn small" data-act="file-open" data-id="${esc(m.id)}">${S.fileBusy === m.id ? 'Opening…' : img && !shown ? 'View' : 'Open'}</button></span>
       ${p.caption ? `<p>${esc(p.caption)}</p>` : ''}`;
@@ -2091,14 +2125,18 @@ function chatRoom(o) {
   return `<div class="chat-room">
     <header class="chat-head"><button class="back" data-act="chat-back" aria-label="Back to chats">‹</button>
       <span class="avatar">${initials(o.name)}</span>
-      <span class="grow"><b>${esc(o.name)}</b><span class="small">${ICON.lock} End-to-end encrypted</span></span>
+      <span class="grow"><b>${esc(o.name)}</b><span class="small">${ICON.lock} Encrypted · copying off</span></span>
       <button class="btn small gold" data-act="pay-open">₹ Pay</button></header>
     <div class="chat-scroll" id="chat-scroll">
+      <div class="chat-wm" aria-hidden="true">${Array.from({ length: 24 }, () => `<span>${esc(me()?.name || '')} · ${esc(maskEmail(S.user.email))}</span>`).join('')}</div>
+      <div class="chat-away" aria-hidden="true">${ICON.lock}<b>Hidden for privacy</b><span>Come back to Verth to see this chat.</span></div>
       ${S.chatErr ? `<p class="muted center">${esc(S.chatErr)}</p>` : ''}
       ${items || `<div class="chat-empty">${ICON.lock}<b>Say hello to ${esc(first)}</b><span class="small">Messages and files here are locked to your two phones. Not even the circle admin can read them.</span></div>`}
       ${S.chatPending ? `<div class="msg me"><div class="bub sending"><span class="spin"></span> ${esc(S.chatPending)}</div></div>` : ''}
     </div>
     ${pay}
+    ${S.payAwait && S.payAwait.uid === o.uid && !S.payOpen && S.plain.get(S.payAwait.id) && !payStatus(S.payAwait.id).paid && !payStatus(S.payAwait.id).failed ? `<div class="pay-ask"><b>Did your ${rupees(S.plain.get(S.payAwait.id).amount)} payment to ${esc(first)} go through?</b>
+      <form data-form="pay-confirm" class="row gap" novalidate><input id="pc-utr" maxlength="22" inputmode="numeric" placeholder="UPI ref no. (optional)" autocomplete="off"><button class="btn small ok" type="submit">Yes, paid</button><button type="button" class="btn small ghost" data-act="pay-mark" data-id="${esc(S.payAwait.id)}" data-v="failed">No</button></form></div>` : ''}
     ${!ready ? `<p class="warn">${thisDeviceActive() ? `${esc(first)} needs to open Verth once before you can chat.` : 'Chat works on the device Verth is set up on.'}</p>`
       : left <= 0 ? upsell('chat')
       : `<form data-form="chat" class="composer" novalidate>
@@ -2253,7 +2291,8 @@ Object.assign(forms, {
     if (!(amount >= 1 && amount <= 100000)) return setErr('p-err', 'Enter an amount between ₹1 and ₹1,00,000 (the UPI limit).');
     busy(f, true);
     try {
-      await sendChat({ kind: 'p', payload: { amount, note, upi: o.upi } });
+      const mid = await sendChat({ kind: 'p', payload: { amount, note, upi: o.upi } });
+      S.payAwait = { id: mid, uid: o.uid };
       const link = payLink(o, amount, note);
       if (isPhone()) { S.payOpen = false; renderMain(); location.href = link; }
       else { S.payQr = qrSvg(link); renderMain(); }
@@ -2273,6 +2312,105 @@ Object.assign(forms, {
   },
 });
 
+
+/* ---------- Pay safely: confirmations, receipts and history ---------- */
+// Verth can't see bank transfers, so a receipt carries what the two people confirm: the payer marks
+// it paid (optionally with the UPI reference) and the receiver confirms it arrived. All encrypted.
+function payStatus(id, msgs = S.msgs, plain = S.plain) {
+  const out = {};
+  for (const m of msgs) {
+    const c = m.kind === 'c' ? plain.get(m.id) : null;
+    if (c && c.ref === id) out[c.status] = { by: m.from, at: m.at, utr: c.utr || '' };
+  }
+  return out;
+}
+async function confirmPay(id, status, utr = '') {
+  const p = S.plain.get(id);
+  if (!p) return;
+  await sendChat({ kind: 'c', payload: { ref: id, status, amount: p.amount, ...(utr ? { utr } : {}) } });
+  if (S.payAwait?.id === id) S.payAwait = null;
+  toast(status === 'paid' ? 'Marked as paid. The receipt is updated for both of you.' : status === 'received' ? 'Thanks! The receipt now shows it was received.' : 'Noted. Nothing was marked as paid.', status === 'failed' ? '' : 'ok');
+}
+const receiptNo = (id) => 'VR-' + String(id).replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase();
+function receiptHtml(r) {
+  const fmtD = (t) => new Date(tsMs(t)).toLocaleString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const st = r.status, state = st.received ? ['ok', 'Received'] : st.paid ? ['ok', 'Paid'] : st.failed ? ['bad', 'Not completed'] : ['wait', 'Awaiting confirmation'];
+  return `<div class="rc-card" id="rc-card">
+    <div class="rc-top"><span class="rc-brand">${ICON.check}<b>Verth</b></span><span class="rc-tag">Payment receipt</span></div>
+    <div class="rc-amt"><span class="rc-state ${state[0]}">${state[1]}</span><b>${rupees(r.amount)}</b>${r.note ? `<span>${esc(r.note)}</span>` : ''}</div>
+    <div class="rc-who"><div><span class="avatar">${initials(r.fromName)}</span><b>${esc(r.fromName)}</b><small>Paid by</small></div><span class="rc-arrow">→</span><div><span class="avatar">${initials(r.toName)}</span><b>${esc(r.toName)}</b><small>Paid to</small></div></div>
+    <dl class="rc-rows">
+      <div><dt>To UPI ID</dt><dd>${esc(r.upi)}</dd></div>
+      <div><dt>Date and time</dt><dd>${fmtD(r.at)}</dd></div>
+      <div><dt>Receipt no.</dt><dd>${receiptNo(r.id)}</dd></div>
+      ${st.paid ? `<div><dt>Marked paid</dt><dd>${fmtD(st.paid.at)}${st.paid.utr ? `<br>UPI ref ${esc(st.paid.utr)}` : ''}</dd></div>` : ''}
+      ${st.received ? `<div><dt>Receipt confirmed</dt><dd>${fmtD(st.received.at)} by ${esc(r.toName)}</dd></div>` : ''}
+      <div><dt>Circle</dt><dd>${esc(r.circle)}</dd></div>
+    </dl>
+    <p class="rc-foot">${ICON.lock} Paid through the payer’s own UPI app; Verth never holds or moves money. This receipt is end-to-end encrypted and only ${esc(r.fromName.split(' ')[0])} and ${esc(r.toName.split(' ')[0])} can see it.</p>
+  </div>`;
+}
+function openReceipt(r) {
+  closeReceipt();
+  const m = document.createElement('div');
+  m.className = 'rc-modal'; m.id = 'rc-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', 'Payment receipt');
+  m.innerHTML = `<div class="rc-sheet">${receiptHtml(r)}<div class="rc-btns"><button class="btn primary" data-rc="print">Save as PDF / Print</button><button class="btn ghost" data-rc="close">Close</button></div></div>`;
+  m.addEventListener('click', (e) => { const b = e.target.closest('[data-rc]'); if (b?.dataset.rc === 'print') window.print(); else if (b?.dataset.rc === 'close' || e.target === m) closeReceipt(); });
+  document.body.appendChild(m); document.body.classList.add('rc-open');
+}
+function closeReceipt() { document.getElementById('rc-modal')?.remove(); document.body.classList.remove('rc-open'); }
+function receiptFrom(m, p, msgs, plain, otherUid) {
+  const mine = m.from === S.user.uid, o = member(otherUid);
+  return { id: m.id, amount: p.amount, note: p.note, upi: p.upi, at: m.at, fromName: mine ? (me()?.name || '') : (o?.name || ''), toName: mine ? (o?.name || '') : (me()?.name || ''), circle: S.circle?.name || '', status: payStatus(m.id, msgs, plain) };
+}
+
+// History across all of this person's conversations in the circle (decrypted on this phone).
+async function loadPayHistory() {
+  S.payHist = { loading: true, items: [] }; renderMain();
+  const items = [];
+  for (const [pid, c] of Object.entries(S.chats || {})) {
+    const other = (c.members || []).find((u) => u !== S.user.uid);
+    const kk = other ? await keyFor(other).catch(() => null) : null;
+    if (!kk) continue;
+    let snap;
+    try { snap = await getDocs(query(collection(db, 'circles', S.circleId, 'chats', pid, 'msgs'), where('kind', 'in', ['p', 'c']))); } catch { continue; }
+    const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) })), plain = new Map();
+    for (const m of msgs) {
+      if (m.kf !== kk.kf) continue;
+      try { plain.set(m.id, await openJson(kk.k, m.ct, m.iv, chatAad(pid, m.id, m.from, m.kind))); } catch {}
+    }
+    for (const m of msgs) if (m.kind === 'p' && plain.get(m.id)) items.push(receiptFrom(m, plain.get(m.id), msgs, plain, other));
+  }
+  items.sort((a, b) => tsMs(b.at) - tsMs(a.at));
+  S.payHist = { loading: false, items };
+  renderMain();
+}
+function payHistoryCard() {
+  const h = S.payHist;
+  if (!h) return `<section class="card"><div class="split"><h2>Your payments</h2><button class="btn small" data-act="pay-history">Show history</button></div><p class="muted small">Every Pay safely payment, with a receipt. Only you and the other person can see them.</p></section>`;
+  if (h.loading) return '<section class="card"><h2>Your payments</h2><p class="muted"><span class="spin"></span> Unlocking your receipts…</p></section>';
+  const total = (dir) => h.items.filter((r) => (dir === 'out') === (r.fromName === (me()?.name || ''))).reduce((a, r) => a + Number(r.amount || 0), 0);
+  return `<section class="card"><h2>Your payments</h2>
+    ${h.items.length ? `<div class="ph-tot"><div><small>Paid</small><b>${rupees(total('out'))}</b></div><div><small>Received</small><b>${rupees(total('in'))}</b></div></div>
+    <ul class="list ph-list">${h.items.map((r, i) => { const out = r.fromName === (me()?.name || ''); const st = r.status.received ? 'Received' : r.status.paid ? 'Paid' : r.status.failed ? 'Not completed' : 'Awaiting'; return `<li><button class="ph-row" data-act="hist-receipt" data-i="${i}"><span class="ph-ic ${out ? 'out' : 'in'}">${out ? '↗' : '↙'}</span><span class="grow"><b>${out ? `To ${esc(r.toName)}` : `From ${esc(r.fromName)}`}</b><span class="muted small">${new Date(tsMs(r.at)).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · ${st}${r.note ? ` · ${esc(r.note)}` : ''}</span></span><b class="ph-amt ${out ? 'out' : 'in'}">${out ? '−' : '+'}${rupees(r.amount)}</b></button></li>`; }).join('')}</ul>`
+    : '<p class="muted">No payments yet. Open a chat and tap “₹ Pay”.</p>'}</section>`;
+}
+Object.assign(actions, {
+  'pay-mark': async (el) => { el.disabled = true; try { await confirmPay(el.dataset.id, el.dataset.v); } catch (e) { toast(e.message || friendlyError(e), 'bad'); el.disabled = false; } },
+  receipt: (el) => {
+    const m = S.msgs.find((x) => x.id === el.dataset.id), p = S.plain.get(el.dataset.id);
+    if (m && p && !p.locked && !p.bad) openReceipt(receiptFrom(m, p, S.msgs, S.plain, S.chatWith));
+  },
+  'pay-history': () => loadPayHistory(),
+  'hist-receipt': (el) => { const r = S.payHist?.items?.[+el.dataset.i]; if (r) openReceipt(r); },
+});
+Object.assign(forms, {
+  'pay-confirm': async (f) => {
+    const utr = f.querySelector('#pc-utr').value.replace(/[^0-9A-Za-z]/g, '').slice(0, 22);
+    busy(f, true);
+    try { await confirmPay(S.payAwait.id, 'paid', utr); } catch (e) { toast(e.message || friendlyError(e), 'bad'); busy(f, false); }
+  },
+});
 
 /* ---------- sign-up step: lock the account to this phone (passkey) ---------- */
 // Free, and stronger than SMS: email proves the inbox, the fingerprint / face proves the person
@@ -2425,6 +2563,14 @@ root.addEventListener('submit', (e) => {
   const f = e.target.closest('form[data-form]');
   if (f && forms[f.dataset.form]) { e.preventDefault(); forms[f.dataset.form](f); }
 });
+// Private chat: no copying text out, no long-press menus, and the chat hides when Verth isn't in front
+// (so it doesn't show in the recent-apps preview). Browsers can't block screenshots; the Android app will.
+const inChatBox = (n) => !!(n && (n.nodeType === 1 ? n : n.parentElement)?.closest?.('.chat-scroll'));
+document.addEventListener('copy', (e) => { if (inChatBox(document.getSelection()?.anchorNode)) { e.preventDefault(); toast('Copying is turned off in private chats.'); } });
+document.addEventListener('contextmenu', (e) => { if (inChatBox(e.target)) e.preventDefault(); });
+document.addEventListener('visibilitychange', () => document.body.classList.toggle('away', document.hidden));
+window.addEventListener('blur', () => document.body.classList.add('away'));
+window.addEventListener('focus', () => document.body.classList.remove('away'));
 root.addEventListener('keydown', (e) => {
   if (e.target.id === 'c-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && isPhone() === false) {
     e.preventDefault(); e.target.form?.requestSubmit();
@@ -2527,6 +2673,7 @@ function route() {
     signOut(auth).catch(() => {});
     return sendCode(u.email).then(() => renderCode('Please confirm your email once.'), () => renderAuth());
   }
+  if (!S.circle && S.screen !== 'phone' && S.screen !== 'lock') renderLoading(S.authFlow === 'code' ? 'Signing you in…' : S.authFlow?.startsWith('google') ? 'Connecting your Google account…' : 'Opening your Verth…');
   afterSignIn().catch((e) => errorScreen(friendlyError(e)));
 }
 

@@ -3,7 +3,7 @@
 (function () {
   var d = document.documentElement, key = 'verth-splash';
   try { if (sessionStorage.getItem(key)) { d.classList.add('splash-seen'); return; } sessionStorage.setItem(key, '1'); } catch (e) { d.classList.add('splash-seen'); return; }
-  document.addEventListener('DOMContentLoaded', function () {
+  var start = function () {
     var el = document.getElementById('splash');
     if (!el) return;
     var name = '';
@@ -14,6 +14,7 @@
     }
     var done = function () { el.classList.add('sp-out'); setTimeout(function () { el.remove(); }, 450); };
     el.addEventListener('click', done);
-    setTimeout(done, 1500);
-  });
+    setTimeout(done, 2500);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

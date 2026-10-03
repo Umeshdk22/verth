@@ -296,6 +296,25 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(B, '04b-B-chat');
     // Free plan: after 12 messages today, plans are offered instead of the message box.
     await A.click('.pay-sheet >> text=Close');
+    // Receipts: the payer marks it paid (with the UPI reference), the receiver confirms it arrived.
+    await A.getByText('Did your ₹2,500 payment to Priya go through?').waitFor({ timeout: 5000 * SLOW });
+    await A.fill('#pc-utr', '427512345678'); await A.click('.pay-ask >> text=Yes, paid');
+    await A.locator('.sys-pill', { hasText: 'You marked ₹2,500 as paid · UPI ref 427512345678' }).waitFor({ timeout: 5000 * SLOW });
+    await B.locator('.sys-pill', { hasText: 'Rajesh marked ₹2,500 as paid' }).waitFor({ timeout: 6000 * SLOW });
+    await B.click('.msg.them .pay-card >> text=I received it');
+    await A.locator('.pc-chip', { hasText: 'Received' }).waitFor({ timeout: 6000 * SLOW });
+    await A.click('.msg.me .pay-card >> text=View receipt');
+    await A.locator('.rc-card .rc-state', { hasText: 'Received' }).waitFor();
+    await A.locator('.rc-card', { hasText: 'UPI ref 427512345678' }).waitFor();
+    await shot(A, '04d-A-receipt');
+    await A.click('[data-rc="close"]');
+    // Payment history across chats, decrypted on the phone.
+    await A.click('.chat-head .back');
+    await A.click('button:has-text("Show history")');
+    await A.locator('.ph-row', { hasText: 'To Priya Nair' }).waitFor({ timeout: 6000 * SLOW });
+    await A.locator('.ph-tot', { hasText: '₹2,500' }).waitFor();
+    await shot(A, '04e-A-history');
+    await A.click('.chat-row:has-text("Priya Nair")');
     await A.evaluate(() => { const S = window.__verth.S; S.daily.chat.count = 12; });
     await A.click('.chat-head .back'); await A.click('.chat-row:has-text("Priya Nair")');
     await A.getByText('You’ve used today’s 12 free messages.').waitFor({ timeout: 5000 * SLOW });
@@ -422,9 +441,20 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Scam check: reporting counts once and never stores the content', async () => {
     await B.click('button:has-text("Report this message as a scam")');
-    await B.getByText('Reported as a scam by 1 Verth user').waitFor({ timeout: 5000 * SLOW });
+    await B.getByText('Reported by 1 Verth user').waitFor({ timeout: 5000 * SLOW });
+    await B.getByText('Flagged high-risk 1 time').waitFor({ timeout: 5000 * SLOW }); // recorded automatically
     const db = JSON.stringify(await fs(B));
     if (db.includes('sbi-yono-kyc')) throw new Error('reported content stored in database');
+  });
+  await step('Scam database: someone else checking the same scam link is warned', async () => {
+    await A.click('nav >> text=Scan');
+    await A.click('.kinds >> text=Link');
+    await A.fill('#s-link', 'http://sbi-yono-kyc.xyz/update');
+    await A.click('button:has-text("Check it")');
+    await A.getByText(/Flagged high-risk [2-9] times/).waitFor({ timeout: 6000 * SLOW });
+    await shot(A, '10b-A-scam-db');
+    await A.click('text=Check something else');
+    await A.click('nav >> text=Home');
   });
   await step('Scam check: phone number analysis', async () => {
     await B.click('text=Check something else');
