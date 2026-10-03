@@ -650,6 +650,19 @@ const SLOW = process.env.CI ? 3 : 1;
     if (await A.locator('aside.rail').isVisible()) throw new Error('safety corner should hide on phones');
     await A.click('nav >> text=Home');
   });
+  await step('Phone screens (for review)', async () => {
+    await A.setViewportSize({ width: 390, height: 844 });
+    const snap = async (name) => { await A.waitForTimeout(1200); await A.screenshot({ path: OUT + '/phone-' + name + '.png' }); };
+    await A.click('nav >> text=Home'); await A.evaluate(() => window.scrollTo(0, 0)); await snap('home');
+    await A.evaluate(() => window.scrollTo(0, 760)); await snap('home-2');
+    await A.click('nav >> text=Scan'); await A.evaluate(() => window.scrollTo(0, 0)); await snap('scan');
+    await A.click('nav >> text=Chat'); await A.evaluate(() => window.scrollTo(0, 0)); await snap('chat');
+    await A.click('.chat-row:has-text("Priya Nair")'); await snap('chat-room'); await A.click('.chat-head .back');
+    await A.click('header .me-btn'); await A.evaluate(() => window.scrollTo(0, 0)); await snap('profile');
+    await A.click('nav >> text=Plan'); await A.evaluate(() => window.scrollTo(0, 0)); await snap('plan');
+    await A.setViewportSize({ width: 400, height: 860 });
+    await A.click('nav >> text=Home');
+  });
   await step('“Welcome to Verth” greeting: shown once per visit, then gets out of the way', async () => {
     const D = await ctx.newPage(); extra.push(['D', D]);
     await D.goto(URL);
