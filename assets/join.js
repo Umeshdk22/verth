@@ -20,6 +20,15 @@
     set('final-p', 'Join ' + circle + ' on Verth and stay one step ahead of scammers.');
   }
   set('t-type', type === 'org' ? 'Organisation circle · check payment and bank-change requests' : 'Family circle · check money requests and emergency messages');
+  var dom = String(q.get('d') || '').toLowerCase();
+  if (type === 'org' && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(dom) && dom.length <= 100) {
+    var lk = document.getElementById('t-lock');
+    if (lk) {
+      var b = document.createElement('b'); b.textContent = 'Work emails only';
+      lk.appendChild(b); lk.appendChild(document.createTextNode('Create your account with your email ending in @' + dom + '.'));
+      lk.hidden = false;
+    }
+  }
   if (code) set('t-code', code.slice(0, 4) + '-' + code.slice(4));
   else { var t = document.getElementById('ticket'); if (t) t.querySelector('.t-note').textContent = 'Ask the person who invited you for the 8-character code.'; }
   // Join: create an account (or open Verth if already logged in on this phone) with the code ready.

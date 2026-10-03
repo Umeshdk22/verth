@@ -46,13 +46,19 @@ export const TOPICS = [
   {
     id: 'circle', q: 'How do I set up my family or team?',
     keys: ['create circle', 'new circle', 'make circle', 'family circle', 'set up family', 'setup family', 'team setup', 'add family', 'add members', 'add people', 'invite', 'invite code', 'share code', 'parivar', 'add', 'mom', 'mother', 'father', 'dad', 'papa', 'mummy', 'parents', 'wife', 'husband', 'grandparents', 'employee', 'employees', 'colleague', 'staff'],
-    a: 'A circle is your family or team on Verth.\n• Create one: choose “Family circle” or “Organisation” and give it a name.\n• Invite: open the Circle tab and tap “Invite from my contacts” (Android) to pick people and send each one a WhatsApp or SMS in one tap, or tap “Send an invite” to share the link anywhere. They get a page explaining Verth with your 8-character invite code already filled in.\n• Approve: each person who uses the code waits until you approve them in the Circle tab. This stops strangers who get hold of the code.\n• Free circles hold up to 5 people.',
+    a: 'A circle is your family or team on Verth.\n• Create one: choose “Family circle” or “Organisation” and give it a name.\n• Invite: open the Circle tab and tap “Invite from my contacts” (Android) to pick people and send each one a WhatsApp or SMS in one tap, or tap “Send an invite” to share the link anywhere. They get a page explaining Verth with your 8-character invite code already filled in.\n• Approve: each person who uses the code waits until you approve them in the Circle tab, where you see their email and phone number. This stops strangers who get hold of the code.\n• Free circles hold up to 5 people.',
     go: [['Open Circle', 'circle']],
   },
   {
     id: 'org', q: 'How do employees join my organisation?',
     keys: ['employee', 'employees', 'staff join', 'team join', 'organisation join', 'organization join', 'company', 'office', 'link employees', 'add employees', 'add staff', 'how employee', 'colleagues', 'my team', 'business', 'company account'],
     a: 'For a company or office:\n• Admin: sign up, choose My organisation and type the company name. You get an 8-character invite code.\n• Admin: open the Circle tab, tap Copy invite message, and send it to your office WhatsApp group or email.\n• Each employee: open the link, sign in, tap I have an invite code, and enter the code with their role (like Accounts).\n• Admin: approve each person in the Circle tab. Nobody gets in without approval.\n• Free for up to 5 people; the Team plan is ₹299 a month for the whole organisation, with no limit on people.',
+    go: [['Open Circle', 'circle']],
+  },
+  {
+    id: 'company', q: 'How do I keep strangers out of my company circle?',
+    keys: ['verified company', 'company email', 'work email', 'email lock', 'company lock', 'domain', 'staff list', 'employee list', 'allowed emails', 'two admin', 'two admins', 'second admin', 'make admin', 'co-admin', 'another admin', 'only employees', 'only staff', 'fake employee', 'stranger joined'],
+    a: 'Open the Circle tab and scroll to “Company security” (organisation circles, admins only):\n• Company email lock: if you log in with your work email (like you@yourcompany.in), tap “Lock to @yourcompany.in”. Only that email can ask to join, and your circle gets a “Verified company” badge. Gmail, Yahoo and other free emails can’t be used.\n• Staff list: paste names and work emails (one per line, even from Excel), then tap “Only people on the list”.\n• Two-admin approval: the owner taps “Make admin” next to a trusted person, then turns it on. Every new person needs two different admins to approve.\n• You still approve everyone, and you see their email and phone number first.',
     go: [['Open Circle', 'circle']],
   },
   {

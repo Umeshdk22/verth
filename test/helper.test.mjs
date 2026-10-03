@@ -80,3 +80,9 @@ test('numbers and links inside a question go to Scam check, with just the number
   assert.equal(extractTarget('is sbi-kyc-update.xyz/login safe to open?', 'link'), 'sbi-kyc-update.xyz/login');
   assert.equal(looksLikeSomethingToCheck('how do I install on iphone'), null);
 });
+
+test('company security questions find the company topic', () => {
+  for (const q of ['how do I get the verified company badge', 'only employees should join', 'how to make another admin', 'add a staff list']) {
+    assert.equal(findAnswer(q)?.topic.id, 'company', q);
+  }
+});

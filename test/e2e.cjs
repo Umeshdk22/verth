@@ -144,8 +144,46 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('nav >> text=Circle');
     await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor();
     await shot(A, '02-A-approval');
+    await A.locator('.attention a[href="tel:+919123456780"]', { hasText: '+91 91234 56780' }).waitFor(); // phone shown for approval
     await A.click('button:has-text("Approve")');
     await B.getByRole('heading', { name: 'Your Verth code' }).waitFor({ timeout: 6000 * SLOW });
+  });
+
+  await step('Company security: make an admin, company email lock, staff list, two-admin approval', async () => {
+    await A.click('nav >> text=Circle');
+    await A.getByRole('heading', { name: 'Company security' }).waitFor({ timeout: 5000 * SLOW });
+    if (!(await A.getByText('You need at least two admins first').isVisible())) throw new Error('two-admin should need a second admin');
+    await A.click('button:has-text("Make admin")');
+    await A.getByText('Priya Nair is now an admin.').waitFor({ timeout: 5000 * SLOW });
+    await A.click('button:has-text("Lock to @nirmaan.in")');
+    await A.locator('.vbadge', { hasText: 'Verified company' }).waitFor({ timeout: 5000 * SLOW });
+    let d = await fs(A);
+    const cid = await A.evaluate(() => window.__verth.S.circleId);
+    if (d['circles/' + cid]?.domain !== 'nirmaan.in') throw new Error('company lock not saved');
+    if (d['invites/' + d['circles/' + cid].inviteCode]?.domain !== 'nirmaan.in') throw new Error('invite not updated with the lock');
+    await A.fill('#al-list', 'Kamla Devi, kamla@nirmaan.in\nsomeone@gmail.com\nnot an email');
+    await A.click('button:has-text("Add to the list")');
+    await A.getByText('Skipped 1 that aren’t @nirmaan.in').waitFor({ timeout: 5000 * SLOW });
+    await A.locator('.allow-list', { hasText: 'kamla@nirmaan.in' }).waitFor();
+    await A.waitForTimeout(200);
+    const addBtn = A.locator('[data-form="allow-add"] button[type=submit]');
+    if (await addBtn.isDisabled() || await addBtn.evaluate((b) => b.classList.contains('is-loading'))) throw new Error('add button stuck busy');
+    await A.click('button:has-text("Only people on the list")');
+    await A.getByText('Only people on this list can ask to join.').waitFor({ timeout: 5000 * SLOW });
+    await A.click('button:has-text("Turn on two-admin approval")');
+    await A.getByText('On. Two admins approve everyone.').waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '02b-A-company');
+    // Put things back for the rest of the run.
+    await A.click('[data-act="two-admins"][data-v="0"]');
+    await A.getByText('Two-admin approval is off.').waitFor({ timeout: 5000 * SLOW });
+    await A.click('[data-act="list-only"][data-v="0"]');
+    await A.getByText('Anyone with the invite code can ask to join again.').waitFor({ timeout: 5000 * SLOW });
+    await A.click('[data-act="company-lock"][data-v="0"]');
+    await A.getByText('Company lock turned off.').waitFor({ timeout: 5000 * SLOW });
+    await A.click('button:has-text("Remove admin")');
+    await A.getByText('Priya Nair is no longer an admin.').waitFor({ timeout: 5000 * SLOW });
+    d = await fs(A);
+    if (d['circles/' + cid].twoAdmins || d['circles/' + cid].listOnly || d['circles/' + cid].domain) throw new Error('settings not turned off');
   });
 
   await step('B sends a check; A denies (signed)', async () => {

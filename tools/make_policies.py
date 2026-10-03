@@ -41,7 +41,8 @@ PAGES = {
     "privacy": ("Privacy Policy", f"""
 <p>This policy explains what Verth collects and why. Verth is run by {OWNER}, {PLACE}. We follow India’s Digital Personal Data Protection Act, 2023.</p>
 <h2>What we collect</h2>
-<ul><li><b>Account:</b> your name, email address, mobile number, when you agreed to these terms, and whether your email is confirmed (handled by Google Firebase Authentication). Your mobile number is kept private: it isn’t shown to anyone in your circles and isn’t shared or used for marketing.</li>
+<ul><li><b>Account:</b> your name, email address, mobile number, when you agreed to these terms, and whether your email is confirmed (handled by Google Firebase Authentication). Your mobile number is kept private: only the admins of a circle you ask to join can see it, so they can recognise you before approving. Other members never see it, and it isn’t shared or used for marketing.</li>
+<li><b>Organisation staff lists (optional):</b> an organisation’s admins can add the names and work emails of people they expect to join, and can limit joining to their company’s email domain. Only that circle’s admins can see the list, and they can remove entries at any time.</li>
 <li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in the Plan tab.</li>
 <li><b>Circles and checks:</b> the circles you create or join, your role, the verification requests you send or answer (who, what was asked in your words, the channel, the answer and time).</li>
 <li><b>Device keys:</b> public keys that tie your answers to your own device, plus a simple device label like “Chrome on Android”. Private keys never leave your device.</li>

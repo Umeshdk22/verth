@@ -492,3 +492,14 @@ label.check input{width:20px;height:20px;min-height:0;margin:2px 0 0;flex:none;a
 .picked{border:2px solid var(--accent);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;background:#FAF8FF}
 .picked .list li{background:#fff}
 .btn.wa{background:#1FAF5A;color:#fff;border-color:#1FAF5A}.btn.wa:hover{background:#178F49}
+
+/* Company security (organisation circles) */
+.ok-inline{display:block;color:var(--ok);font-weight:600}
+.list .ok-inline{display:inline-block;margin-right:8px}
+hr.soft{border:0;border-top:1px dashed var(--line);margin:18px 0}
+.card.org-sec h3{margin:4px 0 6px;font-size:17px}
+.card.org-sec textarea{min-height:84px}
+.allow-list{max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:4px 10px}
+.vbadge-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.vbadge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--ok-bg,#e7f7ef);color:var(--ok,#0f7a4a);font-weight:700;font-size:14px}
+.vbadge svg{width:16px;height:16px}

@@ -64,6 +64,28 @@ service cloud.firestore {
     }
     function validPhone(p) { return p is string && p.matches('^[+]91[6-9][0-9]{9}$'); }
     function todayIST() { return string(int((request.time.toMillis() + 19800000) / 86400000)); }
+    // Company email lock: free email providers can never be a company domain.
+    function freeMail() {
+      return ['gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.co.in', 'yahoo.in', 'ymail.com', 'rocketmail.com',
+        'outlook.com', 'outlook.in', 'hotmail.com', 'hotmail.co.in', 'live.com', 'live.in', 'msn.com',
+        'icloud.com', 'me.com', 'mac.com', 'rediffmail.com', 'rediff.com', 'aol.com', 'proton.me', 'protonmail.com',
+        'pm.me', 'zoho.com', 'zohomail.in', 'zohomail.com', 'yandex.com', 'yandex.ru', 'mail.com', 'gmx.com', 'gmx.net',
+        'tutanota.com', 'tuta.io', 'hey.com', 'fastmail.com', 'inbox.com', 'mail.ru', 'qq.com', '163.com', 'sify.com', 'indiatimes.com'];
+    }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function myDomain() { return myEmail().split('@')[1]; }
+    function validDomain(d) {
+      return d is string && d.size() <= 100 && d.matches('^[a-z0-9-]+([.][a-z0-9-]+)+$') && !(d in freeMail());
+    }
+    // Who may ask to join: with the company lock on, only emails on that domain; with the
+    // staff list on, only emails the admins added to the list.
+    function joinAllowed(cid) {
+      let c = get(circlePath(cid)).data;
+      return (c.get('domain', null) == null || myDomain() == c.domain)
+        && (c.get('listOnly', false) != true
+            || exists(/databases/$(database)/documents/circles/$(cid)/allow/$(myEmail())));
+    }
+    function twoAdmins(cid) { return get(circlePath(cid)).data.get('twoAdmins', false) == true; }
     function channels() { return ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other', 'Call']; }
 
     // ---------- your profile ----------
@@ -153,7 +175,8 @@ service cloud.firestore {
       allow get: if signedIn();
       allow list: if false;
       allow create: if validInvite(code)
-        && request.resource.data.keys().hasOnly(['circleId', 'circleName', 'type', 'createdBy', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['circleId', 'circleName', 'type', 'domain', 'createdBy', 'createdAt'])
+        && request.resource.data.get('domain', null) == getAfter(circlePath(request.resource.data.circleId)).data.get('domain', null)
         && request.resource.data.createdBy == me()
         && request.resource.data.createdAt == request.time
         && text(request.resource.data.circleName, 60)
@@ -161,7 +184,10 @@ service cloud.firestore {
         && getAfter(circlePath(request.resource.data.circleId)).data.inviteCode == code
         && isAdminAfter(request.resource.data.circleId);
       allow delete: if isAdmin(resource.data.circleId);
-      allow update: if false;
+      // Kept in step with the circle's company lock, so people see it before asking to join.
+      allow update: if isAdmin(resource.data.circleId)
+        && onlyChanges(['domain'])
+        && request.resource.data.domain == getAfter(circlePath(resource.data.circleId)).data.get('domain', null);
     }
 
     // ---------- circles ----------
@@ -200,12 +226,20 @@ service cloud.firestore {
         && !existsAfter(memberPath(cid, request.resource.data.lastRemoved))
         && (request.resource.data.lastRemoved == me() || isAdmin(cid));
 
-      // Admins: rename, change the invite code, open or close joining.
+      // Admins: rename, change the invite code, open or close joining, and (organisations only)
+      // the company email lock, the staff list and two-admin approval. The company lock can only be
+      // set to the admin's own verified email domain, and never to a free email provider.
       allow update: if isAdmin(cid)
-        && onlyChanges(['name', 'inviteCode', 'joinOpen'])
+        && onlyChanges(['name', 'inviteCode', 'joinOpen', 'domain', 'listOnly', 'twoAdmins'])
         && text(request.resource.data.name, 60)
         && validInvite(request.resource.data.inviteCode)
-        && request.resource.data.joinOpen is bool;
+        && request.resource.data.joinOpen is bool
+        && request.resource.data.get('listOnly', false) is bool
+        && request.resource.data.get('twoAdmins', false) is bool
+        && (!changed().hasAny(['domain'])
+            || request.resource.data.get('domain', null) == null
+            || (validDomain(request.resource.data.domain) && request.resource.data.domain == myDomain()))
+        && (!changed().hasAny(['domain', 'listOnly', 'twoAdmins']) || resource.data.type == 'org');
 
       allow delete: if false;
 
@@ -230,6 +264,7 @@ service cloud.firestore {
             // someone joining with the current invite code: pending until approved
             (request.resource.data.role == 'member' && request.resource.data.status == 'pending'
               && get(circlePath(cid)).data.joinOpen == true
+              && joinAllowed(cid)
               && request.resource.data.inviteCode == get(circlePath(cid)).data.inviteCode
               && getAfter(circlePath(cid)).data.memberCount == get(circlePath(cid)).data.memberCount + 1)
           );
@@ -249,17 +284,71 @@ service cloud.firestore {
                   || (resource.data.role != 'admin' && request.resource.data.status == 'pending')))
           );
 
-        // Admins approve pending members.
+        // Admins approve pending members. With two-admin approval on, one admin approves first
+        // (for this device) and a different admin completes it.
         allow update: if isAdmin(cid) && uid != me()
           && resource.data.status == 'pending'
-          && request.resource.data.status == 'active'
-          && onlyChanges(['status', 'approvedBy', 'approvedAt'])
-          && request.resource.data.approvedBy == me()
-          && request.resource.data.approvedAt == request.time;
+          && (
+            (!twoAdmins(cid)
+              && request.resource.data.status == 'active'
+              && onlyChanges(['status', 'approvedBy', 'approvedAt'])
+              && request.resource.data.approvedBy == me()
+              && request.resource.data.approvedAt == request.time)
+            ||
+            (twoAdmins(cid)
+              && request.resource.data.status == 'pending'
+              && onlyChanges(['firstApproval'])
+              && request.resource.data.firstApproval == { 'by': me(), 'n': resource.data.device.n, 'at': request.time })
+            ||
+            (twoAdmins(cid)
+              && request.resource.data.status == 'active'
+              && onlyChanges(['status', 'approvedBy', 'approvedAt'])
+              && resource.data.get('firstApproval', null) != null
+              && resource.data.firstApproval.by != me()
+              && resource.data.firstApproval.n == resource.data.device.n
+              && request.resource.data.approvedBy == me()
+              && request.resource.data.approvedAt == request.time)
+          );
+
+        // The circle's owner can make an approved member an admin, or turn an admin back into a member.
+        allow update: if isAdmin(cid) && uid != me()
+          && get(circlePath(cid)).data.ownerUid == me()
+          && resource.data.status == 'active'
+          && onlyChanges(['role'])
+          && request.resource.data.role in ['admin', 'member'];
 
         // Leave, or be removed by an admin. Admins can't be removed or leave (so a circle is never orphaned).
         allow delete: if signedIn() && resource.data.role != 'admin' && (uid == me() || isAdmin(cid))
           && getAfter(circlePath(cid)).data.memberCount == get(circlePath(cid)).data.memberCount - 1;
+      }
+
+      // ---------- contact numbers ----------
+      // Your mobile number, shown only to the circle's admins (so they can recognise you before
+      // approving), never to other members. It must be the number on your own profile.
+      match /contacts/{uid} {
+        allow read: if isAdmin(cid) || (signedIn() && uid == me());
+        allow create: if signedIn() && uid == me()
+          && request.resource.data.keys().hasOnly(['phone'])
+          && validPhone(request.resource.data.phone)
+          && request.resource.data.phone == get(/databases/$(database)/documents/users/$(me())).data.get('phone', '')
+          && existsAfter(memberPath(cid, me()));
+        allow delete: if signedIn() && (uid == me() || isAdmin(cid));
+        allow update: if false;
+      }
+
+      // ---------- staff list (organisations) ----------
+      // Emails the admins allow to ask to join, when "only people on the list" is on.
+      match /allow/{email} {
+        allow read: if isAdmin(cid);
+        allow create: if isAdmin(cid)
+          && get(circlePath(cid)).data.type == 'org'
+          && email.size() <= 120 && email.matches('^[a-z0-9._%+-]+@[a-z0-9-]+([.][a-z0-9-]+)+$')
+          && request.resource.data.keys().hasOnly(['name', 'by', 'at'])
+          && (!('name' in request.resource.data) || text(request.resource.data.name, 60))
+          && request.resource.data.by == me()
+          && request.resource.data.at == request.time;
+        allow delete: if isAdmin(cid);
+        allow update: if false;
       }
 
       // ---------- checks (the verification log) ----------

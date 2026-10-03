@@ -48,6 +48,8 @@ body{background:#fff;font-size:17px}
 .ticket .t-type{color:var(--muted);font-size:15px}
 .ticket hr{border:0;border-top:2px dashed #E4DFF4;margin:18px -8px}
 .ticket .code{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:.14em;color:#16132B}
+.ticket .t-lock{margin:10px auto 0;max-width:300px;font-size:13.5px;line-height:1.45;color:#0F7A4A;background:rgba(15,157,107,.1);border-radius:12px;padding:8px 12px}
+.ticket .t-lock b{display:block;font-size:14px}
 .ticket .t-note{font-size:13px;color:var(--muted);margin-top:8px}
 .ticket .free{display:inline-block;margin-top:12px;background:var(--ok-bg);color:#0B6B49;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px}
 section.jsec{padding:72px 0}
@@ -113,6 +115,7 @@ footer a{color:var(--accent)}
         <div class="t-k">Invite code</div>
         <div class="code" id="t-code">••••-••••</div>
         <div class="t-note">Tap “Join now”. The code is filled in for you.</div>
+        <div class="t-lock" id="t-lock" hidden></div>
         <span class="free">Free · no card needed</span>
       </div>
     </div>

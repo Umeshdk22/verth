@@ -115,6 +115,22 @@ const others = () => active().filter((m) => m.uid !== S.user.uid);
 const member = (uid) => S.members.find((m) => m.uid === uid);
 const plan = () => PLANS[S.circle?.plan] || PLANS.free;
 const isAdmin = () => me()?.role === 'admin' && me()?.status === 'active';
+const isOwner = () => !!S.circle && S.circle.ownerUid === S.user?.uid;
+const admins = () => active().filter((m) => m.role === 'admin');
+// Company email lock. Free email providers can never be a company domain (same list as the database rules).
+const FREE_MAIL = ['gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.co.in', 'yahoo.in', 'ymail.com', 'rocketmail.com',
+  'outlook.com', 'outlook.in', 'hotmail.com', 'hotmail.co.in', 'live.com', 'live.in', 'msn.com',
+  'icloud.com', 'me.com', 'mac.com', 'rediffmail.com', 'rediff.com', 'aol.com', 'proton.me', 'protonmail.com',
+  'pm.me', 'zoho.com', 'zohomail.in', 'zohomail.com', 'yandex.com', 'yandex.ru', 'mail.com', 'gmx.com', 'gmx.net',
+  'tutanota.com', 'tuta.io', 'hey.com', 'fastmail.com', 'inbox.com', 'mail.ru', 'qq.com', '163.com', 'sify.com', 'indiatimes.com'];
+const domainOf = (email) => String(email || '').toLowerCase().split('@')[1] || '';
+const companyDomain = (email) => { const d = domainOf(email); return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(d) && !FREE_MAIL.includes(d) ? d : ''; };
+// With two-admin approval, the first approval only counts for the device the person asked from.
+const firstApproval = (m) => (m.firstApproval && m.firstApproval.n === m.device?.n ? m.firstApproval : null);
+const fmtPhone = (p) => (/^\+91\d{10}$/.test(p || '') ? `+91 ${p.slice(3, 8)} ${p.slice(8)}` : '');
+const myPhone = () => (/^\+91[6-9]\d{9}$/.test(S.profile?.phone || '') ? S.profile.phone : '');
+// Phone numbers live in an admins-only record, never on the member record other members can read.
+const phoneLink = (m) => { const p = S.contacts?.[m.uid]; return fmtPhone(p) ? ` · <a href="tel:${esc(p)}">${fmtPhone(p)}</a>` : ''; };
 const fmtCode = (c) => (c ? c.slice(0, 3) + ' ' + c.slice(3) : '--- ---');
 const fmtInvite = (c) => (c ? esc(c.slice(0, 4) + '-' + c.slice(4)) : '');
 const initials = (n) => esc((n || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase());
@@ -635,7 +651,7 @@ function viewVerify() {
 // A personal link to the invite page, with who invited them and to which circle.
 function inviteLink() {
   const c = S.circle, first = String(me()?.name || S.profile?.name || '').trim().split(/\s+/)[0];
-  const q = new URLSearchParams({ c: c.inviteCode, by: first.slice(0, 40), n: c.name.slice(0, 60), t: c.type === 'org' ? 'org' : 'family' });
+  const q = new URLSearchParams({ c: c.inviteCode, by: first.slice(0, 40), n: c.name.slice(0, 60), t: c.type === 'org' ? 'org' : 'family', ...(c.domain ? { d: c.domain } : {}) });
   return `${SITE_URL}join.html?${q}`;
 }
 function inviteMessage() {
@@ -652,25 +668,71 @@ function waNumber(tel) {
   return /^\d{11,15}$/.test(d) ? d : '';
 }
 
+function companyCard() {
+  const c = S.circle, mine = companyDomain(S.user.email), list = S.allow || [], nAdmins = admins().length;
+  const lock = c.domain
+    ? `<p class="muted">Only people with an <b>@${esc(c.domain)}</b> email can ask to join, and your circle shows a <b>Verified company</b> badge. A scammer with a Gmail can’t even ask.</p>
+       <button class="btn small ghost" data-act="company-lock" data-v="0">Turn off the company lock</button>`
+    : mine
+      ? `<p class="muted">Only people with an <b>@${esc(mine)}</b> email will be able to ask to join, and your circle gets a <b>Verified company</b> badge, because you proved you own an @${esc(mine)} mailbox.</p>
+         ${list.length || active().some((m) => domainOf(m.email) !== mine) ? `<p class="muted small">People already in the circle stay in, even with other emails.</p>` : ''}
+         <button class="btn primary" data-act="company-lock" data-v="1">${ICON.check}Lock to @${esc(mine)}</button>`
+      : `<p class="muted">You’re logged in with a personal email (@${esc(domainOf(S.user.email))}), so this can’t be turned on from your account. To get the Verified company badge, an admin who logs in with a work email (like you@yourcompany.in) turns it on.</p>`;
+  const joined = new Set(S.members.map((m) => String(m.email || '').toLowerCase()));
+  const rows = list.slice(0, 300).map((a) => `<li><span class="grow"><b>${esc(a.name || a.email)}</b>${a.name ? `<span class="muted small">${esc(a.email)}</span>` : ''}</span>
+      ${joined.has(a.email) ? '<span class="small ok-inline">Joined</span>' : ''}<button class="btn small ghost" data-act="allow-remove" data-email="${esc(a.email)}">Remove</button></li>`).join('');
+  return `<section class="card org-sec"><h2>Company security</h2>
+    <h3>Company email lock</h3>${lock}
+    <hr class="soft">
+    <h3>Staff list</h3>
+    <p class="muted">Add the work emails of the people you expect. ${c.listOnly ? '<b>Only people on this list can ask to join.</b>' : 'Turn on “only people on the list” to block everyone else, even if your invite code leaks.'} You still approve each person.</p>
+    <form data-form="allow-add" class="stack" novalidate>
+      <label>Add people<textarea id="al-list" rows="3" maxlength="60000" placeholder="One per line: name, email (or just the email). You can paste straight from Excel."></textarea></label>
+      <p class="err" id="al-err" role="alert"></p>
+      <div class="row gap"><button class="btn small primary" type="submit">Add to the list</button>
+      ${c.listOnly ? '<button type="button" class="btn small ghost" data-act="list-only" data-v="0">Let anyone with the code ask</button>' : `<button type="button" class="btn small" data-act="list-only" data-v="1" ${list.length ? '' : 'disabled'}>Only people on the list</button>`}</div>
+    </form>
+    ${list.length ? `<p class="muted small">${list.length} ${list.length === 1 ? 'person' : 'people'} on the list.</p><ul class="list allow-list">${rows}</ul>` : ''}
+    <hr class="soft">
+    <h3>Two-admin approval</h3>
+    <p class="muted">Each new person, and anyone moving to a new phone, needs approval from <b>two different admins</b>. One fooled or hacked admin isn’t enough.</p>
+    ${c.twoAdmins
+      ? '<p class="small ok-inline">On. Two admins approve everyone.</p><button class="btn small ghost" data-act="two-admins" data-v="0">Turn off</button>'
+      : nAdmins >= 2
+        ? '<button class="btn small primary" data-act="two-admins" data-v="1">Turn on two-admin approval</button>'
+        : `<p class="muted small">You need at least two admins first. ${isOwner() ? 'Tap “Make admin” next to a trusted person above.' : 'Ask the circle owner to make another admin.'}</p>`}
+  </section>`;
+}
+
 function viewCircle() {
   const c = S.circle, lim = plan().maxMembers, admin = isAdmin();
   const pending = S.members.filter((m) => m.status === 'pending');
   const msg = inviteMessage();
   const row = (m) => {
     const removable = admin && m.uid !== S.user.uid && m.role !== 'admin';
+    const owner = c.ownerUid === m.uid;
+    const roleBtn = isOwner() && m.uid !== S.user.uid && c.type === 'org'
+      ? (m.role === 'admin'
+        ? (c.twoAdmins && admins().length <= 2 ? '' : `<button class="btn small ghost" data-act="set-role" data-uid="${esc(m.uid)}" data-v="member">Remove admin</button>`)
+        : `<button class="btn small ghost" data-act="set-role" data-uid="${esc(m.uid)}" data-v="admin">Make admin</button>`)
+      : '';
     return `<li><span class="avatar">${initials(m.name)}</span>
-      <span class="grow"><b>${esc(m.name)}${m.uid === S.user.uid ? ' (you)' : ''}</b><span class="muted small">${esc(m.title || '')}${m.role === 'admin' ? ' · admin' : ''} · ${esc(m.email || '')}</span>
+      <span class="grow"><b>${esc(m.name)}${m.uid === S.user.uid ? ' (you)' : ''}</b><span class="muted small">${esc(m.title || '')}${owner ? ' · owner' : m.role === 'admin' ? ' · admin' : ''} · ${esc(m.email || '')}${admin ? phoneLink(m) : ''}</span>
       ${newDevice(m) ? `<span class="small warn-inline">New device ${ago(tsMs(m.device.at))}</span>` : ''}</span>
+      ${roleBtn}
       ${removable ? (S.confirmRemove === m.uid
         ? `<span class="row gap"><button class="btn small bad" data-act="remove" data-uid="${esc(m.uid)}">Remove</button><button class="btn small" data-act="cancel-remove">Keep</button></span>`
         : `<button class="btn small ghost" data-act="ask-remove" data-uid="${esc(m.uid)}">Remove</button>`) : ''}</li>`;
   };
   return `
   ${admin && pending.length ? `<section class="card attention"><h2>Waiting for your approval</h2>
-    <p class="muted small">Only approve people you know. Check the email address, not just the name: a scammer can type any name.</p>
-    <ul class="list people">${pending.map((m) => `<li><span class="avatar">${initials(m.name)}</span>
-      <span class="grow"><b>${esc(m.name)}</b><span class="muted small">${esc(m.title || '')} · ${esc(m.email || '')} · asked ${fmtTime(m.joinedAt)}</span></span>
-      <span class="row gap"><button class="btn small ok" data-act="approve" data-uid="${esc(m.uid)}">Approve</button><button class="btn small ghost" data-act="decline" data-uid="${esc(m.uid)}">Decline</button></span></li>`).join('')}</ul></section>` : ''}
+    <p class="muted small">Only approve people you know. Check the email address and phone number, not just the name: a scammer can type any name.${c.twoAdmins ? ' Two different admins must approve each person.' : ''}</p>
+    <ul class="list people">${pending.map((m) => { const f = c.twoAdmins ? firstApproval(m) : null, mineFirst = f && f.by === S.user.uid;
+      return `<li><span class="avatar">${initials(m.name)}</span>
+      <span class="grow"><b>${esc(m.name)}</b><span class="muted small">${esc(m.title || '')} · ${esc(m.email || '')}${phoneLink(m)} · asked ${fmtTime(m.joinedAt)}</span>
+      ${f ? `<span class="small ok-inline">${mineFirst ? 'You approved. Waiting for a second admin.' : `Approved by ${esc(member(f.by)?.name || 'an admin')}. Needs your approval too.`}</span>` : ''}</span>
+      <span class="row gap">${mineFirst ? '' : `<button class="btn small ok" data-act="approve" data-uid="${esc(m.uid)}">${c.twoAdmins ? (f ? 'Approve (2 of 2)' : 'Approve (1 of 2)') : 'Approve'}</button>`}<button class="btn small ghost" data-act="decline" data-uid="${esc(m.uid)}">Decline</button></span></li>`; }).join('')}</ul></section>` : ''}
+  ${c.type === 'org' && c.domain ? `<div class="vbadge-row"><span class="vbadge">${ICON.check}Verified company</span><span class="muted small">Only <b>@${esc(c.domain)}</b> emails can join ${esc(c.name)}.</span></div>` : ''}
   <section class="card"><h2>Invite people</h2>
     ${c.joinOpen === false
       ? `<p class="muted">Joining is turned off. Nobody can use an invite code until an admin turns it back on.</p>${admin ? '<button class="btn primary" data-act="join-open" data-v="1">Turn joining on</button>' : ''}`
@@ -687,7 +749,9 @@ function viewCircle() {
     <button class="link" data-act="copy" data-text="${esc(msg)}">Copy the invite message</button>
     ${admin ? '<div class="row gap"><button class="btn small ghost" data-act="rotate-code">Change code</button><button class="btn small ghost" data-act="join-open" data-v="0">Turn joining off</button></div><p class="muted small">Change the code if it was shared somewhere public. The old code stops working immediately.</p>' : ''}`}
     <p class="muted small">${c.plan === 'team' ? `${c.memberCount || S.members.length} people on the Team plan, no limit.` : `${c.memberCount || S.members.length} of ${lim} places used on the ${esc(plan().name)} plan.`}</p></section>
-  <section class="card"><h2>People in ${esc(c.name)}</h2><ul class="list people">${active().map(row).join('')}</ul></section>
+  <section class="card"><h2>People in ${esc(c.name)}</h2><ul class="list people">${active().map(row).join('')}</ul>
+    ${isOwner() && c.type === 'org' && admins().length < 2 ? '<p class="muted small">Tip: make a second trusted person an admin, so someone can approve people when you’re busy.</p>' : ''}</section>
+  ${admin && c.type === 'org' ? companyCard() : ''}
   <section class="card"><h2>More circles</h2><p class="muted">Protect your workplace and your family separately.</p>
     <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="${c.type === 'family' ? 'org' : 'family'}">New ${c.type === 'family' ? 'organisation' : 'family'} circle</button><button class="btn ghost grow" data-act="setup" data-type="join">Join with a code</button></div>
     ${me().role !== 'admin' ? `${S.confirmRemove === 'leave' ? `<div class="row gap"><button class="btn small bad" data-act="leave">Leave ${esc(c.name)}</button><button class="btn small" data-act="cancel-remove">Stay</button></div>` : '<button class="link" data-act="ask-leave">Leave this circle</button>'}` : ''}</section>`;
@@ -1124,7 +1188,7 @@ function stopListeners() { S.unsubs.forEach((u) => u()); S.unsubs = []; }
 
 async function openCircle(cid) {
   stopListeners();
-  Object.assign(S, { circleId: cid, circle: S.circles[cid] || null, members: [], checks: [], lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null });
+  Object.assign(S, { circleId: cid, circle: S.circles[cid] || null, members: [], checks: [], lastSentId: null, codeResult: null, confirmYes: null, confirmRemove: null, allow: null, allowSub: false, contacts: {} });
   S.sig = new Map();
   let first = true;
   S.unsubs.push(onSnapshot(doc(db, 'circles', cid), (s) => {
@@ -1135,6 +1199,17 @@ async function openCircle(cid) {
     S.members = s.docs.map((d) => d.data()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     if (!me()) { toast('You’re no longer in that circle.'); afterSignIn(); return; }
     S.sig = new Map(); // re-verify if anyone's device changed
+    if (isAdmin() && !S.allowSub) { // the staff list is only readable by admins
+      S.allowSub = true;
+      S.unsubs.push(onSnapshot(collection(db, 'circles', cid, 'allow'), (a) => {
+        S.allow = a.docs.map((d) => ({ email: d.id, ...d.data() })).sort((x, y) => x.email.localeCompare(y.email));
+        renderMain();
+      }, () => { S.allow = []; }));
+      S.unsubs.push(onSnapshot(collection(db, 'circles', cid, 'contacts'), (a) => {
+        S.contacts = Object.fromEntries(a.docs.map((d) => [d.id, d.data().phone]));
+        renderMain();
+      }, () => {}));
+    }
     renderMain(); verifySigs();
   }, () => {}));
   S.unsubs.push(onSnapshot(query(collection(db, 'circles', cid, 'checks'), orderBy('createdAt', 'desc'), limit(100)), (s) => {
@@ -1425,7 +1500,47 @@ const actions = {
     } catch (e) { toast(friendlyError(e), 'bad'); }
   },
   approve: async (el) => {
-    try { await updateDoc(doc(db, 'circles', S.circleId, 'members', el.dataset.uid), { status: 'active', approvedBy: S.user.uid, approvedAt: serverTimestamp() }); toast('Approved', 'ok'); }
+    const m = member(el.dataset.uid), ref = doc(db, 'circles', S.circleId, 'members', el.dataset.uid);
+    if (!m) return;
+    try {
+      if (S.circle.twoAdmins && !(firstApproval(m) && firstApproval(m).by !== S.user.uid)) {
+        await updateDoc(ref, { firstApproval: { by: S.user.uid, n: m.device.n, at: serverTimestamp() } });
+        toast('Approved. A second admin needs to approve too.', 'ok');
+      } else {
+        await updateDoc(ref, { status: 'active', approvedBy: S.user.uid, approvedAt: serverTimestamp() });
+        toast('Approved', 'ok');
+      }
+    } catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'set-role': async (el) => {
+    const m = member(el.dataset.uid), v = el.dataset.v === 'admin' ? 'admin' : 'member';
+    if (!m) return;
+    try { await updateDoc(doc(db, 'circles', S.circleId, 'members', m.uid), { role: v }); toast(v === 'admin' ? `${m.name} is now an admin.` : `${m.name} is no longer an admin.`, 'ok'); }
+    catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'company-lock': async (el) => {
+    const on = el.dataset.v === '1', d = on ? companyDomain(S.user.email) : null;
+    if (on && !d) return toast('Log in with your work email to turn this on.', 'bad');
+    try {
+      const b = writeBatch(db);
+      b.update(doc(db, 'circles', S.circleId), { domain: d });
+      b.update(doc(db, 'invites', S.circle.inviteCode), { domain: d });
+      await b.commit();
+      toast(on ? `Locked. Only @${d} emails can ask to join.` : 'Company lock turned off.', 'ok');
+    } catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'list-only': async (el) => {
+    try { await updateDoc(doc(db, 'circles', S.circleId), { listOnly: el.dataset.v === '1' }); toast(el.dataset.v === '1' ? 'Only people on your staff list can ask to join now.' : 'Anyone with the invite code can ask to join again.', 'ok'); }
+    catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'two-admins': async (el) => {
+    const on = el.dataset.v === '1';
+    if (on && admins().length < 2) return toast('Make a second admin first.', 'bad');
+    try { await updateDoc(doc(db, 'circles', S.circleId), { twoAdmins: on }); toast(on ? 'Two-admin approval is on.' : 'Two-admin approval is off.', 'ok'); }
+    catch (e) { toast(friendlyError(e), 'bad'); }
+  },
+  'allow-remove': async (el) => {
+    try { const b = writeBatch(db); b.delete(doc(db, 'circles', S.circleId, 'allow', el.dataset.email)); await b.commit(); }
     catch (e) { toast(friendlyError(e), 'bad'); }
   },
   decline: async (el) => removeMember(el.dataset.uid, 'Declined'),
@@ -1438,6 +1553,7 @@ const actions = {
     try {
       const b = writeBatch(db);
       b.delete(doc(db, 'circles', cid, 'members', S.user.uid));
+      b.delete(doc(db, 'circles', cid, 'contacts', S.user.uid));
       b.update(doc(db, 'circles', cid), { memberCount: increment(-1), lastRemoved: S.user.uid });
       b.update(doc(db, 'users', S.user.uid), { circles: arrayRemove(cid), activeCircle: null });
       stopListeners();
@@ -1451,7 +1567,7 @@ const actions = {
     try {
       const b = writeBatch(db);
       b.update(doc(db, 'circles', S.circleId), { inviteCode: code });
-      b.set(doc(db, 'invites', code), { circleId: S.circleId, circleName: S.circle.name, type: S.circle.type, createdBy: S.user.uid, createdAt: serverTimestamp() });
+      b.set(doc(db, 'invites', code), { circleId: S.circleId, circleName: S.circle.name, type: S.circle.type, ...(S.circle.domain ? { domain: S.circle.domain } : {}), createdBy: S.user.uid, createdAt: serverTimestamp() });
       b.delete(doc(db, 'invites', old));
       await b.commit();
       toast('New code ready. The old one no longer works.', 'ok');
@@ -1497,6 +1613,7 @@ async function removeMember(uid, word) {
   try {
     const b = writeBatch(db);
     b.delete(doc(db, 'circles', S.circleId, 'members', uid));
+    b.delete(doc(db, 'circles', S.circleId, 'contacts', uid));
     b.update(doc(db, 'circles', S.circleId), { memberCount: increment(-1), lastRemoved: uid });
     await b.commit();
     S.confirmRemove = null; toast(word); renderMain();
@@ -1592,6 +1709,7 @@ const forms = {
       b.set(cref, { name: name.slice(0, 60), type, ownerUid: uid, inviteCode: code, joinOpen: true, plan: 'free', memberCount: 1, createdAt: serverTimestamp() });
       b.set(doc(db, 'circles', cref.id, 'members', uid), { uid, name: S.profile.name, title: title.slice(0, 40), email: S.user.email, role: 'admin', status: 'active', device: newDeviceRecord(1), joinedAt: serverTimestamp() });
       b.set(doc(db, 'invites', code), { circleId: cref.id, circleName: name.slice(0, 60), type, createdBy: uid, createdAt: serverTimestamp() });
+      if (myPhone()) b.set(doc(db, 'circles', cref.id, 'contacts', uid), { phone: myPhone() });
       b.update(doc(db, 'users', uid), { circles: arrayUnion(cref.id), activeCircle: cref.id, onboarded: true });
       await b.commit();
       S.profile.circles = [...(S.profile.circles || []), cref.id];
@@ -1599,6 +1717,33 @@ const forms = {
       toast('Circle created. Now invite people.', 'ok');
       await afterSignIn(cref.id);
     } catch (e) { setErr('s-err', friendlyError(e)); busy(f, false); }
+  },
+  'allow-add': async (f) => {
+    const raw = f.querySelector('#al-list').value, have = new Set((S.allow || []).map((a) => a.email)), lockD = S.circle.domain;
+    const add = new Map(), wrong = [];
+    for (const line of raw.split(/[\n;]+/)) {
+      const m = line.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/);
+      if (!m) continue;
+      const email = m[0].toLowerCase();
+      if (lockD && domainOf(email) !== lockD) { wrong.push(email); continue; }
+      if (have.has(email) || email.length > 120) continue;
+      const name = line.replace(m[0], '').replace(/[<>"'\t,;|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+      add.set(email, name);
+    }
+    if (!add.size) return setErr('al-err', wrong.length ? `Those emails aren’t @${lockD} addresses, so they couldn’t join anyway.` : 'No new email addresses found. Put one per line, like “Priya Nair, priya@company.in”.');
+    if (add.size + have.size > 2000) return setErr('al-err', 'The staff list can hold up to 2,000 people.');
+    busy(f, true); setErr('al-err', '');
+    try {
+      const items = [...add];
+      for (let i = 0; i < items.length; i += 400) {
+        const b = writeBatch(db);
+        for (const [email, name] of items.slice(i, i + 400)) b.set(doc(db, 'circles', S.circleId, 'allow', email), { ...(name ? { name } : {}), by: S.user.uid, at: serverTimestamp() });
+        await b.commit();
+      }
+      f.querySelector('#al-list').value = '';
+      toast(`Added ${add.size} ${add.size === 1 ? 'person' : 'people'} to the staff list.${wrong.length ? ` Skipped ${wrong.length} that aren’t @${lockD}.` : ''}`, 'ok');
+    } catch (e) { setErr('al-err', friendlyError(e)); }
+    busy(f, false);
   },
   join: async (f) => {
     const code = f.querySelector('#j-code').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), title = f.querySelector('#j-title').value.trim();
@@ -1608,10 +1753,12 @@ const forms = {
     try {
       const inv = await getDoc(doc(db, 'invites', code));
       if (!inv.exists()) { setErr('s-err', 'That code doesn’t match any circle. Check it with the person who shared it.'); return busy(f, false); }
-      const cid = inv.data().circleId, uid = S.user.uid;
+      const cid = inv.data().circleId, uid = S.user.uid, lockD = inv.data().domain;
       if ((S.profile.circles || []).includes(cid)) { await afterSignIn(cid); return; }
+      if (lockD && domainOf(S.user.email) !== lockD) { setErr('s-err', `${inv.data().circleName} only accepts work emails ending in @${lockD}. You’re logged in as ${S.user.email}. Log out and create an account with your @${lockD} email, then use this code again.`); return busy(f, false); }
       const b = writeBatch(db);
       b.set(doc(db, 'circles', cid, 'members', uid), { uid, name: S.profile.name, title: title.slice(0, 40), email: S.user.email, role: 'member', status: 'pending', device: newDeviceRecord(1), inviteCode: code, joinedAt: serverTimestamp() });
+      if (myPhone()) b.set(doc(db, 'circles', cid, 'contacts', uid), { phone: myPhone() });
       b.update(doc(db, 'circles', cid), { memberCount: increment(1) });
       b.update(doc(db, 'users', uid), { circles: arrayUnion(cid), onboarded: true });
       await b.commit();
@@ -1620,7 +1767,7 @@ const forms = {
       toast(`Request sent to ${inv.data().circleName}. Waiting for approval.`, 'ok');
       await afterSignIn();
     } catch (e) {
-      setErr('s-err', e?.code === 'permission-denied' ? 'Couldn’t join. The circle may be full, closed to new members, or the code was changed. Ask the admin.' : friendlyError(e));
+      setErr('s-err', e?.code === 'permission-denied' ? 'Couldn’t join. The circle may be full, closed to new members, only open to people on its staff list, or the code was changed. Ask the admin.' : friendlyError(e));
       busy(f, false);
     }
   },

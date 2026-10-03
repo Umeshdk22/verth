@@ -389,3 +389,86 @@ test('reports can’t be faked for others, carry content, or use a non-fingerpri
   await assertFails(setDoc(doc(db('priya'), 'reports', '9876543210', 'by', 'priya'), { kind: 'phone', at: serverTimestamp() }));
   await assertFails(getDocs(collection(anon(), 'reports', FP, 'by')));
 });
+
+/* ---------- company security (organisations) ---------- */
+const lockTo = (f, domain) => updateDoc(doc(f, 'circles/c1'), { domain });
+test('the company lock can only be set to the admin’s own work email domain', async () => {
+  await assertFails(lockTo(db('rajesh', 'rajesh@x.in'), 'nirmaan.in'));        // not their domain
+  await assertFails(lockTo(db('rajesh', 'rajesh@gmail.com'), 'gmail.com'));   // free email provider
+  await assertFails(lockTo(db('priya', 'priya@nirmaan.in'), 'nirmaan.in'));    // not an admin
+  await assertSucceeds(lockTo(db('rajesh', 'rajesh@nirmaan.in'), 'nirmaan.in'));
+  await assertSucceeds(lockTo(db('rajesh', 'rajesh@x.in'), null));              // any admin can turn it off
+});
+test('family circles can’t use the company settings', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'circles/c1'), { type: 'family' }));
+  await assertFails(lockTo(db('rajesh', 'rajesh@nirmaan.in'), 'nirmaan.in'));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1'), { twoAdmins: true }));
+});
+test('with the company lock on, only that domain can ask to join', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'circles/c1'), { domain: 'nirmaan.in' }));
+  await assertFails(joinBatch(db('outsider', 'outsider@gmail.com'), 'outsider', { email: 'outsider@gmail.com' }));
+  await assertFails(joinBatch(db('outsider', 'outsider@nirmaan.in.evil.com'), 'outsider', { email: 'outsider@nirmaan.in.evil.com' }));
+  await assertSucceeds(joinBatch(db('outsider', 'Outsider@Nirmaan.in'), 'outsider', { email: 'Outsider@Nirmaan.in' }));
+});
+test('the invite record follows the company lock', async () => {
+  const f = db('rajesh', 'rajesh@nirmaan.in'), b = writeBatch(f);
+  b.update(doc(f, 'circles/c1'), { domain: 'nirmaan.in' });
+  b.update(doc(f, 'invites', CODE), { domain: 'nirmaan.in' });
+  await assertSucceeds(b.commit());
+  await assertFails(updateDoc(doc(f, 'invites', CODE), { domain: 'other.in' }));
+  await assertFails(updateDoc(doc(db('priya'), 'invites', CODE), { domain: null }));
+});
+test('staff list: admins manage it, and with “list only” on, only listed emails can ask to join', async () => {
+  const add = (f, email) => setDoc(doc(f, 'circles/c1/allow', email), { name: 'Out Sider', by: 'rajesh', at: serverTimestamp() });
+  await assertFails(add(db('priya'), 'outsider@x.in'));
+  await assertFails(add(db('rajesh'), 'Not An Email'));
+  await assertSucceeds(add(db('rajesh'), 'outsider@x.in'));
+  await assertFails(getDocs(collection(db('priya'), 'circles/c1/allow')));
+  await assertSucceeds(getDocs(collection(db('rajesh'), 'circles/c1/allow')));
+  await assertFails(updateDoc(doc(db('priya'), 'circles/c1'), { listOnly: true }));
+  await assertSucceeds(updateDoc(doc(db('rajesh'), 'circles/c1'), { listOnly: true }));
+  await assertFails(joinBatch(db('stranger'), 'stranger'));
+  await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
+});
+test('a joining member’s phone must be their own, and only admins can see it', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/outsider'), { phone: '+919876543210' }));
+  const join = (phone) => { const f = db('outsider'), b = writeBatch(f);
+    b.set(doc(f, 'circles/c1/members/outsider'), { uid: 'outsider', name: 'Out Sider', title: 'x', email: 'outsider@x.in', role: 'member', status: 'pending', device: device(), inviteCode: CODE, joinedAt: serverTimestamp() });
+    b.update(doc(f, 'circles/c1'), { memberCount: increment(1) });
+    b.set(doc(f, 'circles/c1/contacts/outsider'), { phone });
+    return b.commit(); };
+  await assertFails(join('+919999999999'));
+  await assertFails(joinBatch(db('outsider'), 'outsider', { phone: '+919876543210' })); // never on the member record
+  await assertSucceeds(join('+919876543210'));
+  await assertSucceeds(getDoc(doc(db('rajesh'), 'circles/c1/contacts/outsider')));
+  await assertSucceeds(getDoc(doc(db('outsider'), 'circles/c1/contacts/outsider')));
+  await assertFails(getDoc(doc(db('priya'), 'circles/c1/contacts/outsider')));
+  await assertFails(setDoc(doc(db('priya'), 'circles/c1/contacts/priya'), { phone: '+919876543210' })); // not her number
+});
+test('only the owner can make or remove admins, and only for approved people', async () => {
+  await assertFails(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { role: 'admin' }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1/members/mallory'), { role: 'admin' })); // still pending
+  await assertSucceeds(updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { role: 'admin' }));
+  await assertFails(updateDoc(doc(db('priya'), 'circles/c1/members/rajesh'), { role: 'member' }));  // a co-admin isn't the owner
+  await assertSucceeds(updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { role: 'member' }));
+});
+test('two-admin approval: one admin alone can’t let someone in', async () => {
+  await env.withSecurityRulesDisabled(async (c) => {
+    await updateDoc(doc(c.firestore(), 'circles/c1'), { twoAdmins: true });
+    await updateDoc(doc(c.firestore(), 'circles/c1/members/priya'), { role: 'admin' });
+  });
+  const first = (f, by) => updateDoc(doc(f, 'circles/c1/members/mallory'), { firstApproval: { by, n: 1, at: serverTimestamp() } });
+  await assertFails(approve(db('rajesh'), 'mallory', 'rajesh'));              // straight to active
+  await assertFails(first(db('rajesh'), 'priya'));                            // in someone else's name
+  await assertSucceeds(first(db('rajesh'), 'rajesh'));
+  await assertFails(approve(db('rajesh'), 'mallory', 'rajesh'));              // same admin again
+  await assertSucceeds(approve(db('priya'), 'mallory', 'priya'));             // a second admin completes it
+});
+test('two-admin approval: a first approval for an old device doesn’t count', async () => {
+  await env.withSecurityRulesDisabled(async (c) => {
+    await updateDoc(doc(c.firestore(), 'circles/c1'), { twoAdmins: true });
+    await updateDoc(doc(c.firestore(), 'circles/c1/members/priya'), { role: 'admin' });
+    await updateDoc(doc(c.firestore(), 'circles/c1/members/mallory'), { firstApproval: { by: 'rajesh', n: 0, at: Timestamp.now() } });
+  });
+  await assertFails(approve(db('priya'), 'mallory', 'priya'));
+});
