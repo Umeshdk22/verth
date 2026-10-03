@@ -579,9 +579,10 @@ function renderMain() {
     chat: S.chatWith ? null : ['Private chat', 'Talk privately', 'Messages, documents and payments between two people. Locked to your two phones.', 'sms', 'teal'],
     plan: ['Plan & account', 'Plans and billing', 'Your plan, your subscription and this device.', 'key', 'amber'],
     guard: null,
+    profile: null,
     guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
   }[S.tab];
-  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, guard: viewGuard, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, guard: viewGuard, profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
   const unread = unreadCount();
   // Keep the chat scrolled to the newest message, unless the person scrolled up to read.
@@ -595,6 +596,7 @@ function renderMain() {
           : `<b>${esc(S.circle.name)}</b>`}
         <span class="tag">${S.circle.type === 'family' ? 'Family' : 'Organisation'} · ${esc(plan().name)}</span>
       </div>
+      ${headAvatar()}
     </header>
     <main class="content">
       ${thisDeviceActive() ? '' : `<div class="warn strong"><b>Verth is set up on another device${me()?.device?.label ? ` (${esc(me().device.label)})` : ''}.</b> Answers and codes only work there. If you’ve switched phones, move Verth here. Everyone in your circle will be told you changed device.
@@ -779,7 +781,7 @@ function viewCircle() {
         ? (c.twoAdmins && admins().length <= 2 ? '' : `<button class="btn small ghost" data-act="set-role" data-uid="${esc(m.uid)}" data-v="member">Remove admin</button>`)
         : `<button class="btn small ghost" data-act="set-role" data-uid="${esc(m.uid)}" data-v="admin">Make admin</button>`)
       : '';
-    return `<li><span class="avatar">${initials(m.name)}</span>
+    return `<li>${ava(m)}
       <span class="grow"><b>${esc(m.name)}${m.uid === S.user.uid ? ' (you)' : ''}</b><span class="muted small">${esc(m.title || '')}${owner ? ' · owner' : m.role === 'admin' ? ' · admin' : ''} · ${esc(m.email || '')}${admin ? phoneLink(m) : ''}</span>
       ${newDevice(m) ? `<span class="small warn-inline">New device ${ago(tsMs(m.device.at))}</span>` : ''}</span>
       ${roleBtn}
@@ -1076,6 +1078,7 @@ async function scanPhoto(f) {
     return fail(friendlyError(e));
   }
   r.fp = r.normalized ? await fingerprint(r.fpKind, r.normalized) : null;
+  logScan(r, '');
   S.photoBusy = null; S.scanResult = r;
   renderScanView();
   document.getElementById('scan-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1086,12 +1089,12 @@ function renderScanOnly() {
   S.scanOnly = true; stopListeners(); S.circle = null; S.circleId = null;
   const interest = S.profile?.upgradeInterest?.plan;
   paint(`<div class="app">
-    <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div></header>
+    <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div>${headAvatar()}</header>
     <main class="content">
       ${trialBanner()}
       ${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}
       ${S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : ''}
-      ${S.guardOpen ? `<button class="link" data-act="guard-close">‹ Back to Scam check</button>${viewGuard()}` : `${viewScan()}${guardCard()}`}
+      ${S.profileOpen ? `<button class="link" data-act="profile-close">‹ Back to Scam check</button>${viewProfile()}` : S.guardOpen ? `<button class="link" data-act="guard-close">‹ Back to Scam check</button>${viewGuard()}` : `${viewScan()}${guardCard()}`}
       ${quoteCarousel()}
       ${alertShow()}
       <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
@@ -1101,7 +1104,7 @@ function renderScanOnly() {
         ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
       ${rulesGrid()}
       ${helplineBand()}
-      ${accountCard()}
+      ${S.profileOpen ? '' : accountCard()}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button></div>
       ${signOff()}
     </main></div>`);
@@ -1156,7 +1159,7 @@ function viewPlan() {
       ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
-    ${accountCard()}`;
+    <section class="card"><div class="split"><h2>Your account</h2><button class="btn small" data-act="profile-open">Open profile</button></div><p class="muted small">Your photo, history, fingerprint login, sign out and account settings are in your profile.</p></section>`;
 }
 
 /* ---------- account: fingerprint / face login, sign out, delete ---------- */
@@ -1574,7 +1577,7 @@ const actions = {
     const r = S.scanResult; if (!r?.fp) return;
     try {
       await setDoc(doc(db, 'reports', r.fp, 'by', S.user.uid), { kind: r.kind === 'job' || r.kind === 'image' ? 'message' : r.kind, at: serverTimestamp() });
-      S.myReports.add(r.fp); S.reports[r.fp] = (S.reports[r.fp] || 0) + 1;
+      S.myReports.add(r.fp); S.reports[r.fp] = (S.reports[r.fp] || 0) + 1; markReported(r.fp);
       toast('Thanks. Your report helps warn other Verth users.', 'ok'); renderScanView();
     } catch (e) { toast(friendlyError(e), 'bad'); }
   },
@@ -1758,6 +1761,7 @@ const forms = {
     const r = check(S.scanKind, text, f.querySelector('#s-company')?.value || '');
     S.prefill = null;
     r.fp = r.normalized ? await fingerprint(r.kind, r.normalized) : null;
+    logScan(r, text);
     S.scanResult = r;
     renderScanView();
     document.getElementById('scan-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2040,7 +2044,7 @@ function viewChat() {
     const pid = pairId(m.uid), c = S.chats?.[pid], unread = c && c.lastFrom !== S.user.uid && tsMs(c.lastAt) > lastRead(pid);
     const last = c ? (c.lastKind === 'p' ? 'Payment' : c.lastKind === 'c' ? 'Payment update' : c.lastKind === 'f' ? 'File' : 'Message') + (c.lastFrom === S.user.uid ? ' you sent' : ' received') + ` · ${ago(tsMs(c.lastAt))}` : 'Start a private conversation';
     return `<li><button class="chat-row${unread ? ' unread' : ''}" data-act="chat-open" data-uid="${esc(m.uid)}">
-      <span class="avatar big">${initials(m.name)}</span>
+      ${ava(m, 'big')}
       <span class="grow"><b>${esc(m.name)}</b><span class="muted small">${esc(m.title || '')}${m.upi ? ' · ₹ UPI ready' : ''}</span><span class="small last">${esc(last)}</span></span>
       ${unread ? '<span class="dot" aria-label="Unread"></span>' : ''}<span class="chev" aria-hidden="true">›</span></button></li>`;
   }).join('');
@@ -2124,7 +2128,7 @@ function chatRoom(o) {
     </div>` : '';
   return `<div class="chat-room">
     <header class="chat-head"><button class="back" data-act="chat-back" aria-label="Back to chats">‹</button>
-      <span class="avatar">${initials(o.name)}</span>
+      ${ava(o)}
       <span class="grow"><b>${esc(o.name)}</b><span class="small">${ICON.lock} Encrypted · copying off</span></span>
       <button class="btn small gold" data-act="pay-open">₹ Pay</button></header>
     <div class="chat-scroll" id="chat-scroll">
@@ -2412,6 +2416,113 @@ Object.assign(forms, {
   },
 });
 
+/* ---------- profile: photo, plan badge, history and account ---------- */
+const PHOTO_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
+const photoOf = (x) => (PHOTO_RE.test(x?.photo || '') && x.photo.length <= 80000 ? x.photo : '');
+// A round picture, or initials when there's no photo.
+const ava = (x, cls = '') => { const ph = photoOf(x); return ph ? `<span class="avatar ph ${cls}"><img src="${ph}" alt=""></span>` : `<span class="avatar ${cls}">${initials(x?.name)}</span>`; };
+const BADGE_IC = {
+  personal: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>',
+  family: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-7.5-10.4A4.3 4.3 0 0112 7.8a4.3 4.3 0 017.5 2.8C19.5 16.4 12 21 12 21z"/></svg>',
+  team: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/><rect x="3" y="19.2" width="18" height="2" rx="1"/></svg>',
+  trial: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg>',
+};
+// The best plan this person has: their own, or a paid circle they're in.
+function badgeOf() {
+  if (S.profile?.plan === 'personal' && S.profile?.billing && ['active', 'authenticated', 'pending'].includes(S.profile.billing.status)) return ['personal', 'Personal'];
+  const plans = [S.circle?.plan, ...Object.values(S.circles || {}).map((c) => c.plan)];
+  if (plans.includes('team')) return ['team', 'Team'];
+  if (plans.includes('family')) return ['family', 'Family'];
+  if (S.profile?.plan === 'personal') return ['personal', 'Personal'];
+  if (inTrial()) return ['trial', 'Free trial'];
+  return ['free', 'Free'];
+}
+function headAvatar() {
+  const [k, label] = badgeOf(), me0 = { name: S.profile?.name || S.user?.displayName, photo: S.profile?.photo };
+  return `<button class="me-btn b-${k}" data-act="profile-open" aria-label="Your profile (${label} plan)">${ava(me0)}${BADGE_IC[k] ? `<i class="me-badge">${BADGE_IC[k]}</i>` : ''}</button>`;
+}
+
+// Scam-check history stays on this phone only (Verth never stores what people check).
+const histKey = () => `verth-scans:${S.user?.uid || ''}`;
+const scanHist = () => { const h = store.get(histKey()); return Array.isArray(h) ? h : []; };
+function logScan(r, text) {
+  const label = r.kind === 'link' ? (r.host || r.normalized || '') : r.kind === 'phone' ? (r.normalized || '') : r.kind === 'image' ? 'Photo or screenshot' : String(text || '').replace(/\s+/g, ' ').slice(0, 70);
+  const h = [{ k: r.kind, v: r.verdict, l: label.slice(0, 80), fp: r.fp || '', at: Date.now() }, ...scanHist()].slice(0, 100);
+  store.set(histKey(), h);
+}
+function markReported(fp) { store.set(histKey(), scanHist().map((x) => (x.fp && x.fp === fp ? { ...x, rep: 1 } : x))); }
+
+function viewProfile() {
+  const p = S.profile || {}, [k, label] = badgeOf(), hist = scanHist(), c = countryBy(p.country || 'IN');
+  const since = p.createdAt ? new Date(tsMs(p.createdAt)).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '';
+  const mineChecks = (S.checks || []).filter((x) => x.fromUid === S.user.uid || x.toUid === S.user.uid);
+  const caught = hist.filter((x) => x.v === 'danger').length, reported = hist.filter((x) => x.rep).length;
+  const badge = k === 'trial' ? `✨ Free trial · ${trialDaysLeft() <= 1 ? 'last day' : `${trialDaysLeft()} days left`}` : k === 'free' ? 'Free plan' : `${label} member`;
+  const kindName = { message: 'Message', link: 'Link', phone: 'Number', job: 'Job offer', image: 'Photo' };
+  const vName = { danger: ['bad', 'Scam'], caution: ['wait', 'Careful'], clear: ['ok', 'No flags'] };
+  return `<section class="pf-hero b-${k}">
+      <div class="pf-ava">${ava({ name: p.name, photo: p.photo }, 'xl')}${BADGE_IC[k] ? `<i class="me-badge big">${BADGE_IC[k]}</i>` : ''}
+        <label class="pf-cam" title="Change photo">${ICON.camera}<input id="pf-photo" type="file" accept="image/*" class="sr-file" data-keep="no" aria-label="Change your profile photo"></label></div>
+      <h1>${esc(p.name || '')}</h1>
+      <p class="pf-mail">${esc(S.user.email)}</p>
+      <span class="pf-badge b-${k}">${BADGE_IC[k] || ''}${badge}</span>
+      <div class="pf-marks">
+        <span>✓ Email verified</span>
+        ${phoneOk() ? '<span>✓ Mobile verified</span>' : p.phone ? `<span class="dim">${esc(fmtPhone(p.phone))}</span>` : ''}
+        ${store.get('verth-pk') ? '<span>✓ Fingerprint login</span>' : ''}
+        <span>${c.flag} ${esc(c.name)}</span>
+        ${since ? `<span>Member since ${since}</span>` : ''}
+      </div>
+      ${photoOf(p) ? '<button class="link pf-rm" data-act="photo-remove">Remove photo</button>' : '<p class="pf-hint">Tap the camera to add your photo.</p>'}
+    </section>
+    <section class="pf-stats">
+      <div><b>${hist.length}</b><span>Scam checks</span></div>
+      <div class="bad"><b>${caught}</b><span>Scams caught</span></div>
+      <div><b>${reported}</b><span>Reported</span></div>
+      <div><b>${mineChecks.length}</b><span>Verify checks</span></div>
+    </section>
+    ${k === 'free' || k === 'trial' ? `<section class="pf-up"><div><b>${k === 'trial' ? 'Enjoying everything unlimited?' : 'Get the full Verth'}</b><span>Unlimited checks, chat and payments, and a ${BADGE_IC.personal} badge on your profile.</span></div><button class="btn gold" data-act="${S.circle ? 'tab' : 'trial-plans'}" data-tab="plan">See plans</button></section>` : ''}
+    <section class="card"><div class="split"><h2>Scam check history</h2>${hist.length ? '<button class="link small" data-act="hist-clear">Clear</button>' : ''}</div>
+      <p class="muted small">${ICON.lock} Kept only on this phone. Verth’s servers never see what you check.</p>
+      ${hist.length ? `<ul class="list sh-list">${hist.slice(0, 30).map((x) => `<li><span class="sh-k">${kindName[x.k] || 'Check'}</span><span class="grow"><b>${esc(x.l || '—')}</b><span class="muted small">${ago(x.at)}${x.rep ? ' · you reported it' : ''}</span></span><span class="pill ${vName[x.v]?.[0] || 'wait'}">${vName[x.v]?.[1] || ''}</span></li>`).join('')}</ul>` : '<p class="muted">No checks yet. Anything you check in Scam check appears here.</p>'}
+      <button class="btn ghost small" data-act="${S.circle ? 'tab' : 'profile-close'}" data-tab="scan">Check something</button></section>
+    ${S.circle ? `<section class="card"><div class="split"><h2>Verification history</h2><button class="link small" data-act="tab" data-tab="log">Full log</button></div>
+      ${mineChecks.length ? `<ul class="list">${mineChecks.slice(0, 8).map(logRow).join('')}</ul>` : '<p class="muted">No checks with your circle yet.</p>'}</section>
+      ${payHistoryCard()}` : ''}
+    <section class="card"><h2>Your circles</h2>
+      ${Object.keys(S.circles || {}).length ? `<ul class="list">${Object.entries(S.circles).map(([id, ci]) => `<li><span class="avatar">${initials(ci.name)}</span><span class="grow"><b>${esc(ci.name)}</b><span class="muted small">${ci.type === 'family' ? 'Family' : 'Organisation'} · ${esc((PLANS[ci.plan] || PLANS.free).name)} plan${ci.domain ? ' · Verified company' : ''}</span></span></li>`).join('')}</ul>` : '<p class="muted">You’re not in a circle yet.</p>'}</section>
+    ${accountCard()}`;
+}
+
+async function setProfilePhoto(file) {
+  if (!file || !/^image\//.test(file.type)) return toast('Choose a photo.', 'bad');
+  try {
+    const img = await createImageBitmap(file), side = Math.min(img.width, img.height);
+    const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+    cv.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 256, 256);
+    let url = cv.toDataURL('image/jpeg', 0.82);
+    if (url.length > 70000) url = cv.toDataURL('image/jpeg', 0.6);
+    if (!PHOTO_RE.test(url) || url.length > 80000) throw new Error('size');
+    await savePhoto(url);
+    toast('Profile photo updated.', 'ok');
+  } catch { toast('Couldn’t use that photo. Try another one.', 'bad'); }
+}
+async function savePhoto(url) {
+  const b = writeBatch(db);
+  b.update(doc(db, 'users', S.user.uid), { photo: url });
+  // People in your circles see it next to your name.
+  for (const cid of S.profile?.circles || []) if (S.circles?.[cid]) b.update(doc(db, 'circles', cid, 'members', S.user.uid), { photo: url });
+  await b.commit();
+  S.profile = { ...S.profile, photo: url };
+  rerender();
+}
+Object.assign(actions, {
+  'profile-open': () => { if (S.circle) { if (S.chatWith) closeChat(); S.tab = 'profile'; renderMain(); } else { S.profileOpen = true; S.guardOpen = false; renderScanView(); } window.scrollTo(0, 0); },
+  'profile-close': () => { S.profileOpen = false; renderScanView(); },
+  'photo-remove': async () => { try { await savePhoto(null); toast('Photo removed.'); } catch (e) { toast(friendlyError(e), 'bad'); } },
+  'hist-clear': () => { store.set(histKey(), []); rerender(); },
+});
+
 /* ---------- sign-up step: lock the account to this phone (passkey) ---------- */
 // Free, and stronger than SMS: email proves the inbox, the fingerprint / face proves the person
 // holding this phone. It can't be read out to a scammer or used from another phone.
@@ -2581,6 +2692,7 @@ root.addEventListener('input', (e) => {
 });
 root.addEventListener('change', (e) => {
   if (e.target.dataset?.dial) syncDial(e.target);
+  if (e.target.id === 'pf-photo' && e.target.files?.[0]) setProfilePhoto(e.target.files[0]);
   if (e.target.id === 'c-file' && e.target.files?.[0]) {
     const f = e.target.files[0], t = document.getElementById('c-text');
     if (t) t.placeholder = `Add a note to “${f.name.slice(0, 30)}”, then send`;

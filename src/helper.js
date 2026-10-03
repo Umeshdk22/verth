@@ -34,7 +34,7 @@ export const TOPICS = [
   {
     id: 'bio', q: 'How do I log in with fingerprint or face?',
     keys: ['fingerprint', 'face', 'biometric', 'biometrics', 'face id', 'touch id', 'passkey', 'finger', 'face lock', 'screen lock', 'without email'],
-    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in the Plan tab under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• Lost the phone? Remove it in the Plan tab from another device, and log in with an email code.',
+    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in your profile (tap your picture at the top) under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• Lost the phone? Remove it in the Plan tab from another device, and log in with an email code.',
     go: [['Open the app', 'app']],
   },
   {
@@ -54,6 +54,11 @@ export const TOPICS = [
     keys: ['employee', 'employees', 'staff join', 'team join', 'organisation join', 'organization join', 'company', 'office', 'link employees', 'add employees', 'add staff', 'how employee', 'colleagues', 'my team', 'business', 'company account'],
     a: 'For a company or office:\n• Admin: sign up, choose My organisation and type the company name. You get an 8-character invite code.\n• Admin: open the Circle tab, tap Copy invite message, and send it to your office WhatsApp group or email.\n• Each employee: open the link, sign in, tap I have an invite code, and enter the code with their role (like Accounts).\n• Admin: approve each person in the Circle tab. Nobody gets in without approval.\n• Free for up to 5 people; the Team plan is ₹299 a month for the whole organisation, with no limit on people.',
     go: [['Open Circle', 'circle']],
+  },
+  {
+    id: 'profile', q: 'Where is my profile, history and account?',
+    keys: ['profile', 'my profile', 'profile photo', 'profile pic', 'profile picture', 'my photo', 'change photo', 'dp', 'history', 'my history', 'scan history', 'check history', 'badge', 'my badge', 'account settings', 'my account'],
+    a: 'Tap your round picture at the top right of Verth to open your profile.\n• Add or change your photo with the camera button. People in your circles see it next to your name.\n• See your scam-check history (kept only on your phone), your verification history and your payments.\n• Paid plans show a badge: a gold star for Personal, a heart for Family and a crown for Team.\n• Fingerprint login, sign out and delete account are at the bottom of your profile.',
   },
   {
     id: 'guard', q: 'How do I make my phone safe from hackers?',

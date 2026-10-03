@@ -596,3 +596,14 @@ test('scam database: automatic high-risk flags are once per person, fingerprint-
   await assertFails(setDoc(doc(db('rajesh'), 'reports/not-a-hash/auto/rajesh'), { kind: 'link', at: serverTimestamp() }));
   await assertSucceeds(getDocs(collection(db('outsider'), `reports/${FP}/auto`)));
 });
+
+test('profile photos: only a small JPEG, only your own, also on your member record', async () => {
+  const pic = 'data:image/jpeg;base64,' + 'A'.repeat(2000);
+  await assertSucceeds(updateDoc(doc(db('priya'), 'users/priya'), { photo: pic }));
+  await assertSucceeds(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { photo: pic }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { photo: pic }));
+  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { photo: 'javascript:alert(1)' }));
+  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/svg+xml;base64,PHN2Zz4=' }));
+  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/jpeg;base64,' + 'A'.repeat(90000) }));
+  await assertSucceeds(updateDoc(doc(db('priya'), 'users/priya'), { photo: null }));
+});

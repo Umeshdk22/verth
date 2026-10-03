@@ -593,10 +593,25 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.getByText('Renewal cancelled', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
     await shot(A, '16-A-cancelled');
   });
+  await step('Profile: photo, Team badge, history and account in one place', async () => {
+    await A.click('nav >> text=Home');
+    if (!(await A.locator('header .me-btn.b-team').count())) throw new Error('header avatar should show the Team badge');
+    await A.click('header .me-btn');
+    await A.locator('.pf-badge', { hasText: 'Team member' }).waitFor({ timeout: 5000 * SLOW });
+    await A.locator('.pf-stats', { hasText: 'Scam checks' }).waitFor();
+    await A.locator('.sh-list', { hasText: 'sbi-yono-kyc.xyz' }).waitFor(); // history from this phone
+    await A.setInputFiles('#pf-photo', { name: 'me.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') });
+    await A.getByText('Profile photo updated.').waitFor({ timeout: 5000 * SLOW });
+    await A.locator('header .me-btn img').waitFor();
+    const d = await fs(A);
+    if (!/^data:image\/jpeg;base64,/.test(d['users/u_rajesh']?.photo || '')) throw new Error('photo not saved on the profile');
+    await A.getByText('Fingerprint / face login').first().waitFor(); // account settings live here now
+    await shot(A, '22-A-profile');
+  });
   await step('Signing out with an active subscription asks whether to cancel it', async () => {
     await A.evaluate(() => { const cid = window.__verth.S.circleId; const db = JSON.parse(localStorage.getItem('fakefs')); Object.assign(db['circles/' + cid].billing, { status: 'active', cancelAtEnd: false, payerUid: 'u_rajesh' }); localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); });
     await A.waitForTimeout(400);
-    await A.click('nav >> text=Plan');
+    await A.click('header .me-btn');
     await A.click('.card >> button:has-text("Sign out")');
     await A.getByRole('dialog', { name: 'Before you sign out' }).waitFor({ timeout: 3000 * SLOW });
     await A.getByText('Sign out and cancel my subscription').waitFor();
