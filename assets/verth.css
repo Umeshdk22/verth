@@ -611,3 +611,12 @@ body.in-chat .vh-fab{display:none}
 .fields2 label{min-width:0}
 .auth select{width:100%}
 @media (max-width:360px){.fields2{grid-template-columns:1fr}}
+
+/* Help button on sign-up / log-in screens: a small round button at the top right, out of the way of form buttons. */
+body.no-tabs .vh{top:calc(12px + env(safe-area-inset-top,0px));bottom:auto}
+body.no-tabs .vh-fab{width:46px;min-height:46px;padding:0;justify-content:center}
+body.no-tabs .vh-fab span{display:none}
+body.no-tabs .vh-panel{order:1}
+@media (max-width:560px){
+  body.no-tabs .vh-panel{inset:72px 8px calc(12px + env(safe-area-inset-bottom,0px)) 8px;height:auto}
+}

@@ -204,6 +204,7 @@ function paint(html) {
   }
   if (focused) document.getElementById(focused)?.focus();
   root.querySelectorAll('select[data-dial]').forEach(syncDial);
+  { const tabs = !!root.querySelector('nav.tabs'); document.body.classList.toggle('has-tabs', tabs); document.body.classList.toggle('no-tabs', !tabs); } // where the help button sits
   document.body.classList.toggle('in-chat', !!document.getElementById('chat-scroll')); // hide the help button over the message box
   tick();
 }
@@ -404,7 +405,7 @@ function renderCompleteProfile() {
   <div class="panel auth">
     <div class="state-icon ok">${ICON.ok}</div>
     <h1>Almost done</h1>
-    <p class="muted">Your email <b>${esc(u.email)}</b> is verified. Just a couple of details to finish your account.</p>
+    <p class="muted">Google has confirmed that <b>${esc(u.email)}</b> is your email, so no code is needed. Just a few details to finish your account.</p>
     <form data-form="complete-profile" class="stack" novalidate>
       <label>Your full name<input id="n-name" autocomplete="name" required maxlength="60" placeholder="e.g. Asha Sharma" value="${esc(u.displayName || '')}"></label>
       ${personFields('n')}
@@ -1332,7 +1333,14 @@ function remember(name, email) { const first = String(name || '').trim(); store.
 async function createProfile({ name, phone, gender, dob, country }) {
   const u = S.user;
   if (u.displayName !== name) { try { await updateProfile(u, { displayName: name }); } catch {} }
-  await setDoc(doc(db, 'users', u.uid), { name: name.slice(0, 60), email: u.email, phone, gender, dob, country, plan: 'free', circles: [], activeCircle: null, onboarded: false, agreedAt: serverTimestamp(), createdAt: serverTimestamp() });
+  const base = { name: name.slice(0, 60), email: u.email, phone, plan: 'free', circles: [], activeCircle: null, onboarded: false, agreedAt: serverTimestamp(), createdAt: serverTimestamp() };
+  try { await setDoc(doc(db, 'users', u.uid), { ...base, gender, dob, country }); }
+  catch (e) {
+    // The database's security rules may not have the newest fields yet (they're published by hand).
+    // Create the account without them rather than block sign-up.
+    if (e?.code !== 'permission-denied') throw e;
+    await setDoc(doc(db, 'users', u.uid), base);
+  }
 }
 // One welcome email from Umesh per new account (the server makes sure it's only sent once).
 function welcomeEmail() { if (PAY_API) payApi('/account/welcome', { name: S.profile?.name || '' }).catch(() => {}); }

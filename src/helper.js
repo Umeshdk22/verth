@@ -227,6 +227,14 @@ const TALK = [
     a: () => 'I’m doing well, thank you for asking! 😊 I’m ready to help. Did you get a message, call or offer that looks suspicious? I can check it with you.', start: true },
   { re: /^(who are you|what are you|what is this|what is verth|whats verth|tum kaun ho|aap kaun ho|ye kya hai|are you (a )?(bot|robot|ai|human)|are you real|आप कौन हैं|तुम कौन हो)(?:\s+(?:verth|there|ji|sir|bro|madam|dear|helper|friend|bhai|didi|again|so much|very much|जी))*$/iu,
     a: () => 'I’m Verth Helper, a friendly guide inside Verth. Verth checks suspicious messages, job offers, links, phone numbers and QR codes, and lets you confirm money requests with the real person on their own phone. I’m a computer helper, not a person, and I’ll never ask for your OTP, PIN or password.', start: true },
+  { re: /^(what('?s| is) your name|your name|tell me your name|may i know your name|who am i (talking|speaking) (to|with)|tumhara naam kya hai|aapka naam kya hai|naam kya hai|आपका नाम क्या है|तुम्हारा नाम क्या है)(?:\s+(?:verth|there|ji|sir|bro|madam|dear|helper|friend|bhai|didi|please|pls|जी))*$/iu,
+    a: (t) => (/[ऀ-ॿ]|naam/i.test(t) ? 'मेरा नाम वर्थ हेल्पर है! 😊 मैं धोखाधड़ी से बचने और वर्थ इस्तेमाल करने में आपकी मदद करता हूँ। आज मैं आपकी क्या मदद करूँ?' : 'My name is Verth Helper! 😊 I’m here to help you spot scams and use Verth. What can I do for you today?'), start: true },
+  { re: /^(who (made|built|created|owns) (you|verth|this)|who is (your|the) (owner|founder|creator|maker)|who is umesh|kisne banaya|aapko kisne banaya|तुम्हें किसने बनाया|वर्थ किसने बनाया)(?:\s+(?:verth|there|ji|sir|bro|madam|dear|helper|friend|bhai|didi|please|pls|जी))*$/iu,
+    a: () => 'Verth was made by Umesh, an Indian founder, after a fake company tricked him into paying for a job exam. He built Verth so no family has to go through that. 🙏 Is there something you’d like to check?', start: true },
+  { re: /^(good|very good|nice|awesome|great|super|cool|amazing|love it|i love verth|i like it|well done|badhiya|mast|bahut accha)( (app|work|job|helper|verth))?$/iu,
+    a: () => 'Thank you so much! 😊 That means a lot. Tell your family about Verth too, it could save them from a scam.' },
+  { re: /^(bored|i am bored|tell me a joke|joke|sing a song|what can you do|what do you do|help me please|can you help me|can you help)$/iu,
+    a: () => 'I can help you with things like:\n• Checking if a message, job offer, link or phone number is a scam\n• Setting up your family or team on Verth\n• What to do if someone is asking you for money or an OTP\nWhat would you like to do?', start: true },
   { re: /^(thanks|thank you|thank u|thx|ty|tysm|shukriya|dhanyavad|dhanyawad|thanks a lot|great thanks|ok thanks|धन्यवाद|शुक्रिया)(?:\s+(?:verth|there|ji|sir|bro|madam|dear|helper|friend|bhai|didi|again|so much|very much|जी))*$/iu,
     a: () => 'You’re welcome! 🙏 Stay safe. If anything else looks suspicious, just ask me or use Scam check.' },
   { re: /^(bye|goodbye|see you|tata|alvida|ok bye|good night|बाय|अलविदा)(?:\s+(?:verth|there|ji|sir|bro|madam|dear|helper|friend|bhai|didi|again|so much|very much|जी))*$/iu,
@@ -238,7 +246,7 @@ const TALK = [
 ];
 export function smallTalk(text) {
   const t = String(text || '').trim().replace(/[!?.,🙏😊👋]+$/u, '').trim();
-  if (!t || t.length > 40) return null;
+  if (!t || t.length > 60) return null;
   for (const x of TALK) if (x.re.test(t)) return { a: x.a(t), start: !!x.start };
   return null;
 }
@@ -414,11 +422,11 @@ export function mountHelper({ go, ai = null, raised = false } = {}) {
       } catch (e) {
         wait.remove();
         if (hit) showTopic(hit.topic, hit.also);
-        else add('bot', fmt(e?.message === 'limit' ? 'I’ve answered a lot of questions today, so I can only use the Verth guide for now. Pick a topic:' : 'I didn’t quite understand that, sorry. Could you say it another way? Or pick what fits best:'), chips(SUGGEST));
+        else add('bot', fmt(e?.message === 'limit' ? 'I’ve answered a lot of questions today, so I can only use the Verth guide for now. Pick a topic:' : 'Hmm, I’m not sure about that one. I’m best with questions about scams and using Verth. You could ask me something like “Is this message a scam?” or “How do I add my family?”, or pick a topic:'), chips(SUGGEST));
       } finally { busy = false; }
       return;
     }
-    add('bot', fmt('I didn’t quite understand that, sorry. Could you say it another way? Or pick what fits best:'), chips(SUGGEST));
+    add('bot', fmt('Hmm, I’m not sure about that one. I’m best with questions about scams and using Verth. You could ask me something like “Is this message a scam?” or “How do I add my family?”, or pick a topic:'), chips(SUGGEST));
   }
 
   form.addEventListener('submit', (e) => { e.preventDefault(); const q = input.value; input.value = ''; ask(q); });

@@ -25,6 +25,7 @@
 
 const enc = new TextEncoder();
 const PAID_STATUSES = ['authenticated', 'active', 'pending'];
+export const WORKER_VERSION = '2026-10-03';
 export const PRODUCTS = {
   personal: { target: 'user', envKey: 'PLAN_PERSONAL', label: 'Verth Personal (₹149 / month)' },
   family: { target: 'circle', envKey: 'PLAN_FAMILY', label: 'Verth Family (₹199 / month)', maxMembers: 10 },
@@ -776,6 +777,10 @@ export async function handle(request, env, deps = {}) {
   const h = cors(env, origin);
   try {
     if (request.method === 'OPTIONS') return new Response(null, { status: h['access-control-allow-origin'] ? 204 : 403, headers: h });
+    // Which features are switched on (never the keys themselves), so setup can be checked from a browser.
+    if (request.method === 'GET' && url.pathname === '/health') {
+      return json({ ok: true, version: WORKER_VERSION, ai: !!env.GEMINI_API_KEY, aiModel: env.GEMINI_MODEL || AI.model, emailCodes: !!(env.OTP_SECRET && env.BREVO_API_KEY && env.MAIL_FROM), passkeys: !!env.ALLOWED_ORIGIN, captcha: !!env.TURNSTILE_SECRET, sms: !!env.TWOFACTOR_API_KEY, payments: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) }, 200, { 'access-control-allow-origin': '*' });
+    }
     if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, h);
     const fs = deps.fs || firestore(env, fetchFn), rp = deps.rp || razorpay(env, fetchFn);
     if (Number(request.headers.get('content-length') || 0) > 100_000) throw new HttpError(413, 'Too large.');

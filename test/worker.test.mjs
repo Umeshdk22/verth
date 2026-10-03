@@ -644,3 +644,11 @@ test('mobile check: a failed SMS gives a clear error', async () => {
   const r = await smsCall(f, '/phone/send', { phone: '9876543210' }, { token });
   assert.equal(r.status, 502); assert.match(r.body.error, /couldn’t send the SMS/);
 });
+
+test('health check says which features are switched on, never the keys', async () => {
+  const r = await handle(new Request('https://w.example/health', { method: 'GET' }), { ...otpEnv, GEMINI_API_KEY: 'secret-gem' }, {});
+  const j = await r.json();
+  assert.equal(r.status, 200);
+  assert.equal(j.ai, true); assert.equal(j.emailCodes, true); assert.equal(j.sms, false);
+  assert.ok(!JSON.stringify(j).includes('secret-gem') && !JSON.stringify(j).includes('otp-secret'));
+});
