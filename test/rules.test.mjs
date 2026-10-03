@@ -601,9 +601,10 @@ test('profile photos: only a small JPEG, only your own, also on your member reco
   const pic = 'data:image/jpeg;base64,' + 'A'.repeat(2000);
   await assertSucceeds(updateDoc(doc(db('priya'), 'users/priya'), { photo: pic }));
   await assertSucceeds(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { photo: pic }));
-  await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { photo: pic }));
-  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { photo: 'javascript:alert(1)' }));
-  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/svg+xml;base64,PHN2Zz4=' }));
-  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/jpeg;base64,' + 'A'.repeat(90000) }));
+  const no = (label, p) => assertFails(p).catch((e) => { throw new Error(label + ': ' + e.message); });
+  await no('someone else’s member photo', updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { photo: pic }));
+  await no('javascript address', updateDoc(doc(db('priya'), 'users/priya'), { photo: 'javascript:alert(1)' }));
+  await no('svg image', updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/svg+xml;base64,PHN2Zz4=' }));
+  await no('too big', updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/jpeg;base64,' + 'A'.repeat(90000) }));
   await assertSucceeds(updateDoc(doc(db('priya'), 'users/priya'), { photo: null }));
 });
