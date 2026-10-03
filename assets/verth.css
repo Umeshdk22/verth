@@ -595,3 +595,15 @@ body.in-chat .vh-fab{display:none}
 .pay-card .eyebrow{color:#7A4B00;opacity:1}
 .steps3.four{font-size:11.5px;gap:4px}
 .ok-inline.inline{display:inline;font-size:12.5px;margin-left:4px}
+.lock-step{text-align:center}
+.lock-step .w-ticks{text-align:left;margin:14px 0 6px}
+.lock-step .btn.big svg{width:22px;height:22px;margin-right:8px;vertical-align:-5px}
+.lock-hero{width:96px;height:96px;margin:14px auto 6px;border-radius:30px;display:grid;place-items:center;color:#fff;
+  background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.35),transparent 55%),linear-gradient(135deg,#8B5CF6,#4B23C9);
+  box-shadow:0 18px 36px -16px rgba(75,35,201,.75),0 0 0 10px rgba(107,61,240,.10);animation:pulse 2.4s ease-in-out infinite}
+.lock-hero svg{width:54px;height:54px}
+@keyframes pulse{0%,100%{box-shadow:0 18px 36px -16px rgba(75,35,201,.75),0 0 0 10px rgba(107,61,240,.10)}50%{box-shadow:0 18px 36px -16px rgba(75,35,201,.75),0 0 0 18px rgba(107,61,240,.05)}}
+@media (prefers-reduced-motion:reduce){.lock-hero{animation:none}}
+.lock-step .small-ticks{display:flex;flex-direction:column;gap:8px}
+.lock-step .small-ticks li{background:none;padding:0;color:var(--ink);font-weight:500;font-size:14.5px;align-items:flex-start}
+.lock-step .small-ticks li svg{color:var(--ok);flex:none;margin-top:2px}

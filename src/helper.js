@@ -17,7 +17,7 @@ export const TOPICS = [
   {
     id: 'signup', q: 'How do I create an account?',
     keys: ['sign up', 'signup', 'register', 'create account', 'new account', 'make account', 'account banana', 'account kaise', 'join verth', 'get started', 'start using'],
-    a: 'Open the Verth app and tap “Create account”.\n• Type your full name, email and 10-digit mobile number, tick the box to agree, and tap “Send verification code”.\n• Verth emails you a 6-digit code. Type it in. No password needed. Or tap “Sign up with Google”.\n• Then verify your mobile number with a 6-digit SMS code. One number can be used for only one Verth account.\n• You can then turn on fingerprint / face login, so next time you don’t even type your email.\n• A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.',
+    a: 'Open the Verth app and tap “Create account”.\n• Type your full name, email and 10-digit mobile number, tick the box to agree, and tap “Send verification code”.\n• Verth emails you a 6-digit code. Type it in. No password needed. Or tap “Sign up with Google”.\n• Then lock your account to your phone with your fingerprint or face. Next time you log in with one touch.\n• You can then turn on fingerprint / face login, so next time you don’t even type your email.\n• A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.',
     go: [['Open the app', 'app']],
   },
   {

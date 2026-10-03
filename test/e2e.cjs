@@ -63,6 +63,7 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   // New people sign up with Google, then finish their profile and see the welcome screen.
   const googleSignup = async (p, email, name, phone) => {
+    if (p !== A) await p.route('**/passkey/**', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH }) : r.fulfill({ headers: corsH, json: {} })));
     await p.evaluate(([e, n]) => { window.__googleEmail = e; window.__googleName = n; }, [email, name]);
     await p.click('.auth-tabs >> text=Create account');
     await p.click('text=Sign up with Google');
@@ -70,6 +71,9 @@ const SLOW = process.env.CI ? 3 : 1;
     if ((await p.locator('#n-name').inputValue()) !== name) throw new Error('name not prefilled from Google');
     await p.fill('#n-phone', phone); await p.check('#n-agree');
     await p.click('button:has-text("Create my account")');
+    await p.getByRole('heading', { name: 'Lock Verth to your phone' }).waitFor({ timeout: 5000 * SLOW });
+    await p.click('button:has-text("Turn on fingerprint / face")');
+    await p.click('text=Continue without it (less secure)', { timeout: 8000 * SLOW });
     await p.getByRole('heading', { name: /Welcome to Verth, / }).waitFor({ timeout: 5000 * SLOW });
     await p.locator('.welcome-card button', { hasText: /Maybe later|Let’s get started/ }).click();
   };
@@ -112,7 +116,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#a-code', '482913');
     // Last step: verify the mobile number by SMS.
     await A.getByRole('heading', { name: 'Verify your mobile' }).waitFor({ timeout: 5000 * SLOW });
-    if ((await A.locator('.steps3 li').count()) !== 4) throw new Error('sign-up should show 4 steps when SMS checks are on');
+    if ((await A.locator('.steps3 li').count()) !== 5) throw new Error('sign-up should show 5 steps (details, email, mobile, fingerprint, done)');
     if ((await A.locator('#m-phone').inputValue()) !== '9876543210') throw new Error('mobile not prefilled');
     await A.click('button:has-text("Send SMS code")');
     await A.getByText('We sent a 6-digit code by SMS to').waitFor({ timeout: 5000 * SLOW });
@@ -120,6 +124,12 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#m-code', '000000');
     await A.getByText('That code isn’t right').waitFor({ timeout: 3000 * SLOW });
     await A.fill('#m-code', '246810');
+    // Then lock the account to this phone with fingerprint / face. Skipping only appears after a try.
+    await A.getByRole('heading', { name: 'Lock Verth to your phone' }).waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '00c-A-lock');
+    if (await A.getByText('Continue without it').count()) throw new Error('skip should only appear after trying');
+    await A.click('button:has-text("Turn on fingerprint / face")');
+    await A.click('text=Continue without it (less secure)', { timeout: 8000 * SLOW });
     await A.getByRole('heading', { name: /Welcome to Verth, Rajesh/ }).waitFor({ timeout: 5000 * SLOW });
     await A.getByText('Mobile number verified').first().waitFor();
     await shot(A, '00b-A-welcome');

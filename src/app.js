@@ -252,8 +252,8 @@ function renderNotConfigured() {
 let resendTimer;
 const PHONE_RE = /^[6-9]\d{9}$/;
 const maskEmail = (e) => { const [u, d] = String(e || '').split('@'); return d ? `${u.slice(0, 2)}${'•'.repeat(Math.max(1, Math.min(6, u.length - 2)))}@${d}` : ''; };
-const STEP_NAMES = () => (S.smsOn ? ['Your details', 'Verify email', 'Verify mobile', 'You’re in'] : ['Your details', 'Verify email', 'You’re in']);
-const STEPS3 = (n) => `<ol class="steps3${S.smsOn ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
+const STEP_NAMES = () => ['Your details', 'Verify email', ...(S.smsOn ? ['Verify mobile'] : []), ...(passkeySupported() ? ['Fingerprint'] : []), 'You’re in'];
+const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
   const pk = passkeySupported();
@@ -383,7 +383,7 @@ function renderCompleteProfile() {
 // A special welcome for someone who has just joined.
 function renderWelcome() {
   const first = esc(String(S.profile?.name || '').split(/\s+/)[0] || 'friend');
-  const pk = passkeySupported();
+  const pk = passkeySupported() && !store.get('verth-pk');
   paint(`<div class="welcome">
     <div class="confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.35}s;--c:${['#FFB224', '#6B3DF0', '#14A897', '#EF5A5A', '#FFD3A1'][i % 5]}"></i>`).join('')}</div>
     <div class="shell narrow">
@@ -393,7 +393,7 @@ function renderWelcome() {
         <span class="eyebrow">Your account is ready</span>
         <h1>Welcome to Verth, ${first}! 🎉</h1>
         <p class="lead">You’ve just made yourself a lot harder to scam. I’m really glad you’re here.</p>
-        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li>${phoneOk() ? `<li>${ICON.ok}<span>Mobile number verified</span></li>` : ''}<li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
+        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li>${phoneOk() ? `<li>${ICON.ok}<span>Mobile number verified</span></li>` : ''}${store.get('verth-pk') ? `<li>${ICON.ok}<span>Locked to your fingerprint / face</span></li>` : ''}<li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
         <div class="w-note">
           <p>I built Verth after I paid ₹1,500 for a job exam at a company that didn’t exist. I never want that to happen to you or your family. Before you pay, share an OTP or trust an “urgent” message, check it here first.</p>
           <p class="sig">— Umesh, founder of Verth</p>
@@ -1325,7 +1325,7 @@ async function afterSignIn(preferId) {
   if (isNew) {
     welcomeEmail();
     if ((await smsEnabled()) && !phoneOk()) return startPhone('signup');
-    return renderWelcome();
+    return afterPhone();
   }
   S.keys = await deviceKeys(u.uid);
   const [smsOn] = await Promise.all([smsEnabled(), loadCircles(), loadUsage(), loadPhotoUsage()]);
@@ -2199,13 +2199,53 @@ Object.assign(forms, {
 });
 
 
+/* ---------- sign-up step: lock the account to this phone (passkey) ---------- */
+// Free, and stronger than SMS: email proves the inbox, the fingerprint / face proves the person
+// holding this phone. It can't be read out to a scammer or used from another phone.
+function afterPhone() {
+  if (passkeySupported() && !store.get('verth-pk')) { S.pkTried = 0; return renderLockStep(); }
+  return renderWelcome();
+}
+function renderLockStep(err = '') {
+  const n = STEP_NAMES().indexOf('Fingerprint') + 1;
+  paint(`<div class="shell narrow">${brand}
+  <div class="panel auth lock-step">
+    ${STEPS3(n)}
+    <div class="lock-hero">${ICON.finger}</div>
+    <h1>Lock Verth to your phone</h1>
+    <p class="muted">Use your fingerprint or face to protect your account. Even if someone gets your email, they can’t open your Verth without <b>you</b> and <b>this phone</b>.</p>
+    <ul class="w-ticks small-ticks">
+      <li>${ICON.ok}<span>Your fingerprint or face never leaves your phone. Verth only gets a secure key.</span></li>
+      <li>${ICON.ok}<span>Next time, log in with one touch. No codes to type.</span></li>
+      <li>${ICON.ok}<span>Stronger than SMS codes: nobody can trick you into reading it out.</span></li>
+    </ul>
+    <p class="err" id="l-err" role="alert">${esc(err)}</p>
+    <button class="btn primary big" data-act="lock-on">${ICON.finger}Turn on fingerprint / face</button>
+    ${S.pkTried ? '<div class="links"><button class="link" data-act="lock-skip">Continue without it (less secure)</button></div>' : ''}
+    <p class="muted small">Your phone will ask for your fingerprint, face or screen lock. If it asks you to set a screen lock first, do that, then try again.</p>
+  </div></div>`);
+  S.screen = 'lock';
+}
+Object.assign(actions, {
+  'lock-on': async (el) => {
+    el.disabled = true;
+    try {
+      await registerPasskey(payApi, deviceLabel());
+      store.set('verth-pk', 1);
+      toast('Your account is now locked to your fingerprint / face.', 'ok');
+      renderWelcome();
+    } catch (e) { S.pkTried = (S.pkTried || 0) + 1; renderLockStep(passkeyError(e)); }
+  },
+  'lock-skip': () => renderWelcome(),
+});
+
 /* ---------- mobile number check (SMS) ---------- */
 let smsOnP = null;
 function smsEnabled() {
   if (!PAY_API) return Promise.resolve(false);
   return (smsOnP ||= otpApi('/phone/status', {}).then((j) => (S.smsOn = !!j.enabled), () => (S.smsOn = false)).then((on) => {
     const st = document.querySelector('.steps3'); // show the extra step on a sign-up page that's already open
-    if (st && on && !st.classList.contains('four')) { const n = st.querySelectorAll('li.done').length + 1; st.outerHTML = STEPS3(n); }
+    if (st && on && st.querySelectorAll('li').length !== STEP_NAMES().length) { const n = st.querySelectorAll('li.done').length + 1; st.outerHTML = STEPS3(n); }
     return on;
   }));
 }
@@ -2252,7 +2292,7 @@ async function smsSend(phone) {
 }
 function phoneDone() {
   const flow = S.phoneFlow; S.phoneFlow = null; S.screen = '';
-  if (flow === 'signup') return renderWelcome();
+  if (flow === 'signup') return afterPhone();
   if (flow === 'account' && S.circle) { S.tab = 'plan'; return renderMain(); }
   return afterSignIn();
 }
