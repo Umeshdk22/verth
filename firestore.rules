@@ -417,13 +417,16 @@ service cloud.firestore {
       // approving), never to other members. It must be the number on your own profile.
       match /contacts/{uid} {
         allow read: if isAdmin(cid) || (signedIn() && uid == me());
-        allow create: if signedIn() && uid == me()
-          && request.resource.data.keys().hasOnly(['phone'])
+        // "v": the number was verified by SMS (only the Verth server can mark a profile's number verified).
+        allow create, update: if signedIn() && uid == me()
+          && request.resource.data.keys().hasOnly(['phone', 'v'])
           && validPhone(request.resource.data.phone)
           && request.resource.data.phone == get(/databases/$(database)/documents/users/$(me())).data.get('phone', '')
+          && (!('v' in request.resource.data)
+              || (request.resource.data.v == true
+                  && get(/databases/$(database)/documents/users/$(me())).data.get('phoneVerified', '') == request.resource.data.phone))
           && existsAfter(memberPath(cid, me()));
         allow delete: if signedIn() && (uid == me() || isAdmin(cid));
-        allow update: if false;
       }
 
       // ---------- staff list (organisations) ----------

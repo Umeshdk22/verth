@@ -132,7 +132,7 @@ const firstApproval = (m) => (m.firstApproval && m.firstApproval.n === m.device?
 const fmtPhone = (p) => (/^\+91\d{10}$/.test(p || '') ? `+91 ${p.slice(3, 8)} ${p.slice(8)}` : '');
 const myPhone = () => (/^\+91[6-9]\d{9}$/.test(S.profile?.phone || '') ? S.profile.phone : '');
 // Phone numbers live in an admins-only record, never on the member record other members can read.
-const phoneLink = (m) => { const p = S.contacts?.[m.uid]; return fmtPhone(p) ? ` · <a href="tel:${esc(p)}">${fmtPhone(p)}</a>` : ''; };
+const phoneLink = (m) => { const p = S.contacts?.[m.uid]; return fmtPhone(p) ? ` · <a href="tel:${esc(p)}">${fmtPhone(p)}</a>${S.contactsV?.has(m.uid) ? ' <span class="ok-inline inline" title="Verified by SMS">✓ verified</span>' : ''}` : ''; };
 const fmtCode = (c) => (c ? c.slice(0, 3) + ' ' + c.slice(3) : '--- ---');
 const fmtInvite = (c) => (c ? esc(c.slice(0, 4) + '-' + c.slice(4)) : '');
 const initials = (n) => esc((n || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase());
@@ -252,7 +252,8 @@ function renderNotConfigured() {
 let resendTimer;
 const PHONE_RE = /^[6-9]\d{9}$/;
 const maskEmail = (e) => { const [u, d] = String(e || '').split('@'); return d ? `${u.slice(0, 2)}${'•'.repeat(Math.max(1, Math.min(6, u.length - 2)))}@${d}` : ''; };
-const STEPS3 = (n) => `<ol class="steps3" aria-label="Step ${n} of 3">${['Your details', 'Verify email', 'You’re in'].map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
+const STEP_NAMES = () => (S.smsOn ? ['Your details', 'Verify email', 'Verify mobile', 'You’re in'] : ['Your details', 'Verify email', 'You’re in']);
+const STEPS3 = (n) => `<ol class="steps3${S.smsOn ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
   const pk = passkeySupported();
@@ -296,6 +297,7 @@ function renderAuth(note = '') {
   </div>
   <p class="foot">Want to look around first? <a href="demo.html">Try the demo</a>, no account needed.</p></div>`);
   S.screen = 'auth';
+  if (signup) smsEnabled(); // shows the “Verify mobile” step when SMS checks are on
   mountCaptcha();
 }
 
@@ -386,12 +388,12 @@ function renderWelcome() {
     <div class="confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.35}s;--c:${['#FFB224', '#6B3DF0', '#14A897', '#EF5A5A', '#FFD3A1'][i % 5]}"></i>`).join('')}</div>
     <div class="shell narrow">
       <div class="welcome-card">
-        ${STEPS3(4)}
+        ${STEPS3(9)}
         <div class="w-badge">${ICON.shield}</div>
         <span class="eyebrow">Your account is ready</span>
         <h1>Welcome to Verth, ${first}! 🎉</h1>
         <p class="lead">You’ve just made yourself a lot harder to scam. I’m really glad you’re here.</p>
-        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li><li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
+        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li>${phoneOk() ? `<li>${ICON.ok}<span>Mobile number verified</span></li>` : ''}<li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
         <div class="w-note">
           <p>I built Verth after I paid ₹1,500 for a job exam at a company that didn’t exist. I never want that to happen to you or your family. Before you pay, share an OTP or trust an “urgent” message, check it here first.</p>
           <p class="sig">— Umesh, founder of Verth</p>
@@ -1114,7 +1116,8 @@ function accountCard() {
   const pk = passkeySupported();
   const keys = S.passkeys || [];
   return `<section class="card"><h2>Account and device</h2>
-    <p class="muted">${esc(S.user.email)}${S.profile?.phone ? ` · ${esc(S.profile.phone)}` : ''}</p>
+    <p class="muted">${esc(S.user.email)}${S.profile?.phone ? ` · ${esc(S.profile.phone)}` : ''}${phoneOk() ? ' <span class="ok-inline inline">✓ verified</span>' : ''}</p>
+    ${S.smsOn && !phoneOk() ? '<div class="banner accent"><span><b>Verify your mobile number</b> so your circle knows it’s really you.</span><button class="btn small" data-act="verify-mobile">Verify now</button></div>' : ''}
     <p class="muted small">This device: ${esc(deviceLabel())}${S.circle ? (thisDeviceActive() ? ' · registered' : ' · not registered') : ''}</p>
     <div class="pk-box" id="pk-box"><div class="pk-hd">${ICON.finger}<div><b>Fingerprint / face login</b><span class="muted small">Log in without typing your email. Your fingerprint or face never leaves your device.</span></div></div>
       ${!pk || !PAY_API ? `<p class="muted small">${pk ? 'Fingerprint / face login isn’t available right now.' : 'This browser can’t do fingerprint / face login. Try Chrome, Safari or Edge on your phone.'}</p>`
@@ -1140,7 +1143,7 @@ async function payApi(path, body) {
     r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
   } catch { throw new Error('Couldn’t reach the payment service. Check your connection.'); }
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.error || 'The payment service had a problem. Try again in a minute.');
+  if (!r.ok) throw Object.assign(new Error(j.error || 'The payment service had a problem. Try again in a minute.'), { status: r.status });
   return j;
 }
 let checkoutLoading = null;
@@ -1224,6 +1227,7 @@ async function openCircle(cid) {
       }, () => { S.allow = []; }));
       S.unsubs.push(onSnapshot(collection(db, 'circles', cid, 'contacts'), (a) => {
         S.contacts = Object.fromEntries(a.docs.map((d) => [d.id, d.data().phone]));
+        S.contactsV = new Set(a.docs.filter((d) => d.data().v === true).map((d) => d.id));
         renderMain();
       }, () => {}));
     }
@@ -1318,9 +1322,15 @@ async function afterSignIn(preferId) {
   S.authFlow = ''; S.signupInfo = null;
   S.profile = s.data();
   remember(S.profile.name, u.email);
-  if (isNew) { welcomeEmail(); return renderWelcome(); }
+  if (isNew) {
+    welcomeEmail();
+    if ((await smsEnabled()) && !phoneOk()) return startPhone('signup');
+    return renderWelcome();
+  }
   S.keys = await deviceKeys(u.uid);
-  await Promise.all([loadCircles(), loadUsage(), loadPhotoUsage()]);
+  const [smsOn] = await Promise.all([smsEnabled(), loadCircles(), loadUsage(), loadPhotoUsage()]);
+  // Strong sign-up: once mobile checks are switched on, everyone verifies their number once.
+  if (smsOn && !phoneOk() && !S.smsLater) return startPhone('gate');
   watchPending();
   const ids = Object.keys(S.circles);
   const inv = pendingInvite();
@@ -1727,7 +1737,7 @@ const forms = {
       b.set(cref, { name: name.slice(0, 60), type, ownerUid: uid, inviteCode: code, joinOpen: true, plan: 'free', memberCount: 1, createdAt: serverTimestamp() });
       b.set(doc(db, 'circles', cref.id, 'members', uid), { uid, name: S.profile.name, title: title.slice(0, 40), email: S.user.email, role: 'admin', status: 'active', device: newDeviceRecord(1), joinedAt: serverTimestamp() });
       b.set(doc(db, 'invites', code), { circleId: cref.id, circleName: name.slice(0, 60), type, createdBy: uid, createdAt: serverTimestamp() });
-      if (myPhone()) b.set(doc(db, 'circles', cref.id, 'contacts', uid), { phone: myPhone() });
+      if (myPhone()) b.set(doc(db, 'circles', cref.id, 'contacts', uid), { phone: myPhone(), ...(phoneOk() ? { v: true } : {}) });
       b.update(doc(db, 'users', uid), { circles: arrayUnion(cref.id), activeCircle: cref.id, onboarded: true });
       await b.commit();
       S.profile.circles = [...(S.profile.circles || []), cref.id];
@@ -1776,7 +1786,7 @@ const forms = {
       if (lockD && domainOf(S.user.email) !== lockD) { setErr('s-err', `${inv.data().circleName} only accepts work emails ending in @${lockD}. You’re logged in as ${S.user.email}. Log out and create an account with your @${lockD} email, then use this code again.`); return busy(f, false); }
       const b = writeBatch(db);
       b.set(doc(db, 'circles', cid, 'members', uid), { uid, name: S.profile.name, title: title.slice(0, 40), email: S.user.email, role: 'member', status: 'pending', device: newDeviceRecord(1), inviteCode: code, joinedAt: serverTimestamp() });
-      if (myPhone()) b.set(doc(db, 'circles', cid, 'contacts', uid), { phone: myPhone() });
+      if (myPhone()) b.set(doc(db, 'circles', cid, 'contacts', uid), { phone: myPhone(), ...(phoneOk() ? { v: true } : {}) });
       b.update(doc(db, 'circles', cid), { memberCount: increment(1) });
       b.update(doc(db, 'users', uid), { circles: arrayUnion(cid), onboarded: true });
       await b.commit();
@@ -2185,6 +2195,108 @@ Object.assign(forms, {
     try { await updateDoc(doc(db, 'circles', S.circleId, 'members', S.user.uid), { upi: v, upiAt: serverTimestamp() }); toast('UPI ID saved. People in your circle can now pay you safely.', 'ok'); }
     catch (e) { setErr('u-err', friendlyError(e)); }
     busy(f, false);
+  },
+});
+
+
+/* ---------- mobile number check (SMS) ---------- */
+let smsOnP = null;
+function smsEnabled() {
+  if (!PAY_API) return Promise.resolve(false);
+  return (smsOnP ||= otpApi('/phone/status', {}).then((j) => (S.smsOn = !!j.enabled), () => (S.smsOn = false)).then((on) => {
+    const st = document.querySelector('.steps3'); // show the extra step on a sign-up page that's already open
+    if (st && on && !st.classList.contains('four')) { const n = st.querySelectorAll('li.done').length + 1; st.outerHTML = STEPS3(n); }
+    return on;
+  }));
+}
+const phoneOk = () => !!S.profile?.phoneVerified && S.profile.phoneVerified === S.profile.phone;
+const fmt10 = (p) => `${p.slice(0, 5)} ${p.slice(5)}`;
+function startPhone(flow) { Object.assign(S, { phoneFlow: flow, smsSentTo: null, smsFailed: false }); renderPhone(); }
+
+function renderPhone(note = '') {
+  const flow = S.phoneFlow, sent = S.smsSentTo, p = sent || String(S.profile?.phone || '').replace(/^\+91/, '');
+  paint(`<div class="shell narrow">${brand}
+  <div class="panel auth">
+    ${flow === 'signup' ? STEPS3(3) : ''}
+    <div class="state-icon mail">${ICON.phone}</div>
+    <h1>Verify your mobile</h1>
+    ${note ? `<div class="note">${esc(note)}</div>` : ''}
+    ${sent ? `<p class="muted">We sent a 6-digit code by SMS to <b>+91 ${esc(fmt10(sent))}</b>. It works for 10 minutes.</p>
+      <form data-form="sms-code" class="stack" novalidate>
+        <label>6-digit code<input id="m-code" class="otp" data-keep="no" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="••••••" autofocus></label>
+        <p class="err" id="m-err" role="alert"></p>
+        <button class="btn primary big" type="submit">Verify my mobile</button>
+      </form>
+      <div class="links"><button type="button" class="link" data-act="sms-resend" id="m-resend" disabled>Send a new code</button><button type="button" class="link" data-act="sms-change">Change number</button></div>`
+    : `<p class="muted">${flow === 'signup' ? 'Last step. ' : ''}Every Indian SIM is registered with ID, so a verified mobile number makes your Verth account much harder to fake. We’ll send a 6-digit code by SMS.</p>
+      <form data-form="sms-send" class="stack" novalidate>
+        <label>Mobile number<span class="phone-in"><span>+91</span><input id="m-phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14" value="${esc(p)}" placeholder="98765 43210"></span></label>
+        <p class="err" id="m-err" role="alert"></p>
+        <button class="btn primary big" type="submit">Send SMS code</button>
+      </form>`}
+    ${S.smsFailed || flow === 'account' ? `<div class="links"><button type="button" class="link" data-act="sms-later">${flow === 'account' ? 'Back' : 'Do this later'}</button></div>` : ''}
+    <p class="muted small">Never share this code with anyone. Verth will never call or message you to ask for it.</p>
+  </div></div>`);
+  S.screen = 'phone';
+  const btn = document.getElementById('m-resend');
+  if (btn) {
+    const t = () => { const left = Math.ceil((S.smsResendAt - Date.now()) / 1000); btn.disabled = left > 0; btn.textContent = left > 0 ? `Send a new code in ${left}s` : 'Send a new code'; if (left <= 0) clearInterval(resendTimer); };
+    t(); resendTimer = setInterval(t, 1000);
+  }
+  const input = document.getElementById('m-code');
+  input?.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 6); if (input.value.length === 6) input.form.requestSubmit(); });
+}
+async function smsSend(phone) {
+  await payApi('/phone/send', { phone });
+  Object.assign(S, { smsSentTo: phone, smsResendAt: Date.now() + 45000, smsFailed: false });
+}
+function phoneDone() {
+  const flow = S.phoneFlow; S.phoneFlow = null; S.screen = '';
+  if (flow === 'signup') return renderWelcome();
+  if (flow === 'account' && S.circle) { S.tab = 'plan'; return renderMain(); }
+  return afterSignIn();
+}
+// Admins see a ✓ next to verified numbers when approving people.
+async function markContactsVerified() {
+  const phone = S.profile?.phoneVerified;
+  await Promise.all((S.profile?.circles || []).map((cid) => setDoc(doc(db, 'circles', cid, 'contacts', S.user.uid), { phone, v: true }).catch(() => {})));
+}
+Object.assign(actions, {
+  'sms-change': () => { S.smsSentTo = null; renderPhone(); },
+  'sms-later': () => { S.smsLater = true; phoneDone(); },
+  'sms-resend': async (el) => {
+    el.disabled = true; setErr('m-err', '');
+    try { await smsSend(S.smsSentTo); renderPhone('A new code is on its way. Use the newest SMS.'); }
+    catch (e) { setErr('m-err', e.message); if (e.status === 502) { S.smsFailed = true; renderPhone(e.message); } }
+  },
+  'verify-mobile': () => startPhone('account'),
+});
+Object.assign(forms, {
+  'sms-send': async (f) => {
+    const phone = f.querySelector('#m-phone').value.replace(/\D/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
+    if (!PHONE_RE.test(phone)) return setErr('m-err', 'Please type a 10-digit Indian mobile number.');
+    busy(f, true); setErr('m-err', '');
+    try { await smsSend(phone); renderPhone(); }
+    catch (e) {
+      busy(f, false);
+      if (e.status === 502 || e.status === 503) { S.smsFailed = true; return renderPhone(`${e.message} You can verify your mobile later from the Plan tab.`); }
+      setErr('m-err', e.message);
+    }
+  },
+  'sms-code': async (f) => {
+    const code = f.querySelector('#m-code').value.replace(/\D/g, '');
+    if (code.length !== 6) return setErr('m-err', 'Enter all 6 digits from the SMS.');
+    busy(f, true); setErr('m-err', '');
+    try {
+      const r = await payApi('/phone/verify', { code });
+      S.profile = { ...S.profile, phone: r.phone, phoneVerified: r.phone };
+      markContactsVerified();
+      toast('Mobile number verified.', 'ok');
+      phoneDone();
+    } catch (e) {
+      busy(f, false); setErr('m-err', e.message);
+      const input = f.querySelector('#m-code'); input.value = ''; input.focus();
+    }
   },
 });
 

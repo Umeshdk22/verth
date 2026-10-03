@@ -533,3 +533,12 @@ test('UPI ID: only you can set yours, it must look like a UPI ID, and the change
   await assertSucceeds(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: 'priya@okaxis', upiAt: serverTimestamp() }));
   await assertSucceeds(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: null, upiAt: serverTimestamp() }));
 });
+
+test('verified-mobile mark: only for a number the server verified, and nobody can verify their own profile', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/priya'), { phone: '+919876543210' }));
+  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { phoneVerified: '+919876543210' }));
+  await assertFails(setDoc(doc(db('priya'), 'circles/c1/contacts/priya'), { phone: '+919876543210', v: true }));
+  await assertSucceeds(setDoc(doc(db('priya'), 'circles/c1/contacts/priya'), { phone: '+919876543210' }));
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/priya'), { phoneVerified: '+919876543210' }));
+  await assertSucceeds(setDoc(doc(db('priya'), 'circles/c1/contacts/priya'), { phone: '+919876543210', v: true }));
+});

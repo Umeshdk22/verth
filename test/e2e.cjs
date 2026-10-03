@@ -42,6 +42,19 @@ const SLOW = process.env.CI ? 3 : 1;
     const tok = 'h.' + Buffer.from(JSON.stringify({ uid: 'u_rajesh', email: body.email })).toString('base64') + '.s';
     return r.fulfill({ headers: corsH, json: { token: tok, isNew } });
   });
+  // A stand-in for the mobile check: the SMS code is always 246810.
+  const smsSeen = [];
+  await A.route(PAY + '/phone/**', async (r) => {
+    if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH });
+    const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
+    smsSeen.push([path, body]);
+    if (path === '/phone/status') return r.fulfill({ headers: corsH, json: { enabled: true } });
+    if (path === '/phone/send') { smsSeen.phone = body.phone; return r.fulfill({ headers: corsH, json: { sent: true, resendInSeconds: 45 } }); }
+    if (body.code !== '246810') return r.fulfill({ status: 400, headers: corsH, json: { error: 'That code isn’t right. 4 tries left.' } });
+    const full = '+91' + smsSeen.phone; // the server marks the profile verified
+    await A.evaluate((ph) => { const d = JSON.parse(localStorage.getItem('fakefs') || '{}'); Object.assign(d['users/u_rajesh'], { phone: ph, phoneVerified: ph }); localStorage.setItem('fakefs', JSON.stringify(d)); }, full);
+    return r.fulfill({ headers: corsH, json: { verified: true, phone: full } });
+  });
   for (const pth of ['/account/**', '/passkey/**']) await A.route(PAY + pth, async (r) => {
     if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH });
     const path = new (require('node:url').URL)(r.request().url()).pathname;
@@ -97,7 +110,18 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#a-code', '111111'); // six digits submit by themselves
     await A.getByText('That code isn’t right').waitFor({ timeout: 3000 * SLOW });
     await A.fill('#a-code', '482913');
+    // Last step: verify the mobile number by SMS.
+    await A.getByRole('heading', { name: 'Verify your mobile' }).waitFor({ timeout: 5000 * SLOW });
+    if ((await A.locator('.steps3 li').count()) !== 4) throw new Error('sign-up should show 4 steps when SMS checks are on');
+    if ((await A.locator('#m-phone').inputValue()) !== '9876543210') throw new Error('mobile not prefilled');
+    await A.click('button:has-text("Send SMS code")');
+    await A.getByText('We sent a 6-digit code by SMS to').waitFor({ timeout: 5000 * SLOW });
+    await shot(A, '00a-A-sms');
+    await A.fill('#m-code', '000000');
+    await A.getByText('That code isn’t right').waitFor({ timeout: 3000 * SLOW });
+    await A.fill('#m-code', '246810');
     await A.getByRole('heading', { name: /Welcome to Verth, Rajesh/ }).waitFor({ timeout: 5000 * SLOW });
+    await A.getByText('Mobile number verified').first().waitFor();
     await shot(A, '00b-A-welcome');
     const signupSend = otpSeen.filter(([pth, b]) => pth === '/otp/send' && b.mode === 'signup').at(-1);
     if (!signupSend || signupSend[1].name !== 'Rajesh Mehta' || signupSend[1].email !== 'Rajesh@Nirmaan.in') throw new Error('bad signup call ' + JSON.stringify(otpSeen));
@@ -470,6 +494,7 @@ const SLOW = process.env.CI ? 3 : 1;
       if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: cors });
       const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
       if (path === '/passkey/list') return r.fulfill({ headers: cors, json: { keys: [] } });
+      if (path.startsWith('/phone/')) return r.fallback();
       seen.push([path, body, r.request().headers().authorization]);
       const end = Date.now() + 30 * 86400000;
       if (path === '/subscribe') return r.fulfill({ headers: cors, json: { subscriptionId: 'sub_T1', keyId: 'rzp_test_1', description: 'Verth Team', quantity: 1 } });

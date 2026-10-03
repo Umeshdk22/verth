@@ -1,6 +1,7 @@
 // Tests for the payments worker: identity checks, signatures, and plan changes.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { smsSender } from '../worker/src/index.js';
 import { handle, hmacHex, syncSubscription, verifyIdToken, firestore, toFs, fromFs } from '../worker/src/index.js';
 
 const PROJECT = 'verth-ece65', ORIGIN = 'https://umeshdk22.github.io';
@@ -580,4 +581,66 @@ test('temporary email addresses cannot open an account', async () => {
   const f = otpFakes(); f.allExist = false;
   const r = await otpCall(f, '/otp/send', { email: 'x@mailinator.com', mode: 'signup', name: 'Some One' });
   assert.equal(r.status, 400); assert.match(r.body.error, /Temporary email/); assert.equal(f.mails.length, 0);
+});
+
+/* ---------- mobile number check (SMS) ---------- */
+const smsEnv = { ...otpEnv, TWOFACTOR_API_KEY: 'tf-key' };
+const smsCall = async (f, path, body, { token, now = Date.now(), ip = '5.5.5.5', e = smsEnv } = {}) => {
+  const r = await handle(new Request('https://w.example' + path, { method: 'POST', headers: { origin: ORIGIN, 'cf-connecting-ip': ip, ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(body) }), e, { ...f.deps, fetch: jwksFetch, now });
+  return { status: r.status, body: await r.json() };
+};
+function smsFakes() {
+  const f = otpFakes(); f.sms = [];
+  f.deps.sms = { sendCode: async (phone, code) => { f.sms.push({ phone, code }); } };
+  f.db['users/uidA'] = { name: 'Asha', phone: '+919876543210', plan: 'free', circles: [] };
+  f.db['users/uidB'] = { name: 'Bina', phone: '+919999988888', plan: 'free', circles: [] };
+  return f;
+}
+test('mobile check: off until the 2Factor key is set', async () => {
+  const f = smsFakes(), token = await idToken({ sub: 'uidA' });
+  assert.deepEqual((await smsCall(f, '/phone/status', {}, { e: otpEnv })).body, { enabled: false });
+  assert.deepEqual((await smsCall(f, '/phone/status', {})).body, { enabled: true });
+  assert.equal((await smsCall(f, '/phone/send', { phone: '9876543210' }, { token, e: otpEnv })).status, 503);
+});
+test('mobile check: SMS code verifies the number on the profile; codes and numbers aren’t stored as they are', async () => {
+  const f = smsFakes(), token = await idToken({ sub: 'uidA' });
+  assert.equal((await smsCall(f, '/phone/send', { phone: '9876543210' })).status, 401, 'needs sign-in');
+  assert.equal((await smsCall(f, '/phone/send', { phone: '12345' }, { token })).status, 400);
+  const s = await smsCall(f, '/phone/send', { phone: '+91 98765 43210' }, { token });
+  assert.equal(s.status, 200, JSON.stringify(s.body));
+  assert.equal(f.sms[0].phone, '9876543210'); assert.match(f.sms[0].code, /^\d{6}$/);
+  assert.ok(!JSON.stringify(f.db['smsotp/uidA']).includes(f.sms[0].code));
+  assert.equal((await smsCall(f, '/phone/verify', { code: '000000' === f.sms[0].code ? '111111' : '000000' }, { token })).status, 400);
+  const v = await smsCall(f, '/phone/verify', { code: f.sms[0].code }, { token });
+  assert.equal(v.status, 200, JSON.stringify(v.body));
+  assert.equal(f.db['users/uidA'].phoneVerified, '+919876543210');
+  assert.ok(Object.keys(f.db).some((k) => k.startsWith('phones/')) && !Object.keys(f.db).some((k) => k.includes('9876543210')));
+  assert.equal((await smsCall(f, '/phone/verify', { code: f.sms[0].code }, { token })).status, 400, 'a code works once');
+});
+test('mobile check: one number can only verify one account', async () => {
+  const f = smsFakes(), a = await idToken({ sub: 'uidA' }), b = await idToken({ sub: 'uidB' });
+  await smsCall(f, '/phone/send', { phone: '9876543210' }, { token: a });
+  await smsCall(f, '/phone/verify', { code: f.sms[0].code }, { token: a });
+  const r = await smsCall(f, '/phone/send', { phone: '9876543210' }, { token: b, ip: '6.6.6.6' });
+  assert.equal(r.status, 409); assert.match(r.body.error, /already verified on another/);
+});
+test('mobile check: limits per account, wrong tries, resend wait and a daily ceiling on all SMS', async () => {
+  const f = smsFakes(), token = await idToken({ sub: 'uidA' });
+  let now = Date.now();
+  assert.equal((await smsCall(f, '/phone/send', { phone: '9876543210' }, { token, now })).status, 200);
+  assert.equal((await smsCall(f, '/phone/send', { phone: '9876543210' }, { token, now: now + 5000 })).status, 429, 'wait before resending');
+  for (let i = 0; i < 5; i++) await smsCall(f, '/phone/verify', { code: 'abcdef'.replace(/./g, String(i)) === f.sms.at(-1).code ? '999999' : String(i).repeat(6) }, { token, now });
+  assert.equal((await smsCall(f, '/phone/verify', { code: f.sms.at(-1).code }, { token, now })).status, 429, 'locked after 5 wrong tries');
+  for (let i = 1; i <= 4; i++) await smsCall(f, '/phone/send', { phone: '9876543210' }, { token, now: now + i * 60_000 });
+  const r = await smsCall(f, '/phone/send', { phone: '9876543210' }, { token, now: now + 10 * 60_000 });
+  assert.equal(r.status, 429, 'per-account / per-number daily limit');
+  const g = smsFakes(); g.db['smsday/all'] = { windowStart: new Date(now), count: 150 };
+  assert.equal((await smsCall(g, '/phone/send', { phone: '9876543210' }, { token, now })).status, 429, 'daily ceiling');
+  assert.equal(g.sms.length, 0);
+});
+test('mobile check: a failed SMS gives a clear error', async () => {
+  const f = smsFakes(), token = await idToken({ sub: 'uidA' });
+  f.deps.sms = smsSender({ TWOFACTOR_API_KEY: 'k' }, async () => new Response(JSON.stringify({ Status: 'Error', Details: 'Insufficient balance' }), { status: 200 }));
+  const r = await smsCall(f, '/phone/send', { phone: '9876543210' }, { token });
+  assert.equal(r.status, 502); assert.match(r.body.error, /couldn’t send the SMS/);
 });

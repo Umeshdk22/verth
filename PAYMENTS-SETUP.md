@@ -106,6 +106,21 @@ The key stays on the server; each network can ask 40 AI questions an hour, and t
 
 Set both, or neither: with only the secret set, nobody can log in by email.
 
+## 10. Mobile number check by SMS (2Factor, optional)
+
+New accounts verify their mobile number with a 6-digit SMS code. It stays off until you add the key.
+
+1. Create an account at https://2factor.in and add prepaid credit (₹500 is plenty to start).
+2. Copy your **API key** from the 2Factor dashboard.
+3. Cloudflare → Workers → verth-pay → Settings → Variables and Secrets → **Add** → type **Secret**,
+   name `TWOFACTOR_API_KEY`, value = the API key. Deploy.
+4. Optional: `TWOFACTOR_TEMPLATE` (a text variable) if 2Factor gives you an approved SMS template name,
+   and `SMS_DAILY_CAP` (default 150 SMS a day across all users) to cap spending.
+5. Test with your own number: Plan tab → "Verify now".
+
+Verth makes and checks the codes itself and limits them per account, per number, per network and per day,
+so bots can't use up your SMS credit. One mobile number can verify only one Verth account.
+
 ## If something goes wrong
 
 - **"Couldn't reach the payment service"**: check the worker address in `config.js`, and that `ALLOWED_ORIGIN` is exactly `https://umeshdk22.github.io` (no slash at the end).

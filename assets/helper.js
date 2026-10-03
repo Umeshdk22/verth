@@ -3,6 +3,7 @@ var x=[{id:"what",q:"What is Verth?",keys:["what is verth","what does verth do",
 \u2022 Verify: before you pay or share anything because \u201Csomeone you know\u201D asked, Verth asks that real person on their own phone. Only act on a green \u201CConfirmed\u201D.`,go:[["Open Scam check","scan"],["How to use Verth","guide"]]},{id:"signup",q:"How do I create an account?",keys:["sign up","signup","register","create account","new account","make account","account banana","account kaise","join verth","get started","start using"],a:`Open the Verth app and tap \u201CCreate account\u201D.
 \u2022 Type your full name, email and 10-digit mobile number, tick the box to agree, and tap \u201CSend verification code\u201D.
 \u2022 Verth emails you a 6-digit code. Type it in. No password needed. Or tap \u201CSign up with Google\u201D.
+\u2022 Then verify your mobile number with a 6-digit SMS code. One number can be used for only one Verth account.
 \u2022 You can then turn on fingerprint / face login, so next time you don\u2019t even type your email.
 \u2022 A short tour then asks what you want to do: protect your family, your team, or just check something suspicious.`,go:[["Open the app","app"]]},{id:"email",q:"I didn\u2019t get the verification email",keys:["verification email","verify email","confirm email","email not received","no email","didnt get email","did not get email","mail nahi aaya","email nahi","link not received","resend"],a:`The 6-digit code comes from Verth (sender \u201CVerth\u201D).
 \u2022 Check Spam, Promotions and Updates folders.
