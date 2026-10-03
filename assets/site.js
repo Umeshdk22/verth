@@ -18,7 +18,12 @@
   var btn = document.getElementById('install-btn'), deferred = null;
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; if (btn) btn.hidden = false; });
   if (btn) btn.addEventListener('click', function () { if (!deferred) return; deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; btn.hidden = true; }); });
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  if ('serviceWorker' in navigator) {
+    // Switch to a newly published version straight away, right after opening the page.
+    var hadOld = !!navigator.serviceWorker.controller, opened = Date.now(), switched = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadOld && !switched && Date.now() - opened < 20000) { switched = true; location.reload(); } });
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
 })();
 
 // Demo videos: Scam check or For organisations, in English or Hindi.

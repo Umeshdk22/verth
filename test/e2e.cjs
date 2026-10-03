@@ -634,6 +634,22 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('nav >> text=Home');
     await A.locator('.guard-card', { hasText: '9 quick fixes' }).waitFor();
   });
+  await step('Wide screens: sidebar, page and safety corner fill the window', async () => {
+    await A.setViewportSize({ width: 1440, height: 900 });
+    for (const [tab, name] of [['Home', 'wide-home'], ['Scan', 'wide-scan'], ['Chat', 'wide-chat'], ['Circle', 'wide-circle']]) {
+      await A.click(`nav >> text=${tab}`); await A.waitForTimeout(500);
+      await A.screenshot({ path: OUT + '/' + name + '.png' });
+    }
+    await A.click('nav >> text=My profile'); await A.waitForTimeout(400); await A.screenshot({ path: OUT + '/wide-profile.png' });
+    if (!(await A.locator('aside.rail').isVisible())) throw new Error('safety corner should show on wide screens');
+    if ((await A.evaluate(() => document.documentElement.scrollWidth)) > 1440) throw new Error('page wider than the window');
+    const W = await ctx.newPage(); await W.setViewportSize({ width: 1440, height: 900 }); extra.push(['W', W]);
+    await W.goto(URL + '&mode=signup'); await W.locator('.auth-side').waitFor({ state: 'visible', timeout: 5000 * SLOW });
+    await W.waitForTimeout(600); await W.screenshot({ path: OUT + '/wide-signup.png' }); await W.close();
+    await A.setViewportSize({ width: 400, height: 860 });
+    if (await A.locator('aside.rail').isVisible()) throw new Error('safety corner should hide on phones');
+    await A.click('nav >> text=Home');
+  });
   await step('“Welcome to Verth” greeting: shown once per visit, then gets out of the way', async () => {
     const D = await ctx.newPage(); extra.push(['D', D]);
     await D.goto(URL);

@@ -15,7 +15,8 @@ import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } fro
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
-import { guardCard, viewGuard, guardSet } from './guard.js';
+import { guardCard, viewGuard, guardSet, guardScore } from './guard.js';
+import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
@@ -199,6 +200,7 @@ function renderLoading(msg = 'Opening your Verth…') {
   S.screen = 'loading';
 }
 function paint(html) {
+  if (/^\s*<div class="shell narrow">/.test(html)) html = authFrame(html);
   const keep = {};
   root.querySelectorAll('input[id],select[id],textarea[id]').forEach((el) => { if (el.type !== 'password') keep[el.id] = el.value; });
   const focused = document.activeElement?.id;
@@ -605,7 +607,10 @@ function renderMain() {
       ${waiting ? `<div class="banner accent"><span><b>${waiting} ${waiting > 1 ? 'people are' : 'person is'} waiting</b> for your approval to join.</span><button class="btn small" data-act="tab" data-tab="circle">Review</button></div>` : ''}
       ${body}
     </main>
-    <nav class="tabs" aria-label="Sections">${TABS.map(([id, label, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}" aria-current="${S.tab === id ? 'page' : 'false'}">${ic}<span>${label}</span>${id === 'chat' && unread ? `<i class="badge" aria-label="${unread} unread">${unread}</i>` : ''}</button>`).join('')}</nav>
+    <nav class="tabs" aria-label="Sections">${TABS.map(([id, label, ic]) => `<button class="${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}" aria-current="${S.tab === id ? 'page' : 'false'}">${ic}<span>${label}</span>${id === 'chat' && unread ? `<i class="badge" aria-label="${unread} unread">${unread}</i>` : ''}</button>`).join('')}
+      ${[['log', 'Verification log', ICON.log], ['guard', 'Safety check-up', ICON.shield], ['guide', 'How to use Verth', ICON.book], ['profile', 'My profile', ICON.user]].map(([id, label, ic]) => `<button class="xtra ${S.tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}">${ic}<span>${label}</span></button>`).join('')}
+      <div class="nav-card xtra"><b>Stay one step ahead</b><span>Before you pay, share an OTP or trust an “urgent” message, check it on Verth.</span></div></nav>
+    ${rail()}
   </div>`);
   const nb = document.getElementById('chat-scroll');
   if (nb) nb.scrollTop = !keepPos || keepPos.stick || keepPos.who !== S.chatWith ? nb.scrollHeight : keepPos.top;
@@ -1088,7 +1093,7 @@ async function scanPhoto(f) {
 function renderScanOnly() {
   S.scanOnly = true; stopListeners(); S.circle = null; S.circleId = null;
   const interest = S.profile?.upgradeInterest?.plan;
-  paint(`<div class="app">
+  paint(`<div class="app solo">
     <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div>${headAvatar()}</header>
     <main class="content">
       ${trialBanner()}
@@ -1107,7 +1112,7 @@ function renderScanOnly() {
       ${S.profileOpen ? '' : accountCard()}
       <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button></div>
       ${signOff()}
-    </main></div>`);
+    </main>${rail()}</div>`);
 }
 
 // Billing details shown to the person who pays (and, for circles, to everyone in it).
@@ -2416,6 +2421,59 @@ Object.assign(forms, {
   },
 });
 
+/* ---------- wide screens: side navigation and a right-hand panel ---------- */
+// Laptops and desktops get a three-column layout; phones keep the bottom tabs. Everything here is
+// hidden below 1100px wide.
+const DAILY_TIPS = [
+  ['Pause before you pay', 'Scammers create panic so you don’t think. A 2-minute check beats a lifetime of regret.'],
+  ['Banks never ask for OTPs', 'No bank, police officer or company will ever ask for your OTP, UPI PIN or CVV.'],
+  ['To receive money, no PIN', 'If someone says “enter your PIN to receive money”, it’s a scam. PINs only send money.'],
+  ['Check the real website', 'Type the address yourself. Links in messages can look real but lead somewhere else.'],
+  ['New number? Verify first', '“Hi Mom, this is my new number” is the oldest trick. Ask them on Verth or call the old number.'],
+  ['No APKs from chats', 'Never install an app someone sends on WhatsApp. Real apps come from the Play Store.'],
+  ['Jobs never cost money', 'Real employers never charge for exams, training, uniforms or laptops.'],
+];
+// Where the quote rotation is right now, so re-drawing the page doesn't restart it.
+const quoteClock = () => ((Date.now() % (QUOTES.length * 5000)) / 1000).toFixed(2);
+function rail() {
+  const day = Math.floor(Date.now() / 864e5), tip = DAILY_TIPS[day % DAILY_TIPS.length];
+  const [k, label] = badgeOf(), p = S.profile || {};
+  const alerts = ALERTS.slice(day % 3, (day % 3) + 4);
+  return `<aside class="rail" aria-label="Safety corner">
+    <section class="rl-me b-${k}"><button class="rl-me-in" data-act="profile-open">${ava({ name: p.name, photo: p.photo })}<span class="grow"><b>${esc(p.name || '')}</b><span>${k === 'trial' ? `✨ Free trial · ${trialDaysLeft()} days left` : k === 'free' ? 'Free plan' : `${BADGE_IC[k] || ''} ${label} member`}</span></span><span class="chev">›</span></button></section>
+    <section class="rl-quotes"><span class="eyebrow">Words to stay safe by</span>
+      <div class="rq-wrap" style="--t:${quoteClock()}s">${QUOTES.map(([en, hi], i) => `<figure style="--i:${i};--n:${QUOTES.length}"><blockquote>${esc(en)}</blockquote><figcaption>${esc(hi)}</figcaption></figure>`).join('')}</div></section>
+    <section class="rl-tip"><span class="rt-ic">💡</span><div><span class="eyebrow">Today’s safety tip</span><b>${esc(tip[0])}</b><p>${esc(tip[1])}</p></div></section>
+    <section class="rl-alerts"><div class="split"><span class="eyebrow">Scams going around</span><span class="live">● Live</span></div>
+      <ul>${alerts.map((a) => `<li><span class="ra-tag t-${a.tone}">${esc(a.tag)}</span><b>${esc(a.t)}</b><span>${esc(a.flag)}</span></li>`).join('')}</ul>
+      <button class="link small" data-act="tab" data-tab="home">See all scam alerts</button></section>
+    <section class="rl-guard">${guardMini()}</section>
+    <section class="rl-help"><b>Lost money to a scam?</b><span>Call <a href="tel:1930">1930</a> within the first hour, or report at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">cybercrime.gov.in</a>.</span></section>
+    <p class="rl-foot">Made with care in India · Stay alert, stay safe.</p>
+  </aside>`;
+}
+function guardMini() {
+  const n = guardScore();
+  return `<div class="gm"><b>${n}/10</b><div><span class="eyebrow">Phone safety</span><span>${n >= 9 ? 'Strong. Well done!' : `${10 - n} quick fixes left`}</span></div><button class="btn small" data-act="guard-open">${n ? 'Continue' : 'Start'}</button></div>`;
+}
+// Sign-up and log-in pages on wide screens: a story panel beside the form.
+function authFrame(html) {
+  return `<div class="auth-frame"><aside class="auth-side" aria-hidden="true">
+    <div class="as-in">
+      <span class="as-brand">${ICON.check}<b>Verth</b></span>
+      <h2>Is it really them?<span>Check before you pay.</span></h2>
+      <p class="as-pitch">UPI tells you <em>who</em> you’re paying. <b>Verth tells you whether you should.</b></p>
+      <div class="as-quotes" style="--t:${quoteClock()}s">${QUOTES.map(([en, hi], i) => `<figure style="--i:${i};--n:${QUOTES.length}"><blockquote>“${esc(en)}”</blockquote><figcaption>${esc(hi)}</figcaption></figure>`).join('')}</div>
+      <ul class="as-points">
+        <li>${ICON.ok}<span><b>Scam check</b> for messages, links, numbers, jobs and screenshots</span></li>
+        <li>${ICON.ok}<span><b>Ask the real person</b> on their own phone before anyone pays</span></li>
+        <li>${ICON.ok}<span><b>Private chat and Pay safely</b>, end-to-end encrypted</span></li>
+        <li>${ICON.ok}<span><b>7 days free</b>, everything unlimited</span></li>
+      </ul>
+      <p class="as-foot">Made in India · English and हिन्दी</p>
+    </div></aside>${html}</div>`;
+}
+
 /* ---------- profile: photo, plan badge, history and account ---------- */
 const PHOTO_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
 const photoOf = (x) => (PHOTO_RE.test(x?.photo || '') && x.photo.length <= 80000 ? x.photo : '');
@@ -2789,7 +2847,16 @@ function route() {
   afterSignIn().catch((e) => errorScreen(friendlyError(e)));
 }
 
-if ('serviceWorker' in navigator && !EMU) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && !EMU) {
+  // When a new version of Verth is published, switch to it straight away (only right after opening,
+  // and never in the middle of typing a code).
+  const hadOld = !!navigator.serviceWorker.controller, opened = Date.now();
+  let switched = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadOld && !switched && Date.now() - opened < 20000 && !['code', 'phone', 'lock'].includes(S.screen)) { switched = true; location.reload(); }
+  });
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 
 if (!CONFIGURED) renderNotConfigured();
 else {
