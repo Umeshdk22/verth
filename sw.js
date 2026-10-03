@@ -1,6 +1,6 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-v16';
+const CACHE = 'verth-shell-v17';
 const SHELL = ['app.html', './', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/helper.js', 'assets/site.js', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
