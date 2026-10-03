@@ -15,6 +15,7 @@ import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } fro
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
+import { guardCard, viewGuard, guardSet } from './guard.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
@@ -571,9 +572,10 @@ function renderMain() {
     log: ['Verification log', 'Every check, on record', 'A permanent history of who checked what, and what they answered.', 'chart', 'violet'],
     chat: S.chatWith ? null : ['Private chat', 'Talk privately', 'Messages, documents and payments between two people. Locked to your two phones.', 'sms', 'teal'],
     plan: ['Plan & account', 'Plans and billing', 'Your plan, your subscription and this device.', 'key', 'amber'],
+    guard: null,
     guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
   }[S.tab];
-  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, guard: viewGuard, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
   const unread = unreadCount();
   // Keep the chat scrolled to the newest message, unless the person scrolled up to read.
@@ -591,6 +593,7 @@ function renderMain() {
     <main class="content">
       ${thisDeviceActive() ? '' : `<div class="warn strong"><b>Verth is set up on another device${me()?.device?.label ? ` (${esc(me().device.label)})` : ''}.</b> Answers and codes only work there. If you’ve switched phones, move Verth here. Everyone in your circle will be told you changed device.
         <button class="btn small" data-act="move-device">Use this device instead</button></div>`}
+      ${trialBanner()}
       ${waiting ? `<div class="banner accent"><span><b>${waiting} ${waiting > 1 ? 'people are' : 'person is'} waiting</b> for your approval to join.</span><button class="btn small" data-act="tab" data-tab="circle">Review</button></div>` : ''}
       ${body}
     </main>
@@ -635,7 +638,7 @@ function codeCard() {
 function viewHome() {
   const mine = S.checks.filter((c) => c.toUid === S.user.uid && c.kind === 'push' && statusOf(c) === 'pending');
   const recent = S.checks.slice(0, 4);
-  const used = monthChecks(), lim = plan().checksPerMonth;
+  const used = monthChecks(), lim = checkLimit();
   const stopped = S.checks.filter((c) => ['denied', 'code-mismatch'].includes(c.status)).length;
   return `
     ${heroBanner(esc, { name: me()?.name || S.profile?.name, place: S.circle.name, people: active().length, checks: used, stopped })}
@@ -650,6 +653,7 @@ function viewHome() {
       ['goverify', 'Ask on their phone', 'Is it really them?', 'ask', 'data-mode="push"', 'amber'],
       ['goverify', 'Check a caller’s code', 'For calls and video', 'code', 'data-mode="code"', 'red'],
     ])}
+    ${guardCard()}
     <section class="card code-home"><div class="split"><h2>Your Verth code</h2>${lim !== Infinity ? `<span class="muted small">${used} of ${lim} free checks this month</span>` : ''}</div>${thisDeviceActive() ? codeCard() : '<p class="muted">Your code is shown on your registered device.</p>'}</section>
     ${alertShow()}
     ${stepsShow()}
@@ -758,7 +762,7 @@ function companyCard() {
 }
 
 function viewCircle() {
-  const c = S.circle, lim = plan().maxMembers, admin = isAdmin();
+  const c = S.circle, lim = memberLimit(), admin = isAdmin();
   const pending = S.members.filter((m) => m.status === 'pending');
   const msg = inviteMessage();
   const row = (m) => {
@@ -865,7 +869,28 @@ function viewGuide() {
 const IST_MS = 19800000, DAY_MS = 86400000;
 const todayKey = () => String(Math.floor((Date.now() + IST_MS) / DAY_MS));
 const circlePaid = () => ['family', 'team'].includes(S.circle?.plan);
-const photoLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() ? Infinity : PLANS.free.photoChecks);
+// 7-day free trial: everything unlimited for a week from sign-up. The database rules enforce the
+// same week from the profile's createdAt, so it can't be extended from the app.
+const TRIAL_DAYS = 7;
+const trialEnd = () => (S.profile?.createdAt ? tsMs(S.profile.createdAt) : Date.now()) + TRIAL_DAYS * 864e5;
+const inTrial = () => !!S.profile && Date.now() < trialEnd();
+const trialDaysLeft = () => Math.max(0, Math.ceil((trialEnd() - Date.now()) / 864e5));
+const checkLimit = () => (inTrial() ? Infinity : plan().checksPerMonth);
+const memberLimit = () => (inTrial() && isOwner() && plan().maxMembers < 25 ? 25 : plan().maxMembers);
+function trialBanner() {
+  if (!S.profile) return '';
+  const paid = (S.profile.plan && S.profile.plan !== 'free') || circlePaid();
+  if (paid) return '';
+  if (inTrial()) {
+    const d = trialDaysLeft();
+    return `<div class="trial-banner"><span class="tb-ic">✨</span><span class="grow"><b>Free trial: ${d <= 1 ? 'last day' : `${d} days left`}</b><span>Everything is unlimited until ${new Date(trialEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}. Then you’re on the Free plan, or choose a plan you like.</span></span><button class="btn small" data-act="tab" data-tab="plan">See plans</button></div>`;
+  }
+  if (Date.now() - trialEnd() < 5 * 864e5 && !store.get('verth-trial-seen')) {
+    return `<div class="trial-banner ended"><span class="tb-ic">⏳</span><span class="grow"><b>Your 7-day free trial has ended</b><span>You’re on the Free plan now: everything still works, with daily limits. Upgrade to keep it unlimited.</span></span><button class="btn small" data-act="trial-plans">See plans</button></div>`;
+  }
+  return '';
+}
+const photoLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() || inTrial() ? Infinity : PLANS.free.photoChecks);
 const photoRef = () => doc(db, 'users', S.user.uid, 'meters', 'photos');
 async function loadPhotoUsage() {
   try { const s = await getDoc(photoRef()); S.photoUsed = s.exists() ? s.data().count : 0; }
@@ -881,7 +906,7 @@ async function usePhoto() {
   await updateDoc(ref, { count: increment(1), at: serverTimestamp(), ...(circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {}) });
   S.photoUsed += 1;
 }
-const scanLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() ? Infinity : PLANS.free.scansPerDay);
+const scanLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() || inTrial() ? Infinity : PLANS.free.scansPerDay);
 async function loadUsage() {
   try { const s = await getDoc(doc(db, 'users', S.user.uid, 'usage', todayKey())); S.scanUsed = s.exists() ? s.data().scans : 0; }
   catch { S.scanUsed = 0; }
@@ -1040,9 +1065,10 @@ function renderScanOnly() {
   paint(`<div class="app">
     <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div></header>
     <main class="content">
+      ${trialBanner()}
       ${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}
       ${S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : ''}
-      ${viewScan()}
+      ${S.guardOpen ? `<button class="link" data-act="guard-close">‹ Back to Scam check</button>${viewGuard()}` : `${viewScan()}${guardCard()}`}
       ${quoteCarousel()}
       ${alertShow()}
       <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
@@ -1094,9 +1120,10 @@ function viewPlan() {
   const LOOK = { free: ['gift', 'To try Verth'], personal: ['user', 'Just for you'], family: ['people', 'For your family · up to 10'], team: ['building', 'Whole organisation · no limits'] };
   const card = (id, title, price, items) => `<div class="plan p-${id} ${(id === 'personal' ? personal : cp === id && !(id === 'free' && personal)) ? 'current' : ''}">${id === 'team' ? '<span class="flag">Everything unlimited</span>' : ''}<div class="plan-hd"><span class="plan-ic">${ICON[LOOK[id][0]]}</span><div><h3>${title}</h3><span class="who">${LOOK[id][1]}</span></div></div><div class="price">${price}</div><ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>${action(id)}</div>`;
   return `<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
-      ${plan().checksPerMonth === Infinity ? 'Unlimited checks.' : `${used} of ${plan().checksPerMonth} checks used this month.`} ${cp === 'team' ? `${count} people, no limit.` : `${count} of ${plan().maxMembers} places used.`}</p></section>
+      ${checkLimit() === Infinity ? 'Unlimited checks.' : `${used} of ${checkLimit()} checks used this month.`} ${cp === 'team' ? `${count} people, no limit.` : `${count} of ${memberLimit()} places used.`}</p></section>
     ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
     ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
+    ${inTrial() && !(S.profile?.plan && S.profile.plan !== 'free') && !circlePaid() ? `<section class="card trial-card"><h2>✨ Free trial</h2><p>Everything is unlimited for <b>${trialDaysLeft() <= 1 ? 'today only' : `${trialDaysLeft()} more days`}</b> (until ${new Date(trialEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })}). After that you’re on the Free plan, unless you choose a plan below. Nothing is charged automatically.</p></section>` : ''}
     <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p>
       <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
     <div class="plans">
@@ -1847,7 +1874,7 @@ const forms = {
     const toUid = f.querySelector('#v-who').value, what = f.querySelector('#v-what').value.trim(), channel = f.querySelector('#v-channel').value;
     if (!what) return setErr('v-err', 'Describe what they’re asking for, so the other person knows what to confirm.');
     if (!CHANNELS.includes(channel) || !member(toUid)) return setErr('v-err', 'Pick who it’s from and where it came from.');
-    const lim = plan().checksPerMonth;
+    const lim = checkLimit();
     if (monthChecks() >= lim) return setErr('v-err', `You’ve used all ${lim} free checks this month. Upgrade for unlimited checks.`);
     busy(f, true);
     try {
@@ -1887,7 +1914,7 @@ const forms = {
 const CHAT_FREE = 12, PAY_FREE = 3, FILE_MAX = 2 * 1024 * 1024, PART = 512 * 1024;
 const pairOf = (a, b) => (a < b ? [a, b] : [b, a]);
 const pairId = (uid) => pairOf(S.user.uid, uid).join('~');
-const unlimitedTalk = () => (S.profile?.plan && S.profile.plan !== 'free') || circlePaid();
+const unlimitedTalk = () => (S.profile?.plan && S.profile.plan !== 'free') || circlePaid() || inTrial();
 const UPI_RE = /^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/;
 const isPhone = () => /Android|iPhone|iPad/i.test(navigator.userAgent);
 const VIEWABLE = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
@@ -2145,6 +2172,10 @@ function qrSvg(text) {
 Object.assign(actions, {
   'chat-open': (el) => { S.tab = 'chat'; openChat(el.dataset.uid); renderMain(); },
   'chat-back': () => { closeChat(); renderMain(); },
+  'guard-open': () => { if (S.circle) { S.tab = 'guard'; renderMain(); } else { S.guardOpen = true; renderScanView(); } window.scrollTo(0, 0); },
+  'guard-close': () => { S.guardOpen = false; renderScanView(); },
+  'guard-tick': (el) => { guardSet(el.dataset.id, !el.closest('.g-item').classList.contains('done')); renderScanView(); },
+  'trial-plans': () => { store.set('verth-trial-seen', 1); if (S.circle) { S.tab = 'plan'; renderMain(); } else renderScanView(); },
   'chat-check': (el) => { closeChat(); S.tab = 'scan'; S.scanKind = 'link'; S.prefill = { kind: 'link', text: el.dataset.text, from: 'chat' }; renderMain(); },
   'pay-open': () => { S.payOpen = !S.payOpen; S.payQr = null; loadDaily('pay').then(renderMain); renderMain(); },
   'pay-close': () => { S.payOpen = false; S.payQr = null; renderMain(); },
@@ -2470,6 +2501,7 @@ function helperGo(to, text) {
     if (!S.circle) { renderScanOnly(); window.scrollTo(0, 0); return; }
     to = 'scan';
   }
+  if (to === 'guard') return actions['guard-open']();
   if (!S.circle) { toast('Set up or join a circle first to use that.'); return; }
   S.tab = to; S.confirmRemove = null; if (to === 'verify') S.codeResult = null;
   renderMain(); window.scrollTo(0, 0);

@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-v23';
-const SHELL = ['app.html', './', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/helper.js', 'assets/site.js', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-v24';
+const SHELL = ['app.html', './', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/helper.js', 'assets/site.js', 'assets/splash.js', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

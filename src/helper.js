@@ -56,6 +56,12 @@ export const TOPICS = [
     go: [['Open Circle', 'circle']],
   },
   {
+    id: 'guard', q: 'How do I make my phone safe from hackers?',
+    keys: ['phone safe', 'phone security', 'secure my phone', 'phone hacked', 'hacked', 'hack', 'virus', 'malware', 'apk', 'anydesk', 'teamviewer', 'quicksupport', 'screen share', 'screen sharing', 'remote access', 'accessibility', 'play protect', 'safety check', 'check-up', 'checkup', 'security guard', 'unknown apps'],
+    a: 'Open “Phone safety check-up” on your Verth Home screen. It walks you through 10 quick fixes, like screen lock, Play Protect, no unknown APK installs, removing screen-sharing apps (AnyDesk, TeamViewer), checking Accessibility access and WhatsApp two-step verification.\n• Tick each one when it’s done and watch your safety score go up.\n• Verth can’t scan your phone or see your settings, so you check them yourself and Verth guides you.\n• If you already installed an app from a link or shared your screen: turn on airplane mode, call your bank’s official number, and call 1930.',
+    go: [['Open safety check-up', 'guard']],
+  },
+  {
     id: 'chat', q: 'How do I chat privately or send money safely?',
     keys: ['private chat', 'chat privately', 'chat tab', 'privately', 'personal message', 'confidential', 'secret message', 'send a document', 'send document', 'certificate', 'send a file', 'send file', 'send pdf', 'pay safely', 'pay someone in my circle', 'pay a member', 'pay my family', 'in my circle safely', 'upi id', 'my upi', 'receive money', 'end to end', 'encrypted chat'],
     a: 'Open the Chat tab and tap a person in your circle.\n• Chat is end-to-end encrypted: only the two of you can read it, not other members, admins or Verth.\n• Send documents and photos up to 2 MB with the paperclip.\n• Pay safely: tap “₹ Pay”, enter the amount, and your own UPI app (GPay, PhonePe, Paytm) opens with that person’s saved UPI ID filled in. You approve with your PIN; Verth never touches your money.\n• To be paid, add your UPI ID at the bottom of the Chat tab.\n• Free plan: 12 messages and 3 payments a day. Paid plans are unlimited.',
@@ -128,7 +134,7 @@ export const TOPICS = [
   {
     id: 'plans', q: 'What do the plans cost?',
     keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'charges', 'buy', 'subscribe'],
-    a: 'Plans:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
+    a: 'Every new account gets 7 days with everything unlimited, free. Then:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
   },
   {

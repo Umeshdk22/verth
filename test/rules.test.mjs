@@ -34,7 +34,8 @@ async function seed() {
     const f = ctx.firestore();
     const now = Timestamp.now();
     for (const u of ['rajesh', 'priya', 'mallory', 'outsider']) {
-      await setDoc(doc(f, 'users', u), { name: u, email: `${u}@x.in`, plan: 'free', circles: [], activeCircle: null, onboarded: true, createdAt: now });
+      // Signed up long ago, so their 7-day free trial is over (trial tests set their own dates).
+      await setDoc(doc(f, 'users', u), { name: u, email: `${u}@x.in`, plan: 'free', circles: [], activeCircle: null, onboarded: true, createdAt: Timestamp.fromMillis(Date.now() - 30 * 86400000) });
     }
     await setDoc(doc(f, 'circles/c1'), { name: 'Nirmaan', type: 'org', ownerUid: 'rajesh', inviteCode: CODE, joinOpen: true, plan: 'free', memberCount: 3, createdAt: now });
     await setDoc(doc(f, 'invites', CODE), { circleId: 'c1', circleName: 'Nirmaan', type: 'org', createdBy: 'rajesh', createdAt: now });
@@ -552,4 +553,32 @@ test('profiles can hold gender, date of birth, country and an international numb
   await assertFails(setDoc(doc(f, 'users/newbie'), { ...base, phone: '+9112345' }));       // India must be a 10-digit mobile
   await assertSucceeds(setDoc(doc(f, 'users/newbie'), { ...base, gender: 'female', dob: '1990-12-31', country: 'GB', phone: '+447700900123' }));
   await assertSucceeds(updateDoc(doc(f, 'users/newbie'), { country: 'IN', phone: '+919876543210' }));
+});
+
+/* ---------- 7-day free trial ---------- */
+const startTrial = (uid, daysAgo) => env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users', uid), { createdAt: Timestamp.fromMillis(Date.now() - daysAgo * 86400000) }));
+test('trial: in the first 7 days, daily limits don’t apply', async () => {
+  await startTrial('priya', 2);
+  await env.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), `users/priya/usage/${DAY()}`), { scans: 2, at: Timestamp.now() });
+    await setDoc(doc(c.firestore(), `users/priya/daily/chat-${DAY()}`), { count: 12, at: Timestamp.now() });
+    await setDoc(doc(c.firestore(), 'users/priya/meters/photos'), { count: 5, at: Timestamp.now() });
+  });
+  await assertSucceeds(updateDoc(doc(db('priya'), `users/priya/usage/${DAY()}`), { scans: 3, at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(doc(db('priya'), `users/priya/daily/chat-${DAY()}`), { count: 13, at: serverTimestamp() }));
+  await assertSucceeds(updateDoc(doc(db('priya'), 'users/priya/meters/photos'), { count: 6, at: serverTimestamp() }));
+});
+test('trial: after 7 days, the Free plan limits are back', async () => {
+  await startTrial('priya', 8);
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), `users/priya/usage/${DAY()}`), { scans: 2, at: Timestamp.now() }));
+  await assertFails(updateDoc(doc(db('priya'), `users/priya/usage/${DAY()}`), { scans: 3, at: serverTimestamp() }));
+});
+test('trial: nobody can restart their trial by changing their sign-up date', async () => {
+  await assertFails(updateDoc(doc(db('priya'), 'users/priya'), { createdAt: serverTimestamp() }));
+});
+test('trial: a circle whose owner is in their trial can grow past 5 people (up to 25)', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'circles/c1'), { memberCount: 5 }));
+  await assertFails(joinBatch(db('outsider'), 'outsider'));
+  await startTrial('rajesh', 1);
+  await assertSucceeds(joinBatch(db('outsider'), 'outsider'));
 });

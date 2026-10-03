@@ -9,6 +9,8 @@ const SLOW = process.env.CI ? 3 : 1;
 (async () => {
   const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const ctx = await b.newContext({ viewport: { width: 400, height: 860 } });
+  // The first page shows the "Welcome to Verth" greeting; the rest skip it (once per visit, like a person's tab).
+  await ctx.addInitScript(() => { if (!window.name.includes('greet')) { try { sessionStorage.setItem('verth-splash', '1'); } catch (e) {} } });
   const A = await ctx.newPage(), B = await ctx.newPage();
   for (const [n, p] of [['A', A], ['B', B]]) {
     p.on('pageerror', (e) => errors.push(n + ' pageerror: ' + e.message));
@@ -21,6 +23,12 @@ const SLOW = process.env.CI ? 3 : 1;
     catch (e) { failed++; console.log('FAIL', msg, '-', e.message.split('\n')[0]); if (process.env.CI) console.log(`::error title=E2E failed::${msg}: ${e.message.split('\n')[0]} | page errors: ${JSON.stringify(errors).slice(0, 400)}`); await shot(A, 'fail-A'); await shot(B, 'fail-B'); for (const [n, pg] of extra) await shot(pg, 'fail-' + n).catch(() => {}); throw e; }
   };
   const fs = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('fakefs') || '{}'));
+  // Moves an account's sign-up date back 8 days, so its 7-day free trial has just ended.
+  const endTrial = (p) => p.evaluate(() => {
+    const S = window.__verth.S, old = Date.now() - 8 * 864e5;
+    S.profile.createdAt = old;
+    const d = JSON.parse(localStorage.getItem('fakefs')); d['users/' + S.user.uid].createdAt = { __ts: old }; localStorage.setItem('fakefs', JSON.stringify(d));
+  });
   const poke = (p) => p.evaluate(() => new BroadcastChannel('fakefire').postMessage('x'));
 
   // A stand-in for the Verth server's email codes. The code in the "email" is always 482913.
@@ -164,6 +172,12 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#c-name', 'Nirmaan Infra'); await A.fill('#c-title', 'CEO');
     await A.click('button[type=submit]');
     await A.getByRole('heading', { name: 'Invite people' }).waitFor({ timeout: 5000 * SLOW });
+    // New accounts start with a 7-day free trial.
+    await A.locator('.trial-banner', { hasText: 'Free trial: 7 days left' }).waitFor({ timeout: 3000 * SLOW });
+    await endTrial(A); await A.click('nav >> text=Home');
+    await A.locator('.trial-banner.ended', { hasText: 'Your 7-day free trial has ended' }).waitFor({ timeout: 3000 * SLOW });
+    await shot(A, '01a-A-trial-ended');
+    await A.click('nav >> text=Circle');
   });
   const code = (await A.locator('.invite .mono').textContent()).trim();
   await step('invite code is 8 characters', async () => { if (!/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code)) throw new Error('bad code ' + code); });
@@ -178,6 +192,7 @@ const SLOW = process.env.CI ? 3 : 1;
   await B.goto(URL + '&mode=signup&invite=' + code.replace('-', ''));
   await step('B joins from the invite link and waits for approval', async () => {
     await googleSignup(B, 'priya@nirmaan.in', 'Priya Nair', '9123456780');
+    await endTrial(B);
     await B.locator('#j-code').waitFor({ timeout: 5000 * SLOW });
     if ((await B.locator('#j-code').inputValue()).replace(/[^A-Z0-9]/gi, '').toUpperCase() !== code.replace('-', '')) throw new Error('invite code not prefilled');
     await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
@@ -434,6 +449,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByText('There’s no Verth account for that Google account yet').waitFor({ timeout: 5000 * SLOW });
     if (await C.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('fakeauth') || '{}')).includes('kamla@family.in'))) throw new Error('the stray Google account was not removed');
     await googleSignup(C, 'kamla@family.in', 'Kamla Devi', '9988776655');
+    await endTrial(C);
     await C.click('text=Skip the tour');
     await C.click('text=Just check something suspicious');
     await C.getByRole('heading', { name: 'Scam check', exact: true }).waitFor({ timeout: 5000 * SLOW });
@@ -560,6 +576,30 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('text=Delete my account');
     await A.getByText('Type DELETE to confirm').waitFor();
     await A.click('text=Keep my account');
+  });
+  await step('Phone safety check-up: guided fixes and a score that remembers', async () => {
+    await A.click('nav >> text=Home');
+    await A.click('button:has-text("safety check-up")');
+    await A.getByRole('heading', { name: /Phone safety:/ }).waitFor({ timeout: 5000 * SLOW });
+    await A.getByText('Screen lock is on').waitFor();
+    await A.click('.g-item details[open] >> text=I’ve done this ✓');
+    await A.locator('.g-item.done', { hasText: 'Screen lock is on' }).waitFor({ timeout: 3000 * SLOW });
+    if ((await A.locator('.guard-hero .gc-ring b').textContent()).trim() !== '1/10') throw new Error('score should be 1/10');
+    await shot(A, '21-A-guard');
+    await A.click('nav >> text=Home');
+    await A.locator('.guard-card', { hasText: '9 quick fixes' }).waitFor();
+  });
+  await step('“Welcome to Verth” greeting: shown once per visit, then gets out of the way', async () => {
+    const D = await ctx.newPage(); extra.push(['D', D]);
+    await D.goto(URL);
+    await D.evaluate(() => { window.name = 'greet'; sessionStorage.clear(); });
+    await D.reload();
+    await D.locator('.splash .sp-title').waitFor({ state: 'visible', timeout: 3000 * SLOW });
+    await shot(D, '20-splash');
+    await D.locator('.splash').waitFor({ state: 'detached', timeout: 4000 * SLOW });
+    await D.reload();
+    if (await D.locator('.splash').isVisible()) throw new Error('greeting should show only once per visit');
+    await D.close();
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');

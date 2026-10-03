@@ -620,3 +620,68 @@ body.no-tabs .vh-panel{order:1}
 @media (max-width:560px){
   body.no-tabs .vh-panel{inset:72px 8px calc(12px + env(safe-area-inset-bottom,0px)) 8px;height:auto}
 }
+
+/* 7-day free trial */
+.trial-banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;color:#2A1400;
+  background:radial-gradient(260px 100px at 100% 0,rgba(255,255,255,.6),transparent 60%),linear-gradient(135deg,#FFE7A3,#FFC857);box-shadow:0 10px 24px -16px rgba(180,120,0,.9)}
+.trial-banner .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
+.trial-banner b{font-size:15px}
+.trial-banner .grow span{font-size:13px;color:rgba(42,20,0,.78)}
+.trial-banner .tb-ic{font-size:24px}
+.trial-banner .btn{background:#2A1400;color:#FFE7A3;border-color:transparent;flex:none}
+.trial-banner.ended{color:#fff;background:linear-gradient(135deg,#2A137A,#5B2FE0)}
+.trial-banner.ended .grow span{color:rgba(255,255,255,.85)}
+.trial-banner.ended .btn{background:#fff;color:var(--accent)}
+
+/* "Welcome to Verth" greeting (assets/splash.js) */
+.splash{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;color:#fff;cursor:pointer;
+  background:radial-gradient(700px 420px at 70% 15%,rgba(139,92,246,.55),transparent 60%),radial-gradient(600px 500px at 15% 85%,rgba(91,47,219,.5),transparent 60%),linear-gradient(160deg,#12082F,#2A137A 50%,#4B23C9);
+  transition:opacity .45s ease,transform .45s ease}
+.splash-seen .splash{display:none}
+.splash.sp-out{opacity:0;transform:scale(1.04);pointer-events:none}
+.sp-glow{position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,200,87,.35),transparent 65%);animation:spGlow 1.6s ease-out both}
+.sp-logo{position:relative;width:104px;height:104px;border-radius:32px;display:grid;place-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);box-shadow:0 20px 50px -18px rgba(0,0,0,.6);animation:spPop .7s cubic-bezier(.2,1.4,.4,1) both}
+.sp-logo svg{width:62px;height:62px}
+.sp-shield{stroke-dasharray:60;stroke-dashoffset:60;animation:spDraw .8s .15s ease forwards}
+.sp-tick{stroke:#FFC857;stroke-width:2.6;stroke-dasharray:14;stroke-dashoffset:14;animation:spDraw .35s .8s ease forwards}
+.sp-title{position:relative;margin:14px 0 0;font-family:var(--display);font-size:clamp(30px,8vw,46px);line-height:1.1;animation:spUp .6s .35s ease both}
+.sp-title span{color:#FFC857}
+.sp-sub{position:relative;margin:0;font-size:16px;color:rgba(255,255,255,.82);animation:spUp .6s .55s ease both}
+.sp-skip{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom,0px));margin:0;font-size:13px;color:rgba(255,255,255,.55);animation:spUp .6s .9s ease both}
+@keyframes spPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes spDraw{to{stroke-dashoffset:0}}
+@keyframes spUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes spGlow{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.splash *{animation:none!important;stroke-dashoffset:0!important}}
+
+/* Phone safety check-up ("security guard") */
+.guard-card,.guard-hero{display:flex;gap:16px;align-items:center;padding:18px;border-radius:22px;color:#fff;
+  background:radial-gradient(420px 180px at 100% 0,rgba(255,200,87,.25),transparent 60%),linear-gradient(135deg,#0E3B2E,#0B7A55 60%,#12B886);box-shadow:0 18px 40px -26px rgba(11,122,85,.9)}
+.guard-card.g-weak,.guard-card.g-low,.guard-hero.g-weak,.guard-hero.g-low{background:radial-gradient(420px 180px at 100% 0,rgba(255,200,87,.3),transparent 60%),linear-gradient(135deg,#3A1208,#B4401A 60%,#F07A3A)}
+.guard-card.g-good,.guard-hero.g-good{background:radial-gradient(420px 180px at 100% 0,rgba(255,200,87,.25),transparent 60%),linear-gradient(135deg,#1B0D4A,#3B1BA8 60%,#5B2FE0)}
+.guard-card .grow,.guard-hero>div:last-child{display:flex;flex-direction:column;gap:4px;min-width:0}
+.guard-card h2,.guard-hero h1{color:#fff;font-size:22px}
+.guard-hero h1{font-size:26px}
+.guard-card p,.guard-hero p{margin:0;color:rgba(255,255,255,.86);font-size:14.5px}
+.guard-card .eyebrow,.guard-hero .eyebrow{color:#FFE29A}
+.guard-card .btn{align-self:flex-start;margin-top:6px}
+.guard-card .btn.ghost{color:#fff;border-color:rgba(255,255,255,.5);background:transparent}
+.gc-ring{position:relative;flex:none;width:86px;height:86px}
+.gc-ring.big{width:104px;height:104px}
+.gc-ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-size:28px;font-weight:400}
+.gc-ring b small{font-size:14px;opacity:.75;margin-left:1px}
+.g-ring{width:100%;height:100%;transform:rotate(-90deg)}
+.g-ring circle{fill:none;stroke-width:9}
+.g-ring .trk{stroke:rgba(255,255,255,.18)}
+.g-ring .val{stroke:#FFD66B;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.guard-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.g-item details{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 14px}
+.g-item.done details{background:linear-gradient(135deg,rgba(15,157,107,.08),rgba(15,157,107,.02));border-color:rgba(15,157,107,.3)}
+.g-item summary{display:flex;align-items:center;gap:12px;padding:10px 0;cursor:pointer;list-style:none}
+.g-item summary::-webkit-details-marker{display:none}
+.g-item summary .grow{display:flex;flex-direction:column}
+.g-ic{font-size:26px;width:40px;text-align:center}
+.g-item p{margin:0 0 10px;font-size:15px}
+.g-how{background:var(--surface-2);border-radius:12px;padding:10px 12px}
+.g-item .btn{margin-bottom:12px}
+.gc-ring b{display:flex;align-items:baseline;justify-content:center;padding-top:calc(50% - 18px)}

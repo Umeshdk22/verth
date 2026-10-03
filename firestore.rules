@@ -42,6 +42,12 @@ service cloud.firestore {
     function paidCircleFor(uid, cid) {
       return cid is string && activeMember(cid, uid) && get(circlePath(cid)).data.plan in ['family', 'team'];
     }
+    // 7-day free trial: everything unlimited for a week from sign-up (the profile's createdAt is
+    // set by the database clock and can't be changed). Keep in step with TRIAL_DAYS in src/app.js.
+    function inTrial(uid) {
+      let u = get(/databases/$(database)/documents/users/$(uid)).data;
+      return u.get('createdAt', null) is timestamp && request.time < u.createdAt + duration.value(7, 'd');
+    }
     function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
     function onlyChanges(keys) { return changed().hasOnly(keys); }
     function text(v, n) { return v is string && v.size() > 0 && v.size() <= n; }
@@ -139,6 +145,7 @@ service cloud.firestore {
           && request.resource.data.at == request.time
           && (request.resource.data.scans <= 2
               || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+              || inTrial(uid)
               || paidCircleFor(uid, request.resource.data.get('via', null)));
       }
 
@@ -156,6 +163,7 @@ service cloud.firestore {
           && request.resource.data.at == request.time
           && (request.resource.data.count <= 5
               || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+              || inTrial(uid)
               || paidCircleFor(uid, request.resource.data.get('via', null)));
         allow delete: if false;
       }
@@ -174,6 +182,7 @@ service cloud.firestore {
           && request.resource.data.at == request.time
           && (request.resource.data.count <= (key.matches('^pay-.*') ? 3 : 12)
               || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+              || inTrial(uid)
               || paidCircleFor(uid, request.resource.data.get('via', null)));
         allow delete: if false;
       }
@@ -244,7 +253,8 @@ service cloud.firestore {
       allow update: if signedIn()
         && onlyChanges(['memberCount'])
         && request.resource.data.memberCount == resource.data.memberCount + 1
-        && withinLimit(resource.data, request.resource.data.memberCount)
+        && (withinLimit(resource.data, request.resource.data.memberCount)
+            || (request.resource.data.memberCount <= 25 && inTrial(resource.data.ownerUid)))
         && resource.data.joinOpen == true
         && !exists(memberPath(cid, me()))
         && existsAfter(memberPath(cid, me()));
