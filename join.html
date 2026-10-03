@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2A137A">
+<title>You’re invited to Verth</title>
+<meta name="description" content="Someone you know invited you to Verth: check scam messages, job offers and money requests with the real person before you pay. Free.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="You’re invited to Verth 🛡️">
+<meta property="og:description" content="Join my circle on Verth so we can check money requests with each other before anyone pays. Free, takes a minute.">
+<meta property="og:image" content="https://umeshdk22.github.io/verth/assets/og-invite.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="modulepreload" href="assets/app.js">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/verth.css">
+<style>
+body{background:#fff;font-size:17px}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px}
+.j-hero{position:relative;color:#fff;overflow:hidden;padding:22px 0 80px;
+  background:linear-gradient(180deg,rgba(18,8,47,.55),rgba(18,8,47,.2) 50%,rgba(18,8,47,.85)),radial-gradient(700px 360px at 85% 0,rgba(139,92,246,.55),transparent 60%),url(assets/bg-dusk.webp) center bottom/cover,#2A137A}
+.j-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.j-top .brand{color:#fff}.j-top .brand svg{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25)}
+.j-top a.small{color:rgba(255,255,255,.85);font-weight:600;text-decoration:none;font-size:15px}
+.j-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;margin-top:44px}
+.j-from{display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:8px 16px 8px 8px;border-radius:999px;font-weight:600;backdrop-filter:blur(6px)}
+.j-av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#FFB224;color:#2A1400;font-weight:700;font-size:18px}
+.j-hero h1{font-size:clamp(38px,6vw,64px);line-height:1.06;color:#fff;margin:18px 0 12px}
+.j-hero h1 span{color:#FFD3A1}
+.j-hero .lead{font-size:19px;color:rgba(255,255,255,.88);max-width:34ch;margin:0}
+.j-hero .hi{font-size:16px;color:rgba(255,255,255,.72);margin:8px 0 0}
+.j-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.j-cta .btn{min-height:56px;padding:12px 26px;font-size:18px}
+.btn.gold{background:#FFB224;color:#2A1400;box-shadow:0 14px 30px -14px rgba(255,178,36,.8)}.btn.gold:hover{background:#FFC64D}
+.btn.line{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.ticket{position:relative;background:#fff;color:var(--ink);border-radius:26px;padding:26px 24px;box-shadow:0 40px 80px -30px rgba(0,0,0,.7);text-align:center}
+.ticket::before,.ticket::after{content:"";position:absolute;top:52%;width:28px;height:28px;border-radius:50%;background:#3A1C99}
+.ticket::before{left:-14px}.ticket::after{right:-14px}
+.ticket .t-k{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.ticket .t-c{font-family:var(--display);font-size:30px;line-height:1.15;margin:6px 0 2px}
+.ticket .t-type{color:var(--muted);font-size:15px}
+.ticket hr{border:0;border-top:2px dashed #E4DFF4;margin:18px -8px}
+.ticket .code{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:.14em;color:#16132B}
+.ticket .t-note{font-size:13px;color:var(--muted);margin-top:8px}
+.ticket .free{display:inline-block;margin-top:12px;background:var(--ok-bg);color:#0B6B49;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px}
+section.jsec{padding:72px 0}
+section.jsec.tint{background:#F7F5FF}
+.jsec h2{font-size:clamp(30px,4.4vw,48px);line-height:1.1;margin:8px 0 12px;text-align:center}
+.jsec .sub{color:var(--muted);text-align:center;font-size:18px;max-width:58ch;margin:0 auto}
+.kick{display:block;text-align:center;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:40px}
+.why article{border-radius:24px;overflow:hidden;color:#fff;display:flex;flex-direction:column;box-shadow:0 24px 48px -26px rgba(20,8,60,.7)}
+.why article .tx{padding:22px 20px 8px}
+.why article h3{font-family:var(--display);font-weight:400;font-size:24px;color:#fff;line-height:1.15;margin-bottom:8px}
+.why article p{margin:0;color:rgba(255,255,255,.88);font-size:15px}
+.why article .ph{margin:18px auto -60px;width:200px;aspect-ratio:1/2;border-radius:28px;padding:7px;background:#16132B;box-shadow:0 18px 36px -12px rgba(0,0,0,.6)}
+.why article .ph img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:22px;display:block;background:#fff}
+.why article{padding-bottom:0;max-height:520px}
+.w1{background:linear-gradient(150deg,#8E1B3A,#4B23C9)}.w2{background:linear-gradient(150deg,#0B7A6E,#2A137A)}.w3{background:linear-gradient(150deg,#B85E0B,#5A2FDB)}
+.steps{list-style:none;padding:0;margin:40px auto 0;max-width:820px;display:grid;gap:14px}
+.steps li{display:flex;gap:16px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow)}
+.steps .n{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:700;font-size:19px}
+.steps b{display:block;font-size:18px}.steps span{color:var(--muted)}
+.steps .hi{display:block;color:#7A7593;font-size:14px;margin-top:2px}
+.hindi{max-width:820px;margin:34px auto 0;background:linear-gradient(135deg,#FFF6EA,#F1EBFF);border:1px solid #EDE4FB;border-radius:22px;padding:22px 24px}
+.hindi h3{font-family:var(--display);font-weight:400;font-size:26px;margin-bottom:8px}
+.hindi p{margin:0 0 6px;font-size:17px;line-height:1.7;color:#34304D}
+.install{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:860px;margin:36px auto 0}
+.install .box{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+.install .box h3{font-size:20px;font-family:var(--body);font-weight:600;margin-bottom:10px}
+.install ol{margin:0;padding-left:20px;display:grid;gap:6px;color:#34304D}
+.trust{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:28px}
+.trust span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.final{margin:0 auto;max-width:980px;border-radius:30px;padding:54px 28px;text-align:center;color:#fff;background:radial-gradient(600px 260px at 80% 0,rgba(139,92,246,.6),transparent 60%),linear-gradient(150deg,#12082F,#3A1C99 60%,#5A2FDB)}
+.final h2{color:#fff;margin:0 0 12px;font-size:clamp(30px,4.4vw,48px);font-family:var(--display);font-weight:400}
+.final p{color:rgba(255,255,255,.85);margin:0 0 24px;font-size:18px}
+.safe{max-width:820px;margin:26px auto 0;font-size:14px;color:var(--muted);text-align:center}
+footer{padding:36px 0 50px;text-align:center;color:var(--muted);font-size:14px}
+footer a{color:var(--accent)}
+@media (max-width:860px){.j-grid{grid-template-columns:1fr;gap:28px;margin-top:28px}.why{grid-template-columns:1fr}.install{grid-template-columns:1fr}.why article .ph{width:180px}}
+</style>
+</head>
+<body>
+<div class="j-hero">
+  <div class="wrap">
+    <div class="j-top">
+      <a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Verth</span></a>
+      <a class="small" href="./">What is Verth?</a>
+    </div>
+    <div class="j-grid">
+      <div>
+        <span class="j-from"><span class="j-av" id="j-av">V</span><span id="j-from">A Verth user invited you</span></span>
+        <h1 id="j-title">You’re invited to <span>Verth</span></h1>
+        <p class="lead">Before anyone in your circle pays money, shares an OTP or trusts an “urgent” message, Verth checks with the real person, on their own phone.</p>
+        <p class="hi" lang="hi">पैसे भेजने से पहले, असली व्यक्ति से उसके अपने फ़ोन पर पक्का कीजिए। धोखे से बचिए।</p>
+        <div class="j-cta">
+          <a class="btn gold" id="j-join" href="app.html?mode=signup">Join now, it’s free</a>
+          <a class="btn line" href="#install">Install the app</a>
+        </div>
+      </div>
+      <div class="ticket" id="ticket">
+        <span class="t-k">Your invitation</span>
+        <div class="t-c" id="t-circle">A Verth circle</div>
+        <div class="t-type" id="t-type">Check money requests with each other</div>
+        <hr>
+        <div class="t-k">Invite code</div>
+        <div class="code" id="t-code">••••-••••</div>
+        <div class="t-note">Tap “Join now”. The code is filled in for you.</div>
+        <span class="free">Free · no card needed</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="jsec">
+  <div class="wrap">
+    <span class="kick">Why people use Verth</span>
+    <h2>Scammers copy names, photos and voices. They can’t copy your phone.</h2>
+    <p class="sub">Verth is made in India to stop the scams that hit families every day.</p>
+    <div class="why">
+      <article class="w1"><div class="tx"><h3>Check any message in seconds</h3><p>Paste a WhatsApp, SMS, job offer or link, or just upload a screenshot. Verth shows every red flag in simple words.</p></div><div class="ph"><img src="assets/slides/scan-sms.webp" alt="" loading="lazy" width="390" height="780"></div></article>
+      <article class="w2"><div class="tx"><h3>Ask the real person first</h3><p>A message “from your son” or “from your boss” asks for money? One tap asks them on their own phone.</p></div><div class="ph"><img src="assets/slides/org-incoming.webp" alt="" loading="lazy" width="390" height="780"></div></article>
+      <article class="w3"><div class="tx"><h3>Stop the scam together</h3><p>If they say No, don’t pay. Everyone in your circle is warned, so the next person isn’t fooled.</p></div><div class="ph"><img src="assets/slides/org-stopped.webp" alt="" loading="lazy" width="390" height="780"></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="jsec tint">
+  <div class="wrap">
+    <span class="kick">Joining takes a minute</span>
+    <h2>Three simple steps</h2>
+    <ol class="steps">
+      <li><span class="n">1</span><div><b>Tap “Join now”</b><span>Type your name, email and mobile number. We send a 6-digit code to your email.</span><span class="hi" lang="hi">“Join now” दबाइए, नाम, ईमेल और मोबाइल नंबर लिखिए।</span></div></li>
+      <li><span class="n">2</span><div><b>Your invite code is filled in</b><span>Tell the circle how they know you, like “Son” or “Accounts”, and tap “Ask to join”.</span><span class="hi" lang="hi">कोड अपने आप भर जाएगा। “Ask to join” दबाइए।</span></div></li>
+      <li><span class="n">3</span><div><b><span id="s-by">The person who invited you</span> approves you</b><span>That’s it. From now on, you can check money requests with each other.</span><span class="hi" lang="hi">मंज़ूरी मिलते ही आप जुड़ जाएँगे।</span></div></li>
+    </ol>
+    <div class="hindi" lang="hi">
+      <h3>वर्थ क्या है?</h3>
+      <p>आजकल ठग किसी की फ़ोटो, नाम और आवाज़ तक नकली बना लेते हैं, और “बेटा”, “बॉस” या “बैंक” बनकर पैसे माँगते हैं।</p>
+      <p>वर्थ से आप किसी भी मैसेज, लिंक या नौकरी के ऑफ़र को जाँच सकते हैं, और पैसे भेजने से पहले असली व्यक्ति से उसके अपने फ़ोन पर पूछ सकते हैं। यह मुफ़्त है।</p>
+    </div>
+  </div>
+</section>
+
+<section class="jsec" id="install">
+  <div class="wrap">
+    <span class="kick">Put Verth on your phone</span>
+    <h2>Install it like an app</h2>
+    <p class="sub">No Play Store needed. It takes a few seconds and uses very little space.</p>
+    <div class="install">
+      <div class="box"><h3>Android (Chrome)</h3><ol><li>Tap <b>Install Verth</b> below.</li><li>Or tap the <b>⋮</b> menu, then <b>Install app</b>.</li><li>Verth appears on your home screen.</li></ol>
+        <p style="margin:16px 0 0"><button class="btn primary" id="install-btn" type="button" hidden>Install Verth</button></p></div>
+      <div class="box"><h3>iPhone (Safari)</h3><ol><li>Tap the <b>Share</b> button at the bottom.</li><li>Choose <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li></ol></div>
+    </div>
+    <div class="trust"><span>🔒 No passwords</span><span>📱 Messages stay on your phone</span><span>🇮🇳 Made in India</span><span>🆓 Free to start</span></div>
+    <p class="safe">Verth will never call you, never ask for an OTP, PIN or password, and never ask you to pay to join a circle. If anyone does, it’s a scam. Don’t install any “Verth” APK file someone sends you; Verth only lives at <b>umeshdk22.github.io/verth</b>.</p>
+  </div>
+</section>
+
+<section class="jsec" style="padding-top:0">
+  <div class="wrap">
+    <div class="final">
+      <h2>Check before you trust.</h2>
+      <p id="final-p">Join your circle on Verth and stay one step ahead of scammers.</p>
+      <a class="btn gold" id="j-join2" href="app.html?mode=signup" style="min-height:56px;padding:12px 28px;font-size:18px">Join now, it’s free</a>
+    </div>
+  </div>
+</section>
+<footer><a href="./">About Verth</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></footer>
+<script src="assets/join.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

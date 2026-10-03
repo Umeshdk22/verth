@@ -36,6 +36,14 @@ const CAPTCHA_KEY = EMU ? '' : TURNSTILE_SITE_KEY;
 const cfg = EMU ? { apiKey: 'demo-key', authDomain: 'demo-verth.firebaseapp.com', projectId: 'demo-verth', appId: 'demo' } : firebaseConfig;
 const CONFIGURED = EMU || !String(cfg.apiKey).includes('REPLACE');
 const APP_URL = 'https://umeshdk22.github.io/verth/app.html';
+const SITE_URL = 'https://umeshdk22.github.io/verth/';
+// An invite link (join.html → app.html?invite=CODE) keeps the code until the person has joined.
+(() => {
+  const c = String(params.get('invite') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (/^[A-HJKMNP-Z2-9]{8}$/.test(c)) { try { sessionStorage.setItem('verth-invite', c); } catch {} }
+})();
+const pendingInvite = () => { try { return sessionStorage.getItem('verth-invite') || ''; } catch { return ''; } };
+const clearInvite = () => { try { sessionStorage.removeItem('verth-invite'); } catch {} };
 // Tests can point payments at a stand-in server (local emulator builds only).
 const PAY_API = EMU ? params.get('payapi') || '' : PAYMENTS.api;
 const NEW_DEVICE_WARN_MS = 7 * 24 * 3600 * 1000;
@@ -200,6 +208,7 @@ const ICON = {
   ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>',
   finger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 7.5A7 7 0 0119 12v1.5"/><path d="M5 11.5c0-.9.2-1.8.5-2.6M12 8.2a3.8 3.8 0 013.8 3.8v2.3c0 2.2.6 4.2 1.6 5.7"/><path d="M8.2 12a3.8 3.8 0 01.6-2M8.2 14c0 2.8.9 5.2 2.4 7"/><path d="M12 12v2.3c0 2.7.8 5 2.2 6.7"/><path d="M5.3 15.5c.2 1.4.6 2.8 1.2 4"/></svg>',
   mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>',
   google: '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 01-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.2-2.7l-3.5-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.2v2.8A11 11 0 0012 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 010-4.2V7.1H2.2a11 11 0 000 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 002.2 7.1l3.6 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>',
@@ -431,12 +440,12 @@ function renderTour() {
   </div></div>`);
 }
 
-function renderSetup(type) {
+function renderSetup(type, code = '') {
   const fam = type === 'family', join = type === 'join';
   paint(`<div class="shell narrow">${brand}<div class="panel">
-    ${join ? `<h1>Join a circle</h1><p class="muted">Enter the 8-character code the circle admin shared with you. The admin approves you before you can see anything.</p>
+    ${join ? `<h1>Join a circle</h1><p class="muted">${code ? 'Your invite code is filled in. Tell the circle how they know you, then tap “Ask to join”.' : 'Enter the 8-character code the circle admin shared with you.'} The admin approves you before you can see anything.</p>
       <form data-form="join" class="stack" novalidate>
-        <label>Invite code<input id="j-code" required maxlength="9" placeholder="ABCD-2345" autocapitalize="characters" autocomplete="off" class="mono"></label>
+        <label>Invite code<input id="j-code" required maxlength="9" placeholder="ABCD-2345" autocapitalize="characters" autocomplete="off" class="mono" value="${code ? esc(fmtInvite(code)) : ''}"></label>
         <label>How others know you<input id="j-title" required maxlength="40" placeholder="e.g. Accounts, or Son"></label>
         <p class="err" id="s-err" role="alert"></p>
         <button class="btn primary" type="submit">Ask to join</button></form>`
@@ -622,10 +631,31 @@ function viewVerify() {
       <p class="muted small">They get ${Math.round(CHECK_TTL_SECONDS / 60)} minutes to answer on their registered device. No answer means don’t act.</p></form></section>`;
 }
 
+/* ---------- inviting people ---------- */
+// A personal link to the invite page, with who invited them and to which circle.
+function inviteLink() {
+  const c = S.circle, first = String(me()?.name || S.profile?.name || '').trim().split(/\s+/)[0];
+  const q = new URLSearchParams({ c: c.inviteCode, by: first.slice(0, 40), n: c.name.slice(0, 60), t: c.type === 'org' ? 'org' : 'family' });
+  return `${SITE_URL}join.html?${q}`;
+}
+function inviteMessage() {
+  const c = S.circle, fam = c.type === 'family';
+  return `Hi! 👋 I’m using Verth to protect ${fam ? 'our family' : 'our team'} from scams. Please join our circle “${c.name}”, so before anyone pays money or shares an OTP because of a message or call, we can check with the real person on their own phone. It’s free and takes a minute 🙏\n\n👉 ${inviteLink()}\n\nInvite code: ${fmtInvite(c.inviteCode)}\n\nहमारे सर्कल से जुड़िए, ताकि पैसे भेजने से पहले हम एक-दूसरे से पक्का कर सकें।`;
+}
+// Android Chrome can open the phone's contact list (the browser asks first). Elsewhere we use the share sheet.
+const contactsSupported = () => typeof navigator !== 'undefined' && 'contacts' in navigator && typeof navigator.contacts?.select === 'function';
+// Indian mobile numbers become 91XXXXXXXXXX for WhatsApp links.
+function waNumber(tel) {
+  let d = String(tel || '').replace(/\D/g, '');
+  if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
+  if (d.length === 10 && /^[6-9]/.test(d)) d = '91' + d;
+  return /^\d{11,15}$/.test(d) ? d : '';
+}
+
 function viewCircle() {
   const c = S.circle, lim = plan().maxMembers, admin = isAdmin();
   const pending = S.members.filter((m) => m.status === 'pending');
-  const msg = `Join our Verth circle "${c.name}" so we can check payment requests, bank changes and emergency messages with each other. Open ${APP_URL} and enter code ${c.inviteCode.slice(0, 4)}-${c.inviteCode.slice(4)}`;
+  const msg = inviteMessage();
   const row = (m) => {
     const removable = admin && m.uid !== S.user.uid && m.role !== 'admin';
     return `<li><span class="avatar">${initials(m.name)}</span>
@@ -645,8 +675,16 @@ function viewCircle() {
     ${c.joinOpen === false
       ? `<p class="muted">Joining is turned off. Nobody can use an invite code until an admin turns it back on.</p>${admin ? '<button class="btn primary" data-act="join-open" data-v="1">Turn joining on</button>' : ''}`
       : `<p class="muted">${c.type === 'family' ? 'Share this code in your family WhatsApp group.' : 'Share this code with the people who request and approve payments or access.'} ${admin ? 'You approve everyone before they can see anything.' : 'An admin approves everyone who joins.'}</p>
+    <div class="inv-actions">
+      ${contactsSupported() ? `<button class="btn primary big" data-act="invite-contacts">${ICON.people}Invite from my contacts</button>` : ''}
+      <button class="btn ${contactsSupported() ? 'ghost' : 'primary big'}" data-act="invite-share">${ICON.share}${contactsSupported() ? 'Share the invite another way' : 'Send an invite (WhatsApp, SMS…)'}</button>
+    </div>
+    ${S.picked?.length ? `<div class="picked"><b>Send your invite</b><span class="muted small">Tap WhatsApp or SMS for each person. Your contacts stay on this phone; Verth never uploads them.</span>
+      <ul class="list">${S.picked.map((p, i) => `<li><span class="avatar">${initials(p.name || '?')}</span><span class="grow"><b>${esc(p.name || p.tel)}</b><span class="muted small">${esc(p.tel)}</span></span>
+        <span class="row gap">${p.wa ? `<a class="btn small wa" href="https://wa.me/${p.wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" data-act="sent" data-i="${i}">${p.sent ? '✓ ' : ''}WhatsApp</a>` : ''}<a class="btn small ghost" href="sms:${encodeURIComponent(p.tel)}?body=${encodeURIComponent(msg)}" data-act="sent" data-i="${i}">SMS</a></span></li>`).join('')}</ul>
+      <button class="link" data-act="picked-clear">Done</button></div>` : ''}
     <div class="invite"><span class="mono">${fmtInvite(c.inviteCode)}</span><button class="btn small" data-act="copy" data-text="${esc(c.inviteCode)}">Copy code</button></div>
-    <button class="btn ghost" data-act="copy" data-text="${esc(msg)}">Copy invite message</button>
+    <button class="link" data-act="copy" data-text="${esc(msg)}">Copy the invite message</button>
     ${admin ? '<div class="row gap"><button class="btn small ghost" data-act="rotate-code">Change code</button><button class="btn small ghost" data-act="join-open" data-v="0">Turn joining off</button></div><p class="muted small">Change the code if it was shared somewhere public. The old code stops working immediately.</p>' : ''}`}
     <p class="muted small">${c.plan === 'team' ? `${c.memberCount || S.members.length} people on the Team plan, no limit.` : `${c.memberCount || S.members.length} of ${lim} places used on the ${esc(plan().name)} plan.`}</p></section>
   <section class="card"><h2>People in ${esc(c.name)}</h2><ul class="list people">${active().map(row).join('')}</ul></section>
@@ -1192,6 +1230,13 @@ async function afterSignIn(preferId) {
   await Promise.all([loadCircles(), loadUsage(), loadPhotoUsage()]);
   watchPending();
   const ids = Object.keys(S.circles);
+  const inv = pendingInvite();
+  if (inv) {
+    let cid = '';
+    try { const d = await getDoc(doc(db, 'invites', inv)); cid = d.exists() ? d.data().circleId : ''; } catch {}
+    if (cid && (S.profile.circles || []).includes(cid)) clearInvite();
+    else { renderSetup('join', inv); return; }
+  }
   const wantScan = takeShared();
   if (wantScan) S.tab = 'scan';
   if (!ids.length) {
@@ -1244,6 +1289,23 @@ const busy = (form, on) => {
 const actions = {
   reload: () => location.reload(),
   'otp-change': () => { S.otpEmail = ''; renderAuth(); },
+  'invite-contacts': async () => {
+    try {
+      const list = await navigator.contacts.select(['name', 'tel'], { multiple: true });
+      const picked = [];
+      for (const c of list || []) for (const tel of (c.tel || []).slice(0, 1)) picked.push({ name: String(c.name?.[0] || '').slice(0, 60), tel: String(tel).slice(0, 20), wa: waNumber(tel) });
+      if (!picked.length) return toast('No phone numbers picked.');
+      S.picked = picked.slice(0, 30); renderMain();
+      document.querySelector('.picked')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    } catch (e) { if (e?.name !== 'AbortError') toast('Couldn’t open your contacts. Use “Share the invite another way”.'); }
+  },
+  'invite-share': async () => {
+    const text = inviteMessage();
+    if (navigator.share) { try { await navigator.share({ title: 'Join me on Verth', text }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
+    try { await navigator.clipboard.writeText(text); toast('Invite copied. Paste it in WhatsApp or SMS.', 'ok'); } catch { toast('Copy the invite message below and send it.'); }
+  },
+  sent: (el, e) => { const p = S.picked?.[+el.dataset.i]; if (p) p.sent = true; const href = el.getAttribute('href'); if (href) { e?.preventDefault?.(); window.open(href, href.startsWith('sms:') ? '_self' : '_blank', 'noopener'); setTimeout(renderMain, 300); } },
+  'picked-clear': () => { S.picked = null; renderMain(); },
   'not-me': () => { store.set('verth-last', null); store.set('verth-pk', null); renderAuth(); document.getElementById('a-email')?.focus(); },
   'use-email': (el) => { const i = document.getElementById('a-email'); if (i) { i.value = el.dataset.email; setErr('a-err', ''); S.emailOk = el.dataset.email; } },
   'auth-tab': (el) => { S.authMode = el.dataset.mode === 'signup' ? 'signup' : 'login'; renderAuth(); },
@@ -1319,7 +1381,7 @@ const actions = {
       toast('Thanks. Your report helps warn other Verth users.', 'ok'); renderScanView();
     } catch (e) { toast(friendlyError(e), 'bad'); }
   },
-  'setup-back': () => (S.circle ? renderMain() : S.pending.length ? renderPending() : S.profile?.onboarded ? renderScanOnly() : (S.tourStep = TOUR.length - 1, renderTour())),
+  'setup-back': () => (clearInvite(), S.circle ? renderMain() : S.pending.length ? renderPending() : S.profile?.onboarded ? renderScanOnly() : (S.tourStep = TOUR.length - 1, renderTour())),
   setup: (el) => renderSetup(el.dataset.type),
   replay: () => { S.tourStep = 0; renderTour(); },
   tab: (el) => { S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
@@ -1554,6 +1616,7 @@ const forms = {
       b.update(doc(db, 'users', uid), { circles: arrayUnion(cid), onboarded: true });
       await b.commit();
       S.profile.circles = [...(S.profile.circles || []), cid];
+      clearInvite();
       toast(`Request sent to ${inv.data().circleName}. Waiting for approval.`, 'ok');
       await afterSignIn();
     } catch (e) {
@@ -1712,4 +1775,4 @@ else {
 }
 
 // Exposed for automated tests only (never on the live site).
-if (EMU) window.__verth = { S };
+if (EMU) window.__verth = { S, inviteLink };

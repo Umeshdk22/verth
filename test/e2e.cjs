@@ -119,11 +119,19 @@ const SLOW = process.env.CI ? 3 : 1;
   const code = (await A.locator('.invite .mono').textContent()).trim();
   await step('invite code is 8 characters', async () => { if (!/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(code)) throw new Error('bad code ' + code); });
 
-  await B.goto(URL);
-  await step('B joins and waits for approval', async () => {
+  await step('Invite: share button and a personal invite link with the code', async () => {
+    await A.getByRole('button', { name: /Send an invite/ }).waitFor();
+    const link = await A.evaluate(() => window.__verth.inviteLink());
+    const u = new globalThis.URL(link);
+    if (!u.pathname.endsWith('/join.html') || u.searchParams.get('c') !== code.replace('-', '') || u.searchParams.get('n') !== 'Nirmaan Infra' || u.searchParams.get('t') !== 'org') throw new Error('bad invite link ' + link);
+  });
+  // B opens the invite link's "Join now" (app.html?mode=signup&invite=CODE): the code is filled in after sign-up.
+  await B.goto(URL + '&mode=signup&invite=' + code.replace('-', ''));
+  await step('B joins from the invite link and waits for approval', async () => {
     await googleSignup(B, 'priya@nirmaan.in', 'Priya Nair', '9123456780');
-    await B.click('text=Skip the tour'); await B.click('text=I have an invite code');
-    await B.fill('#j-code', code.toLowerCase()); await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
+    await B.locator('#j-code').waitFor({ timeout: 5000 * SLOW });
+    if ((await B.locator('#j-code').inputValue()).replace(/[^A-Z0-9]/gi, '').toUpperCase() !== code.replace('-', '')) throw new Error('invite code not prefilled');
+    await B.fill('#j-title', 'Accounts'); await B.click('button[type=submit]');
     await B.getByRole('heading', { name: 'Waiting for approval' }).waitFor({ timeout: 5000 * SLOW });
   });
   await shot(B, '01-B-pending');

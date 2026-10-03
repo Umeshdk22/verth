@@ -46,7 +46,7 @@ export const TOPICS = [
   {
     id: 'circle', q: 'How do I set up my family or team?',
     keys: ['create circle', 'new circle', 'make circle', 'family circle', 'set up family', 'setup family', 'team setup', 'add family', 'add members', 'add people', 'invite', 'invite code', 'share code', 'parivar', 'add', 'mom', 'mother', 'father', 'dad', 'papa', 'mummy', 'parents', 'wife', 'husband', 'grandparents', 'employee', 'employees', 'colleague', 'staff'],
-    a: 'A circle is your family or team on Verth.\n• Create one: choose “Family circle” or “Organisation” and give it a name.\n• Invite: open the Circle tab and share the 8-character invite code (for example in your family WhatsApp group).\n• Approve: each person who uses the code waits until you approve them in the Circle tab. This stops strangers who get hold of the code.\n• Free circles hold up to 5 people.',
+    a: 'A circle is your family or team on Verth.\n• Create one: choose “Family circle” or “Organisation” and give it a name.\n• Invite: open the Circle tab and tap “Invite from my contacts” (Android) to pick people and send each one a WhatsApp or SMS in one tap, or tap “Send an invite” to share the link anywhere. They get a page explaining Verth with your 8-character invite code already filled in.\n• Approve: each person who uses the code waits until you approve them in the Circle tab. This stops strangers who get hold of the code.\n• Free circles hold up to 5 people.',
     go: [['Open Circle', 'circle']],
   },
   {
