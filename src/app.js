@@ -1978,6 +1978,42 @@ const pairOf = (a, b) => (a < b ? [a, b] : [b, a]);
 const pairId = (uid) => pairOf(S.user.uid, uid).join('~');
 const unlimitedTalk = () => (S.profile?.plan && S.profile.plan !== 'free') || circlePaid() || inTrial();
 const UPI_RE = /^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/;
+/* ---------- the bank name behind a UPI ID ---------- */
+// Asked from the Verth server (Razorpay's UPI ID check), so people see whose bank account an ID
+// really pays into. Results are kept for this visit only.
+S.upiNames = {};
+const nameWords = (n) => String(n || '').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter((w) => w.length > 1);
+// Does the bank name look like the person's name in Verth? (any word in common, or matching initials)
+const namesMatch = (bank, mine) => { const a = nameWords(bank), b = nameWords(mine); return !b.length || a.some((w) => b.includes(w)) || (a[0]?.[0] === b[0]?.[0] && a.at(-1)?.[0] === b.at(-1)?.[0]); };
+function upiNameLine(vpa, expect) {
+  const r = vpa && S.upiNames[vpa];
+  if (!vpa || !r) { if (vpa && UPI_RE.test(vpa) && PAY_API) lookUpi(vpa); return ''; }
+  if (r === 'busy') return '<span class="muted small">Checking the bank name…</span>';
+  if (r.available === false) return '';
+  if (!r.valid) return `<span class="warn-inline small">No bank account was found for this UPI ID. Check for typos.</span>`;
+  const ok = !expect || namesMatch(r.name, expect);
+  return `<span class="un-badge ${ok ? 'ok' : 'warn'}">${ok ? ICON.check : '⚠️'}<span><small>Name at the bank</small><b>${esc(r.name)}</b></span></span>${ok ? '' : `<span class="warn-inline small">This doesn’t look like ${esc(expect)}’s name. Call ${esc(String(expect).split(/\s+/)[0])} before you pay.</span>`}`;
+}
+async function lookUpi(vpa) {
+  if (S.upiNames[vpa] || !S.user) return;
+  S.upiNames[vpa] = 'busy';
+  try { S.upiNames[vpa] = await payApi('/upi/name', { vpa }); }
+  catch { S.upiNames[vpa] = { available: false }; }
+  for (const el of document.querySelectorAll('.upi-name')) {
+    const input = el.id === 'u-name' ? document.getElementById('u-upi') : null;
+    if (el.id === 'pay-name' || (input && input.value.trim().toLowerCase() === vpa)) el.innerHTML = el.id === 'u-name' ? upiNameLine(vpa) : upiNameLine(vpa, S.payWho);
+  }
+}
+// While typing a UPI ID, show the bank name once it looks complete.
+let upiTimer = 0;
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (!el?.dataset?.upiLook) return;
+  clearTimeout(upiTimer);
+  const out = document.getElementById(el.dataset.upiLook), v = el.value.trim().toLowerCase();
+  if (out) out.innerHTML = '';
+  if (UPI_RE.test(v)) upiTimer = setTimeout(() => { if (out) out.innerHTML = upiNameLine(v) || (S.upiNames[v] === 'busy' ? '<span class="muted small">Checking the bank name…</span>' : ''); }, 600);
+});
 const isPhone = () => /Android|iPhone|iPad/i.test(navigator.userAgent);
 const VIEWABLE = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 const readKey = (pid) => `verth-read:${S.circleId}:${pid}`;
@@ -2091,8 +2127,9 @@ function viewChat() {
     ${payHistoryCard()}
     <section class="card"><h2>Receive money safely</h2>
       <p class="muted">Add your UPI ID so people in ${esc(S.circle.name)} can pay you with “Pay safely”. They’ll always pay the ID you set here, never one sent in a message.</p>
-      <form data-form="set-upi" class="row gap upi-form" novalidate><input id="u-upi" placeholder="yourname@okhdfcbank" value="${esc(meUpi || '')}" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="100" aria-label="Your UPI ID">
+      <form data-form="set-upi" class="row gap upi-form" novalidate><input id="u-upi" placeholder="yourname@okhdfcbank" value="${esc(meUpi || '')}" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="100" aria-label="Your UPI ID" data-upi-look="u-name">
         <button class="btn primary" type="submit">${meUpi ? 'Update' : 'Save'}</button></form>
+      <p class="upi-name" id="u-name" aria-live="polite">${upiNameLine(meUpi)}</p>
       ${meUpi ? `<p class="small ok-inline">Saved: ${esc(meUpi)}. <button class="link" data-act="upi-clear">Remove</button></p>` : ''}
       <p class="err" id="u-err" role="alert"></p></section>`;
 }
@@ -2146,9 +2183,11 @@ function chatRoom(o) {
     return sep + bubble(m, o);
   }).join('');
   const recentUpi = o.upiAt && Date.now() - tsMs(o.upiAt) < 48 * 3600e3;
+  S.payWho = o.name;
   const pay = S.payOpen ? `<div class="pay-sheet" role="dialog" aria-label="Pay ${esc(first)}">
       <div class="split"><h3>Pay ${esc(first)} safely</h3><button class="link" data-act="pay-close">Close</button></div>
       ${o.upi ? `<p class="small">To <b>${esc(o.upi)}</b>, the UPI ID ${esc(first)} saved in Verth.${recentUpi ? '' : ' ✓'}</p>
+        <p class="upi-name" id="pay-name" aria-live="polite">${upiNameLine(o.upi, o.name)}</p>
         ${recentUpi ? `<p class="small warn-inline">${esc(first)} changed this UPI ID ${ago(tsMs(o.upiAt))}. If you weren’t expecting that, ask them on a call before paying.</p>` : ''}
         ${S.payQr ? `<div class="qr-box"><div class="qr">${S.payQr}</div><p class="small">Scan with any UPI app on your phone. On a phone, the UPI app opens by itself.</p>
           <button class="btn small" data-act="copy" data-text="${esc(o.upi)}">Copy UPI ID</button></div>`

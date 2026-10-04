@@ -69,6 +69,9 @@ const SLOW = process.env.CI ? 3 : 1;
     serverCalls.push(path);
     return r.fulfill({ headers: corsH, json: path === '/passkey/list' ? { keys: [] } : { sent: true } });
   });
+  // The bank name behind a UPI ID (the server asks Razorpay).
+  await ctx.route('**/upi/name', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH })
+    : r.fulfill({ headers: corsH, json: JSON.parse(r.request().postData() || '{}').vpa === 'priya.nair@okaxis' ? { valid: true, name: 'PRIYA NAIR' } : { valid: false } })));
   // New people sign up with Google, then finish their profile and see the welcome screen.
   const googleSignup = async (p, email, name, phone) => {
     if (p !== A) await p.route('**/passkey/**', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH }) : r.fulfill({ headers: corsH, json: {} })));
@@ -287,6 +290,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('.chat-head >> text=Pay');
     await A.getByText('To priya.nair@okaxis').waitFor({ timeout: 5000 * SLOW });
     await A.getByText('changed this UPI ID').waitFor(); // set minutes ago, so payers are warned
+    await A.locator('#pay-name .un-badge.ok', { hasText: 'PRIYA NAIR' }).waitFor({ timeout: 5000 * SLOW }); // bank name, matches Priya
     await A.fill('#p-amt', '0'); await A.click('button:has-text("Pay with my UPI app")');
     await A.getByText('between ₹1 and ₹1,00,000').waitFor();
     await A.fill('#p-amt', '2,500'); await A.fill('#p-note', 'Vendor advance');
@@ -649,7 +653,7 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Phone safety check-up: guided fixes and a score that remembers', async () => {
     await A.click('nav >> text=Home');
-    await A.click('button:has-text("safety check-up")');
+    await A.click('.guard-card button:has-text("today’s check-up")');
     await A.getByRole('heading', { name: /Phone safety:/ }).waitFor({ timeout: 5000 * SLOW });
     await A.getByText('Screen lock is on').waitFor();
     await A.click('.g-item details[open] >> text=I’ve done this ✓');
@@ -657,7 +661,7 @@ const SLOW = process.env.CI ? 3 : 1;
     if ((await A.locator('.guard-hero .gc-ring b').textContent()).trim() !== '1/10') throw new Error('score should be 1/10');
     await shot(A, '21-A-guard');
     await A.click('nav >> text=Home');
-    await A.locator('.guard-card', { hasText: '9 quick fixes' }).waitFor();
+    await A.locator('.guard-card', { hasText: '9 items left in today’s check-up' }).waitFor();
   });
   await step('Wide screens: sidebar, page and safety corner fill the window', async () => {
     await A.setViewportSize({ width: 1440, height: 900 });

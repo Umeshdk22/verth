@@ -523,6 +523,27 @@ async function phoneOwner(env, fs, deps, phone10, uid) {
   if (own?.uid && own.uid !== uid && (await deps.auth.byUid(own.uid))) throw new HttpError(409, 'This mobile number is already verified on another Verth account. Use your own number.');
   return own;
 }
+// The name a UPI ID is registered to at the bank, through Razorpay's UPI ID check
+// (needs the "Validate VPA" feature on the Razorpay account). Limited per person, so it can't be
+// used to look up strangers in bulk.
+export async function upiName(body, user, env, fs, fetchFn, now = Date.now()) {
+  const vpa = String(body.vpa || '').trim().toLowerCase();
+  if (!/^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/.test(vpa)) throw new HttpError(400, 'That doesn’t look like a UPI ID.');
+  if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) return { available: false };
+  await limit(fs, 'upiname/' + user.uid, 40, now, 'You’ve checked a lot of UPI IDs today. Try again tomorrow.', 86400_000);
+  let r, j;
+  try {
+    r = await fetchFn('https://api.razorpay.com/v1/payments/validate/vpa', {
+      method: 'POST', headers: { authorization: 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET), 'content-type': 'application/json' }, body: JSON.stringify({ vpa }),
+    });
+    j = await r.json().catch(() => ({}));
+  } catch { return { available: false }; }
+  if (r.ok && j.success && j.customer_name) return { valid: true, name: String(j.customer_name).replace(/\s+/g, ' ').trim().slice(0, 80) };
+  if ((r.ok && j.success === false) || /invalid vpa|invalid upi|vpa.*invalid/i.test(j?.error?.description || '')) return { valid: false };
+  console.error('vpa', r.status, j?.error?.description);
+  return { available: false }; // the feature isn't switched on for this Razorpay account, or Razorpay is down
+}
+
 async function phoneSend(body, user, env, fs, deps, now = Date.now()) {
   const phone = cleanPhone(body.phone);
   if (!(await fs.get('users/' + user.uid))) throw new HttpError(400, 'Finish creating your account first.');
@@ -871,11 +892,11 @@ export async function handle(request, env, deps = {}) {
       '/passkey/register-options': passkeyRegisterOptions, '/passkey/register': passkeyRegister,
       '/passkey/list': passkeyList, '/passkey/remove': passkeyRemove,
       '/account/welcome': accountWelcome, '/account/delete': accountDelete,
-      '/phone/send': phoneSend, '/phone/verify': phoneVerify,
+      '/phone/send': phoneSend, '/phone/verify': phoneVerify, '/upi/name': upiName,
     }[url.pathname];
     if ((url.pathname === '/phone/send' || url.pathname === '/phone/verify') && !env.TWOFACTOR_API_KEY) throw new HttpError(503, 'Mobile number checks aren’t switched on yet.');
     if (!route) throw new HttpError(404, 'Not found.');
-    const args = { '/subscribe': [rp], '/verify': [rp], '/cancel': [rp], '/account/delete': [d, rp] }[url.pathname] || [d, deps.now];
+    const args = { '/subscribe': [rp], '/verify': [rp], '/cancel': [rp], '/account/delete': [d, rp], '/upi/name': [fetchFn, deps.now] }[url.pathname] || [d, deps.now];
     return json(await route(body, user, env, fs, ...args), 200, h);
   } catch (e) {
     const status = e instanceof HttpError ? e.status : 500;

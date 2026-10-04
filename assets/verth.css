@@ -987,3 +987,14 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
 .g-tipcard>span{font-size:22px}.g-tipcard p{margin:.2em 0 0}
 @media (prefers-color-scheme:dark){.g-again{background:#06291f;border-color:#14532d}.g-tipcard{background:#2a2108;border-color:#713f12}}
 @media (max-width:560px){.g-again{flex-direction:column;align-items:stretch}}
+
+/* Bank name behind a UPI ID */
+.upi-name{margin:.4em 0 0;display:flex;flex-direction:column;gap:6px}
+.upi-name:empty{display:none}
+.un-badge{display:inline-flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;width:fit-content}
+.un-badge.warn{background:#FFF7ED;border-color:#FED7AA;color:#9A3412}
+.un-badge svg{width:18px;height:18px;flex:none}
+.un-badge span{display:flex;flex-direction:column;line-height:1.2}
+.un-badge small{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.04em}
+.un-badge b{font-size:15px;letter-spacing:.02em}
+@media (prefers-color-scheme:dark){.un-badge{background:#06291f;border-color:#14532d;color:#A7F3D0}.un-badge.warn{background:#2a1606;border-color:#7c2d12;color:#FED7AA}}

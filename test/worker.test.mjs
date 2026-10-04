@@ -695,3 +695,14 @@ test('voice endpoint: hidden without the one-time token, returns audio with it',
   const ok = await (await call('t', { GEMINI_API_KEY: 'k', TTS_TOKEN: 't' })).json();
   assert.equal(ok.audio, 'AAAA'); assert.equal(ok.model, 'gemini-x-tts');
 });
+test('UPI name: returns the bank name, says when an ID has no account, and quietly reports when unavailable', async () => {
+  const { upiName } = await import('../worker/src/index.js');
+  const store = {}; const fsx = { get: async (k) => store[k], set: async (k, v) => { store[k] = v; } };
+  const e = { RAZORPAY_KEY_ID: 'rzp', RAZORPAY_KEY_SECRET: 's' }, u = { uid: 'u1' };
+  const reply = (status, j) => async (url, init) => { assert.match(url, /validate\/vpa$/); assert.equal(JSON.parse(init.body).vpa, 'priya.nair@okaxis'); return new Response(JSON.stringify(j), { status }); };
+  assert.deepEqual(await upiName({ vpa: 'Priya.Nair@okaxis' }, u, e, fsx, reply(200, { vpa: 'priya.nair@okaxis', success: true, customer_name: 'PRIYA  NAIR' })), { valid: true, name: 'PRIYA NAIR' });
+  assert.deepEqual(await upiName({ vpa: 'priya.nair@okaxis' }, u, e, fsx, reply(200, { success: false })), { valid: false });
+  assert.deepEqual(await upiName({ vpa: 'priya.nair@okaxis' }, u, e, fsx, reply(400, { error: { description: 'The requested URL was not found on the server.' } })), { available: false });
+  await assert.rejects(upiName({ vpa: 'not a upi' }, u, e, fsx, reply(200, {})), /UPI/);
+  assert.deepEqual(await upiName({ vpa: 'a.b@okaxis' }, u, {}, fsx, reply(200, {})), { available: false });
+});
