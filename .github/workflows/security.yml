@@ -69,3 +69,8 @@ jobs:
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then echo "::notice title=Worker not published::Add the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets to publish the worker automatically."; exit 0; fi
           npx --yes wrangler@4 deploy --config worker/wrangler.ci.toml
+      - name: Check the live server
+        run: |
+          sleep 5
+          body=$(curl -s --max-time 20 https://verth-pay.umeshdk22.workers.dev/health || true)
+          echo "::notice title=Live server health::${body:-no answer}"
