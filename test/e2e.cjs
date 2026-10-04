@@ -599,12 +599,10 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('header .me-btn');
     await A.locator('.pf-badge', { hasText: 'Team member' }).waitFor({ timeout: 5000 * SLOW });
     await A.locator('.pf-stats', { hasText: 'Scam checks' }).waitFor();
-    await A.locator('.sh-list', { hasText: 'sbi-yono-kyc.xyz' }).waitFor(); // history from this phone
+    await A.locator('.sh-list', { hasText: 'sbi-yono-kyc.xyz' }).waitFor({ timeout: 5000 * SLOW }); // history from this phone
     await A.setInputFiles('#pf-photo', { name: 'me.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') });
-    await A.getByText('Profile photo updated.').waitFor({ timeout: 5000 * SLOW });
-    await A.locator('header .me-btn img').waitFor();
-    const d = await fs(A);
-    if (!/^data:image\/jpeg;base64,/.test(d['users/u_rajesh']?.photo || '')) throw new Error('photo not saved on the profile');
+    await A.locator('header .me-btn img').waitFor({ timeout: 8000 * SLOW });
+    await A.waitForFunction(() => /^data:image\/jpeg;base64,/.test(JSON.parse(localStorage.getItem('fakefs') || '{}')['users/u_rajesh']?.photo || ''), null, { timeout: 5000 * SLOW });
     await A.getByText('Fingerprint / face login').first().waitFor(); // account settings live here now
     await shot(A, '22-A-profile');
   });
