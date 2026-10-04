@@ -25,7 +25,7 @@ const SLOW = process.env.CI ? 3 : 1;
     try {
       if (typeof scrollTo === 'number') await p.evaluate((y) => window.scrollTo(0, y), scrollTo);
       else if (scrollTo) await p.locator(scrollTo).first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
-      await p.evaluate(() => { const st = document.createElement('style'); st.id = 'vs-hide'; st.textContent = '.vh-fab,.trial-banner{display:none!important}'; document.head.append(st); });
+      await p.evaluate(() => { const st = document.createElement('style'); st.id = 'vs-hide'; st.textContent = '.vh-fab,.trial-banner,.err{display:none!important}'; document.head.append(st); });
       if (tap && scrollTo == null) await p.locator(tap).first().scrollIntoViewIfNeeded();
       await p.waitForTimeout(450);
       await p.evaluate(() => document.querySelectorAll('.toast').forEach((t) => { t.className = 'toast'; }));

@@ -1,0 +1,136 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1080px;overflow:hidden;background:#140B33}
+  body{font-family:'Hind',system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
+  #st{position:relative;width:1080px;height:1080px;overflow:hidden;background:radial-gradient(120% 90% at 10% 0%,#3A1E8F 0%,#21114F 45%,#130A2E 100%)}
+  .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+  #o1{width:520px;height:520px;background:#6C3BF4;left:-160px;top:520px}
+  #o2{width:440px;height:440px;background:#F5B83D;right:-120px;top:-140px;opacity:.28}
+  #o3{width:380px;height:380px;background:#12B886;left:420px;top:760px;opacity:.22}
+  .brand{position:absolute;left:64px;top:56px;display:flex;align-items:center;gap:14px;font-family:'Rozha One',serif;font-size:34px}
+  .brand img{width:52px;height:52px;border-radius:14px}
+  .eyebrow{position:absolute;left:64px;top:150px;font-weight:700;letter-spacing:.16em;font-size:17px;color:#FFD36E;text-transform:uppercase}
+  .title{position:absolute;left:64px;top:184px;width:500px;font-family:'Rozha One',serif;font-size:56px;line-height:1.08}
+  .hi .title{font-size:52px;line-height:1.25}
+  .caps{position:absolute;left:64px;top:430px;width:490px;height:470px}
+  .cap{position:absolute;left:0;top:0;width:100%;opacity:0}
+  .cap .n{display:inline-block;font-weight:700;font-size:17px;color:#1A0F3D;background:#FFD36E;border-radius:99px;padding:3px 13px;margin-bottom:16px;letter-spacing:.04em}
+  .cap p{font-size:36px;line-height:1.32;font-weight:600;text-wrap:pretty}
+  .hi .cap p{font-size:35px;line-height:1.5}
+  .bar{position:absolute;left:64px;bottom:72px;width:490px;height:6px;border-radius:9px;background:rgba(255,255,255,.14);overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD36E,#FF9F43);border-radius:9px}
+  .dots{position:absolute;left:64px;bottom:96px;display:flex;gap:8px}
+  .dots b{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.22)}
+  .dots b.on{background:#FFD36E}
+  .phone{position:absolute;left:604px;top:66px;width:440px;height:948px;border-radius:58px;background:#0B0618;padding:14px;box-shadow:0 40px 90px -20px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.08) inset;will-change:transform}
+  .screen{position:relative;width:412px;height:892px;border-radius:44px;overflow:hidden;background:#F4F1FF}
+  .screen img{position:absolute;left:0;top:0;width:412px;height:892px;opacity:0;transform-origin:50% 50%}
+  .notch{position:absolute;left:50%;top:22px;width:110px;height:30px;margin-left:-55px;border-radius:20px;background:#0B0618;z-index:5}
+  .tap{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;z-index:6;opacity:0;pointer-events:none}
+  .tap:before{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(108,59,244,.28);border:3px solid rgba(108,59,244,.9)}
+  .tap:after{content:"";position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(40,10,120,.6)}
+  .ring{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid rgba(255,211,110,.95);z-index:6;opacity:0}
+  .card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;padding:80px}
+  .card img{width:120px;height:120px;border-radius:30px;box-shadow:0 20px 60px -10px rgba(108,59,244,.8)}
+  .card h1{font-family:'Rozha One',serif;font-size:76px;line-height:1.1;margin-top:34px}
+  .hi .card h1{font-size:68px;line-height:1.3}
+  .card h2{font-size:34px;font-weight:600;color:#FFD36E;margin-top:18px}
+  .card p{font-size:28px;opacity:.85;margin-top:24px}
+  .card .url{display:inline-block;margin-top:30px;padding:14px 28px;border-radius:99px;background:#fff;color:#2A1570;font-weight:700;font-size:28px}
+  #main{position:absolute;inset:0}
+</style></head>
+<body><div id="st"><div class="orb" id="o1"></div><div class="orb" id="o2"></div><div class="orb" id="o3"></div>
+<div id="main">
+  <div class="brand"><img src="../assets/icon-192.png" alt="">Verth</div>
+  <div class="eyebrow" id="eb"></div>
+  <div class="title" id="tt"></div>
+  <div class="caps" id="caps"></div>
+  <div class="dots" id="dots"></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="phone" id="ph"><div class="screen" id="scr"><div class="tap" id="tap"></div><div class="ring" id="ring"></div></div></div>
+</div>
+<div class="card" id="c1"></div>
+<div class="card" id="c2"></div>
+</div>
+<script>
+// Everything is drawn from a single time value, so every frame is exact (no dropped frames).
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+let P;
+window.setup = async (plan) => {
+  P = plan;
+  document.body.className = plan.lang;
+  document.getElementById('eb').textContent = plan.eyebrow;
+  document.getElementById('tt').textContent = plan.title;
+  document.getElementById('caps').innerHTML = plan.lines.map((l, i) => `<div class="cap" id="cap${i}"><span class="n">${plan.stepWord} ${i + 1} / ${plan.lines.length}</span><p></p></div>`).join('');
+  plan.lines.forEach((l, i) => { document.querySelector(`#cap${i} p`).textContent = l.text; });
+  document.getElementById('dots').innerHTML = plan.lines.map(() => '<b></b>').join('');
+  const scr = document.getElementById('scr');
+  const srcs = [...new Set(plan.lines.flatMap((l) => l.frames.map((f) => f.src)))];
+  P.img = {};
+  for (const s of srcs) { const im = new Image(); im.src = s; scr.insertBefore(im, scr.firstChild); P.img[s] = im; }
+  document.getElementById('c1').innerHTML = `<img src="../assets/icon-512.png" alt=""><h1>${plan.title}</h1><h2>${plan.open}</h2>`;
+  document.getElementById('c2').innerHTML = `<img src="../assets/icon-512.png" alt=""><h1>${plan.endTitle}</h1><p>${plan.endText}</p><span class="url">umeshdk22.github.io/verth</span>`;
+  await document.fonts.ready;
+  await Promise.all(Object.values(P.img).map((im) => im.decode().catch(() => {})));
+};
+window.render = (t) => {
+  const { lines, intro, total } = P, outro = total - P.outroLen;
+  // opening and closing cards
+  const c1 = t < intro ? 1 - ease((t - (intro - 0.5)) / 0.5) : 0;
+  const c2 = ease((t - outro) / 0.6);
+  document.getElementById('c1').style.opacity = c1;
+  document.getElementById('c1').style.transform = `scale(${1 + (1 - c1) * 0.04})`;
+  document.getElementById('c2').style.opacity = c2;
+  document.getElementById('c2').style.transform = `translateY(${(1 - c2) * 20}px)`;
+  const mainIn = ease((t - (intro - 0.5)) / 0.7) * (1 - c2);
+  const main = document.getElementById('main');
+  main.style.opacity = mainIn;
+  document.getElementById('ph').style.transform = `translateY(${(1 - ease((t - (intro - 0.4)) / 0.9)) * 120}px)`;
+  // gentle drifting light
+  document.getElementById('o1').style.transform = `translate(${Math.sin(t / 5) * 40}px,${Math.cos(t / 6) * 30}px)`;
+  document.getElementById('o2').style.transform = `translate(${Math.cos(t / 7) * 50}px,${Math.sin(t / 5) * 30}px)`;
+  document.getElementById('o3').style.transform = `translate(${Math.sin(t / 6) * 60}px,${Math.cos(t / 4) * 20}px)`;
+  // which line
+  let cur = 0; for (let i = 0; i < lines.length; i++) if (t >= lines[i].start - 0.25) cur = i;
+  lines.forEach((l, i) => {
+    const el = document.getElementById('cap' + i);
+    const a = ease((t - (l.start - 0.25)) / 0.45), b = i < lines.length - 1 ? 1 - ease((t - (lines[i + 1].start - 0.35)) / 0.3) : 1;
+    const o = Math.min(a, b);
+    el.style.opacity = o; el.style.transform = `translateY(${(1 - a) * 24 - (1 - b) * 16}px)`;
+  });
+  document.querySelectorAll('#dots b').forEach((d, i) => d.classList.toggle('on', i <= cur));
+  const first = lines[0].start, last = lines[lines.length - 1].end;
+  document.getElementById('bar').style.width = `${clamp((t - first) / (last - first)) * 100}%`;
+  // phone screen: frames within the current line, crossfading
+  const shown = {};
+  let tapAt = null;
+  lines.forEach((l, i) => {
+    const span = (i < lines.length - 1 ? lines[i + 1].start : outro) - l.start;
+    l.frames.forEach((f, k) => {
+      const s = l.start - (i === 0 && k === 0 ? 10 : 0.3) + (span * k) / l.frames.length;
+      const e = l.start + (span * (k + 1)) / l.frames.length - 0.3 + (i === lines.length - 1 && k === l.frames.length - 1 ? 10 : 0);
+      const o = Math.min(ease((t - s) / 0.4), 1 - ease((t - e) / 0.4));
+      if (o > 0) {
+        const p = clamp((t - s) / (e - s + 0.4));
+        shown[f.src] = Math.max(shown[f.src] || 0, o);
+        const im = P.img[f.src];
+        im.style.transform = `scale(${1 + p * 0.035}) translateY(${(f.pan || 0) * p}px)`;
+        if (f.tap && o > 0.9) tapAt = { f, p: (t - s - 0.4) / Math.max(1.2, e - s - 0.4) };
+      }
+    });
+  });
+  for (const [src, im] of Object.entries(P.img)) im.style.opacity = shown[src] || 0;
+  const tap = document.getElementById('tap'), ring = document.getElementById('ring');
+  if (tapAt && tapAt.p > 0.25 && tapAt.p < 0.85) {
+    const k = 412 / 390, x = tapAt.f.tap.x * k, y = tapAt.f.tap.y * k, q = (tapAt.p - 0.25) / 0.6;
+    const press = q < 0.35 ? ease(q / 0.35) : 1 - ease((q - 0.75) / 0.25);
+    tap.style.left = ring.style.left = x + 'px'; tap.style.top = ring.style.top = y + 'px';
+    tap.style.opacity = press; tap.style.transform = `scale(${1.15 - 0.2 * press})`;
+    const r = clamp((q - 0.3) / 0.5); ring.style.opacity = r > 0 && r < 1 ? 1 - r : 0; ring.style.transform = `scale(${1 + r * 1.4})`;
+  } else { tap.style.opacity = 0; ring.style.opacity = 0; }
+};
+</script></body></html>

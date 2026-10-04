@@ -16,6 +16,7 @@ import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
 import { guardCard, viewGuard, guardSet, guardScore, guardRepeat } from './guard.js';
+import { videoCard, bindVideos } from './videos.js';
 import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
@@ -611,7 +612,8 @@ function renderMain() {
     profile: null,
     guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
   }[S.tab];
-  const body = (HEAD ? pageHead(...HEAD) : '') + { home: viewHome, scan: viewScan, verify: viewVerify, guard: viewGuard, profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const vid = ['scan', 'verify', 'circle', 'log', 'plan', 'guard'].includes(S.tab) || (S.tab === 'chat' && !S.chatWith) ? videoCard(S.tab) : S.tab === 'home' && inTrial() ? videoCard('intro') : '';
+  const body = (HEAD ? pageHead(...HEAD) : '') + vid + { home: viewHome, scan: viewScan, verify: viewVerify, guard: viewGuard, profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
   const unread = unreadCount();
   // Keep the chat scrolled to the newest message, unless the person scrolled up to read.
@@ -1121,6 +1123,7 @@ function renderScanOnly() {
     <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div>${headAvatar()}</header>
     <main class="content">
       ${trialBanner()}
+      ${S.profileOpen ? '' : videoCard(S.guardOpen ? 'guard' : 'scan')}
       ${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}
       ${S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : ''}
       ${S.profileOpen ? `<button class="link" data-act="profile-close">‹ Back to Scam check</button>${viewProfile()}` : S.guardOpen ? `<button class="link" data-act="guard-close">‹ Back to Scam check</button>${viewGuard()}` : `${viewScan()}${guardCard()}`}
@@ -2975,6 +2978,7 @@ function helperGo(to, text) {
 // and only with App Check, so only the real Verth site can use the project's AI quota.
 function makeAI() { return AI_HELPER.enabled ? makeServerAI(PAY_API) : null; }
 const helper = mountHelper({ go: helperGo, ai: makeAI(), raised: true });
+bindVideos();
 
 /* ---------- routing ---------- */
 function route() {

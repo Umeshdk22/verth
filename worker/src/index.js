@@ -626,7 +626,7 @@ async function aiChat(body, env, fs, deps, ip, now = Date.now()) {
 // Text to speech with Gemini (24 kHz 16-bit mono PCM, base64). Picks a speech model this key can use.
 export async function tts(body, env, fetchFn) {
   if (body.audio) { // transcribe, to check the voice read the right words
-    const t = await gemini(env, fetchFn, { contents: [{ role: 'user', parts: [{ inlineData: { mimeType: body.mime || 'audio/wav', data: String(body.audio) } }, { text: 'Transcribe this audio exactly, in its own language and script. Reply with only the words spoken.' }] }], generationConfig: { maxOutputTokens: 600, temperature: 0 } });
+    const t = await gemini(env, fetchFn, { contents: [{ role: 'user', parts: [{ inlineData: { mimeType: body.mime || 'audio/wav', data: String(body.audio) } }, { text: body.lang === 'hi' ? 'Transcribe this Hindi audio exactly, written in Devanagari script (keep English words like UPI or OTP in Latin letters). Reply with only the words spoken.' : 'Transcribe this audio exactly. Reply with only the words spoken.' }] }], generationConfig: { maxOutputTokens: 600, temperature: 0 } });
     return { text: t.text || '', error: t.error || '' };
   }
   const text = String(body.text || '').slice(0, 5000), voice = String(body.voice || 'Kore').replace(/[^A-Za-z]/g, '');

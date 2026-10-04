@@ -2,3 +2,5 @@ node_modules/
 *.log
 .firebase/
 test-output/
+video/_frames
+video/out/

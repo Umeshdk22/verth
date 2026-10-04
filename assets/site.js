@@ -30,8 +30,9 @@
 (function () {
   var video = document.getElementById('demo-video'), note = document.getElementById('video-note');
   if (!video) return;
-  var state = { topic: 'scam', lang: /^hi/i.test(navigator.language || '') ? 'hi' : 'en' };
+  var state = { topic: 'intro', lang: /^hi/i.test(navigator.language || '') ? 'hi' : 'en' };
   var NOTE = {
+    'intro-en': 'Welcome to Verth, in English · turn the sound on', 'intro-hi': 'वर्थ में आपका स्वागत है, हिन्दी में · आवाज़ चालू करें',
     'scam-en': 'Scam check, in English · turn the sound on', 'scam-hi': 'स्कैम चेक, हिन्दी में · आवाज़ चालू करें',
     'org-en': 'For organisations, in English · turn the sound on', 'org-hi': 'कंपनियों के लिए, हिन्दी में · आवाज़ चालू करें',
   };
@@ -39,10 +40,12 @@
     var id = state.topic + '-' + state.lang;
     document.querySelectorAll('[data-vtopic]').forEach(function (b) { var on = b.dataset.vtopic === state.topic; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     document.querySelectorAll('[data-vlang]').forEach(function (b) { var on = b.dataset.vlang === state.lang; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
-    if (video.getAttribute('src') !== 'assets/videos/verth-' + id + '.mp4') {
+    video.parentElement.classList.toggle('sq', state.topic === 'intro');
+    var file = 'assets/videos/' + (state.topic === 'intro' ? 'help-' : 'verth-') + id;
+    if (video.getAttribute('src') !== file + '.mp4') {
       video.pause();
-      video.poster = 'assets/videos/verth-' + id + '.jpg';
-      video.src = 'assets/videos/verth-' + id + '.mp4';
+      video.poster = file + '.jpg';
+      video.src = file + '.mp4';
       video.load();
     }
     if (note) { note.textContent = NOTE[id]; note.lang = state.lang; }

@@ -998,3 +998,33 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
 .un-badge small{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.04em}
 .un-badge b{font-size:15px;letter-spacing:.02em}
 @media (prefers-color-scheme:dark){.un-badge{background:#06291f;border-color:#14532d;color:#A7F3D0}.un-badge.warn{background:#2a1606;border-color:#7c2d12;color:#FED7AA}}
+
+/* How-to videos */
+.hv{display:flex;align-items:center;gap:14px;padding:10px;margin:0 0 14px;border-radius:18px;background:var(--card,#fff);border:1px solid var(--line);box-shadow:0 10px 26px -18px rgba(40,20,90,.45)}
+.hv-thumb{position:relative;flex:none;width:104px;height:104px;border:0;padding:0;border-radius:14px;overflow:hidden;cursor:pointer;background:#21114F}
+.hv-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.hv-thumb:hover img{transform:scale(1.05)}
+.hv-btn{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.95);color:#5B2EE6;display:grid;place-items:center;box-shadow:0 6px 18px rgba(20,8,60,.45)}
+.hv-btn svg{width:22px;height:22px;margin-left:3px}
+.hv-len{position:absolute;right:6px;bottom:6px;padding:1px 7px;border-radius:7px;background:rgba(10,5,30,.75);color:#fff;font-size:12px;font-weight:700}
+.hv-txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hv-eye{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.hv-txt b{font-size:16.5px;line-height:1.25}
+.hv-lang{display:inline-flex;gap:4px;margin-top:4px;padding:3px;border-radius:99px;background:var(--soft,#F1EEFB);width:fit-content}
+.hv-lang button{border:0;background:transparent;padding:4px 12px;border-radius:99px;font:inherit;font-size:13px;font-weight:650;color:var(--muted);cursor:pointer;min-height:30px}
+.hv-lang button.on{background:var(--accent);color:#fff}
+.hv.big{flex-direction:column;align-items:stretch;padding:14px;max-width:460px;margin:0 auto}
+.hv.big .hv-thumb{width:100%;height:auto;aspect-ratio:1/1;border-radius:16px}
+.hv.big .hv-btn{width:72px;height:72px;margin:-36px 0 0 -36px}.hv.big .hv-btn svg{width:34px;height:34px}
+.hv.big .hv-txt{align-items:center;text-align:center;padding-top:6px}
+.hv-modal{position:fixed;inset:0;z-index:1000;background:rgba(8,4,24,.82);backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px;animation:hvIn .2s ease-out}
+@keyframes hvIn{from{opacity:0}to{opacity:1}}
+.hv-box{width:min(92vw,78vh,760px);background:#140B33;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+.hv-head{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;color:#fff}
+.hv-head b{flex:1;font-size:15.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hv-head .hv-lang{margin:0;background:rgba(255,255,255,.12)}.hv-head .hv-lang button{color:#ddd}
+.hv-x{border:0;background:rgba(255,255,255,.12);color:#fff;width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;flex:none}
+.hv-box video{display:block;width:100%;aspect-ratio:1/1;background:#000}
+html.hv-open{overflow:hidden}
+@media (max-width:420px){.hv-thumb{width:88px;height:88px}.hv-head b{font-size:14px}}
+@media (prefers-color-scheme:dark){.hv{background:#1b1433}}

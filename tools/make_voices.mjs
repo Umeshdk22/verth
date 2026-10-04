@@ -8,7 +8,8 @@ const API = process.env.API || 'https://verth-pay.umeshdk22.workers.dev';
 const TOKEN = process.env.TTS_TOKEN, ONLY = (process.env.ONLY || 'all').split(',').map((x) => x.trim());
 const REDO = process.env.REDO === '1';
 const VOICE = { en: process.env.VOICE_EN || 'Kore', hi: process.env.VOICE_HI || 'Kore' };
-const STYLE = { en: 'Say in a warm, friendly, clear voice, at a natural pace: ', hi: 'गर्मजोशी भरी, साफ़ आवाज़ में, सामान्य गति से कहिए: ' };
+// Hindi style words get read out loud, so Hindi lines go in plain.
+const STYLE = { en: 'Say in a warm, friendly, clear voice, at a natural pace: ', hi: '' };
 const scripts = JSON.parse(readFileSync('video/scripts.json', 'utf8'));
 mkdirSync('video/voice', { recursive: true });
 const report = existsSync('video/voice/report.json') ? JSON.parse(readFileSync('video/voice/report.json', 'utf8')) : {};
@@ -26,7 +27,7 @@ async function post(body) {
   return r.ok ? j : { error: `HTTP ${r.status} ${JSON.stringify(j).slice(0, 200)}` };
 }
 // Words of the script line vs the transcript: a rough match score from 0 to 1.
-const words = (t) => String(t).toLowerCase().normalize('NFC').replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean);
+const words = (t) => String(t).toLowerCase().normalize('NFD').replace(/[\u093c\u0901\u0902]/g, '').normalize('NFC').replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean);
 function match(line, heard) { const a = words(line), b = new Set(words(heard)); return a.length ? a.filter((w) => b.has(w)).length / a.length : 0; }
 const extra = (line, heard) => words(heard).length - words(line).length;
 
@@ -47,7 +48,7 @@ for (const [id, v] of Object.entries(scripts)) {
         const rate = Number((out.mime || '').match(/rate=(\d+)/)?.[1] || 24000);
         const file1 = bytes.subarray(0, 4).toString() === 'RIFF' ? bytes : wav(bytes, rate);
         await sleep(4000);
-        const t = await post({ audio: file1.toString('base64'), mime: 'audio/wav' }).catch((e) => ({ error: String(e) }));
+        const t = await post({ audio: file1.toString('base64'), mime: 'audio/wav', lang }).catch((e) => ({ error: String(e) }));
         const score = t.text ? match(line, t.text) : null, more = t.text ? extra(line, t.text) : 0;
         const good = score == null || (score >= 0.6 && more <= 4);
         report[key] = { ok: good, line, heard: t.text || '', score, model: out.model, voice: VOICE[lang], style: !!style };

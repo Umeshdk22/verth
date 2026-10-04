@@ -36,9 +36,11 @@ jobs:
         if: always()
         run: echo y | npx --yes wrangler@4 secret delete TTS_TOKEN --name verth-pay || true
       - name: Save to the voices branch
+        if: always()
+        env: { GH_TOKEN: '${{ github.token }}' }
         run: |
-          echo "voices saved"
-          git config user.name "verth-bot"; git config user.email "verth-bot@users.noreply.github.com"
-          git checkout --orphan voices-new
-          git rm -rq --cached . ; git add -f video/voice video/scripts.json
-          git commit -qm "Voice-overs $(date -u +%F)" && git push -f origin voices-new:voices
+          O=$(mktemp -d); mkdir -p $O/video && cp -r video/voice $O/video/ && cp video/scripts.json $O/video/
+          cd $O && git init -q -b voices && git add . \
+            && git -c user.name=verth-bot -c user.email=verth-bot@users.noreply.github.com commit -qm "Voice-overs $(date -u +%F)" \
+            && git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" voices \
+            && echo "::notice title=Voices saved::$(ls video/voice | wc -l) files" || echo "::error title=Save failed::could not push the voices branch"
