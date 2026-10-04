@@ -769,6 +769,20 @@ const SLOW = process.env.CI ? 3 : 1;
     if (await D.locator('.splash').isVisible()) throw new Error('greeting should show only once per visit');
     await D.close();
   });
+  await step('How-to videos: a card in the section, plays above the page, English/हिन्दी switch', async () => {
+    await A.click('nav >> text=Scan');
+    if (!(await A.locator('.hv[data-hv="scan"]').count())) return; // no videos published yet
+    if (await A.locator('.hv[data-hv="scan"] .hv-lang button:not([disabled])', { hasText: 'हिन्दी' }).count()) {
+      await A.locator('.hv[data-hv="scan"] .hv-lang button', { hasText: 'हिन्दी' }).click();
+      await A.locator('.hv[data-hv="scan"] b', { hasText: 'स्कैन कैसे इस्तेमाल करें' }).waitFor({ timeout: 3000 * SLOW });
+      await A.locator('.hv[data-hv="scan"] .hv-lang button', { hasText: 'English' }).click();
+    }
+    await A.click('.hv[data-hv="scan"] [data-hv-play]');
+    await A.locator('#hv-modal video[src$="help-scan-en.mp4"]').waitFor({ timeout: 3000 * SLOW });
+    await shot(A, '23-A-video');
+    await A.click('[data-hv-close]');
+    if (await A.locator('#hv-modal').count()) throw new Error('video window did not close');
+  });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');
   });

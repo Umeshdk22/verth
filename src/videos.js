@@ -21,6 +21,10 @@ export function videoLang() {
 function setLang(l) { try { localStorage.setItem(KEY, l); } catch {} }
 const len = (id, l) => { const s = VIDEO_LENGTHS[`${id}-${l}`]; return s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}` : ''; };
 export const hasVideo = (id) => !!VIDEO_LENGTHS[`${id}-en`] || !!VIDEO_LENGTHS[`${id}-hi`];
+const ready = (id, l) => !!VIDEO_LENGTHS[`${id}-${l}`];
+// The chosen language, or the other one while a video is only ready in one language.
+const langFor = (id, l = videoLang()) => (ready(id, l) ? l : l === 'hi' ? 'en' : 'hi');
+const langButtons = (id, l) => ['en', 'hi'].map((x) => `<button type="button" data-hv-lang="${x}" class="${l === x ? 'on' : ''}"${ready(id, x) ? '' : ` disabled title="${x === 'hi' ? 'हिन्दी वीडियो जल्द आ रहा है' : 'Coming soon'}"`}>${x === 'en' ? 'English' : 'हिन्दी'}</button>`).join('');
 const src = (base, id, l, ext) => `${base}assets/videos/help-${id}-${l}.${ext}`;
 
 const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>';
@@ -28,12 +32,12 @@ const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1
 // The small card shown in each section.
 export function videoCard(id, { base = '', big = false } = {}) {
   if (!hasVideo(id)) return '';
-  const l = videoLang(), i = l === 'hi' ? 1 : 0;
+  const l = langFor(id), i = l === 'hi' ? 1 : 0;
   return `<section class="hv${big ? ' big' : ''}" data-hv="${id}" data-base="${base}">
     <button type="button" class="hv-thumb" data-hv-play aria-label="Play video: ${VIDEOS[id][i]}">
       <img src="${src(base, id, l, 'jpg')}" alt="" loading="lazy" width="720" height="720"><span class="hv-btn">${PLAY}</span>${len(id, l) ? `<span class="hv-len">${len(id, l)}</span>` : ''}</button>
     <div class="hv-txt"><span class="hv-eye">${l === 'hi' ? '▶ वीडियो देखें' : '▶ Watch the video'}</span><b>${VIDEOS[id][i]}</b>
-      <span class="hv-lang" role="group" aria-label="Video language"><button type="button" data-hv-lang="en" class="${l === 'en' ? 'on' : ''}">English</button><button type="button" data-hv-lang="hi" class="${l === 'hi' ? 'on' : ''}">हिन्दी</button></span></div>
+      <span class="hv-lang" role="group" aria-label="Video language">${langButtons(id, l)}</span></div>
   </section>`;
 }
 
@@ -46,13 +50,14 @@ function refreshCards() {
 
 function open(id, base, l) {
   close();
+  l = langFor(id, l);
   const i = l === 'hi' ? 1 : 0;
   const m = document.createElement('div');
   m.id = 'hv-modal'; m.className = 'hv-modal'; m.dataset.id = id; m.dataset.base = base;
   m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', VIDEOS[id][i]);
   m.innerHTML = `<div class="hv-box">
       <div class="hv-head"><b>${VIDEOS[id][i]}</b>
-        <span class="hv-lang"><button type="button" data-hv-lang="en" class="${l === 'en' ? 'on' : ''}">English</button><button type="button" data-hv-lang="hi" class="${l === 'hi' ? 'on' : ''}">हिन्दी</button></span>
+        <span class="hv-lang">${langButtons(id, l)}</span>
         <button type="button" class="hv-x" data-hv-close aria-label="Close">✕</button></div>
       <video controls autoplay playsinline preload="auto" poster="${src(base, id, l, 'jpg')}" src="${src(base, id, l, 'mp4')}"></video>
     </div>`;

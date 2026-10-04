@@ -31,34 +31,104 @@ const words = (t) => String(t).toLowerCase().normalize('NFD').replace(/[\u093c\u
 function match(line, heard) { const a = words(line), b = new Set(words(heard)); return a.length ? a.filter((w) => b.has(w)).length / a.length : 0; }
 const extra = (line, heard) => words(heard).length - words(line).length;
 
-let calls = 0;
+// Reads 16-bit mono PCM out of a .wav file.
+function pcmOf(buf) {
+  let o = 12, rate = 24000;
+  while (o + 8 <= buf.length) {
+    const id = buf.toString('ascii', o, o + 4), size = buf.readUInt32LE(o + 4);
+    if (id === 'fmt ') rate = buf.readUInt32LE(o + 12);
+    if (id === 'data') return { rate, pcm: buf.subarray(o + 8, Math.min(buf.length, o + 8 + size)) };
+    o += 8 + size + (size & 1);
+  }
+  return { rate, pcm: buf.subarray(44) };
+}
+// Splits one recording of a whole video into its lines, at the pauses that best fit where each
+// line should end (by its length). Returns the cut times in seconds, or null.
+export function splitPoints(pcm, rate, lines) {
+  const hop = Math.round(rate / 100), n = Math.floor(pcm.length / 2 / hop), db = new Float64Array(n);
+  let peak = -120;
+  for (let f = 0; f < n; f++) { let e = 0; for (let k = 0; k < hop; k++) { const v = pcm.readInt16LE((f * hop + k) * 2) / 32768; e += v * v; } db[f] = 10 * Math.log10(e / hop + 1e-12); peak = Math.max(peak, db[f]); }
+  const quiet = (f) => db[f] < peak - 35;
+  let a = 0, b = n - 1; while (a < n && quiet(a)) a++; while (b > a && quiet(b)) b--;
+  const cands = [];
+  for (let f = a; f <= b; f++) if (quiet(f)) { let g = f; while (g <= b && quiet(g)) g++; if (g - f >= 18) cands.push({ t: (f + g) / 2 / 100, len: (g - f) / 100 }); f = g; }
+  const need = lines.length - 1; if (cands.length < need) return null;
+  const chars = lines.map((l) => l.length), all = chars.reduce((x, y) => x + y, 0), t0 = a / 100, span = (b - a) / 100;
+  let acc = 0; const exp = chars.slice(0, -1).map((c) => (acc += c, t0 + (span * acc) / all));
+  // best increasing choice of `need` pauses: near the expected spot, longer pauses preferred
+  const cost = (k, j) => Math.abs(cands[j].t - exp[k]) - 2.5 * cands[j].len;
+  const D = Array.from({ length: need }, () => new Array(cands.length).fill(Infinity)), P = Array.from({ length: need }, () => new Array(cands.length).fill(-1));
+  for (let j = 0; j < cands.length; j++) D[0][j] = cost(0, j);
+  for (let k = 1; k < need; k++) for (let j = k; j < cands.length; j++) for (let i = k - 1; i < j; i++) { const v = D[k - 1][i] + cost(k, j); if (v < D[k][j]) { D[k][j] = v; P[k][j] = i; } }
+  let j = -1, best = Infinity; for (let x = need - 1; x < cands.length; x++) if (D[need - 1][x] < best) { best = D[need - 1][x]; j = x; }
+  const cuts = []; for (let k = need - 1; k >= 0; k--) { cuts.unshift(cands[j].t); j = P[k][j]; }
+  return cuts;
+}
+
+let calls = 0, quota = false;
+const isQuota = (e) => /\b429\b/.test(String(e || '')) && /quota/i.test(String(e || ''));
+async function tts(text, lang) {
+  if (calls++) await sleep(21000);
+  const out = await post({ text, voice: VOICE[lang] }).catch((e) => ({ error: String(e) }));
+  if (!out.audio) { if (isQuota(out.error)) quota = true; return { error: out.error }; }
+  const bytes = Buffer.from(out.audio, 'base64'), rate = Number((out.mime || '').match(/rate=(\d+)/)?.[1] || 24000);
+  return { file: bytes.subarray(0, 4).toString() === 'RIFF' ? bytes : wav(bytes, rate), model: out.model };
+}
+async function heard(file, lang) { await sleep(3000); const t = await post({ audio: file.toString('base64'), mime: 'audio/wav', lang }).catch(() => ({})); return t.text || ''; }
+
+// Whole videos in one recording each (uses far fewer of the daily free voice requests).
+for (const [id, v] of Object.entries(scripts)) {
+  for (const [li, lang] of ['en', 'hi'].entries()) {
+    if (quota) break;
+    if (!ONLY.includes('all') && !ONLY.includes(id) && !ONLY.includes(lang) && !ONLY.includes(`${id}-${lang}`)) continue;
+    const lines = v.lines.map((p) => p[li]), keys = lines.map((_, n) => `${id}-${lang}-${n + 1}`);
+    const missing = keys.filter((k, n) => REDO || !existsSync(`video/voice/${k}.wav`) || report[k]?.line !== lines[n]);
+    if (missing.length < 3) continue; // a few lines are fixed one by one below
+    const r = await tts((lang === 'en' ? STYLE.en : '') + lines.join('\n\n'), lang);
+    if (!r.file) { console.log(`::warning::${id}-${lang} whole: ${r.error}`); continue; }
+    writeFileSync(`video/voice/${id}-${lang}.wav`, r.file);
+    const { rate, pcm } = pcmOf(r.file), cuts = splitPoints(pcm, rate, lines);
+    if (!cuts) { console.log(`::warning::${id}-${lang}: couldn't find the pauses between lines`); continue; }
+    const edges = [0, ...cuts, pcm.length / 2 / rate];
+    for (let n = 0; n < lines.length; n++) {
+      const seg = wav(pcm.subarray(Math.round(edges[n] * rate) * 2, Math.round(edges[n + 1] * rate) * 2), rate);
+      const h = await heard(seg, lang), score = h ? match(lines[n], h) : null, more = h ? extra(lines[n], h) : 0;
+      const good = score == null || (score >= 0.55 && Math.abs(more) <= 5);
+      report[keys[n]] = { ok: good, line: lines[n], heard: h, score, model: r.model, voice: VOICE[lang], from: 'whole' };
+      if (good) writeFileSync(`video/voice/${keys[n]}.wav`, seg);
+      else console.log(`::warning::${keys[n]} (split) heard "${h.slice(0, 100)}" (${Math.round((score || 0) * 100)}%)`);
+    }
+    writeFileSync('video/voice/report.json', JSON.stringify(report, null, 1));
+    console.log(`${id}-${lang}: whole recording split into ${lines.length} lines`);
+  }
+}
+
+
 for (const [id, v] of Object.entries(scripts)) {
   for (const [li, lang] of ['en', 'hi'].entries()) {
     if (!ONLY.includes('all') && !ONLY.includes(id) && !ONLY.includes(lang) && !ONLY.includes(`${id}-${lang}`)) continue;
     for (const [n, pair] of v.lines.entries()) {
       const key = `${id}-${lang}-${n + 1}`, file = `video/voice/${key}.wav`, line = pair[li];
-      if (!REDO && existsSync(file) && report[key]?.ok && report[key]?.line === line) continue;
+      if (quota) break;
+      if (existsSync(file) && report[key]?.ok && report[key]?.line === line) continue;
       let done = false;
       for (let attempt = 1; attempt <= 4 && !done; attempt++) {
-        if (calls++) await sleep(attempt > 1 ? 40000 : 21000); // free-tier per-minute limits
+        if (quota) break;
         const style = attempt >= 3 ? '' : STYLE[lang]; // if the style words get read out, drop them
-        const out = await post({ text: style + line, voice: VOICE[lang] }).catch((e) => ({ error: String(e) }));
-        if (!out.audio) { console.log(`::warning::${key} attempt ${attempt}: ${out.error}`); report[key] = { ok: false, line, error: out.error, models: out.models }; continue; }
-        const bytes = Buffer.from(out.audio, 'base64');
-        const rate = Number((out.mime || '').match(/rate=(\d+)/)?.[1] || 24000);
-        const file1 = bytes.subarray(0, 4).toString() === 'RIFF' ? bytes : wav(bytes, rate);
-        await sleep(4000);
-        const t = await post({ audio: file1.toString('base64'), mime: 'audio/wav', lang }).catch((e) => ({ error: String(e) }));
-        const score = t.text ? match(line, t.text) : null, more = t.text ? extra(line, t.text) : 0;
+        const out = await tts(style + line, lang);
+        if (!out.file) { console.log(`::warning::${key} attempt ${attempt}: ${String(out.error).slice(0, 160)}`); report[key] = { ok: false, line, error: out.error }; continue; }
+        const file1 = out.file, h = await heard(file1, lang);
+        const score = h ? match(line, h) : null, more = h ? extra(line, h) : 0;
         const good = score == null || (score >= 0.6 && more <= 4);
-        report[key] = { ok: good, line, heard: t.text || '', score, model: out.model, voice: VOICE[lang], style: !!style };
+        report[key] = { ok: good, line, heard: h, score, model: out.model, voice: VOICE[lang], style: !!style };
         if (good) { writeFileSync(file, file1); done = true; console.log(`${key} ok (${score == null ? 'not checked' : Math.round(score * 100) + '%'})`); }
-        else console.log(`::warning::${key} attempt ${attempt}: heard "${(t.text || '').slice(0, 120)}" (${Math.round(score * 100)}%, ${more} extra words)`);
+        else console.log(`::warning::${key} attempt ${attempt}: heard "${h.slice(0, 120)}" (${Math.round(score * 100)}%, ${more} extra words)`);
       }
       writeFileSync('video/voice/report.json', JSON.stringify(report, null, 1));
     }
   }
 }
+if (quota) console.log('::warning title=Daily voice limit reached::Google’s free daily limit for voices was reached. Run this again tomorrow to finish the rest.');
 const bad = Object.entries(report).filter(([, r]) => !r.ok);
 console.log(`::notice title=Voices::${Object.keys(report).length - bad.length} clips ok, ${bad.length} failed`);
 if (bad.length) console.log(`::warning title=Voices not made::${JSON.stringify(bad.map(([k, r]) => [k, r.error || r.heard])).slice(0, 1500)}`);

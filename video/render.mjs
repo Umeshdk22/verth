@@ -54,7 +54,11 @@ try {
       let cursor = INTRO;
       const lines = v.lines.map((pair, n) => {
         const out = `${TMP}/${key}-${n + 1}.wav`;
-        ff(['-i', clips[n], '-af', 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse,highpass=f=70,aresample=48000', '-ac', '1', out]);
+        const raw = `${TMP}/${key}-${n + 1}-raw.wav`;
+        ff(['-i', clips[n], '-af', 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse,highpass=f=70,aresample=48000', '-ac', '1', raw]);
+        // Keep the pace natural: speed up a slow clip a little (pitch stays the same).
+        const wpm = pair[li].split(/\s+/).length / dur(raw) * 60, speed = wpm < 135 ? Math.min(1.15, 140 / wpm) : 1;
+        ff(['-i', raw, '-af', `atempo=${speed.toFixed(3)}`, out]);
         const d = dur(out), start = cursor; cursor += d + GAP;
         const frames = SCENES[id][n].map((s) => ({ src: `_frames/${s.name}.png`, pan: s.pan, tap: s.tap ? taps[s.name] : null }));
         return { text: pair[li], file: out, start, end: start + d, frames };
@@ -75,7 +79,7 @@ try {
       await page.evaluate((p) => window.setup(p), plan);
       const silent = `${TMP}/${key}-video.mp4`, final = `${OUT}/help-${key}.mp4`, poster = `${OUT}/help-${key}.jpg`;
       const enc = spawn('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
-        '-c:v', 'libx264', '-preset', 'slow', '-crf', '27', '-tune', 'stillimage', '-pix_fmt', 'yuv420p', '-vf', 'scale=1080:1080', '-g', '60', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
+        '-c:v', 'libx264', '-preset', 'slow', '-crf', '29', '-tune', 'stillimage', '-pix_fmt', 'yuv420p', '-vf', 'scale=1080:1080', '-g', '60', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
       const n = Math.ceil(total * FPS);
       for (let f = 0; f < n; f++) {
         await page.evaluate((t) => window.render(t), f / FPS);

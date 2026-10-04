@@ -1028,3 +1028,4 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
 html.hv-open{overflow:hidden}
 @media (max-width:420px){.hv-thumb{width:88px;height:88px}.hv-head b{font-size:14px}}
 @media (prefers-color-scheme:dark){.hv{background:#1b1433}}
+.hv-lang button:disabled{opacity:.45;cursor:not-allowed}
