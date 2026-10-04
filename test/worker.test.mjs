@@ -652,3 +652,17 @@ test('health check says which features are switched on, never the keys', async (
   assert.equal(j.ai, true); assert.equal(j.emailCodes, true); assert.equal(j.sms, false);
   assert.ok(!JSON.stringify(j).includes('secret-gem') && !JSON.stringify(j).includes('otp-secret'));
 });
+
+test('app lock: a signed-in person can get an unlock code for their own email without the robot check', async () => {
+  const f = otpFakes(); f.needCaptcha = true; f.allExist = true;
+  const call = async (body, token) => {
+    const r = await handle(new Request('https://w.example/otp/send', { method: 'POST', headers: { origin: ORIGIN, 'cf-connecting-ip': '9.9.9.9', ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(body) }), otpEnv, { ...f.deps, fetch: jwksFetch });
+    return { status: r.status, body: await r.json() };
+  };
+  const token = await idToken({ sub: 'uidA', email: 'asha@example.in' });
+  assert.notEqual((await call({ email: 'asha@example.in', mode: 'login' })).status, 200, 'robot check still needed without sign-in');
+  assert.equal(f.mails.length, 0);
+  assert.equal((await call({ email: 'asha@example.in', mode: 'login', reauth: true }, token)).status, 200);
+  assert.equal((await call({ email: 'someone@else.in', mode: 'login', reauth: true }, token)).status, 403, 'only your own email');
+  assert.equal((await call({ email: 'asha@example.in', mode: 'login', reauth: true }, 'bad.token.here')).status, 401);
+});

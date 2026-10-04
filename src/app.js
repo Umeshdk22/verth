@@ -317,7 +317,7 @@ function renderAuth(note = '') {
       <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com"></label>
       ${personFields('a')}
       <p class="muted small">We keep your number, birthday and gender private. Only admins of a circle you join see your number.</p>
-      ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
+      ${robotBox()}
       <label class="check"><input type="checkbox" id="a-agree" required> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</span></label>
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send verification code</button>
@@ -333,7 +333,7 @@ function renderAuth(note = '') {
     ${pk ? `<button class="btn bio big${store.get('verth-pk') ? ' glow' : ''}" type="button" data-act="pk-login">${ICON.finger}Log in with fingerprint or face</button><div class="or"><span>or use your email</span></div>` : ''}
     <form data-form="otp-email" class="stack" novalidate>
       <label>Email address<input id="a-email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@example.com" value="${esc(last?.email || '')}"></label>
-      ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
+      ${robotBox()}
       <p class="err" id="a-err" role="alert"></p>
       <button class="btn primary big" type="submit">Send code</button>
     </form>
@@ -349,8 +349,30 @@ function renderAuth(note = '') {
 
 // Cloudflare Turnstile, loaded only when it's switched on.
 let turnstileLoad = null;
+// "I'm not a robot": the person must tick it themselves. Ticking runs Cloudflare's check quietly; a
+// puzzle only appears if Cloudflare isn't sure. (Cloudflare's own box ticks itself, which looked odd.)
+const robotBox = () => (CAPTCHA_KEY ? `<div class="robot" id="robot-wrap">
+    <label class="rb-row"><input type="checkbox" id="robot" data-keep="no"><span class="rb-box" aria-hidden="true"></span><span class="rb-txt">I’m not a robot</span><span class="rb-state" id="rb-state" aria-live="polite"></span></label>
+    <span class="rb-brand">Protected by Cloudflare</span>
+    <div class="captcha" id="captcha"></div></div>` : '');
+function robotState(kind, text) {
+  const w = document.getElementById('robot-wrap'), st = document.getElementById('rb-state'), cb = document.getElementById('robot');
+  if (!w) return;
+  w.dataset.state = kind; if (st) st.textContent = text;
+  const err = document.getElementById('a-err');
+  if (kind === 'ok' && err && /robot/i.test(err.textContent)) err.textContent = '';
+  if (cb && (kind === 'idle' || kind === 'error')) cb.checked = false;
+}
+function robotTick(on) {
+  if (!on) { S.captcha = ''; try { window.turnstile?.reset(S.cfWidget); } catch {} return robotState('idle', ''); }
+  if (S.captcha) return robotState('ok', 'Verified');
+  if (!window.turnstile || S.cfWidget == null) { S.captchaFailed ||= 'load'; return robotState('ok', ''); } // can't run here; the server decides
+  robotState('busy', 'Checking…');
+  try { window.turnstile.execute(S.cfWidget); } catch { robotState('error', 'Couldn’t check. Tick again.'); }
+}
+const robotTicked = () => !!document.getElementById('robot')?.checked;
 function mountCaptcha() {
-  S.captcha = '';
+  S.captcha = ''; S.cfWidget = null;
   const box = document.getElementById('captcha');
   if (!box || !CAPTCHA_KEY) return;
   turnstileLoad ||= new Promise((resolve, reject) => {
@@ -361,19 +383,20 @@ function mountCaptcha() {
   });
   turnstileLoad.then(() => {
     if (!document.body.contains(box) || !window.turnstile) return;
-    window.turnstile.render(box, {
-      sitekey: CAPTCHA_KEY, theme: 'light', retry: 'auto', 'refresh-expired': 'auto',
-      callback: (t) => { S.captcha = t; S.captchaFailed = ''; },
-      'expired-callback': () => { S.captcha = ''; },
+    S.cfWidget = window.turnstile.render(box, {
+      sitekey: CAPTCHA_KEY, theme: 'light', retry: 'never', 'refresh-expired': 'manual',
+      execution: 'execute', appearance: 'interaction-only',
+      callback: (t) => { S.captcha = t; S.captchaFailed = ''; robotState('ok', 'Verified'); },
+      'expired-callback': () => { S.captcha = ''; robotState('idle', 'Expired. Tick again.'); },
       // If the check can't run in this browser, don't trap the person here: the server decides.
-      'error-callback': (code) => { S.captcha = ''; S.captchaFailed = String(code || 'error'); return true; },
+      'error-callback': (code) => { S.captcha = ''; S.captchaFailed = String(code || 'error'); robotState('ok', ''); return true; },
     });
   }).catch(() => { S.captchaFailed = 'load'; });
 }
-const resetCaptcha = () => { S.captcha = ''; try { window.turnstile?.reset(); } catch {} };
+const resetCaptcha = () => { S.captcha = ''; try { window.turnstile?.reset(S.cfWidget); } catch {} robotState('idle', ''); };
 // Ask for the robot check only while it's working; a broken check is reported but doesn't block.
 const captchaHint = (msg) => (S.captchaFailed && /robot/i.test(msg) ? `${msg} The check couldn’t run in this browser (code ${S.captchaFailed}). Try turning off ad-blockers or “strict” tracking prevention, use Chrome, or tap “Log in with Google”.` : msg);
-const needCaptcha = () => CAPTCHA_KEY && !S.captcha && !S.captchaFailed;
+const needCaptcha = () => CAPTCHA_KEY && (!robotTicked() || (!S.captcha && !S.captchaFailed));
 
 function renderCode(note = '') {
   paint(`<div class="shell narrow">${brand}
@@ -454,10 +477,10 @@ function renderWelcome() {
 }
 
 // Talks to the Verth server (email codes, passkey login). Signed-in calls go through payApi.
-async function otpApi(path, body) {
+async function otpApi(path, body, token = '') {
   if (!PAY_API) throw Object.assign(new Error('Email codes aren’t switched on yet. Use Continue with Google for now.'), { otp: true });
   let r;
-  try { r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); }
+  try { r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(body) }); }
   catch { throw Object.assign(new Error('You seem to be offline. Check your connection.'), { otp: true }); }
   const j = await r.json().catch(() => ({}));
   // An older server that doesn't know email codes answers "Sign in again." (401).
@@ -465,8 +488,8 @@ async function otpApi(path, body) {
   if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Try again in a minute.'), { otp: true, status: r.status });
   return j;
 }
-async function sendCode(email, extra = {}) {
-  const j = await otpApi('/otp/send', { email, mode: S.authMode === 'signup' ? 'signup' : 'login', captcha: S.captcha || '', ...extra });
+async function sendCode(email, extra = {}, token = '') {
+  const j = await otpApi('/otp/send', { email, mode: S.authMode === 'signup' ? 'signup' : 'login', captcha: S.captcha || '', ...extra }, token);
   S.otpEmail = email.trim().toLowerCase();
   S.emailOk = '';
   S.otpResendAt = Date.now() + (j.resendInSeconds || 30) * 1000;
@@ -1779,7 +1802,7 @@ const forms = {
   'otp-email': async (f) => {
     const email = f.querySelector('#a-email').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('a-err', 'That email address doesn’t look right.');
-    if (needCaptcha()) return setErr('a-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
+    if (needCaptcha()) return setErr('a-err', (robotTicked() ? 'One moment: we’re still checking you’re not a robot. Then tap again.' : 'Please tick “I’m not a robot” first.'));
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'login'; await sendCode(email); renderCode(); }
     catch (e) { setErr('a-err', captchaHint(friendlyError(e))); busy(f, false); resetCaptcha(); }
@@ -1793,7 +1816,7 @@ const forms = {
     const fix = emailTypo(email);
     if (fix && S.emailOk !== email) { S.emailOk = email; return setErrHtml('a-err', `Did you mean <button type="button" class="link" data-act="use-email" data-email="${esc(fix)}">${esc(fix)}</button>? If your email is right, tap “Send verification code” again.`); }
     if (who.error) return setErr('a-err', who.error);
-    if (needCaptcha()) return setErr('a-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
+    if (needCaptcha()) return setErr('a-err', (robotTicked() ? 'One moment: we’re still checking you’re not a robot. Then tap again.' : 'Please tick “I’m not a robot” first.'));
     if (!f.querySelector('#a-agree').checked) return setErr('a-err', 'Please tick the box to agree to the Terms and Privacy policy.');
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'signup'; S.signupInfo = { name: name.slice(0, 60), ...who }; await sendCode(email, { name: name.slice(0, 60) }); renderCode(); }
@@ -2503,14 +2526,12 @@ function renderAppLock(note = '') {
       <button class="btn ghost" data-act="unlock-email">Use an email code instead</button>`
     : `<form data-form="unlock-email" class="stack" novalidate>
         <p class="lock-mail">${ICON.mail}<span>Code goes to <b>${esc(maskEmail(u?.email))}</b></span></p>
-        ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
         <button class="btn primary big" type="submit">Email me a code</button>
       </form>
       ${pk ? '<button class="link" data-act="unlock-back">Use fingerprint / face instead</button>' : ''}`}
     <div class="links"><button class="link" data-act="signout">Not you? Sign out</button></div>
   </div></div>`);
   S.screen = 'applock';
-  if (!pk || S.lockEmail) mountCaptcha();
 }
 function unlockDone() {
   markUnlocked(S.user.uid); S.lockEmail = false; S.screen = '';
@@ -2532,10 +2553,10 @@ Object.assign(actions, {
 });
 Object.assign(forms, {
   'unlock-email': async (f) => {
-    if (needCaptcha()) return setErr('l-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
     busy(f, true); setErr('l-err', '');
-    try { S.authMode = 'login'; S.lockEmail = false; await sendCode(S.user.email); renderCode('Enter the code to unlock Verth.'); }
-    catch (e) { busy(f, false); setErr('l-err', captchaHint(friendlyError(e))); resetCaptcha(); }
+    // Already signed in: the sign-in itself proves this isn't a robot, so no robot check here.
+    try { S.authMode = 'login'; S.lockEmail = false; await sendCode(S.user.email, { reauth: true }, await S.user.getIdToken()); renderCode('Enter the code to unlock Verth.'); }
+    catch (e) { busy(f, false); setErr('l-err', friendlyError(e)); }
   },
 });
 // Lock again after 5 minutes in the background.
@@ -2825,6 +2846,7 @@ root.addEventListener('input', (e) => {
 });
 root.addEventListener('change', (e) => {
   if (e.target.dataset?.dial) syncDial(e.target);
+  if (e.target.id === 'robot') robotTick(e.target.checked);
   if (e.target.id === 'pf-photo' && e.target.files?.[0]) setProfilePhoto(e.target.files[0]);
   if (e.target.id === 'c-file' && e.target.files?.[0]) {
     const f = e.target.files[0], t = document.getElementById('c-text');

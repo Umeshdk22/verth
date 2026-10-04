@@ -425,7 +425,11 @@ async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
   const name = cleanName(body.name);
   if (mode === 'signup' && name.length < 2) throw new HttpError(400, 'Please type your full name.');
   if (mode === 'signup' && DISPOSABLE.has(email.split('@')[1])) throw new HttpError(400, 'Please use your own email address. Temporary email addresses can’t be used for a Verth account.');
-  await deps.captcha(body.captcha, ip);
+  // Unlocking Verth (app lock): the person is already signed in, so their sign-in proves they're
+  // not a robot. It only works for a code to their own email.
+  if (deps.reauth) {
+    if (mode !== 'login' || normEmail(deps.reauth.email) !== email) throw new HttpError(403, 'Not allowed.');
+  } else await deps.captcha(body.captcha, ip);
   const id = await hmacHex(env.OTP_SECRET, 'email:' + email);
   const prev = await fs.get('otp/' + id);
   if (prev?.sentAt && now - new Date(prev.sentAt).getTime() < OTP.resendMs) throw new HttpError(429, 'Wait 30 seconds before asking for a new code.');
@@ -806,6 +810,8 @@ export async function handle(request, env, deps = {}) {
     if (body === null || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'Bad request.');
     if (url.pathname === '/otp/send' || url.pathname === '/otp/verify') {
       if (!env.OTP_SECRET || !env.BREVO_API_KEY || !env.MAIL_FROM) throw new HttpError(503, 'Email codes aren’t set up on the server yet. Use Continue with Google for now.');
+      const bearer = (request.headers.get('authorization') || '').replace(/^Bearer /, '');
+      if (url.pathname === '/otp/send' && body.reauth === true && bearer) d.reauth = await verifyIdToken(bearer, env.FIREBASE_PROJECT_ID, fetchFn);
       return json(url.pathname === '/otp/send' ? await otpSend(body, env, fs, d, ip, deps.now) : await otpVerify(body, env, fs, d, ip, deps.now), 200, h);
     }
     if (url.pathname === '/phone/status') return json({ enabled: !!env.TWOFACTOR_API_KEY }, 200, h);

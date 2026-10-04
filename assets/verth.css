@@ -938,3 +938,22 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
 .switch.on{background:var(--ok)}
 .switch.on i{transform:translateX(20px)}
 .switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* "I'm not a robot" tick box (runs Cloudflare's check only when ticked) */
+.robot{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#FBFAFF}
+.rb-row{display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;color:var(--ink);margin:0}
+.rb-row input{position:absolute;opacity:0;width:1px;height:1px}
+.rb-box{flex:none;width:28px;height:28px;border-radius:7px;border:2px solid #B9B1D9;background:#fff;display:grid;place-items:center;transition:border-color .15s,background .15s}
+.rb-row input:focus-visible+.rb-box{outline:2px solid var(--accent);outline-offset:2px}
+.rb-row input:checked+.rb-box{border-color:var(--accent)}
+.robot[data-state="busy"] .rb-box{border-color:var(--accent);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+.robot[data-state="ok"] .rb-box{background:var(--ok);border-color:var(--ok)}
+.robot[data-state="ok"] .rb-box::after{content:"";width:8px;height:14px;border:solid #fff;border-width:0 3px 3px 0;transform:translateY(-2px) rotate(45deg)}
+.rb-txt{flex:1;font-size:16px}
+.rb-state{font-size:13px;color:var(--muted);font-weight:600}
+.robot[data-state="ok"] .rb-state{color:var(--ok)}
+.robot[data-state="error"] .rb-state{color:var(--bad)}
+.rb-brand{font-size:11px;color:var(--muted);text-align:right}
+.robot .captcha{display:flex;justify-content:center}
+.robot .captcha:empty{display:none}
+.robot label.rb-row,.auth .robot label.rb-row{display:flex;flex-direction:row;align-items:center;gap:12px;font-size:16px}
