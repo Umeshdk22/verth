@@ -186,6 +186,7 @@ function friendlyError(e) {
 let toastTimer;
 function toast(msg, kind = '') {
   const el = document.getElementById('toast');
+  if (!el) return;
   el.textContent = msg;
   el.className = 'toast show ' + kind;
   clearTimeout(toastTimer);

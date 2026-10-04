@@ -8,7 +8,8 @@ const SLOW = process.env.CI ? 3 : 1;
 
 (async () => {
   const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
-  const ctx = await b.newContext({ viewport: { width: 400, height: 860 } });
+  const VS = process.env.VSHOTS; // also save phone-sized frames for the help videos
+  const ctx = await b.newContext(VS ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 } : { viewport: { width: 400, height: 860 } });
   // The first page shows the "Welcome to Verth" greeting; the rest skip it (once per visit, like a person's tab).
   await ctx.addInitScript(() => { if (!window.name.includes('greet')) { try { sessionStorage.setItem('verth-splash', '1'); } catch (e) {} } });
   const A = await ctx.newPage(), B = await ctx.newPage();
@@ -17,6 +18,21 @@ const SLOW = process.env.CI ? 3 : 1;
     p.on('console', (m) => { if (m.type() === 'error') errors.push(n + ' console: ' + m.text()); });
   }
   const shot = (p, name) => p.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
+  // Video frame: the phone screen as the person sees it, plus where to show a tap.
+  const vmeta = {};
+  const vs = async (p, name, tap, scrollTo) => {
+    if (!VS) return;
+    try {
+      if (scrollTo) await p.locator(scrollTo).first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      if (tap) await p.locator(tap).first().scrollIntoViewIfNeeded();
+      await p.waitForTimeout(450);
+      await p.evaluate(() => document.querySelectorAll('.toast').forEach((t) => { t.className = 'toast'; }));
+      const box = tap ? await p.locator(tap).first().boundingBox() : null;
+      await p.screenshot({ path: `${VS}/${name}.png` });
+      vmeta[name] = box ? { x: box.x + box.width / 2, y: box.y + box.height / 2, w: box.width, h: box.height } : null;
+      require('node:fs').writeFileSync(`${VS}/frames.json`, JSON.stringify(vmeta, null, 1));
+    } catch (e) { console.log('vshot', name, e.message.split('\n')[0]); }
+  };
   let failed = 0; const extra = [];
   const step = async (msg, fn) => {
     try { await fn(); console.log('ok  ', msg); }
@@ -103,8 +119,10 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   { const keep = errors.filter((e) => !e.includes('status of 404')); errors.length = 0; errors.push(...keep); }
   await step('A creates an account: name, email, phone, agree, email code (wrong code first), special welcome', async () => {
+    await vs(A, 'login');
     await A.click('.auth-tabs >> text=Create account');
     await A.getByRole('heading', { name: 'Create your Verth account' }).waitFor();
+    await vs(A, 'signup');
     await A.fill('#a-name', 'Rajesh Mehta'); await A.fill('#a-email', 'Rajesh@Nirmaan.in');
     await A.click('button:has-text("Send verification code")');
     await A.getByText('Please choose your gender').waitFor({ timeout: 3000 * SLOW });
@@ -212,14 +230,19 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('nav >> text=Circle');
     await A.getByRole('heading', { name: 'Waiting for your approval' }).waitFor();
     await shot(A, '02-A-approval');
+    await vs(A, 'circle-approve', '.attention button:has-text("Approve")');
     await A.locator('.attention a[href="tel:+919123456780"]', { hasText: '+91 91234 56780' }).waitFor(); // phone shown for approval
     await A.click('button:has-text("Approve")');
     await B.getByRole('heading', { name: 'Your Verth code' }).waitFor({ timeout: 6000 * SLOW });
+    await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'circle-top');
+    await vs(A, 'circle-invite', '.inv-actions .btn');
+    await vs(A, 'circle-people', null, '.people');
   });
 
   await step('Company security: make an admin, company email lock, staff list, two-admin approval', async () => {
     await A.click('nav >> text=Circle');
     await A.getByRole('heading', { name: 'Company security' }).waitFor({ timeout: 5000 * SLOW });
+    await vs(A, 'circle-company', null, '.org-sec h3');
     if (!(await A.getByText('You need at least two admins first').isVisible())) throw new Error('two-admin should need a second admin');
     await A.click('button:has-text("Make admin")');
     await A.getByText('Priya Nair is now an admin.').waitFor({ timeout: 5000 * SLOW });
@@ -263,6 +286,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.fill('#u-upi', 'Priya.Nair@okaxis'); await B.click('button:has-text("Save")');
     await B.getByText('Saved: priya.nair@okaxis').waitFor({ timeout: 5000 * SLOW });
     await shot(B, '04-B-chat-list');
+    await B.evaluate(() => window.scrollTo(0, 0)); await vs(B, 'chat-list', '.chat-row');
     // Rajesh writes to Priya.
     await A.click('nav >> text=Chat');
     await A.click('.chat-row:has-text("Priya Nair")');
@@ -277,11 +301,12 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#c-text', 'Certificate attached');
     await A.click('.composer .send');
     await A.locator('.msg.me .file-card', { hasText: 'GST-certificate.pdf' }).waitFor({ timeout: 8000 * SLOW });
+    await vs(A, 'chat-room', '.composer button');
     // Nothing readable is stored: only ciphertext.
     const raw = JSON.stringify(Object.entries(await fs(A)).filter(([k]) => k.includes('/chats/')));
     if (/sending the GST|GST-certificate|Verth test certificate|Certificate attached/.test(raw) || raw.includes(Buffer.from('%PDF-1.4').toString('base64'))) throw new Error('chat stored in plain text');
     // Priya sees an unread badge, then the decrypted messages.
-    await B.locator('.tabs .badge').waitFor({ timeout: 6000 * SLOW });
+    if (!VS) await B.locator('.tabs .badge').waitFor({ timeout: 6000 * SLOW });
     await B.click('nav >> text=Chat');
     await B.click('.chat-row:has-text("Rajesh Mehta")');
     await B.locator('.msg.them', { hasText: 'Hi Priya, sending the GST certificate now' }).waitFor({ timeout: 6000 * SLOW });
@@ -294,6 +319,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#p-amt', '0'); await A.click('button:has-text("Pay with my UPI app")');
     await A.getByText('between ₹1 and ₹1,00,000').waitFor();
     await A.fill('#p-amt', '2,500'); await A.fill('#p-note', 'Vendor advance');
+    await vs(A, 'chat-pay', 'button:has-text("Pay with my UPI app")');
     await A.click('button:has-text("Pay with my UPI app")');
     await A.locator('.qr-box svg').waitFor({ timeout: 5000 * SLOW });
     await shot(A, '04a-A-chat');
@@ -311,19 +337,19 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('.msg.me .pay-card >> text=View receipt');
     await A.locator('.rc-card .rc-state', { hasText: 'Received' }).waitFor();
     await A.locator('.rc-card', { hasText: 'UPI ref 427512345678' }).waitFor();
-    await shot(A, '04d-A-receipt');
+    await shot(A, '04d-A-receipt'); await vs(A, 'chat-receipt');
     await A.click('[data-rc="close"]');
     // Payment history across chats, decrypted on the phone.
     await A.click('.chat-head .back');
     await A.click('button:has-text("Show history")');
     await A.locator('.ph-row', { hasText: 'To Priya Nair' }).waitFor({ timeout: 6000 * SLOW });
     await A.locator('.ph-tot', { hasText: '₹2,500' }).waitFor();
-    await shot(A, '04e-A-history');
+    await shot(A, '04e-A-history'); await vs(A, 'chat-history', null, '.ph-list');
     await A.click('.chat-row:has-text("Priya Nair")');
     await A.evaluate(() => { const S = window.__verth.S; S.daily.chat.count = 12; });
     await A.click('.chat-head .back'); await A.click('.chat-row:has-text("Priya Nair")');
     await A.getByText('You’ve used today’s 12 free messages.').waitFor({ timeout: 5000 * SLOW });
-    await shot(A, '04c-A-limit');
+    await shot(A, '04c-A-limit'); await vs(A, 'chat-limit');
     await A.evaluate(() => { const S = window.__verth.S; S.daily.chat.count = 2; });
     await A.click('nav >> text=Home'); await B.click('nav >> text=Home');
   });
@@ -331,14 +357,18 @@ const SLOW = process.env.CI ? 3 : 1;
   await step('B sends a check; A denies (signed)', async () => {
     await B.click('nav >> text=Verify');
     await B.selectOption('#v-channel', 'WhatsApp');
+    await B.evaluate(() => window.scrollTo(0, 0)); await vs(B, 'verify-top', '#v-who');
     await B.fill('#v-what', 'pay ₹4,80,000 to Sharma Traders today');
+    await vs(B, 'verify-form', 'button:has-text("Send check")');
     await B.click('button:has-text("Send check")');
     await B.getByRole('heading', { name: /Asking Rajesh/ }).waitFor({ timeout: 5000 * SLOW });
+    await vs(B, 'verify-wait');
     await A.click('nav >> text=Home');
     await A.locator('.incoming').waitFor({ timeout: 5000 * SLOW });
-    await shot(A, '03-A-incoming');
+    await shot(A, '03-A-incoming'); await vs(A, 'verify-incoming', 'text=No, not me', '.incoming');
     await A.click('text=No, not me');
     await B.getByRole('heading', { name: /didn’t send this/ }).waitFor({ timeout: 5000 * SLOW });
+    await B.evaluate(() => window.scrollTo(0, 0)); await vs(B, 'verify-denied');
   });
   await step('Yes needs a second, explicit confirmation', async () => {
     await B.click('text=New check');
@@ -390,8 +420,11 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.click('nav >> text=Verify'); await B.click('.seg >> text=Check a code');
     await B.fill('#v-code', '123456'); await B.click('button:has-text("Check code")');
     await B.getByRole('heading', { name: 'Code doesn’t match' }).waitFor({ timeout: 5000 * SLOW });
-    await B.fill('#v-code', real); await B.click('button:has-text("Check code")');
+    await B.fill('#v-code', real); await vs(B, 'verify-code', 'button:has-text("Check code")');
+    await B.click('button:has-text("Check code")');
     await B.getByRole('heading', { name: 'Code matches' }).waitFor({ timeout: 5000 * SLOW });
+    await vs(B, 'verify-code-ok', null, '.result');
+    await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'home-code', null, '[data-mycode]');
   });
   await step('Code secrets are not stored in the database', async () => {
     const db = JSON.stringify(await fs(A));
@@ -413,14 +446,18 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.getByText('New device').first().waitFor({ timeout: 5000 * SLOW });
   });
   await shot(A, '08-A-new-device-flag');
+  await vs(A, 'circle-newdevice', null, '.warn-inline');
 
   await step('Old signed answers from the previous device no longer verify as current', async () => {
     await A.click('nav >> text=Circle'); await A.click('button:has-text("Open the log")');
     await A.getByRole('heading', { name: 'Every check, on record' }).waitFor();
+    await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'log-top');
+    await vs(A, 'log-list', null, '.list li');
   });
 
   await step('Admin changes the invite code; old code stops working', async () => {
     await A.click('nav >> text=Circle');
+    await vs(A, 'circle-rotate', 'text=Change code');
     await A.click('text=Change code');
     await A.waitForFunction((old) => (document.querySelector('.invite .mono')?.textContent || '').trim() !== old, code, { timeout: 5000 * SLOW });
     const db = await fs(A);
@@ -438,15 +475,20 @@ const SLOW = process.env.CI ? 3 : 1;
   await step('Scam check: a KYC scam SMS is flagged high risk', async () => {
     await B.click('nav >> text=Scan');
     await B.getByText('2 of 2 free checks left today').waitFor({ timeout: 5000 * SLOW });
+    await B.evaluate(() => window.scrollTo(0, 0)); await vs(B, 'scan-top', '.kinds');
     await B.fill('#s-message', 'Dear Customer, your SBI YONO account will be blocked today. Update PAN KYC immediately: http://sbi-yono-kyc.xyz/update');
+    await vs(B, 'scan-filled', 'button:has-text("Check it")');
     await B.click('button:has-text("Check it")');
     await B.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 5000 * SLOW });
     await B.getByText('Pretends to be State Bank of India', { exact: false }).first().waitFor();
     await shot(B, '10-B-scan-danger');
+    await vs(B, 'scan-result', null, '#scan-result h2');
+    await vs(B, 'scan-flags', null, '.flags');
   });
   await step('Scam check: Verth saves the scam by itself, no report button, never the content', async () => {
     await B.getByText('found to be a scam in 1 check').waitFor({ timeout: 5000 * SLOW }); // recorded automatically
     if (await B.locator('button:has-text("as a scam")').count()) throw new Error('manual report button still shown');
+    await vs(B, 'scan-db', null, '.community');
     const db = JSON.stringify(await fs(B));
     if (db.includes('sbi-yono-kyc')) throw new Error('reported content stored in database');
   });
@@ -456,7 +498,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#s-link', 'http://sbi-yono-kyc.xyz/update');
     await A.click('button:has-text("Check it")');
     await A.getByText(/found to be a scam in [2-9] checks/).waitFor({ timeout: 6000 * SLOW });
-    await shot(A, '10b-A-scam-db');
+    await shot(A, '10b-A-scam-db'); await vs(A, 'scan-db2', null, '.community');
     await A.click('text=Check something else');
     await A.click('nav >> text=Home');
   });
@@ -558,6 +600,14 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.click('.vh-x');
     await C.close();
   });
+  await step('Plan page (video frames)', async () => {
+    if (!VS) return;
+    await A.click('nav >> text=Plan'); await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'plan-top');
+    await vs(A, 'plan-cards', null, '.card:has-text("Personal")');
+    await vs(A, 'plan-team', null, '.card:has-text("Team")');
+    await A.click('nav >> text=Home'); await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'home');
+    await vs(A, 'home-guard', null, '.guard-card');
+  });
   await step('Payments: Team plan through Razorpay Checkout, then cancel renewal', async () => {
     const cors = corsH;
     const seen = [];
@@ -656,10 +706,21 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('.guard-card button:has-text("today’s check-up")');
     await A.getByRole('heading', { name: /Phone safety:/ }).waitFor({ timeout: 5000 * SLOW });
     await A.getByText('Screen lock is on').waitFor();
+    await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'guard-top');
+    await vs(A, 'guard-item', '.g-item details[open] >> text=I’ve done this ✓');
     await A.click('.g-item details[open] >> text=I’ve done this ✓');
     await A.locator('.g-item.done', { hasText: 'Screen lock is on' }).waitFor({ timeout: 3000 * SLOW });
     if ((await A.locator('.guard-hero .gc-ring b').textContent()).trim() !== '1/10') throw new Error('score should be 1/10');
     await shot(A, '21-A-guard');
+    await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'guard-ticked');
+    if (VS) { // a later day, for the video: yesterday's protections can be confirmed in one tap
+      await A.evaluate(() => { const s = JSON.parse(localStorage.getItem('verth-guard')); s.prev = {}; for (const id of ['lock','remote','access','unknown','protect','update','wa2fa','g2fa','upi','alerts']) s.prev[id] = 1; s.ticks = {}; s.streak = 6; s.lastFull = new Date(Date.now() - 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); localStorage.setItem('verth-guard', JSON.stringify(s)); });
+      await A.click('nav >> text=Home'); await A.click('.guard-card button');
+      await vs(A, 'guard-again', 'button:has-text("All still on")', '.g-again');
+      await A.click('button:has-text("All still on")'); await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'guard-full');
+      await A.evaluate(() => { localStorage.removeItem('verth-guard'); }); await A.click('nav >> text=Home'); await A.click('.guard-card button');
+      await A.click('.g-item details[open] >> text=I’ve done this ✓');
+    }
     await A.click('nav >> text=Home');
     await A.locator('.guard-card', { hasText: '9 items left in today’s check-up' }).waitFor();
   });

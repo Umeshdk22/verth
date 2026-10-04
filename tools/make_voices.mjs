@@ -2,7 +2,6 @@
 // Run by .github/workflows/voices.yml, which sets TTS_TOKEN for the duration of the job.
 // Writes video/voice/<video>-<lang>.wav and video/voice/report.json.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 
 const API = process.env.API || 'https://verth-pay.umeshdk22.workers.dev';
 const TOKEN = process.env.TTS_TOKEN, ONLY = (process.env.ONLY || 'all').split(',');
@@ -14,6 +13,14 @@ const STYLE = {
 const scripts = JSON.parse(readFileSync('video/scripts.json', 'utf8'));
 mkdirSync('video/voice', { recursive: true });
 const report = existsSync('video/voice/report.json') ? JSON.parse(readFileSync('video/voice/report.json', 'utf8')) : {};
+// 16-bit mono PCM -> .wav
+function wav(pcm, rate) {
+  const h = Buffer.alloc(44);
+  h.write('RIFF', 0); h.writeUInt32LE(36 + pcm.length, 4); h.write('WAVE', 8); h.write('fmt ', 12);
+  h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22); h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28);
+  h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(pcm.length, 40);
+  return Buffer.concat([h, pcm]);
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 for (const [id, v] of Object.entries(scripts)) {
@@ -32,12 +39,12 @@ for (const [id, v] of Object.entries(scripts)) {
     }
     if (!out?.audio) { report[key] = { ok: false, error: out?.error, models: out?.models }; continue; }
     const rate = Number((out.mime || '').match(/rate=(\d+)/)?.[1] || 24000);
-    writeFileSync(`video/voice/${key}.pcm`, Buffer.from(out.audio, 'base64'));
-    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 's16le', '-ar', String(rate), '-ac', '1', '-i', `video/voice/${key}.pcm`, `video/voice/${key}.wav`]);
-    execFileSync('rm', [`video/voice/${key}.pcm`]);
+    writeFileSync(`video/voice/${key}.wav`, wav(Buffer.from(out.audio, 'base64'), rate));
     report[key] = { ok: true, model: out.model, voice: VOICE[lang], mime: out.mime };
     console.log(`::notice::${key} ok with ${out.model}`);
     await sleep(22000); // stay inside free-tier per-minute limits
   }
 }
 writeFileSync('video/voice/report.json', JSON.stringify(report, null, 1));
+const bad = Object.entries(report).filter(([, r]) => !r.ok);
+if (bad.length) console.log(`::warning title=Voices not made::${JSON.stringify(bad).slice(0, 1500)}`);
