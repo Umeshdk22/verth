@@ -846,6 +846,12 @@ export async function handle(request, env, deps = {}) {
         const t = await gemini(env, fetchFn, { contents: [{ role: 'user', parts: [{ text: 'Reply with the single word OK.' }] }], generationConfig: { maxOutputTokens: 5 } });
         return json({ ai: !!t.text, model: t.model || '', status: t.status || 200, error: t.error || '' }, 200, { 'access-control-allow-origin': '*' });
       }
+      // ?vpa=1 checks whether Razorpay's UPI ID check is switched on (with Razorpay's test UPI ID).
+      if (url.searchParams.get('vpa') === '1' && env.RAZORPAY_KEY_ID) {
+        const r = await fetchFn('https://api.razorpay.com/v1/payments/validate/vpa', { method: 'POST', headers: { authorization: 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET), 'content-type': 'application/json' }, body: JSON.stringify({ vpa: 'success@razorpay' }) });
+        const j = await r.json().catch(() => ({}));
+        return json({ upiName: r.ok && !!j.customer_name, mode: String(env.RAZORPAY_KEY_ID).startsWith('rzp_live') ? 'live' : 'test', status: r.status, error: String(j.error?.description || '').slice(0, 200) }, 200, { 'access-control-allow-origin': '*' });
+      }
       return json({ ok: true, version: WORKER_VERSION, ai: !!env.GEMINI_API_KEY, aiModel: env.GEMINI_MODEL || AI.model, emailCodes: !!(env.OTP_SECRET && env.BREVO_API_KEY && env.MAIL_FROM), passkeys: !!env.ALLOWED_ORIGIN, captcha: !!env.TURNSTILE_SECRET, sms: !!env.TWOFACTOR_API_KEY, payments: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) }, 200, { 'access-control-allow-origin': '*' });
     }
     if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, h);
