@@ -74,3 +74,5 @@ jobs:
           sleep 5
           body=$(curl -s --max-time 20 https://verth-pay.umeshdk22.workers.dev/health || true)
           echo "::notice title=Live server health::${body:-no answer}"
+          ai=$(curl -s --max-time 40 'https://verth-pay.umeshdk22.workers.dev/health?ai=1' || true)
+          echo "::notice title=Live AI test::${ai:-no answer}"

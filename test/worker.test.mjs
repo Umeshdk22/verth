@@ -410,6 +410,26 @@ test('AI helper: per-network hourly limit', async () => {
   assert.equal((await aiCall(f, { messages: [{ role: 'user', text: 'one more' }] }, { fetchFn })).status, 429);
   assert.equal((await aiCall(f, { messages: [{ role: 'user', text: 'other network' }] }, { fetchFn, ip: '6.6.6.6' })).status, 200);
 });
+test('AI helper: falls back to a backup model when the first one is missing or out of quota', async () => {
+  const f = otpFakes(); const tried = [];
+  const fetchFn = async (url) => {
+    const m = decodeURIComponent(url.match(/models\/([^:]+):/)[1]); tried.push(m);
+    if (tried.length === 1) return new Response(JSON.stringify({ error: { message: 'models/x is not found' } }), { status: 404 });
+    if (tried.length === 2) return new Response(JSON.stringify({ error: { message: 'Quota exceeded' } }), { status: 429 });
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'Nice to meet you!' }] } }] }));
+  };
+  const r = await aiCall(f, { messages: [{ role: 'user', text: 'my name is umesh' }] }, { fetchFn });
+  assert.equal(r.status, 200); assert.equal(r.body.text, 'Nice to meet you!');
+  assert.equal(tried.length, 3); assert.equal(new Set(tried).size, 3);
+});
+test('AI helper: a bad key stops at once; /health?ai=1 reports Google’s answer without the key', async () => {
+  let n = 0;
+  const fetchFn = async () => { n++; return new Response(JSON.stringify({ error: { message: 'API key not valid. Please pass a valid API key.' } }), { status: 400 }); };
+  const r = await handle(new Request('https://w.example/health?ai=1'), { ...otpEnv, GEMINI_API_KEY: 'secret-gk' }, { fetch: fetchFn });
+  const j = await r.json();
+  assert.equal(n, 1); assert.equal(j.ai, false); assert.equal(j.status, 400); assert.match(j.error, /API key not valid/);
+  assert.ok(!JSON.stringify(j).includes('secret-gk'));
+});
 test('email codes: a clear message when the server is not set up yet', async () => {
   const f = otpFakes();
   const r = await handle(new Request('https://w.example/otp/send', { method: 'POST', headers: { origin: ORIGIN }, body: '{"email":"a@b.in"}' }), env, f.deps);

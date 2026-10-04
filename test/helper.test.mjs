@@ -103,3 +103,10 @@ test('phone numbers follow the chosen country', () => {
   assert.equal(fullPhone('GB', '+44 7700 900123'), '+447700900123');
   assert.equal(fullPhone('US', '(415) 555-0100'), '+14155550100');
 });
+
+test('helper greets people by name', async () => {
+  const { smallTalk } = await import('../src/helper.js');
+  assert.match(smallTalk('my name is umesh nice to meet you').a, /Nice to meet you, Umesh/);
+  assert.match(smallTalk('mera naam Ravi hai').a, /Ravi/);
+  assert.equal(smallTalk('i am scared'), null);
+});
