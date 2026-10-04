@@ -242,7 +242,7 @@ footer.foot .brand{color:#fff}
 footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top:10px}
 @media (max-width:760px){
   .wrap,.show{padding-inline:16px}
-  .nav .links a:not(.btn),.nav .links .btn.line{display:none}
+  .nav .links a:not(.btn):not(.open-me),.nav .links .btn.line{display:none}
   .nav{flex-wrap:nowrap}.nav .links{flex-wrap:nowrap;gap:10px}
   .checkbar{border-radius:22px;flex-wrap:wrap;padding:8px}
   .checkbar svg{display:none}
@@ -276,7 +276,15 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
 .qb-dots{display:flex;gap:8px;justify-content:center}
 .qb-dots button{width:9px;height:9px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.35);transition:width .3s,background .3s;cursor:pointer}
 .qb-dots button.on{width:28px;background:#FFB224}
-.me-btn{gap:10px}.me-av{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:14px}
+.open-me{display:inline-flex;align-items:center;gap:10px;padding:5px 14px 5px 5px;border-radius:999px;text-decoration:none;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(6px);transition:background .15s,transform .15s}
+.open-me:hover{background:rgba(255,255,255,.2);transform:translateY(-1px)}
+.om-av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;overflow:hidden;font-weight:800;font-size:16px;color:#2A1400;background:linear-gradient(135deg,#FFE29A,#F5B630);border:2px solid rgba(255,255,255,.85)}
+.om-av img{width:100%;height:100%;object-fit:cover}
+.om-txt{display:flex;flex-direction:column;line-height:1.15;text-align:left}
+.om-txt small{font-size:11px;color:rgba(255,255,255,.7);font-weight:600}
+.om-txt b{font-size:14.5px;white-space:nowrap}
+.om-go{font-weight:800;color:#FFC857}
+@media (max-width:520px){.om-txt small{display:none}.open-me{padding-right:10px}}
 .acct{display:contents}
 @media (max-width:760px){.nav .links .btn.line{display:inline-flex}.nav .links .btn{padding:8px 12px;font-size:14px;white-space:nowrap;min-height:40px}.qband{padding:64px 0}}
 @media (max-width:440px){.nav .sound{display:none}.nav .links{gap:8px}.nav .brand span{font-size:22px}}
@@ -333,7 +341,7 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
         <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Play background music" title="Play background music"><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/></svg><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="sr" id="sound-label">Music off</span></button>
         <span class="acct" id="acct-out"><a class="btn line" href="app.html?mode=login">Log in</a>
         <a class="btn white" href="app.html?mode=signup">Create account</a></span>
-        <a class="btn white me-btn" id="acct-in" href="app.html" hidden><span class="me-av" id="me-av">V</span><span>Open my Verth</span></a>
+        <a class="open-me" id="acct-in" href="app.html" hidden><span class="om-av" id="me-av">V</span><span class="om-txt"><small>Welcome back</small><b id="me-first">Open my Verth</b></span><span class="om-go" aria-hidden="true">→</span></a>
       </nav>
     </header>
     <audio id="theme" src="assets/verth-theme.mp3" loop preload="none"></audio>

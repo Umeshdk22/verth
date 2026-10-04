@@ -116,7 +116,14 @@
   var out = document.getElementById('acct-out'), inn = document.getElementById('acct-in'), av = document.getElementById('me-av');
   if (!out || !inn) return;
   out.hidden = true; out.style.display = 'none'; inn.hidden = false;
-  if (av) av.textContent = String(me.name).trim().charAt(0).toUpperCase() || 'V';
+  var first = String(me.name).trim().split(/\s+/)[0].slice(0, 16);
+  var photo = '';
+  try { photo = localStorage.getItem('verth-photo') || ''; } catch (e) {}
+  if (av) {
+    if (/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(photo) && photo.length <= 80000) { var img = document.createElement('img'); img.src = photo; img.alt = ''; av.textContent = ''; av.appendChild(img); }
+    else av.textContent = first.charAt(0).toUpperCase() || 'V';
+  }
+  var fb = document.getElementById('me-first'); if (fb && first) fb.textContent = 'Open my Verth, ' + first;
   inn.title = 'Logged in as ' + me.name;
 })();
 

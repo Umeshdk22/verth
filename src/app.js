@@ -1179,7 +1179,7 @@ function mySubscriptions() {
   }
   return out;
 }
-async function doSignout() { store.set('verth-me', null); stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); S.passkeys = null; S.confirmDelete = false; S.authMode = 'login'; await signOut(auth); }
+async function doSignout() { store.set('verth-me', null); try { localStorage.removeItem('verth-photo'); } catch {} stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); S.passkeys = null; S.confirmDelete = false; S.authMode = 'login'; await signOut(auth); }
 function openSignout() {
   closeSignout();
   const subs = mySubscriptions();
@@ -1426,6 +1426,8 @@ async function afterSignIn(preferId) {
   S.authFlow = ''; S.signupInfo = null;
   S.profile = s.data();
   remember(S.profile.name, u.email);
+  try { if (photoOf(S.profile)) localStorage.setItem('verth-photo', S.profile.photo); else localStorage.removeItem('verth-photo'); } catch {} // for the home page's "Open my Verth"
+
   if (isNew) {
     welcomeEmail();
     if ((await smsEnabled()) && smsApplies() && !phoneOk()) return startPhone('signup');
@@ -2644,6 +2646,7 @@ async function savePhoto(url) {
   for (const cid of S.profile?.circles || []) if (S.circles?.[cid]) b.update(doc(db, 'circles', cid, 'members', S.user.uid), { photo: url });
   await b.commit();
   S.profile = { ...S.profile, photo: url };
+  try { if (url) localStorage.setItem('verth-photo', url); else localStorage.removeItem('verth-photo'); } catch {}
   rerender();
 }
 Object.assign(actions, {
