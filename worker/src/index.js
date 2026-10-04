@@ -625,6 +625,10 @@ async function aiChat(body, env, fs, deps, ip, now = Date.now()) {
 }
 // Text to speech with Gemini (24 kHz 16-bit mono PCM, base64). Picks a speech model this key can use.
 export async function tts(body, env, fetchFn) {
+  if (body.audio) { // transcribe, to check the voice read the right words
+    const t = await gemini(env, fetchFn, { contents: [{ role: 'user', parts: [{ inlineData: { mimeType: body.mime || 'audio/wav', data: String(body.audio) } }, { text: 'Transcribe this audio exactly, in its own language and script. Reply with only the words spoken.' }] }], generationConfig: { maxOutputTokens: 600, temperature: 0 } });
+    return { text: t.text || '', error: t.error || '' };
+  }
   const text = String(body.text || '').slice(0, 5000), voice = String(body.voice || 'Kore').replace(/[^A-Za-z]/g, '');
   if (!text) throw new HttpError(400, 'Bad request.');
   const list = await fetchFn('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { headers: { 'x-goog-api-key': env.GEMINI_API_KEY } }).then((r) => r.json()).catch(() => ({}));
@@ -856,16 +860,16 @@ export async function handle(request, env, deps = {}) {
     }
     if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, h);
     const fs = deps.fs || firestore(env, fetchFn), rp = deps.rp || razorpay(env, fetchFn);
+    // Voice-overs for the help videos: only for the GitHub build job, which sets a one-time TTS_TOKEN.
+    if (url.pathname === '/tts') {
+      if (!env.TTS_TOKEN || !env.GEMINI_API_KEY || request.headers.get('x-tts-token') !== env.TTS_TOKEN) throw new HttpError(404, 'Not found.');
+      return json(await tts(JSON.parse((await request.text()) || '{}'), env, fetchFn), 200);
+    }
     if (Number(request.headers.get('content-length') || 0) > 100_000) throw new HttpError(413, 'Too large.');
     const raw = await request.text();
     if (raw.length > 100_000) throw new HttpError(413, 'Too large.');
     if (url.pathname === '/webhook') return json(await webhook(raw, request.headers, env, fs, rp), 200);
 
-    // Voice-overs for the help videos: only for the GitHub build job, which sets a one-time TTS_TOKEN.
-    if (url.pathname === '/tts' && request.method === 'POST') {
-      if (!env.TTS_TOKEN || !env.GEMINI_API_KEY || request.headers.get('x-tts-token') !== env.TTS_TOKEN) throw new HttpError(404, 'Not found.');
-      return json(await tts(JSON.parse(raw || '{}'), env, fetchFn), 200);
-    }
     // Everything else comes from the Verth app in a browser.
     if (!h['access-control-allow-origin']) throw new HttpError(403, 'Not allowed.');
     if (url.pathname === '/ai') {

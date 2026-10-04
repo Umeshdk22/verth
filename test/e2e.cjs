@@ -23,12 +23,15 @@ const SLOW = process.env.CI ? 3 : 1;
   const vs = async (p, name, tap, scrollTo) => {
     if (!VS) return;
     try {
-      if (scrollTo) await p.locator(scrollTo).first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
-      if (tap) await p.locator(tap).first().scrollIntoViewIfNeeded();
+      if (typeof scrollTo === 'number') await p.evaluate((y) => window.scrollTo(0, y), scrollTo);
+      else if (scrollTo) await p.locator(scrollTo).first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      await p.evaluate(() => { const st = document.createElement('style'); st.id = 'vs-hide'; st.textContent = '.vh-fab,.trial-banner{display:none!important}'; document.head.append(st); });
+      if (tap && scrollTo == null) await p.locator(tap).first().scrollIntoViewIfNeeded();
       await p.waitForTimeout(450);
       await p.evaluate(() => document.querySelectorAll('.toast').forEach((t) => { t.className = 'toast'; }));
       const box = tap ? await p.locator(tap).first().boundingBox() : null;
       await p.screenshot({ path: `${VS}/${name}.png` });
+      await p.evaluate(() => document.getElementById('vs-hide')?.remove());
       vmeta[name] = box ? { x: box.x + box.width / 2, y: box.y + box.height / 2, w: box.width, h: box.height } : null;
       require('node:fs').writeFileSync(`${VS}/frames.json`, JSON.stringify(vmeta, null, 1));
     } catch (e) { console.log('vshot', name, e.message.split('\n')[0]); }
@@ -475,7 +478,7 @@ const SLOW = process.env.CI ? 3 : 1;
   await step('Scam check: a KYC scam SMS is flagged high risk', async () => {
     await B.click('nav >> text=Scan');
     await B.getByText('2 of 2 free checks left today').waitFor({ timeout: 5000 * SLOW });
-    await B.evaluate(() => window.scrollTo(0, 0)); await vs(B, 'scan-top', '.kinds');
+    await vs(B, 'scan-top', '.kinds', 0);
     await B.fill('#s-message', 'Dear Customer, your SBI YONO account will be blocked today. Update PAN KYC immediately: http://sbi-yono-kyc.xyz/update');
     await vs(B, 'scan-filled', 'button:has-text("Check it")');
     await B.click('button:has-text("Check it")');
@@ -603,8 +606,7 @@ const SLOW = process.env.CI ? 3 : 1;
   await step('Plan page (video frames)', async () => {
     if (!VS) return;
     await A.click('nav >> text=Plan'); await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'plan-top');
-    await vs(A, 'plan-cards', null, '.card:has-text("Personal")');
-    await vs(A, 'plan-team', null, '.card:has-text("Team")');
+    for (const y of [500, 1000, 1500, 2000]) await vs(A, 'plan-' + y, null, y);
     await A.click('nav >> text=Home'); await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'home');
     await vs(A, 'home-guard', null, '.guard-card');
   });

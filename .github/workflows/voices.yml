@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       only: { description: 'Which (all, or e.g. intro-en,scan)', default: 'all' }
+      redo: { description: 'Remake clips that already exist (1 = yes)', default: '0' }
       voice_en: { description: 'English voice', default: 'Kore' }
       voice_hi: { description: 'Hindi voice', default: 'Kore' }
 permissions:
@@ -13,7 +14,7 @@ concurrency: voices
 jobs:
   voices:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 240
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -22,21 +23,21 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: Bring earlier voices
-        run: git fetch origin voices && git checkout origin/voices -- video/voice || true
+        run: git fetch origin voices && git checkout FETCH_HEAD -- video/voice && rm -f video/voice/intro-en.wav video/voice/intro-hi.wav || true
       - name: Open the voice endpoint with a one-time token
         run: |
           T=$(openssl rand -hex 24); echo "::add-mask::$T"; echo "TTS_TOKEN=$T" >> $GITHUB_ENV
           echo -n "$T" | npx --yes wrangler@4 secret put TTS_TOKEN --name verth-pay
           sleep 20
       - name: Make the voices
-        env: { ONLY: '${{ inputs.only }}', VOICE_EN: '${{ inputs.voice_en }}', VOICE_HI: '${{ inputs.voice_hi }}' }
+        env: { REDO: '${{ inputs.redo }}', ONLY: '${{ inputs.only }}', VOICE_EN: '${{ inputs.voice_en }}', VOICE_HI: '${{ inputs.voice_hi }}' }
         run: node tools/make_voices.mjs
       - name: Close the voice endpoint
         if: always()
         run: echo y | npx --yes wrangler@4 secret delete TTS_TOKEN --name verth-pay || true
       - name: Save to the voices branch
         run: |
-          echo "::notice title=Voice report::$(cat video/voice/report.json | tr -d '\n' | head -c 3000)"
+          echo "voices saved"
           git config user.name "verth-bot"; git config user.email "verth-bot@users.noreply.github.com"
           git checkout --orphan voices-new
           git rm -rq --cached . ; git add -f video/voice video/scripts.json
