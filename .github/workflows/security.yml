@@ -60,8 +60,8 @@ jobs:
         run: |
           if [ -z "$DEPLOY_KEY" ]; then echo "::notice title=Rules not published::Add the FIREBASE_DEPLOY_KEY secret to publish rules automatically."; exit 0; fi
           umask 077; printf '%s' "$DEPLOY_KEY" > "$RUNNER_TEMP/key.json"
-          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/key.json" npx --yes firebase-tools@15.32.0 deploy --only firestore:rules --project verth-ece65 --non-interactive
-          rm -f "$RUNNER_TEMP/key.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/key.json" node tools/publish_rules.mjs verth-ece65; code=$?
+          rm -f "$RUNNER_TEMP/key.json"; exit $code
       - name: Publish the Cloudflare worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
