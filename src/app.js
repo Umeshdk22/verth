@@ -15,7 +15,7 @@ import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } fro
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
-import { guardCard, viewGuard, guardSet, guardScore } from './guard.js';
+import { guardCard, viewGuard, guardSet, guardScore, guardRepeat } from './guard.js';
 import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
@@ -2251,6 +2251,7 @@ Object.assign(actions, {
   'chat-back': () => { closeChat(); renderMain(); },
   'guard-open': () => { if (S.circle) { S.tab = 'guard'; renderMain(); } else { S.guardOpen = true; renderScanView(); } window.scrollTo(0, 0); },
   'guard-close': () => { S.guardOpen = false; renderScanView(); },
+  'guard-repeat': () => { guardRepeat(); toast('Confirmed for today. Well done! 🛡️', 'ok'); renderScanView(); },
   'guard-tick': (el) => { guardSet(el.dataset.id, !el.closest('.g-item').classList.contains('done')); renderScanView(); },
   'trial-plans': () => { store.set('verth-trial-seen', 1); if (S.circle) { S.tab = 'plan'; renderMain(); } else renderScanView(); },
   'chat-check': (el) => { closeChat(); S.tab = 'scan'; S.scanKind = 'link'; S.prefill = { kind: 'link', text: el.dataset.text, from: 'chat' }; renderMain(); },
@@ -2484,7 +2485,7 @@ function rail() {
 }
 function guardMini() {
   const n = guardScore();
-  return `<div class="gm"><b>${n}/10</b><div><span class="eyebrow">Phone safety</span><span>${n >= 9 ? 'Strong. Well done!' : `${10 - n} quick fixes left`}</span></div><button class="btn small" data-act="guard-open">${n ? 'Continue' : 'Start'}</button></div>`;
+  return `<div class="gm"><b>${n}/10</b><div><span class="eyebrow">Phone safety</span><span>${n === 10 ? 'Today’s check-up done ✓' : n ? `${10 - n} left today` : 'Today’s check-up is ready'}</span></div><button class="btn small" data-act="guard-open">${n === 10 ? 'View' : n ? 'Continue' : 'Start'}</button></div>`;
 }
 // Sign-up and log-in pages on wide screens: a story panel beside the form.
 function authFrame(html) {

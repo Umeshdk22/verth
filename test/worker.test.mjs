@@ -686,3 +686,12 @@ test('app lock: a signed-in person can get an unlock code for their own email wi
   assert.equal((await call({ email: 'someone@else.in', mode: 'login', reauth: true }, token)).status, 403, 'only your own email');
   assert.equal((await call({ email: 'asha@example.in', mode: 'login', reauth: true }, 'bad.token.here')).status, 401);
 });
+test('voice endpoint: hidden without the one-time token, returns audio with it', async () => {
+  const { handle: h } = await import('../worker/src/index.js');
+  const call = (tok, e) => h(new Request('https://w.example/tts', { method: 'POST', headers: tok ? { 'x-tts-token': tok } : {}, body: '{"text":"Hello"}' }), e, { fetch: async (url) => (String(url).includes('?pageSize') ? new Response(JSON.stringify({ models: [{ name: 'models/gemini-x-tts' }] })) : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ inlineData: { mimeType: 'audio/L16;rate=24000', data: 'AAAA' } }] } }] }))) });
+  assert.equal((await call('', { GEMINI_API_KEY: 'k' })).status, 404);
+  assert.equal((await call('t', { GEMINI_API_KEY: 'k' })).status, 404); // no token set on the server
+  assert.equal((await call('bad', { GEMINI_API_KEY: 'k', TTS_TOKEN: 't' })).status, 404);
+  const ok = await (await call('t', { GEMINI_API_KEY: 'k', TTS_TOKEN: 't' })).json();
+  assert.equal(ok.audio, 'AAAA'); assert.equal(ok.model, 'gemini-x-tts');
+});

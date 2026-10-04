@@ -602,6 +602,26 @@ async function aiChat(body, env, fs, deps, ip, now = Date.now()) {
   if (!out.text) throw new HttpError(502, 'The AI is unavailable right now.');
   return { text: out.text.slice(0, 1500) };
 }
+// Text to speech with Gemini (24 kHz 16-bit mono PCM, base64). Picks a speech model this key can use.
+export async function tts(body, env, fetchFn) {
+  const text = String(body.text || '').slice(0, 5000), voice = String(body.voice || 'Kore').replace(/[^A-Za-z]/g, '');
+  if (!text) throw new HttpError(400, 'Bad request.');
+  const list = await fetchFn('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { headers: { 'x-goog-api-key': env.GEMINI_API_KEY } }).then((r) => r.json()).catch(() => ({}));
+  const found = (list.models || []).map((m) => m.name.replace(/^models\//, '')).filter((n) => /tts/i.test(n));
+  const models = [...new Set([body.model, ...found.sort((a, b) => (/pro/.test(a) ? 1 : 0) - (/pro/.test(b) ? 1 : 0) || b.localeCompare(a)), 'gemini-2.5-flash-preview-tts'].filter(Boolean))];
+  const errors = [];
+  for (const model of models) {
+    const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+      body: JSON.stringify({ contents: [{ parts: [{ text }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } } }),
+    });
+    const j = await r.json().catch(() => ({}));
+    const part = (j.candidates?.[0]?.content?.parts || []).find((p) => p.inlineData?.data);
+    if (r.ok && part) return { model, mime: part.inlineData.mimeType, audio: part.inlineData.data, models: found };
+    errors.push(`${model}: ${r.status} ${String(j.error?.message || 'no audio').slice(0, 160)}`);
+  }
+  return { error: errors.join(' | '), models: found };
+}
 // Calls Gemini, trying backup models if the chosen one is unknown, retired or out of free quota.
 export async function gemini(env, fetchFn, body) {
   const models = [...new Set([env.GEMINI_MODEL, ...AI.models].filter(Boolean))];
@@ -814,6 +834,11 @@ export async function handle(request, env, deps = {}) {
     if (raw.length > 100_000) throw new HttpError(413, 'Too large.');
     if (url.pathname === '/webhook') return json(await webhook(raw, request.headers, env, fs, rp), 200);
 
+    // Voice-overs for the help videos: only for the GitHub build job, which sets a one-time TTS_TOKEN.
+    if (url.pathname === '/tts' && request.method === 'POST') {
+      if (!env.TTS_TOKEN || !env.GEMINI_API_KEY || request.headers.get('x-tts-token') !== env.TTS_TOKEN) throw new HttpError(404, 'Not found.');
+      return json(await tts(JSON.parse(raw || '{}'), env, fetchFn), 200);
+    }
     // Everything else comes from the Verth app in a browser.
     if (!h['access-control-allow-origin']) throw new HttpError(403, 'Not allowed.');
     if (url.pathname === '/ai') {
