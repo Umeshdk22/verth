@@ -1,0 +1,8 @@
+# Used by GitHub Actions to publish the worker code automatically.
+# keep_vars keeps every setting you entered in the Cloudflare dashboard (plan IDs, sender email,
+# allowed origin…). Secrets are never touched by a deploy.
+name = "verth-pay"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+keep_vars = true

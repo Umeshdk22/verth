@@ -121,6 +121,24 @@ New accounts verify their mobile number with a 6-digit SMS code. It stays off un
 Verth makes and checks the codes itself and limits them per account, per number, per network and per day,
 so bots can't use up your SMS credit. One mobile number can verify only one Verth account.
 
+## 11. Publish rules and the worker automatically (GitHub)
+
+After this one-time setup, every update is published by GitHub after all tests pass. No more copy-paste.
+
+**Firebase rules: secret `FIREBASE_DEPLOY_KEY`**
+1. https://console.cloud.google.com/iam-admin/serviceaccounts?project=verth-ece65 → **Create service account** → name `github-rules` → Create and continue.
+2. Role: **Firebase Rules Admin** → Done.
+3. Click the new account → **Keys** → **Add key** → **Create new key** → **JSON**. A file downloads.
+4. GitHub → repo **verth** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret** → name `FIREBASE_DEPLOY_KEY`, value = the whole file's text → Add. Then delete the downloaded file.
+
+**Cloudflare worker: secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`**
+1. https://dash.cloudflare.com/profile/api-tokens → **Create Token** → template **Edit Cloudflare Workers** → Use template → Continue to summary → **Create Token** → copy it.
+2. GitHub → Settings → Secrets → Actions → New secret `CLOUDFLARE_API_TOKEN` = the token.
+3. Cloudflare dashboard → **Workers & Pages** → the right side shows **Account ID** → copy → new GitHub secret `CLOUDFLARE_ACCOUNT_ID`.
+
+Deploys keep every variable and secret already set in the Cloudflare dashboard (`worker/wrangler.ci.toml` uses `keep_vars`).
+GitHub repository secrets are encrypted and never shown in logs or to visitors. They are not the same as putting a key in the code.
+
 ## If something goes wrong
 
 - **"Couldn't reach the payment service"**: check the worker address in `config.js`, and that `ALLOWED_ORIGIN` is exactly `https://umeshdk22.github.io` (no slash at the end).
