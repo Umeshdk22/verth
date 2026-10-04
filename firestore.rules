@@ -213,13 +213,11 @@ service cloud.firestore {
           && request.resource.data.at == request.time;
         allow update, delete: if false;
       }
+      // Hand-made reports are closed: people could misuse them to mark an honest number as a scam.
+      // Old ones can still be removed by the person who made them.
       match /by/{uid} {
         allow read: if signedIn();
-        allow create: if signedIn() && uid == me()
-          && fp.matches('^[a-f0-9]{64}$')
-          && request.resource.data.keys().hasOnly(['kind', 'at'])
-          && request.resource.data.kind in ['link', 'phone', 'message']
-          && request.resource.data.at == request.time;
+        allow create: if false;
         allow delete: if signedIn() && uid == me();
         allow update: if false;
       }

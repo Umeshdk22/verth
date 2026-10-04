@@ -439,10 +439,9 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.getByText('Pretends to be State Bank of India', { exact: false }).first().waitFor();
     await shot(B, '10-B-scan-danger');
   });
-  await step('Scam check: reporting counts once and never stores the content', async () => {
-    await B.click('button:has-text("Report this message as a scam")');
-    await B.getByText('Reported by 1 Verth user').waitFor({ timeout: 5000 * SLOW });
-    await B.getByText('Flagged high-risk 1 time').waitFor({ timeout: 5000 * SLOW }); // recorded automatically
+  await step('Scam check: Verth saves the scam by itself, no report button, never the content', async () => {
+    await B.getByText('found to be a scam in 1 check').waitFor({ timeout: 5000 * SLOW }); // recorded automatically
+    if (await B.locator('button:has-text("as a scam")').count()) throw new Error('manual report button still shown');
     const db = JSON.stringify(await fs(B));
     if (db.includes('sbi-yono-kyc')) throw new Error('reported content stored in database');
   });
@@ -451,7 +450,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('.kinds >> text=Link');
     await A.fill('#s-link', 'http://sbi-yono-kyc.xyz/update');
     await A.click('button:has-text("Check it")');
-    await A.getByText(/Flagged high-risk [2-9] times/).waitFor({ timeout: 6000 * SLOW });
+    await A.getByText(/found to be a scam in [2-9] checks/).waitFor({ timeout: 6000 * SLOW });
     await shot(A, '10b-A-scam-db');
     await A.click('text=Check something else');
     await A.click('nav >> text=Home');

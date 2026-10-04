@@ -379,9 +379,8 @@ test('paid plans and paid circles unlock unlimited photo checks', async () => {
 
 /* ---------- community scam reports ---------- */
 const FP = 'a'.repeat(64);
-test('a signed-in user can report once, and anyone signed in can count reports', async () => {
-  await assertSucceeds(setDoc(doc(db('priya'), 'reports', FP, 'by', 'priya'), { kind: 'phone', at: serverTimestamp() }));
-  await assertFails(setDoc(doc(db('priya'), 'reports', FP, 'by', 'priya'), { kind: 'link', at: serverTimestamp() }));
+test('hand-made reports are closed (they could be misused); counting still works', async () => {
+  await assertFails(setDoc(doc(db('priya'), 'reports', FP, 'by', 'priya'), { kind: 'phone', at: serverTimestamp() }));
   await assertSucceeds(getDocs(collection(db('outsider'), 'reports', FP, 'by')));
 });
 test('reports can’t be faked for others, carry content, or use a non-fingerprint id', async () => {

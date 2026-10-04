@@ -973,10 +973,8 @@ async function loadReportCount(r) {
   if (!r?.fp) return;
   await autoFlag(r).catch(() => {});
   try {
-    const [n, a, mine] = await Promise.all([getCountFromServer(collection(db, 'reports', r.fp, 'by')), getCountFromServer(collection(db, 'reports', r.fp, 'auto')), getDoc(doc(db, 'reports', r.fp, 'by', S.user.uid))]);
-    S.reports[r.fp] = n.data().count;
+    const a = await getCountFromServer(collection(db, 'reports', r.fp, 'auto'));
     S.flags ||= {}; S.flags[r.fp] = a.data().count;
-    if (mine.exists()) S.myReports.add(r.fp);
   } catch {}
   renderScanView();
 }
@@ -989,9 +987,9 @@ const VERDICT = {
 };
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
-  const n = S.reports[r.fp] || 0, mine = S.myReports.has(r.fp), flagged = S.flags?.[r.fp] || 0;
-  // Others reporting it outweighs a clean automatic result (for example a scammer's phone number).
-  const crowd = n >= 3 || (n >= 1 && flagged >= 2);
+  // Only Verth's own checks add to the scam database (no report button that people could misuse).
+  // Several different people's checks finding a scam outweighs a clean result now.
+  const flagged = S.flags?.[r.fp] || 0, crowd = flagged >= 2;
   const what = { link: 'link', phone: 'number', message: 'message', job: 'offer', image: 'message' }[r.kind];
   const isJob = r.kind === 'job' || r.sub === 'job';
   const qr = r.qr;
@@ -999,14 +997,13 @@ function scanResultCard(r) {
     <div class="split"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
       <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div></div>
     <h2>${head}</h2>
-    ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Other Verth users say this is a scam.</b> It was reported ${n} ${n === 1 ? 'time' : 'times'}${flagged ? ` and flagged as high risk ${flagged} ${flagged === 1 ? 'time' : 'times'}` : ''}. Don’t pay, share an OTP or click anything.</div>` : ''}
+    ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Verth found it to be a scam in ${flagged} earlier checks. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
     ${flags.length ? `<ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul>` : ''}
     ${r.good.length ? `<ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>` : ''}
     ${r.links?.length ? `<div class="found"><b>Links found</b>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
-    <div class="community">${n || flagged ? `<span class="cm-stats">${n ? `<b>🚩 Reported by ${n} Verth ${n === 1 ? 'user' : 'users'}</b>` : ''}${flagged ? `<b>🛡️ Flagged high-risk ${flagged} ${flagged === 1 ? 'time' : 'times'}</b>` : ''}</span>` : `<span>${r.kind === 'phone' ? 'No Verth user has reported this number yet. If it tried to scam you, report it to warn others.' : 'No Verth user has reported this yet.'}</span>`}
-      ${r.verdict === 'danger' ? '<span class="small muted">Saved to Verth’s scam database (only a scrambled fingerprint, never the content), so others are warned.</span>' : ''}
-      ${mine ? '<span class="pill bad">You reported this</span>' : `<button class="btn small" data-act="report-scam">Report this ${what} as a scam</button>`}</div>
+    <div class="community">${flagged ? `<span class="cm-stats"><b>🛡️ In Verth’s scam database: found to be a scam in ${flagged} ${flagged === 1 ? 'check' : 'checks'}</b></span>` : `<span>🛡️ Checked against Verth’s scam database: no scam record for this ${what} yet.</span>`}
+      ${r.verdict === 'danger' ? '<span class="small muted">Verth saved this to its scam database by itself, so everyone who checks it next is warned. Only a scrambled fingerprint is kept, never the content.</span>' : '<span class="small muted">Verth adds anything it finds to be a scam to the database automatically. Nobody can mark a number or link as a scam by hand.</span>'}</div>
     ${r.kind === 'image' ? `<div class="found"><b>What Verth found in your picture</b>
       ${qr?.type === 'upi' ? `<span>A UPI QR code that pays ${qr.amount ? esc(qr.amount) + ' to ' : ''}<b>${esc(qr.name || qr.payee)}</b>${qr.name && qr.payee ? ` (${esc(qr.payee)})` : ''}.</span>` : qr?.type === 'link' ? `<span>A QR code that opens <span class="mono">${esc(qr.host)}</span>.</span>` : qr ? '<span>A QR code with some text in it.</span>' : ''}
       ${r.text ? `<details><summary>Show the words Verth read</summary><p class="ocr-text">${esc(r.text)}</p></details>` : ''}</div>` : ''}
@@ -1605,14 +1602,6 @@ const actions = {
   'scan-again': () => { S.scanResult = null; clearPhoto(); renderScanView(); window.scrollTo(0, 0); },
   'photo-clear': () => { clearPhoto(); S.scanResult = null; renderScanView(); },
   'open-helper': () => helper?.open(),
-  'report-scam': async () => {
-    const r = S.scanResult; if (!r?.fp) return;
-    try {
-      await setDoc(doc(db, 'reports', r.fp, 'by', S.user.uid), { kind: r.kind === 'job' || r.kind === 'image' ? 'message' : r.kind, at: serverTimestamp() });
-      S.myReports.add(r.fp); S.reports[r.fp] = (S.reports[r.fp] || 0) + 1; markReported(r.fp);
-      toast('Thanks. Your report helps warn other Verth users.', 'ok'); renderScanView();
-    } catch (e) { toast(friendlyError(e), 'bad'); }
-  },
   'setup-back': () => (clearInvite(), S.circle ? renderMain() : S.pending.length ? renderPending() : S.profile?.onboarded ? renderScanOnly() : (S.tourStep = TOUR.length - 1, renderTour())),
   setup: (el) => renderSetup(el.dataset.type),
   replay: () => { S.tourStep = 0; renderTour(); },
@@ -2603,7 +2592,6 @@ function logScan(r, text) {
   const h = [{ k: r.kind, v: r.verdict, l: label.slice(0, 80), fp: r.fp || '', at: Date.now() }, ...scanHist()].slice(0, 100);
   store.set(histKey(), h);
 }
-function markReported(fp) { store.set(histKey(), scanHist().map((x) => (x.fp && x.fp === fp ? { ...x, rep: 1 } : x))); }
 
 function viewProfile() {
   const p = S.profile || {}, [k, label] = badgeOf(), hist = scanHist(), c = countryBy(p.country || 'IN');
