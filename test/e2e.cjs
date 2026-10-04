@@ -660,8 +660,10 @@ const SLOW = process.env.CI ? 3 : 1;
       await A.screenshot({ path: OUT + '/' + name + '.png' });
     }
     await A.click('nav >> text=My profile'); await A.waitForTimeout(400); await A.screenshot({ path: OUT + '/wide-profile.png' });
+    await A.setViewportSize({ width: 1907, height: 900 }); await A.click('nav >> text=Home'); await A.waitForTimeout(600);
+    await A.screenshot({ path: OUT + '/wide-home-1907.png' });
     if (!(await A.locator('aside.rail').isVisible())) throw new Error('safety corner should show on wide screens');
-    if ((await A.evaluate(() => document.documentElement.scrollWidth)) > 1440) throw new Error('page wider than the window');
+    if (await A.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)) throw new Error('page wider than the window');
     const W = await ctx.newPage(); await W.setViewportSize({ width: 1440, height: 900 }); extra.push(['W', W]);
     await W.goto(URL + '&mode=signup'); await W.locator('.auth-side').waitFor({ state: 'visible', timeout: 5000 * SLOW });
     await W.waitForTimeout(600); await W.screenshot({ path: OUT + '/wide-signup.png' }); await W.close();

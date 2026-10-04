@@ -1,10 +1,11 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-v30';
-const SHELL = ['app.html', './', 'assets/verth.css', 'assets/fonts.css', 'assets/app.js', 'assets/helper.js', 'assets/site.js', 'assets/splash.js', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-8ff80fa7bc';
+const SHELL = ['app.html', './', 'assets/verth.css?v=1f2e70929c', 'assets/fonts.css?v=21274b4724', 'assets/app.js?v=8b0c286665', 'assets/helper.js?v=68d3c6725b', 'assets/site.js?v=abb0b6cda6', 'assets/splash.js?v=b96e382081', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // 'reload' skips the browser's own short-term cache, so the saved copies are really the new ones.
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
@@ -25,8 +26,9 @@ async function receiveShare(req) {
 }
 
 // Pages: network first (so updates arrive), falling back to the saved copy when offline or slow.
-// Files under assets/ (code, styles, fonts, pictures): answered instantly from the saved copy and
-// refreshed in the background, so Verth opens without waiting. A new version replaces the cache name.
+// Stamped files (assets/app.js?v=…): their address changes whenever they change, so a saved copy is
+// always the right one: answered instantly. Other files under assets/ (pictures, fonts): network
+// first, falling back to the saved copy offline.
 const fromNetwork = (req) => fetch(req).then((res) => {
   if (res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
   return res;
@@ -38,10 +40,8 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || url.origin !== self.location.origin || req.headers.has('range')) return;
   if (url.pathname.includes('/assets/videos/')) return;
   if (url.pathname.includes('/assets/')) {
-    e.respondWith(caches.match(req).then((hit) => {
-      const fresh = fromNetwork(req).catch(() => hit);
-      return hit || fresh;
-    }));
+    if (url.searchParams.has('v')) e.respondWith(caches.match(req).then((hit) => hit || fromNetwork(req)));
+    else e.respondWith(fromNetwork(req).catch(() => caches.match(req)));
     return;
   }
   e.respondWith(
