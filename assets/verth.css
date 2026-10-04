@@ -964,3 +964,16 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
   .app>header.top{margin:0 -40px 24px;padding:16px 48px}
   .app>main.content{max-width:960px}
 }
+
+/* Log-in page: quick buttons first, compact robot check */
+.auth-quick{display:flex;flex-direction:column;gap:10px;margin:6px 0 2px}
+.auth-quick .btn{width:100%;justify-content:center}
+.btn.google.big{min-height:54px;font-size:16.5px;font-weight:700;border:1.5px solid var(--line);box-shadow:0 6px 18px -10px rgba(40,20,90,.35)}
+.btn.google.big:hover{border-color:#B9B1D9;background:#FBFAFF}
+.auth > .err:empty{display:none}
+.robot .captcha{min-height:0}
+.robot:not([data-state="busy"]) .captcha{height:0;overflow:hidden}
+.robot{padding:10px 14px}
+.auth-quick .btn{display:flex;align-items:center;gap:10px}
+.auth-quick .btn svg{width:22px;height:22px;flex:none}
+.auth-quick .btn.ghost{min-height:48px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-weight:650}

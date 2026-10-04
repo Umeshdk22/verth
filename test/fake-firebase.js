@@ -143,7 +143,7 @@ export async function signInWithEmailAndPassword(_a, email, pass) {
 export async function updateProfile(user, { displayName }) { const u = users(); u[user.email].name = displayName; saveUsers(u); user.displayName = displayName; }
 export async function sendEmailVerification() { window.__lastVerificationSent = Date.now(); }
 export async function sendPasswordResetEmail() {}
-export class GoogleAuthProvider {}
+export class GoogleAuthProvider { setCustomParameters(p) { window.__googleParams = p; } }
 export async function signInWithPopup() {
   const email = window.__googleEmail || 'google.user@gmail.com', u = users();
   if (!u[email]) { u[email] = { uid: 'g_' + autoId().slice(0, 10), email, pass: '', name: window.__googleName || 'Google User', verified: true }; saveUsers(u); }

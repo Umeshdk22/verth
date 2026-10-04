@@ -88,13 +88,14 @@ const SLOW = process.env.CI ? 3 : 1;
   };
   await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
   await step('log-in page shows straight away, with no loading screen', async () => {
-    await A.getByRole('heading', { name: 'Welcome back' }).waitFor({ timeout: 3000 * SLOW });
+    await A.getByRole('heading', { name: 'Log in to Verth' }).waitFor({ timeout: 3000 * SLOW });
     if (await A.getByText('Loading', { exact: false }).count()) throw new Error('a loading message is showing');
+    await shot(A, '00-A-login');
   });
   await step('someone without an account cannot log in', async () => {
-    await A.fill('#a-email', 'not-an-email'); await A.click('button:has-text("Send code")');
+    await A.fill('#a-email', 'not-an-email'); await A.click('button:has-text("Email me a code")');
     await A.getByText('doesn’t look right').waitFor({ timeout: 3000 * SLOW });
-    await A.fill('#a-email', 'rajesh@nirmaan.in'); await A.click('button:has-text("Send code")');
+    await A.fill('#a-email', 'rajesh@nirmaan.in'); await A.click('button:has-text("Email me a code")');
     await A.getByText('No Verth account uses this email').waitFor({ timeout: 3000 * SLOW });
   });
   { const keep = errors.filter((e) => !e.includes('status of 404')); errors.length = 0; errors.push(...keep); }
@@ -474,7 +475,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.goto(URL);
     // "Log in with Google" without an account is refused and sends you to Create account.
     await C.evaluate(() => { window.__googleEmail = 'kamla@family.in'; window.__googleName = 'Kamla Devi'; });
-    await C.click('text=Log in with Google');
+    await C.click('text=Continue with Google');
     await C.getByText('There’s no Verth account for that Google account yet').waitFor({ timeout: 5000 * SLOW });
     if (await C.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('fakeauth') || '{}')).includes('kamla@family.in'))) throw new Error('the stray Google account was not removed');
     await googleSignup(C, 'kamla@family.in', 'Kamla Devi', '9988776655');
@@ -606,11 +607,17 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(A, '22-A-profile');
   });
   await step('App lock: reopening Verth asks to unlock (fingerprint, or an email code)', async () => {
-    await A.evaluate(() => sessionStorage.removeItem('verth-unlocked'));
+    // Without fingerprint login on this device there's no lock (no email code every time Verth opens).
+    await A.evaluate(() => { sessionStorage.removeItem('verth-unlocked'); localStorage.removeItem('verth-pk'); });
+    await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
+    await A.locator('nav.tabs').waitFor({ timeout: 8000 * SLOW });
+    // With fingerprint login set up on this device, reopening Verth is locked.
+    await A.evaluate(() => { sessionStorage.removeItem('verth-unlocked'); localStorage.setItem('verth-pk', '1'); });
     await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
     await A.getByRole('heading', { name: 'Welcome back, Rajesh' }).waitFor({ timeout: 6000 * SLOW });
     if (await A.locator('nav.tabs').count()) throw new Error('the app must stay hidden while locked');
     await shot(A, '18-A-applock');
+    await A.click('button:has-text("Use an email code instead")');
     await A.click('button:has-text("Email me a code")');
     await A.getByText('Enter the code to unlock Verth.').waitFor({ timeout: 5000 * SLOW });
     await A.fill('#a-code', '482913');
