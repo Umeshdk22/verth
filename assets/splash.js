@@ -14,7 +14,7 @@
     }
     var done = function () { el.classList.add('sp-out'); setTimeout(function () { el.remove(); }, 450); };
     el.addEventListener('click', done);
-    setTimeout(done, 2500);
+    setTimeout(done, 3500);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

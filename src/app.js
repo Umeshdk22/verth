@@ -1212,6 +1212,8 @@ function accountCard() {
   const keys = S.passkeys || [];
   return `<section class="card"><h2>Account and device</h2>
     <p class="muted">${esc(S.user.email)}${S.profile?.phone ? ` · ${esc(S.profile.phone)}` : ''}${phoneOk() ? ' <span class="ok-inline inline">✓ verified</span>' : ''}</p>
+    <div class="lock-row"><span class="lr-ic">${ICON.lock}</span><span class="grow"><b>App lock</b><span class="muted small">${appLockOn() ? 'On: Verth asks for your fingerprint or an email code each time it opens, and after 5 minutes in the background.' : 'Off: anyone holding this unlocked phone can open your Verth.'}</span></span>
+      <button class="switch ${appLockOn() ? 'on' : ''}" role="switch" aria-checked="${appLockOn()}" aria-label="App lock" data-act="applock-toggle"><i></i></button></div>
     ${S.smsOn && smsApplies() && !phoneOk() ? '<div class="banner accent"><span><b>Verify your mobile number</b> so your circle knows it’s really you.</span><button class="btn small" data-act="verify-mobile">Verify now</button></div>' : ''}
     <p class="muted small">This device: ${esc(deviceLabel())}${S.circle ? (thisDeviceActive() ? ' · registered' : ' · not registered') : ''}</p>
     <div class="pk-box" id="pk-box"><div class="pk-hd">${ICON.finger}<div><b>Fingerprint / face login</b><span class="muted small">Log in without typing your email. Your fingerprint or face never leaves your device.</span></div></div>
@@ -2474,6 +2476,76 @@ function authFrame(html) {
     </div></aside>${html}</div>`;
 }
 
+/* ---------- app lock: fingerprint / face (or an email code) every time Verth opens ---------- */
+// Like a banking app: each new visit, and after 5 minutes in the background, Verth asks the person
+// to unlock it. The fingerprint check is verified by the Verth server (passkey); without one, an
+// email code does the same job. It can be switched off in the profile.
+const appLockOn = () => store.get('verth-applock') !== 'off';
+const isUnlocked = (uid) => { try { return sessionStorage.getItem('verth-unlocked') === uid; } catch { return true; } };
+function markUnlocked(uid) { try { sessionStorage.setItem('verth-unlocked', uid); } catch {} }
+function relock() { try { sessionStorage.removeItem('verth-unlocked'); } catch {} }
+const tokenUid = (t) => { try { return JSON.parse(atob(String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).uid || ''; } catch { return ''; } };
+
+function renderAppLock(note = '') {
+  const u = S.user, last = store.get('verth-me') || store.get('verth-last') || {};
+  const first = String(last.name || u?.displayName || '').trim().split(/\s+/)[0];
+  const pk = passkeySupported() && !!store.get('verth-pk');
+  paint(`<div class="shell narrow">${brand}
+  <div class="panel auth applock">
+    <div class="lock-hero">${pk ? ICON.finger : ICON.lock}</div>
+    <h1>${first ? `Welcome back, ${esc(first)}` : 'Welcome back'}</h1>
+    <p class="muted">Verth is locked to keep your circle, chats and payments private. ${pk ? 'Use your fingerprint or face to open it.' : 'We’ll email you a 6-digit code to open it.'}</p>
+    ${note ? `<div class="note">${esc(note)}</div>` : ''}
+    <p class="err" id="l-err" role="alert"></p>
+    ${pk && !S.lockEmail ? `<button class="btn primary big" data-act="unlock-pk">${ICON.finger}Unlock with fingerprint / face</button>
+      <button class="btn ghost" data-act="unlock-email">Use an email code instead</button>`
+    : `<form data-form="unlock-email" class="stack" novalidate>
+        <p class="lock-mail">${ICON.mail}<span>Code goes to <b>${esc(maskEmail(u?.email))}</b></span></p>
+        ${CAPTCHA_KEY ? '<div class="captcha" id="captcha"></div>' : ''}
+        <button class="btn primary big" type="submit">Email me a code</button>
+      </form>
+      ${pk ? '<button class="link" data-act="unlock-back">Use fingerprint / face instead</button>' : ''}`}
+    <div class="links"><button class="link" data-act="signout">Not you? Sign out</button></div>
+  </div></div>`);
+  S.screen = 'applock';
+  if (!pk || S.lockEmail) mountCaptcha();
+}
+function unlockDone() {
+  markUnlocked(S.user.uid); S.lockEmail = false; S.screen = '';
+  renderLoading('Opening your Verth…');
+  afterSignIn(S.circleId || undefined).catch((e) => errorScreen(friendlyError(e)));
+}
+Object.assign(actions, {
+  'unlock-pk': async (el) => {
+    el.disabled = true; setErr('l-err', '');
+    try {
+      const token = await loginWithPasskey(otpApi);
+      if (tokenUid(token) && tokenUid(token) !== S.user.uid) throw Object.assign(new Error('That fingerprint belongs to a different Verth account.'), { otp: true });
+      unlockDone();
+    } catch (e) { el.disabled = false; setErr('l-err', e?.otp ? e.message : passkeyError(e)); }
+  },
+  'unlock-email': () => { S.lockEmail = true; renderAppLock(); },
+  'unlock-back': () => { S.lockEmail = false; renderAppLock(); },
+  'applock-toggle': () => { const on = !appLockOn(); store.set('verth-applock', on ? null : 'off'); if (on) markUnlocked(S.user.uid); toast(on ? 'App lock is on. Verth will ask for your fingerprint or a code each time it opens.' : 'App lock is off on this device.', 'ok'); rerender(); },
+});
+Object.assign(forms, {
+  'unlock-email': async (f) => {
+    if (needCaptcha()) return setErr('l-err', 'Please wait for the “I’m not a robot” check to finish (a ✓ appears), then try again.');
+    busy(f, true); setErr('l-err', '');
+    try { S.authMode = 'login'; S.lockEmail = false; await sendCode(S.user.email); renderCode('Enter the code to unlock Verth.'); }
+    catch (e) { busy(f, false); setErr('l-err', captchaHint(friendlyError(e))); resetCaptcha(); }
+  },
+});
+// Lock again after 5 minutes in the background.
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (S.user && hiddenAt && Date.now() - hiddenAt > 5 * 60e3 && appLockOn() && !['code', 'applock', 'auth', 'phone', 'lock'].includes(S.screen)) {
+    relock(); stopListeners(); renderAppLock();
+  }
+  hiddenAt = 0;
+});
+
 /* ---------- profile: photo, plan badge, history and account ---------- */
 const PHOTO_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
 const photoOf = (x) => (PHOTO_RE.test(x?.photo || '') && x.photo.length <= 80000 ? x.photo : '');
@@ -2842,6 +2914,12 @@ function route() {
     S.otpEmail = u.email;
     signOut(auth).catch(() => {});
     return sendCode(u.email).then(() => renderCode('Please confirm your email once.'), () => renderAuth());
+  }
+  // App lock: a fresh sign-in counts as unlocking; reopening Verth asks again.
+  if (appLockOn() && !isUnlocked(u.uid)) {
+    if (S.authFlow) markUnlocked(u.uid);
+    else if (S.screen !== 'applock') return renderAppLock();
+    else return;
   }
   if (!S.circle && S.screen !== 'phone' && S.screen !== 'lock') renderLoading(S.authFlow === 'code' ? 'Signing you in…' : S.authFlow?.startsWith('google') ? 'Connecting your Google account…' : 'Opening your Verth…');
   afterSignIn().catch((e) => errorScreen(friendlyError(e)));

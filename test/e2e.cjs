@@ -565,7 +565,7 @@ const SLOW = process.env.CI ? 3 : 1;
       if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: cors });
       const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
       if (path === '/passkey/list') return r.fulfill({ headers: cors, json: { keys: [] } });
-      if (path.startsWith('/phone/')) return r.fallback();
+      if (path.startsWith('/phone/') || path.startsWith('/otp/')) return r.fallback();
       seen.push([path, body, r.request().headers().authorization]);
       const end = Date.now() + 30 * 86400000;
       if (path === '/subscribe') return r.fulfill({ headers: cors, json: { subscriptionId: 'sub_T1', keyId: 'rzp_test_1', description: 'Verth Team', quantity: 1 } });
@@ -607,6 +607,27 @@ const SLOW = process.env.CI ? 3 : 1;
     if (!/^data:image\/jpeg;base64,/.test(d['users/u_rajesh']?.photo || '')) throw new Error('photo not saved on the profile');
     await A.getByText('Fingerprint / face login').first().waitFor(); // account settings live here now
     await shot(A, '22-A-profile');
+  });
+  await step('App lock: reopening Verth asks to unlock (fingerprint, or an email code)', async () => {
+    await A.evaluate(() => sessionStorage.removeItem('verth-unlocked'));
+    await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
+    await A.getByRole('heading', { name: 'Welcome back, Rajesh' }).waitFor({ timeout: 6000 * SLOW });
+    if (await A.locator('nav.tabs').count()) throw new Error('the app must stay hidden while locked');
+    await shot(A, '18-A-applock');
+    await A.click('button:has-text("Email me a code")');
+    await A.getByText('Enter the code to unlock Verth.').waitFor({ timeout: 5000 * SLOW });
+    await A.fill('#a-code', '482913');
+    await A.locator('nav.tabs').waitFor({ timeout: 8000 * SLOW });
+    // The lock can be switched off (and on again) in the profile.
+    await A.click('header .me-btn');
+    await A.click('.lock-row .switch');
+    await A.getByText('App lock is off on this device.').waitFor({ timeout: 3000 * SLOW });
+    await A.evaluate(() => sessionStorage.removeItem('verth-unlocked'));
+    await A.goto(URL + '&payapi=' + encodeURIComponent(PAY));
+    await A.locator('nav.tabs').waitFor({ timeout: 8000 * SLOW });
+    await A.click('header .me-btn');
+    await A.click('.lock-row .switch');
+    await A.getByText('App lock is on.', { exact: false }).waitFor({ timeout: 3000 * SLOW });
   });
   await step('Signing out with an active subscription asks whether to cancel it', async () => {
     await A.evaluate(() => { const cid = window.__verth.S.circleId; const db = JSON.parse(localStorage.getItem('fakefs')); Object.assign(db['circles/' + cid].billing, { status: 'active', cancelAtEnd: false, payerUid: 'u_rajesh' }); localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x'); });

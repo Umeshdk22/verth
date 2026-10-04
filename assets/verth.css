@@ -687,7 +687,7 @@ body.no-tabs .vh-panel{order:1}
 .gc-ring b{display:flex;align-items:baseline;justify-content:center;padding-top:calc(50% - 18px)}
 
 /* Safety net: even if the script never runs, the greeting fades away on its own after ~3 s. */
-.splash{animation:spAuto .45s 3s ease forwards}
+.splash{animation:spAuto .45s 4.6s ease forwards}
 @keyframes spAuto{to{opacity:0;visibility:hidden;pointer-events:none}}
 
 /* Loading screen: branded, with rotating safety tips (never a blank white page) */
@@ -923,3 +923,18 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
   .as-foot{margin:0;font-size:13px;color:rgba(255,255,255,.6)}
 }
 @media (prefers-reduced-motion:reduce){.rq-wrap figure,.as-quotes figure{animation:none}.rq-wrap figure:first-child,.as-quotes figure:first-child{opacity:1}}
+
+/* App lock */
+.applock{text-align:center}
+.applock .btn.big svg{width:22px;height:22px;margin-right:8px;vertical-align:-5px}
+.applock .btn.ghost{margin-top:4px}
+.lock-mail{display:flex;align-items:center;justify-content:center;gap:8px;margin:0;color:var(--muted)}
+.lock-mail svg{width:20px;height:20px;color:var(--accent)}
+.lock-row{display:flex;align-items:center;gap:12px;padding:12px;margin:8px 0 12px;border-radius:14px;background:var(--surface-2)}
+.lock-row .grow{display:flex;flex-direction:column}
+.lr-ic svg{width:22px;height:22px;color:var(--accent)}
+.switch{all:unset;cursor:pointer;flex:none;width:48px;height:28px;border-radius:999px;background:#CFC8E8;position:relative;transition:background .2s}
+.switch i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .2s}
+.switch.on{background:var(--ok)}
+.switch.on i{transform:translateX(20px)}
+.switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}

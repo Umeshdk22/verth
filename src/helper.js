@@ -34,7 +34,7 @@ export const TOPICS = [
   {
     id: 'bio', q: 'How do I log in with fingerprint or face?',
     keys: ['fingerprint', 'face', 'biometric', 'biometrics', 'face id', 'touch id', 'passkey', 'finger', 'face lock', 'screen lock', 'without email'],
-    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in your profile (tap your picture at the top) under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• Lost the phone? Remove it in the Plan tab from another device, and log in with an email code.',
+    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in your profile (tap your picture at the top) under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• App lock: each time you open Verth (and after 5 minutes away), it asks for your fingerprint or face, or emails you a code if you don’t use fingerprint. You can switch App lock off in your profile.\n• Lost the phone? Remove it in the Plan tab from another device, and log in with an email code.',
     go: [['Open the app', 'app']],
   },
   {
