@@ -1,0 +1,66 @@
+{
+  "intro": { "title": ["Welcome to Verth", "वर्थ में आपका स्वागत है"], "lines": [
+    ["Welcome to Verth. Scammers in India now pretend to be your boss, your bank, or even your own family.", "वर्थ में आपका स्वागत है। आजकल ठग आपके बॉस, आपके बैंक, या आपके अपने परिवार वाले बनकर पैसे माँगते हैं।"],
+    ["UPI tells you who you're paying. Verth tells you whether you should.", "UPI आपको बताता है कि आप किसे पैसे भेज रहे हैं। वर्थ बताता है कि आपको भेजने चाहिए या नहीं।"],
+    ["Scan checks any message, link, phone number, job offer or screenshot in seconds.", "स्कैन से आप कोई भी मैसेज, लिंक, फ़ोन नंबर, नौकरी का ऑफ़र या स्क्रीनशॉट कुछ ही सेकंड में जाँच सकते हैं।"],
+    ["Verify asks the real person on their own phone, before you pay or share an OTP.", "वेरिफ़ाई से, पैसे भेजने या OTP बताने से पहले, आप असली इंसान से उसके अपने फ़ोन पर पूछ सकते हैं।"],
+    ["Your circle keeps family or colleagues together, with private, encrypted chat and safe payments.", "आपके सर्कल में परिवार या साथ काम करने वाले लोग जुड़े रहते हैं, प्राइवेट और एन्क्रिप्टेड चैट और सुरक्षित पेमेंट के साथ।"],
+    ["And the daily safety check-up keeps your phone locked tight against hackers.", "और रोज़ का सेफ़्टी चेक-अप आपके फ़ोन को हैकरों से सुरक्षित रखता है।"],
+    ["Your first seven days are completely free. Create your account, and check before you pay.", "पहले सात दिन बिल्कुल मुफ़्त हैं। अपना अकाउंट बनाइए, और पैसे भेजने से पहले जाँच ज़रूर कीजिए।"]
+  ]},
+  "scan": { "title": ["How to use Scan", "स्कैन कैसे इस्तेमाल करें"], "lines": [
+    ["This is Scan. Use it whenever a message, call or offer feels a little off.", "यह है स्कैन। जब भी कोई मैसेज, कॉल या ऑफ़र थोड़ा भी अजीब लगे, इसका इस्तेमाल कीजिए।"],
+    ["First, choose what you want to check: a message, a link, a phone number, a job offer, or a photo.", "पहले चुनिए कि आप क्या जाँचना चाहते हैं: मैसेज, लिंक, फ़ोन नंबर, नौकरी का ऑफ़र, या फ़ोटो।"],
+    ["Paste the message here, and tap Check it.", "मैसेज यहाँ पेस्ट कीजिए, और Check it पर टैप कीजिए।"],
+    ["Verth shows the risk straight away, and explains every warning sign in simple words.", "वर्थ तुरंत खतरा बताता है, और हर चेतावनी को आसान शब्दों में समझाता है।"],
+    ["If it's a scam, Verth adds it to its scam database by itself, so the next person who checks it is warned too.", "अगर यह धोखा है, तो वर्थ खुद इसे अपने स्कैम डेटाबेस में जोड़ देता है, ताकि अगला व्यक्ति भी सावधान हो जाए।"],
+    ["Your message itself is never uploaded. Only a scrambled fingerprint is saved.", "आपका मैसेज कभी अपलोड नहीं होता। सिर्फ़ एक गुप्त कोड सेव होता है।"],
+    ["Remember: if it looks risky, don't pay, don't click, and never share an OTP.", "याद रखिए: अगर खतरा दिखे, तो न पैसे भेजिए, न लिंक खोलिए, और OTP कभी मत बताइए।"]
+  ]},
+  "verify": { "title": ["How to use Verify", "वेरिफ़ाई कैसे इस्तेमाल करें"], "lines": [
+    ["This is Verify. Got a message from your boss or a family member asking for money? Check with them first.", "यह है वेरिफ़ाई। बॉस या परिवार के किसी सदस्य का पैसे माँगने वाला मैसेज आया है? पहले उनसे पूछिए।"],
+    ["Choose who the request claims to be from, and where it came from, like WhatsApp or a phone call.", "चुनिए कि माँग किसके नाम से आई है, और कहाँ से आई, जैसे WhatsApp या फ़ोन कॉल।"],
+    ["Type what they're asking you to do, then tap Send check.", "लिखिए कि वे आपसे क्या करने को कह रहे हैं, फिर Send check पर टैप कीजिए।"],
+    ["The real person gets the question on their own phone, and answers Yes or No.", "असली व्यक्ति को यह सवाल उसके अपने फ़ोन पर मिलता है, और वह हाँ या ना में जवाब देता है।"],
+    ["If they say No, or don't answer, stop. Someone is pretending to be them.", "अगर वे ना कहें, या जवाब न दें, तो रुक जाइए। कोई उनके नाम से धोखा कर रहा है।"],
+    ["On a call or video? Ask for their Verth code. A fake caller or deepfake can't produce it.", "कॉल या वीडियो पर हैं? उनसे उनका वर्थ कोड पूछिए। नकली कॉलर या डीपफ़ेक यह कोड नहीं बता सकता।"]
+  ]},
+  "chat": { "title": ["How to use Chat", "चैट कैसे इस्तेमाल करें"], "lines": [
+    ["This is Chat: a private, end-to-end encrypted chat with people in your circle.", "यह है चैट: आपके सर्कल के लोगों के साथ प्राइवेट, एंड-टू-एंड एन्क्रिप्टेड चैट।"],
+    ["Tap a person to open your chat. Only your two phones can read it. Not even Verth can.", "किसी व्यक्ति पर टैप करके चैट खोलिए। इसे सिर्फ़ आप दोनों के फ़ोन पढ़ सकते हैं, वर्थ भी नहीं।"],
+    ["Send messages, photos and PDF documents, like certificates, safely.", "मैसेज, फ़ोटो और PDF डॉक्यूमेंट, जैसे सर्टिफ़िकेट, सुरक्षित भेजिए।"],
+    ["To send money, tap Pay safely. Verth shows who you're paying, then opens your UPI app.", "पैसे भेजने के लिए Pay safely पर टैप कीजिए। वर्थ दिखाता है कि पैसे किसे जा रहे हैं, फिर आपका UPI ऐप खोलता है।"],
+    ["After paying, both of you get a receipt, and it's saved in your payment history.", "पेमेंट के बाद आप दोनों को रसीद मिलती है, और यह आपकी पेमेंट हिस्ट्री में सेव हो जाती है।"],
+    ["The free plan includes twelve messages and three payments a day.", "फ़्री प्लान में रोज़ बारह मैसेज और तीन पेमेंट शामिल हैं।"]
+  ]},
+  "circle": { "title": ["How to use your Circle", "सर्कल कैसे इस्तेमाल करें"], "lines": [
+    ["This is your Circle: the people you trust, like your family or your team.", "यह है आपका सर्कल: वे लोग जिन पर आप भरोसा करते हैं, जैसे आपका परिवार या आपकी टीम।"],
+    ["Invite people from your contacts, on WhatsApp, or by sharing your invite code.", "अपने कॉन्टैक्ट्स से, WhatsApp पर, या इनवाइट कोड शेयर करके लोगों को जोड़िए।"],
+    ["Nobody gets in without approval. Check their email and phone number, then tap Approve.", "मंज़ूरी के बिना कोई अंदर नहीं आ सकता। उनका ईमेल और फ़ोन नंबर जाँचिए, फिर Approve पर टैप कीजिए।"],
+    ["Companies can lock the circle to their work email, and ask for two admins to approve.", "कंपनियाँ सर्कल को अपने ऑफ़िस ईमेल तक सीमित कर सकती हैं, और दो एडमिन की मंज़ूरी ज़रूरी कर सकती हैं।"],
+    ["If someone moves to a new phone, Verth shows it, so a hacked account can't fool you.", "अगर कोई नए फ़ोन पर जाता है, तो वर्थ यह दिखाता है, ताकि हैक हुआ अकाउंट आपको धोखा न दे सके।"],
+    ["If your invite code is ever shared by mistake, change it with one tap.", "अगर आपका इनवाइट कोड गलती से शेयर हो जाए, तो एक टैप में उसे बदल दीजिए।"]
+  ]},
+  "plan": { "title": ["Plans and your free trial", "प्लान और फ़्री ट्रायल"], "lines": [
+    ["This is Plan. Every new account gets seven days free, with everything unlimited.", "यह है प्लान। हर नए अकाउंट को सात दिन मुफ़्त मिलते हैं, सब कुछ अनलिमिटेड।"],
+    ["After that, the Free plan stays free forever, for up to five people.", "उसके बाद फ़्री प्लान हमेशा मुफ़्त रहता है, पाँच लोगों तक के लिए।"],
+    ["Personal, at one hundred and forty-nine rupees a month, gives you unlimited scam checks.", "पर्सनल प्लान, एक सौ उनचास रुपये महीना, आपको अनलिमिटेड स्कैम चेक देता है।"],
+    ["Family, at one hundred and ninety-nine, and Team, at two hundred and ninety-nine, protect everyone in your circle.", "फ़ैमिली प्लान, एक सौ निन्यानवे रुपये, और टीम प्लान, दो सौ निन्यानवे रुपये, आपके पूरे सर्कल को सुरक्षित रखते हैं।"],
+    ["Pay with UPI or card through Razorpay, and cancel any time.", "Razorpay से UPI या कार्ड से पेमेंट कीजिए, और जब चाहें कैंसल कीजिए।"]
+  ]},
+  "log": { "title": ["The Verification log", "वेरिफ़िकेशन लॉग"], "lines": [
+    ["This is the Verification log: a record of every check in your circle.", "यह है वेरिफ़िकेशन लॉग। इसमें आपके सर्कल की हर जाँच का रिकॉर्ड रहता है।"],
+    ["You can see who asked, who answered, what it was about, and when.", "आप देख सकते हैं कि किसने पूछा, किसने जवाब दिया, बात किस बारे में थी, और कब।"],
+    ["Green means confirmed. Red means it was stopped, so a scam didn't go through.", "हरा मतलब पुष्टि हो गई। लाल मतलब रोक दिया गया, यानी धोखा कामयाब नहीं हुआ।"],
+    ["Nobody can edit or delete entries, so there's always a clear record of who approved what.", "कोई भी एंट्री बदल या मिटा नहीं सकता, इसलिए हमेशा साफ़ रिकॉर्ड रहता है कि किसने क्या मंज़ूर किया।"],
+    ["On paid plans, you can export the log for your accounts team or auditors.", "पेड प्लान में आप यह लॉग अपनी अकाउंट्स टीम या ऑडिटर के लिए डाउनलोड कर सकते हैं।"]
+  ]},
+  "guard": { "title": ["Daily safety check-up", "रोज़ का सेफ़्टी चेक-अप"], "lines": [
+    ["This is the daily safety check-up: your phone's security guard.", "यह है रोज़ का सेफ़्टी चेक-अप: आपके फ़ोन का सिक्योरिटी गार्ड।"],
+    ["It walks you through ten protections, like screen lock, Play Protect, and blocking unknown apps.", "यह आपको दस सुरक्षा सेटिंग्स से गुज़ारता है, जैसे स्क्रीन लॉक, प्ले प्रोटेक्ट, और अनजान ऐप्स पर रोक।"],
+    ["Tap an item to see why it matters, and exactly where to tap on your phone.", "किसी भी आइटम पर टैप कीजिए, यह जानने के लिए कि यह क्यों ज़रूरी है और फ़ोन में कहाँ टैप करना है।"],
+    ["When it's done, tick it, and your score goes up.", "काम हो जाए, तो उस पर टिक कीजिए, और आपका स्कोर बढ़ जाएगा।"],
+    ["The check-up refreshes every day. If nothing changed, confirm everything in one tap.", "यह चेक-अप हर दिन नया होता है। अगर कुछ नहीं बदला, तो एक टैप में सब कन्फ़र्म कर दीजिए।"],
+    ["Keep your streak going, and read today's safety tip.", "अपनी स्ट्रीक जारी रखिए, और आज की सेफ़्टी टिप ज़रूर पढ़िए।"]
+  ]}
+}
