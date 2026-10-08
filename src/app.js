@@ -371,9 +371,17 @@ function robotState(kind, text) {
 function robotTick(on) {
   if (!on) { S.captcha = ''; try { window.turnstile?.reset(S.cfWidget); } catch {} return robotState('idle', ''); }
   if (S.captcha) return robotState('ok', 'Verified');
-  if (!window.turnstile || S.cfWidget == null) { S.captchaFailed ||= 'load'; return robotState('ok', ''); } // can't run here; the server decides
   robotState('busy', 'Checking…');
-  try { window.turnstile.execute(S.cfWidget); } catch { robotState('error', 'Couldn’t check. Tick again.'); }
+  // Never leave people stuck on "Checking…": after 10 seconds, let them carry on (the server still checks).
+  clearTimeout(S.robotTimer);
+  S.robotTimer = setTimeout(() => { if (!S.captcha && robotTicked()) { S.captchaFailed ||= 'timeout'; robotState('ok', ''); } }, 10000);
+  const run = () => {
+    if (!robotTicked() || S.captcha) return;
+    if (!window.turnstile || S.cfWidget == null) { S.captchaFailed ||= 'load'; clearTimeout(S.robotTimer); return robotState('ok', ''); }
+    try { window.turnstile.execute(S.cfWidget); } catch { clearTimeout(S.robotTimer); robotState('error', 'Couldn’t check. Tick again.'); }
+  };
+  // Still downloading the check on a slow connection? Wait for it instead of failing.
+  if (window.turnstile && S.cfWidget != null) run(); else (turnstileLoad || Promise.reject(new Error('none'))).then(() => setTimeout(run, 50), run);
 }
 const robotTicked = () => !!document.getElementById('robot')?.checked;
 function mountCaptcha() {
@@ -391,7 +399,7 @@ function mountCaptcha() {
     S.cfWidget = window.turnstile.render(box, {
       sitekey: CAPTCHA_KEY, theme: 'light', retry: 'never', 'refresh-expired': 'manual',
       execution: 'execute', appearance: 'interaction-only',
-      callback: (t) => { S.captcha = t; S.captchaFailed = ''; robotState('ok', 'Verified'); },
+      callback: (t) => { S.captcha = t; S.captchaFailed = ''; clearTimeout(S.robotTimer); robotState('ok', 'Verified'); },
       'expired-callback': () => { S.captcha = ''; robotState('idle', 'Expired. Tick again.'); },
       // If the check can't run in this browser, don't trap the person here: the server decides.
       'error-callback': (code) => { S.captcha = ''; S.captchaFailed = String(code || 'error'); robotState('ok', ''); return true; },
@@ -472,7 +480,7 @@ function renderWelcome() {
           <p>I built Verth after I paid ₹1,500 for a job exam at a company that didn’t exist. I never want that to happen to you or your family. Before you pay, share an OTP or trust an “urgent” message, check it here first.</p>
           <p class="sig">— Umesh, founder of Verth</p>
         </div>
-        ${pk ? `<div class="w-bio"><div class="w-bio-ic">${ICON.finger}</div><div><b>Log in faster next time</b><span>Use your fingerprint or face instead of typing your email. You can change this any time in the Plan tab.</span></div></div>
+        ${pk ? `<div class="w-bio"><div class="w-bio-ic">${ICON.finger}</div><div><b>Log in faster next time</b><span>Use your fingerprint or face instead of typing your email. You can change this any time in your profile.</span></div></div>
           <p class="err" id="w-err" role="alert"></p>
           <button class="btn primary big" data-act="welcome-pk">Turn on fingerprint / face login</button>
           <button class="btn ghost" data-act="welcome-go">Maybe later</button>`
@@ -2884,7 +2892,7 @@ Object.assign(forms, {
     try { await smsSend(phone); renderPhone(); }
     catch (e) {
       busy(f, false);
-      if (e.status === 502 || e.status === 503) { S.smsFailed = true; return renderPhone(`${e.message} You can verify your mobile later from the Plan tab.`); }
+      if (e.status === 502 || e.status === 503) { S.smsFailed = true; return renderPhone(`${e.message} You can verify your mobile later from your profile.`); }
       setErr('m-err', e.message);
     }
   },

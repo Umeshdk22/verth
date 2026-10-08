@@ -36,17 +36,28 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: No libraries with known security holes
+        run: npm audit --audit-level=high
       - name: Scam check unit tests (real-world examples)
         run: npm run test:unit
       - run: npx playwright install --with-deps chromium
       - name: Run browser test (employee, CEO and attacker scenarios)
         run: bash test/run-e2e.sh test-output
 
+  secrets:
+    name: No passwords or keys in the code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with: { fetch-depth: 0 }
+      - name: Scan every commit for leaked keys (TruffleHog, verified secrets only)
+        run: docker run --rm -v "$PWD:/repo" trufflesecurity/trufflehog:latest git file:///repo --only-verified --fail --no-update
+
   # Publishes the database rules and the server code after BOTH test jobs pass on main.
   # Each step does nothing until its secret is added in GitHub (Settings → Secrets → Actions).
   publish:
     name: Publish rules and server
-    needs: [rules, app]
+    needs: [rules, app, secrets]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:

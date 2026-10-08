@@ -10,7 +10,7 @@
 <title>Privacy Policy · Verth</title>
 <link rel="icon" href="assets/icon-192.png">
 <link rel="stylesheet" href="assets/fonts.css?v=21274b4724">
-<link rel="stylesheet" href="assets/verth.css?v=56330137c6">
+<link rel="stylesheet" href="assets/verth.css?v=a3f9cc189a">
 <style>
 .legal{max-width:820px;margin:0 auto;padding:0 20px 64px}
 .pol-hero{color:#fff;padding:22px 0 90px;background:linear-gradient(180deg,rgba(18,8,47,.6),rgba(18,8,47,.35) 55%,rgba(18,8,47,.75)),url(assets/bg-dusk.webp) center bottom/cover,#2A137A}
@@ -27,6 +27,7 @@
 .legal ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .pol-hero .upd{font-size:14px;margin:6px 0 0}
 .legal nav.pol{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:22px;font-size:14px}
+.legal .copy{margin-top:10px;font-size:13px;color:var(--muted)}
 .legal nav.pol a{color:var(--muted)} .legal nav.pol a[aria-current]{color:var(--accent)}
 .contact-card{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
 .price-table{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
@@ -40,7 +41,7 @@
 <header><a class="brand" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l7 3v5c0 4.4-3 8.1-7 9.9-4-1.8-7-5.5-7-9.9v-5z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.8 12l2.2 2.2 4.2-4.6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Verth</a>
 <a class="btn small" href="app.html">Open the app</a></header>
 <h1>Privacy Policy</h1>
-<p class="upd">Last updated 1 October 2026</p>
+<p class="upd">Last updated 8 October 2026</p>
 </div></div>
 <div class="legal">
 <article>
@@ -52,28 +53,43 @@
 <li><b>Payment receipts:</b> Pay safely records and the paid / received confirmations are end-to-end encrypted like chat messages; only the two people can read them.</li>
 <li><b>UPI ID (optional):</b> if you add a UPI ID for “Pay safely”, the people in that circle can see it and when you last changed it. Verth never sees or processes your payments.</li>
 <li><b>Organisation staff lists (optional):</b> an organisation’s admins can add the names and work emails of people they expect to join, and can limit joining to their company’s email domain. Only that circle’s admins can see the list, and they can remove entries at any time.</li>
-<li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in the Plan tab.</li>
+<li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in your profile.</li>
 <li><b>Circles and checks:</b> the circles you create or join, your role, the verification requests you send or answer (who, what was asked in your words, the channel, the answer and time).</li>
 <li><b>Device keys:</b> public keys that tie your answers to your own device, plus a simple device label like “Chrome on Android”. Private keys never leave your device.</li>
 <li><b>Scam check:</b> the text you paste, and any screenshot or photo you choose, is checked on your device and is <b>not</b> uploaded or stored. We keep only a count of checks (daily for text, in total for photos). If Verth finds something to be a scam, it stores a one-way scrambled fingerprint of it, never the text.</li>
 <li><b>Payments:</b> your subscription ID, plan, status and renewal date. Card, UPI and bank details are collected and processed by Razorpay, not by Verth.</li>
 <li><b>Verth Helper:</b> common questions are answered on your device from the built-in guide. Questions the guide can’t answer are sent, with the last few messages of that chat, through our server to Google Gemini to write a reply. We don’t store the chat, and anything that looks like an OTP, PIN, password or card number is never sent. Please don’t type personal details into the helper.</li>
 <li><b>Email login codes:</b> to log in with a code, your email address is sent to our email provider (Brevo) to deliver the code. We keep only a scrambled fingerprint of your email and code for a short time to check it and to stop abuse.</li>
-<li><b>Mobile number check:</b> to verify your mobile number, it is sent to our SMS provider (2Factor) to deliver a one-time code. We keep a scrambled fingerprint of the number so one number can verify only one Verth account, and remove it when you delete your account.</li></ul>
+<li><b>“I’m not a robot” check:</b> when you ask for an email code, Cloudflare Turnstile checks that a real person is using the page. Cloudflare looks at technical signals from your browser (not your identity) and gives us only a yes or no.</li>
+<li><b>Bank name for a UPI ID:</b> when you type a UPI ID, or open “Pay safely”, the ID is sent through our server to Razorpay to look up the name the bank account is registered to, so you can see who you are really paying. We don’t store these lookups, and each person can make only a limited number a day.</li>
+<li><b>Kept only on your device:</b> your scam check history, your daily safety check-up ticks, app lock setting, video language and similar settings stay in your browser on this device. They are never sent to us, and clearing your browser data removes them.</li>
+<li><b>Mobile number check (when switched on):</b> to verify your mobile number, it is sent to our SMS provider (2Factor) to deliver a one-time code. We keep a scrambled fingerprint of the number so one number can verify only one Verth account, and remove it when you delete your account.</li></ul>
 <h2>What we don’t do</h2>
-<p>Verth never reads your SMS, WhatsApp, calls or email. We don’t sell your data, show ads, or use your data for marketing by others.</p>
+<p>Verth never reads your SMS, WhatsApp, calls, contacts, photos or email unless you choose to paste or pick them, and even then they are checked on your phone. We don’t sell your data, show ads, or use your data for marketing by others.</p>
+<h2>Cookies and tracking</h2>
+<p>Verth uses no advertising or tracking cookies and no analytics that follow you around the web. We use your browser’s storage only to keep you signed in, remember your settings, and make the app work offline. The how-to videos are served from our own website and don’t track you.</p>
 <h2>Who processes data for us</h2>
-<p>Google Firebase (accounts and database), Razorpay (payments), Cloudflare (our server for payments, login codes and AI help), Brevo (sends login codes by email), 2Factor (sends mobile verification codes by SMS), GitHub Pages (website hosting), and Google Gemini (AI answers in Verth Helper). Each processes data only to provide their service.</p>
+<p>Google Firebase (accounts and database), Razorpay (payments and UPI ID name checks), Cloudflare (our server for payments, login codes and AI help, and the “I’m not a robot” check), Brevo (sends login codes by email), 2Factor (sends mobile verification codes by SMS), GitHub Pages (website hosting), and Google Gemini (AI answers in Verth Helper). Each processes data only to provide their service.</p>
 <h2>Keeping and deleting data</h2>
-<p>We keep your data while your account is active. The verification log of a circle is kept for the circle’s records. To see, correct or delete your data, or to withdraw consent, email umeshdk22@gmail.com; we reply within 7 days and complete deletion within 30 days, except records we must keep by law (such as payment records).</p>
+<p>We keep your data while your account is active. The verification log of a circle is kept for the circle’s records. You can delete your account yourself in your profile; this removes your account, profile and sign-in keys. Some of these services may store data outside India, under their own security and privacy commitments.</p>
+<h2>Your rights</h2>
+<p>Under India’s Digital Personal Data Protection Act, 2023 you can ask to see the personal data we hold about you, correct or update it, delete it, withdraw your consent, and name someone to act for you if you can’t. Email umeshdk22@gmail.com; we reply within 7 days and complete deletion within 30 days, except records we must keep by law (such as payment records). You can also complain to the Data Protection Board of India.</p>
 <h2>Security</h2>
-<p>Data is protected by Firebase security rules, device-bound signatures and encrypted connections. No system is perfectly secure; if a breach affects you, we’ll tell you and the authorities as the law requires.</p>
+<p>We protect your data with several layers:</p>
+<ul><li>Every connection uses HTTPS. Private chats, files and payment receipts are end-to-end encrypted on your phone.</li>
+<li>Your answers to checks are signed with a key that never leaves your device, so a stolen password alone can’t fake them. Fingerprint / face login uses passkeys, which can’t be phished.</li>
+<li>Strict database rules decide exactly who can read or change each record, and are tested automatically before every update.</li>
+<li>Login codes, AI help and lookups are rate-limited, and an “I’m not a robot” check blocks automated sign-up attempts.</li>
+<li>The website refuses to load scripts from unknown places and can’t be shown inside other websites (to stop look-alike tricks).</li>
+<li>Our code is scanned automatically for security weaknesses, leaked keys and libraries with known security holes.</li></ul>
+<p>No system is perfectly secure. If a breach affects you, we’ll tell you and the authorities as the law requires. Found a security problem? Please email umeshdk22@gmail.com privately (see our <a href="https://github.com/Umeshdk22/verth/blob/main/SECURITY.md">security policy</a>).</p>
 <h2>Children</h2>
 <p>People under 18 should use Verth with a parent or guardian, for example as part of a family circle.</p>
 <h2>Grievance officer</h2>
 <p>Umesh, umeshdk22@gmail.com. Questions or complaints about your data are answered within 7 days.</p>
 </article>
-<nav class="pol" aria-label="Policies"><a href="pricing.html">Pricing</a> <a href="terms.html">Terms</a> <a href="privacy.html" aria-current="page">Privacy</a> <a href="refunds.html">Refunds</a> <a href="shipping.html">Shipping</a> <a href="contact.html">Contact</a></nav>
+<nav class="pol" aria-label="Policies"><a href="pricing.html">Pricing</a> <a href="terms.html">Terms</a> <a href="privacy.html" aria-current="page">Privacy</a> <a href="copyright.html">Copyright</a> <a href="refunds.html">Refunds</a> <a href="shipping.html">Shipping</a> <a href="contact.html">Contact</a></nav>
+<p class="copy">© 2026 Umesh · Verth. All rights reserved.</p>
 </div>
 </body>
 </html>

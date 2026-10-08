@@ -73,6 +73,9 @@ Verth protects decisions about money, bank details and account access, so it is 
 - Verth refuses to run inside another site's frame (clickjacking).
 - All user-provided text is HTML-escaped before display. Exported CSV cells that start with `=`, `+`, `-` or `@` are neutralised (formula injection).
 - `strict-origin-when-cross-origin` referrer policy.
+- The public pages (home, invite, demo) also refuse to be framed.
+- The Verth server (Cloudflare Worker) answers only the Verth website (CORS), rate-limits login codes, AI help and UPI lookups per person and per network, checks the "I'm not a robot" token itself, and sends strict headers on every answer: `Strict-Transport-Security`, `X-Frame-Options: DENY`, `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`.
+- The "I'm not a robot" box never ticks itself, waits for a slow download, and never leaves anyone stuck: after 10 seconds the server alone decides.
 
 ### Social engineering
 - "Yes" takes two deliberate taps and shows a warning: nobody legitimate will ask you to approve a check over a call.
@@ -84,9 +87,18 @@ Verth protects decisions about money, bank details and account access, so it is 
 - `test/e2e.js`: two browsers (employee and CEO) plus attacker actions: forged and replayed signatures, a stolen password on a new device, invite rotation, and joining switched off.
 - Both run on every push in GitHub Actions (`.github/workflows/security.yml`).
 
+## Automated security tools (run on every change)
+
+- **CodeQL** (`.github/workflows/codeql.yml`, security-extended queries): scans all JavaScript for injection, XSS, unsafe crypto and other weaknesses; weekly as well.
+- **Dependabot** (`.github/dependabot.yml`): weekly updates for libraries and GitHub Actions.
+- **npm audit**: the build fails if any library has a known high-severity hole.
+- **TruffleHog**: scans every commit for leaked, verified keys; publishing waits for it.
+- **Firestore rules tests**, **server tests** and the **two-person browser test** (with attacker steps) must pass before the database rules and server are published.
+- **Page audit** (`test/audit.cjs`, `test/audit-site.cjs`): every screen at phone, tablet and laptop sizes is checked for unreadable text, overflow, missing fonts, broken images and unlabeled buttons.
+- GitHub Actions in the main workflow are pinned to exact commit hashes.
+
 ## Known limits (be honest with users)
 
-- **Rate limiting** needs a server (Cloud Functions on the Blaze plan). Until then, abuse is limited by approval, plan caps and Firebase's own quotas.
 - **Signing out everywhere** after a stolen password needs the Admin SDK (server). For now: reset the password, and the device-change warnings still apply.
 - **Device keys live in the browser.** Clearing site data creates a new device, which is visible to others (by design). Hardware-backed passkeys (WebAuthn) are the next step.
 - **Admins are highly trusted.** An admin's device change is announced but not re-approved. Use a strong password and Google 2-step verification for admin accounts.

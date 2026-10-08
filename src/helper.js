@@ -40,7 +40,7 @@ export const TOPICS = [
   {
     id: 'delete', q: 'How do I sign out or delete my account?',
     keys: ['sign out', 'signout', 'log out', 'logout', 'delete account', 'delete my account', 'close account', 'remove account', 'account delete'],
-    a: 'Open the Plan tab and scroll to “Account and device”.\n• Sign out: tap “Sign out”. If you pay for a plan, Verth asks whether to keep it or cancel it too.\n• Delete: tap “Delete my account” and type DELETE. Any subscription you pay for stops renewing, and your account is removed. This can’t be undone.',
+    a: 'Open your profile (tap your picture at the top) and scroll to “Account and device”.\n• Sign out: tap “Sign out”. If you pay for a plan, Verth asks whether to keep it or cancel it too.\n• Delete: tap “Delete my account” and type DELETE. Any subscription you pay for stops renewing, and your account is removed. This can’t be undone.',
     go: [['Open the app', 'app']],
   },
   {

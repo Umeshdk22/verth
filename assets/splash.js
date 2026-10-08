@@ -1,3 +1,5 @@
+// Refuse to be shown inside another website's frame (stops click-jacking tricks).
+if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.self.location.href; } catch (e) {} }
 // "Welcome to Verth": a short animated greeting over the page while it loads (never delays it).
 // Shown once per visit; a tap skips it. Returning people are welcomed back by name.
 (function () {

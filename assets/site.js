@@ -1,3 +1,5 @@
+// Refuse to be shown inside another website's frame (stops click-jacking tricks).
+if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.self.location.href; } catch (e) {} }
 // Home page: opt-in soundtrack. Music never starts by itself.
 (function () {
   var btn = document.getElementById('sound'), label = document.getElementById('sound-label'), audio = document.getElementById('theme');

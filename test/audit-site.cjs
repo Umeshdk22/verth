@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 const { auditPage } = require('./audit.cjs');
 const [BASE, OUT] = process.argv.slice(2);
-const PAGES = ['index.html', 'join.html?c=ABCD2345&by=Umesh&n=Sharma%20Family&t=family', 'join.html?c=ABCD2345&by=Umesh&n=Nirmaan&t=org&d=nirmaan.in', 'demo.html', 'pricing.html', 'contact.html', 'privacy.html', 'terms.html', 'refunds.html', 'shipping.html', '404.html'];
+const PAGES = ['copyright.html', 'index.html', 'join.html?c=ABCD2345&by=Umesh&n=Sharma%20Family&t=family', 'join.html?c=ABCD2345&by=Umesh&n=Nirmaan&t=org&d=nirmaan.in', 'demo.html', 'pricing.html', 'contact.html', 'privacy.html', 'terms.html', 'refunds.html', 'shipping.html', '404.html'];
 (async () => {
   const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const report = {};

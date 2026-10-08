@@ -1,3 +1,5 @@
+// Refuse to be shown inside another website's frame (stops click-jacking tricks).
+if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.self.location.href; } catch (e) {} }
 // Clickable demo: simulated, no account or network needed.
 (function(){
   var SECRET = "nirmaan-rajesh-4417";

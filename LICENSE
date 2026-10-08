@@ -1,0 +1,17 @@
+Copyright (c) 2026 Umesh (Verth). All rights reserved.
+
+The source code, design, text, images, videos, voice-overs and music in this
+repository are the property of Umesh and are protected by copyright law.
+
+The code is public so that anyone can check how Verth protects its users and
+report security problems (see SECURITY.md). Viewing it does not grant any
+licence to copy, modify, publish, distribute, sublicense or sell it, in whole
+or in part, or to build a similar app or website from it, without prior
+written permission from the copyright holder.
+
+Third-party components keep their own licences:
+- Fonts (Hind, Rozha One, Kalam, IBM Plex Mono): SIL Open Font License 1.1
+- Firebase JavaScript SDK, Tesseract.js, jsQR: Apache License 2.0
+- qrcode-generator, Tesseract English language data: MIT License
+
+Contact: umeshdk22@gmail.com

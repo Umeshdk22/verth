@@ -6,7 +6,7 @@ Razorpay asks every merchant website for these pages. Edit the text here, then r
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-UPDATED = "1 October 2026"
+UPDATED = "8 October 2026"
 OWNER = "Umesh"            # use your full legal name exactly as in your Razorpay KYC
 EMAIL = "umeshdk22@gmail.com"
 PLACE = "India"            # add your city, e.g. "Bengaluru, Karnataka, India"
@@ -20,7 +20,7 @@ PAGES = {
 <p>Scam check results are automated warnings based on known patterns. A “no obvious red flags” result does not prove something is safe, and a warning does not prove it is a scam. Always confirm through official channels before paying or sharing anything. Verth is not a bank, payment service, law-enforcement agency or legal adviser.</p>
 <h2>Your account</h2>
 <ul><li>You must be at least 18, or use Verth with a parent or guardian’s permission.</li>
-<li>Give a real email address and keep your password and devices secure. Never sign in to Verth on someone else’s device.</li>
+<li>Give a real email address and keep your email account and devices secure. Never sign in to Verth on someone else’s device, and never share a login code.</li>
 <li>Circle admins decide who joins their circle and are responsible for approving the right people.</li></ul>
 <h2>Fair use</h2>
 <p>Don’t use Verth to harass anyone, to impersonate others, to test or plan scams, to attack the service, or to break any law. We may suspend accounts that do.</p>
@@ -38,7 +38,9 @@ PAGES = {
 <h2>Availability and liability</h2>
 <p>We work to keep Verth available and secure but can’t promise it will never be interrupted. To the extent the law allows, Verth is not liable for losses caused by scams, by acting or not acting on a Scam check result, or by the service being unavailable; and our total liability for any claim is limited to the amount you paid Verth in the 3 months before the claim.</p>
 <h2>Ending your use</h2>
-<p>You can stop using Verth at any time. To delete your account, open the Plan tab, choose <b>Delete my account</b> and type DELETE: any subscription you pay for stops renewing and your account is removed. You can also email {EMAIL}. When you sign out while paying for a plan, Verth asks whether you want to cancel it too; signing out alone doesn’t cancel it.</p>
+<p>You can stop using Verth at any time. To delete your account, open your profile (tap your picture), choose <b>Delete my account</b> and type DELETE: any subscription you pay for stops renewing and your account is removed. You can also email {EMAIL}. When you sign out while paying for a plan, Verth asks whether you want to cancel it too; signing out alone doesn’t cancel it.</p>
+<h2>Copyright</h2>
+<p>Verth’s name, logo, content, videos and software belong to {OWNER}. See <a href="copyright.html">Copyright and Trademarks</a> for what you may and may not do with them.</p>
 <h2>Changes and law</h2>
 <p>We may update these terms; the date below shows the latest version and we’ll tell you by email about important changes. These terms are governed by the laws of India, and disputes are subject to the courts of India.</p>
 """),
@@ -51,26 +53,58 @@ PAGES = {
 <li><b>Payment receipts:</b> Pay safely records and the paid / received confirmations are end-to-end encrypted like chat messages; only the two people can read them.</li>
 <li><b>UPI ID (optional):</b> if you add a UPI ID for “Pay safely”, the people in that circle can see it and when you last changed it. Verth never sees or processes your payments.</li>
 <li><b>Organisation staff lists (optional):</b> an organisation’s admins can add the names and work emails of people they expect to join, and can limit joining to their company’s email domain. Only that circle’s admins can see the list, and they can remove entries at any time.</li>
-<li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in the Plan tab.</li>
+<li><b>Fingerprint / face login (optional):</b> your phone or computer checks your fingerprint, face or screen lock itself. Verth never receives any biometric data; it only stores a public security key and the device name you turned it on from, so it can recognise your device. You can remove it any time in your profile.</li>
 <li><b>Circles and checks:</b> the circles you create or join, your role, the verification requests you send or answer (who, what was asked in your words, the channel, the answer and time).</li>
 <li><b>Device keys:</b> public keys that tie your answers to your own device, plus a simple device label like “Chrome on Android”. Private keys never leave your device.</li>
 <li><b>Scam check:</b> the text you paste, and any screenshot or photo you choose, is checked on your device and is <b>not</b> uploaded or stored. We keep only a count of checks (daily for text, in total for photos). If Verth finds something to be a scam, it stores a one-way scrambled fingerprint of it, never the text.</li>
 <li><b>Payments:</b> your subscription ID, plan, status and renewal date. Card, UPI and bank details are collected and processed by Razorpay, not by Verth.</li>
 <li><b>Verth Helper:</b> common questions are answered on your device from the built-in guide. Questions the guide can’t answer are sent, with the last few messages of that chat, through our server to Google Gemini to write a reply. We don’t store the chat, and anything that looks like an OTP, PIN, password or card number is never sent. Please don’t type personal details into the helper.</li>
 <li><b>Email login codes:</b> to log in with a code, your email address is sent to our email provider (Brevo) to deliver the code. We keep only a scrambled fingerprint of your email and code for a short time to check it and to stop abuse.</li>
-<li><b>Mobile number check:</b> to verify your mobile number, it is sent to our SMS provider (2Factor) to deliver a one-time code. We keep a scrambled fingerprint of the number so one number can verify only one Verth account, and remove it when you delete your account.</li></ul>
+<li><b>“I’m not a robot” check:</b> when you ask for an email code, Cloudflare Turnstile checks that a real person is using the page. Cloudflare looks at technical signals from your browser (not your identity) and gives us only a yes or no.</li>
+<li><b>Bank name for a UPI ID:</b> when you type a UPI ID, or open “Pay safely”, the ID is sent through our server to Razorpay to look up the name the bank account is registered to, so you can see who you are really paying. We don’t store these lookups, and each person can make only a limited number a day.</li>
+<li><b>Kept only on your device:</b> your scam check history, your daily safety check-up ticks, app lock setting, video language and similar settings stay in your browser on this device. They are never sent to us, and clearing your browser data removes them.</li>
+<li><b>Mobile number check (when switched on):</b> to verify your mobile number, it is sent to our SMS provider (2Factor) to deliver a one-time code. We keep a scrambled fingerprint of the number so one number can verify only one Verth account, and remove it when you delete your account.</li></ul>
 <h2>What we don’t do</h2>
-<p>Verth never reads your SMS, WhatsApp, calls or email. We don’t sell your data, show ads, or use your data for marketing by others.</p>
+<p>Verth never reads your SMS, WhatsApp, calls, contacts, photos or email unless you choose to paste or pick them, and even then they are checked on your phone. We don’t sell your data, show ads, or use your data for marketing by others.</p>
+<h2>Cookies and tracking</h2>
+<p>Verth uses no advertising or tracking cookies and no analytics that follow you around the web. We use your browser’s storage only to keep you signed in, remember your settings, and make the app work offline. The how-to videos are served from our own website and don’t track you.</p>
 <h2>Who processes data for us</h2>
-<p>Google Firebase (accounts and database), Razorpay (payments), Cloudflare (our server for payments, login codes and AI help), Brevo (sends login codes by email), 2Factor (sends mobile verification codes by SMS), GitHub Pages (website hosting), and Google Gemini (AI answers in Verth Helper). Each processes data only to provide their service.</p>
+<p>Google Firebase (accounts and database), Razorpay (payments and UPI ID name checks), Cloudflare (our server for payments, login codes and AI help, and the “I’m not a robot” check), Brevo (sends login codes by email), 2Factor (sends mobile verification codes by SMS), GitHub Pages (website hosting), and Google Gemini (AI answers in Verth Helper). Each processes data only to provide their service.</p>
 <h2>Keeping and deleting data</h2>
-<p>We keep your data while your account is active. The verification log of a circle is kept for the circle’s records. To see, correct or delete your data, or to withdraw consent, email {EMAIL}; we reply within 7 days and complete deletion within 30 days, except records we must keep by law (such as payment records).</p>
+<p>We keep your data while your account is active. The verification log of a circle is kept for the circle’s records. You can delete your account yourself in your profile; this removes your account, profile and sign-in keys. Some of these services may store data outside India, under their own security and privacy commitments.</p>
+<h2>Your rights</h2>
+<p>Under India’s Digital Personal Data Protection Act, 2023 you can ask to see the personal data we hold about you, correct or update it, delete it, withdraw your consent, and name someone to act for you if you can’t. Email {EMAIL}; we reply within 7 days and complete deletion within 30 days, except records we must keep by law (such as payment records). You can also complain to the Data Protection Board of India.</p>
 <h2>Security</h2>
-<p>Data is protected by Firebase security rules, device-bound signatures and encrypted connections. No system is perfectly secure; if a breach affects you, we’ll tell you and the authorities as the law requires.</p>
+<p>We protect your data with several layers:</p>
+<ul><li>Every connection uses HTTPS. Private chats, files and payment receipts are end-to-end encrypted on your phone.</li>
+<li>Your answers to checks are signed with a key that never leaves your device, so a stolen password alone can’t fake them. Fingerprint / face login uses passkeys, which can’t be phished.</li>
+<li>Strict database rules decide exactly who can read or change each record, and are tested automatically before every update.</li>
+<li>Login codes, AI help and lookups are rate-limited, and an “I’m not a robot” check blocks automated sign-up attempts.</li>
+<li>The website refuses to load scripts from unknown places and can’t be shown inside other websites (to stop look-alike tricks).</li>
+<li>Our code is scanned automatically for security weaknesses, leaked keys and libraries with known security holes.</li></ul>
+<p>No system is perfectly secure. If a breach affects you, we’ll tell you and the authorities as the law requires. Found a security problem? Please email {EMAIL} privately (see our <a href="https://github.com/Umeshdk22/verth/blob/main/SECURITY.md">security policy</a>).</p>
 <h2>Children</h2>
 <p>People under 18 should use Verth with a parent or guardian, for example as part of a family circle.</p>
 <h2>Grievance officer</h2>
 <p>{OWNER}, {EMAIL}. Questions or complaints about your data are answered within 7 days.</p>
+"""),
+    "copyright": ("Copyright and Trademarks", f"""
+<p>© 2026 {OWNER}. All rights reserved.</p>
+<p>The Verth name and shield logo, this website and app, their design, text, illustrations, how-to videos, voice-overs and music, and the Verth software are owned by {OWNER} ({PLACE}) and protected by the Copyright Act, 1957 and other laws.</p>
+<h2>What you may do</h2>
+<ul><li>Use Verth for yourself, your family and your organisation under our <a href="terms.html">Terms</a>.</li>
+<li>Share links to Verth pages and videos, and quote small parts of our safety tips with credit to Verth, to help others stay safe.</li>
+<li>Read our source code on GitHub to check how Verth protects you, and report security problems as described in our security policy.</li></ul>
+<h2>What you may not do</h2>
+<ul><li>Copy, re-publish, sell or build on Verth’s code, design, videos or content, or make a look-alike app or website, without written permission.</li>
+<li>Use the Verth name or logo in a way that suggests we made, support or endorse something we didn’t. Anyone claiming to be “Verth support” on a call or chat is a scammer.</li></ul>
+<p>Being able to see the code on GitHub does not give a licence to reuse it.</p>
+<h2>Other people’s work we use</h2>
+<ul><li>Fonts: Hind, Rozha One, Kalam and IBM Plex Mono, under the SIL Open Font License 1.1.</li>
+<li>Software: Firebase JavaScript SDK, Tesseract.js and jsQR (Apache License 2.0), qrcode-generator and the Tesseract English language data (MIT License).</li>
+<li>Names of banks, companies, apps and government bodies (such as SBI, TCS, Paytm or Razorpay) belong to their owners. Verth mentions them only to warn people about scams that pretend to be them, or to name a service we use; this doesn’t mean they endorse Verth.</li></ul>
+<h2>Reporting a copyright problem</h2>
+<p>If you believe something on Verth uses your work without permission, email {EMAIL} with the page, the work and your contact details. We’ll respond within 7 days.</p>
 """),
     "refunds": ("Cancellation and Refund Policy", f"""
 <h2>Cancelling</h2>
@@ -116,7 +150,7 @@ PAGES = {
 """),
 }
 
-NAV = [("pricing", "Pricing"), ("terms", "Terms"), ("privacy", "Privacy"), ("refunds", "Refunds"), ("shipping", "Shipping"), ("contact", "Contact")]
+NAV = [("pricing", "Pricing"), ("terms", "Terms"), ("privacy", "Privacy"), ("copyright", "Copyright"), ("refunds", "Refunds"), ("shipping", "Shipping"), ("contact", "Contact")]
 
 TEMPLATE = """<!doctype html>
 <html lang="en">
@@ -147,6 +181,7 @@ TEMPLATE = """<!doctype html>
 .legal ul{{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}}
 .pol-hero .upd{{font-size:14px;margin:6px 0 0}}
 .legal nav.pol{{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:22px;font-size:14px}}
+.legal .copy{{margin-top:10px;font-size:13px;color:var(--muted)}}
 .legal nav.pol a{{color:var(--muted)}} .legal nav.pol a[aria-current]{{color:var(--accent)}}
 .contact-card{{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}}
 .price-table{{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}}
@@ -167,6 +202,7 @@ TEMPLATE = """<!doctype html>
 {body}
 </article>
 <nav class="pol" aria-label="Policies">{nav}</nav>
+<p class="copy">© 2026 {owner} · Verth. All rights reserved.</p>
 </div>
 </body>
 </html>
@@ -175,5 +211,5 @@ TEMPLATE = """<!doctype html>
 for slug, (title, body) in PAGES.items():
     cur = ' aria-current="page"'
     nav = " ".join(f'<a href="{s}.html"{cur if s == slug else ""}>{t}</a>' for s, t in NAV)
-    (ROOT / f"{slug}.html").write_text(TEMPLATE.format(title=title, body=body.strip(), updated=UPDATED, nav=nav), encoding="utf-8")
+    (ROOT / f"{slug}.html").write_text(TEMPLATE.format(title=title, body=body.strip(), updated=UPDATED, nav=nav, owner=OWNER), encoding="utf-8")
     print("wrote", slug + ".html")

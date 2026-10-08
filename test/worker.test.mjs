@@ -706,3 +706,10 @@ test('UPI name: returns the bank name, says when an ID has no account, and quiet
   await assert.rejects(upiName({ vpa: 'not a upi' }, u, e, fsx, reply(200, {})), /UPI/);
   assert.deepEqual(await upiName({ vpa: 'a.b@okaxis' }, u, {}, fsx, reply(200, {})), { available: false });
 });
+test('every server answer carries strict security headers', async () => {
+  const { handle: h } = await import('../worker/src/index.js');
+  const r = await h(new Request('https://w.example/health'), {}, {});
+  for (const [k, v] of [['x-frame-options', 'DENY'], ['x-content-type-options', 'nosniff'], ['referrer-policy', 'no-referrer'], ['cache-control', 'no-store']]) assert.equal(r.headers.get(k), v);
+  assert.match(r.headers.get('strict-transport-security'), /max-age=\d+/);
+  assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'none'/);
+});

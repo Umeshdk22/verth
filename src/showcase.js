@@ -180,7 +180,7 @@ export function helplineBand() {
 }
 
 export function signOff() {
-  return `<p class="sign-off">Made with care in India <span aria-hidden="true">${IC.heart}</span> Stay alert, stay safe.</p>`;
+  return `<p class="sign-off">Made with care in India <span aria-hidden="true">${IC.heart}</span> Stay alert, stay safe.</p><p class="legal-links">© 2026 Verth · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="copyright.html" target="_blank" rel="noopener">Copyright</a></p>`;
 }
 
 // A colourful page header for the other tabs.

@@ -8,7 +8,7 @@
     "watch": "esbuild src/app.js --bundle --format=esm --sourcemap --target=es2020 --outfile=assets/app.js --watch",
     "test:rules": "firebase emulators:exec --only firestore --project demo-verth \"node --test test/rules.test.mjs\"",
     "test:e2e": "bash test/run-e2e.sh",
-    "test:unit": "node --test test/scamcheck.test.mjs test/helper.test.mjs test/worker.test.mjs",
+    "test:unit": "node --test test/scamcheck.test.mjs test/helper.test.mjs test/worker.test.mjs test/guard.test.mjs",
     "build:ocr": "mkdir -p assets/ocr && cp node_modules/tesseract.js/dist/worker.min.js node_modules/tesseract.js-core/tesseract-core-lstm.wasm.js node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js node_modules/tesseract.js-core/tesseract-core-relaxedsimd-lstm.wasm.js assets/ocr/ && cp node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz assets/ocr/ && esbuild src/imagecheck.js --bundle --format=esm --minify --target=es2020 --outfile=assets/ocr/imagecheck.js"
   },
   "dependencies": {
@@ -24,5 +24,8 @@
     "esbuild": "0.28.2",
     "playwright": "^1.63.0"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.6"
+  }
 }
