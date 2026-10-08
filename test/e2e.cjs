@@ -553,6 +553,11 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.click('button:has-text("Check it")');
     await C.getByRole('heading', { name: 'No obvious red flags' }).waitFor({ timeout: 5000 * SLOW });
     await shot(C, '13-C-scan-only');
+    // Without a circle, the whole app is still there: tabs lead to the other sections.
+    await C.click('nav >> text=Home'); await C.locator('.setup-card').first().waitFor({ timeout: 3000 * SLOW }); await C.evaluate(() => window.scrollTo(0, 0)); await C.screenshot({ path: OUT + '/13a-C-solo-home.png' });
+    await C.click('nav >> text=Verify'); await C.getByRole('heading', { name: 'Verify works with your circle' }).waitFor({ timeout: 3000 * SLOW }); await C.screenshot({ path: OUT + '/13b-C-solo-verify.png' });
+    await C.click('nav >> text=Plan'); await C.getByRole('heading', { name: 'Family and Team plans' }).waitFor({ timeout: 3000 * SLOW });
+    await C.click('nav >> text=Scan');
     // A fake exam offer shared to Verth from another app (Android share sheet) opens ready to check.
     const offer = 'From: TCS Recruitment <hr.tcs.careers@gmail.com>\nCongratulations! You have been shortlisted for the TCS online exam. Pay the refundable exam fee of Rs 1500 to confirm your slot: https://tcs-careers-india.in/slot';
     await C.goto(URL + '&share_text=' + encodeURIComponent(offer));

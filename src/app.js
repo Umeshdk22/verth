@@ -1116,30 +1116,61 @@ async function scanPhoto(f) {
   loadReportCount(r);
 }
 
+// People who haven't joined or made a circle yet still get the whole app: Scan and the safety
+// check-up work straight away, and Verify, Chat and Circle explain what a circle adds and set one up.
+function setupCircleCard(title, text) {
+  return `<section class="card setup-card"><h2>${title}</h2><p class="muted">${text}</p>
+    <div class="setup-opts">
+      <button class="setup-opt" data-act="setup" data-type="family">${ICON.people}<b>Family circle</b><span>Parents, children, relatives</span></button>
+      <button class="setup-opt" data-act="setup" data-type="org">${ICON.check}<b>Organisation</b><span>Your company or team</span></button>
+      <button class="setup-opt" data-act="setup" data-type="join">${ICON.share}<b>I have an invite code</b><span>Join someone’s circle</span></button>
+    </div></section>`;
+}
 function renderScanOnly() {
   S.scanOnly = true; stopListeners(); S.circle = null; S.circleId = null;
+  if (S.profileOpen) { S.soloTab = 'profile'; S.profileOpen = false; }
+  if (S.guardOpen) { S.soloTab = 'guard'; S.guardOpen = false; }
+  const tab = S.soloTab || 'home';
   const interest = S.profile?.upgradeInterest?.plan;
+  const personal = S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹149 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
+        ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`;
+  const pending = S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : '';
+  const views = {
+    home: () => `${inTrial() ? videoCard('intro') : ''}${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}${pending}
+      ${quoteCarousel()}
+      <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
+      ${quickTiles([
+        ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet'],
+        ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal'],
+        ['scan-kind', 'Check a phone number', 'Who is calling?', 'ask', 'data-kind="phone"', 'amber'],
+        ['scan-kind', 'Check a link', 'Before you tap it', 'code', 'data-kind="link"', 'red'],
+      ])}
+      ${guardCard()}
+      ${setupCircleCard('Protect your family or team', 'Set up a circle to check money requests with the real person, on their own phone, before anyone pays or shares anything. It also opens private chat and Pay safely.')}
+      ${alertShow()}${rulesGrid()}${helplineBand()}${signOff()}`,
+    scan: () => `${pageHead('Scam check', 'Is it real or a scam?', 'Check a message, job offer, link, number or screenshot in seconds.', 'scan', 'violet')}${videoCard('scan')}${viewScan()}`,
+    verify: () => `${pageHead('Verify', 'Is it really them?', 'Ask the real person on their own phone, or check the code they read out.', 'shield', 'amber')}${videoCard('verify')}
+      ${setupCircleCard('Verify works with your circle', 'When a message “from your boss” or “from your son” asks for money, Verth asks the real person on their own phone. Add them to a circle first, then checks take one tap.')}`,
+    chat: () => `${pageHead('Private chat', 'Talk privately', 'Messages, documents and payments between two people. Locked to your two phones.', 'sms', 'teal')}${videoCard('chat')}
+      ${setupCircleCard('Chat with people in your circle', 'Private, end-to-end encrypted chat, files like certificates, and Pay safely with receipts. Start a circle or join one to begin.')}`,
+    circle: () => `${pageHead('Your circle', 'Your people', 'The family or colleagues you check money requests with.', 'family', 'teal')}${videoCard('circle')}${pending}
+      ${setupCircleCard('You’re not in a circle yet', 'Make a family circle, set up your organisation, or join with an invite code someone sent you. Nobody gets in without approval.')}`,
+    plan: () => `${pageHead('Plan & account', 'Plans and billing', 'Your plan, your free trial and this device.', 'key', 'amber')}${videoCard('plan')}${personal}
+      <section class="card"><h2>Family and Team plans</h2><p class="muted">Family (₹199 a month, up to 10 people) and Team (₹299 a month, no limit) protect everyone in a circle. Set up a circle to choose one.</p>
+        <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div></section>
+      ${accountCard()}`,
+    guard: () => `${videoCard('guard')}${viewGuard()}`,
+    profile: () => viewProfile(),
+  };
   paint(`<div class="app solo">
-    <header class="top">${brand}<div class="circle-pick"><b>Scam check</b><span class="tag">${esc(S.user.email)}</span></div>${headAvatar()}</header>
+    <header class="top">${brand}<div class="circle-pick"><b>${esc(String(S.profile?.name || S.user.displayName || 'My Verth').split(/\s+/)[0])}’s Verth</b><span class="tag">${esc(S.user.email)}</span></div>${headAvatar()}</header>
     <main class="content">
       ${trialBanner()}
-      ${S.profileOpen ? '' : videoCard(S.guardOpen ? 'guard' : 'scan')}
-      ${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}
-      ${S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : ''}
-      ${S.profileOpen ? `<button class="link" data-act="profile-close">‹ Back to Scam check</button>${viewProfile()}` : S.guardOpen ? `<button class="link" data-act="guard-close">‹ Back to Scam check</button>${viewGuard()}` : `${viewScan()}${guardCard()}`}
-      ${quoteCarousel()}
-      ${alertShow()}
-      <section class="card"><h2>Protect your family or team</h2><p class="muted">Set up a circle to check requests with the real person, on their own phone, before anyone pays or shares anything.</p>
-        <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div>
-        <button class="link" data-act="setup" data-type="join">I have an invite code</button></section>
-      ${S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹149 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
-        ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`}
-      ${rulesGrid()}
-      ${helplineBand()}
-      ${S.profileOpen ? '' : accountCard()}
-      <div class="links"><button class="link" data-act="replay">Replay the welcome tour</button></div>
-      ${signOff()}
-    </main>${rail()}</div>`);
+      ${(views[tab] || views.home)()}
+    </main>
+    <nav class="tabs" aria-label="Sections">${TABS.map(([id, label, ic]) => `<button class="${tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}" aria-current="${tab === id ? 'page' : 'false'}">${ic}<span>${label}</span></button>`).join('')}
+      ${[['guard', 'Safety check-up', ICON.shield], ['profile', 'My profile', ICON.user]].map(([id, label, ic]) => `<button class="xtra ${tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}">${ic}<span>${label}</span></button>`).join('')}
+    </nav>${rail()}</div>`);
 }
 
 // Billing details shown to the person who pays (and, for circles, to everyone in it).
@@ -1476,7 +1507,7 @@ async function afterSignIn(preferId) {
   const wantScan = takeShared();
   if (wantScan) S.tab = 'scan';
   if (!ids.length) {
-    if (wantScan) return renderScanOnly();
+    if (wantScan) { S.soloTab = 'scan'; return renderScanOnly(); }
     if (S.pending.length) return renderPending();
     if (S.profile.onboarded) return renderScanOnly();
     S.tourStep = 0;
@@ -1606,14 +1637,14 @@ const actions = {
   'tour-skip': () => { S.tourStep = TOUR.length - 1; renderTour(); },
   'tour-choose': (el) => {
     if (!S.profile.onboarded) { S.profile.onboarded = true; updateDoc(doc(db, 'users', S.user.uid), { onboarded: true }).catch(() => {}); }
-    if (el.dataset.type === 'scan') { if (Object.keys(S.circles).length) { S.tab = 'scan'; return afterSignIn(S.circleId); } return renderScanOnly(); }
+    if (el.dataset.type === 'scan') { if (Object.keys(S.circles).length) { S.tab = 'scan'; return afterSignIn(S.circleId); } S.soloTab = 'scan'; return renderScanOnly(); }
     renderSetup(el.dataset.type);
   },
   'scan-only': () => renderScanOnly(),
   'scan-kind': (el) => {
     S.scanKind = el.dataset.kind; S.scanResult = null;
-    const jump = S.circle && S.tab !== 'scan';
-    if (jump) S.tab = 'scan';
+    const jump = S.circle ? S.tab !== 'scan' : (S.soloTab || 'home') !== 'scan';
+    if (jump) { if (S.circle) S.tab = 'scan'; else S.soloTab = 'scan'; }
     renderScanView();
     if (jump) window.scrollTo(0, 0); else document.querySelector('.kinds')?.scrollIntoView({ block: S.scanOnly ? 'start' : 'nearest', behavior: 'smooth' });
   },
@@ -1623,8 +1654,8 @@ const actions = {
   'setup-back': () => (clearInvite(), S.circle ? renderMain() : S.pending.length ? renderPending() : S.profile?.onboarded ? renderScanOnly() : (S.tourStep = TOUR.length - 1, renderTour())),
   setup: (el) => renderSetup(el.dataset.type),
   replay: () => { S.tourStep = 0; renderTour(); },
-  tab: (el) => { if (S.chatWith) closeChat(); S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
-  goverify: (el) => { S.tab = 'verify'; S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
+  tab: (el) => { if (!S.circle) { S.soloTab = el.dataset.tab; renderScanOnly(); window.scrollTo(0, 0); return; } if (S.chatWith) closeChat(); S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
+  goverify: (el) => { if (!S.circle) { S.soloTab = 'verify'; renderScanOnly(); window.scrollTo(0, 0); return; } S.tab = 'verify'; S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   vmode: (el) => { S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   newcheck: () => { S.lastSentId = null; renderMain(); },
   notify: async () => { try { await Notification.requestPermission(); } catch {} renderMain(); },
@@ -2293,7 +2324,7 @@ Object.assign(actions, {
   'chat-open': (el) => { S.tab = 'chat'; openChat(el.dataset.uid); renderMain(); },
   'chat-back': () => { closeChat(); renderMain(); },
   'guard-open': () => { if (S.circle) { S.tab = 'guard'; renderMain(); } else { S.guardOpen = true; renderScanView(); } window.scrollTo(0, 0); },
-  'guard-close': () => { S.guardOpen = false; renderScanView(); },
+  'guard-close': () => { S.guardOpen = false; S.soloTab = 'home'; renderScanView(); },
   'guard-repeat': () => { guardRepeat(); toast('Confirmed for today. Well done! 🛡️', 'ok'); renderScanView(); },
   'guard-tick': (el) => { guardSet(el.dataset.id, !el.closest('.g-item').classList.contains('done')); renderScanView(); },
   'trial-plans': () => { store.set('verth-trial-seen', 1); if (S.circle) { S.tab = 'plan'; renderMain(); } else renderScanView(); },
@@ -2726,7 +2757,7 @@ async function savePhoto(url) {
 }
 Object.assign(actions, {
   'profile-open': () => { if (S.circle) { if (S.chatWith) closeChat(); S.tab = 'profile'; renderMain(); } else { S.profileOpen = true; S.guardOpen = false; renderScanView(); } window.scrollTo(0, 0); },
-  'profile-close': () => { S.profileOpen = false; renderScanView(); },
+  'profile-close': () => { S.profileOpen = false; S.soloTab = 'scan'; renderScanView(); },
   'photo-remove': async () => { try { await savePhoto(null); toast('Photo removed.'); } catch (e) { toast(friendlyError(e), 'bad'); } },
   'hist-clear': () => { store.set(histKey(), []); rerender(); },
 });
@@ -2965,11 +2996,11 @@ function helperGo(to, text) {
     const kind = to.split('-')[1] || 'message';
     S.scanKind = kind; S.scanResult = null;
     S.prefill = text ? { kind, text: text.slice(0, 6000), from: 'helper' } : null;
-    if (!S.circle) { renderScanOnly(); window.scrollTo(0, 0); return; }
+    if (!S.circle) { S.soloTab = 'scan'; renderScanOnly(); window.scrollTo(0, 0); return; }
     to = 'scan';
   }
   if (to === 'guard') return actions['guard-open']();
-  if (!S.circle) { toast('Set up or join a circle first to use that.'); return; }
+  if (!S.circle) { S.soloTab = ['verify', 'chat', 'circle', 'plan', 'profile', 'home'].includes(to) ? to : 'home'; renderScanOnly(); window.scrollTo(0, 0); return; }
   S.tab = to; S.confirmRemove = null; if (to === 'verify') S.codeResult = null;
   renderMain(); window.scrollTo(0, 0);
 }

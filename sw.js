@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-1bb30e30ab';
-const SHELL = ['app.html', './', 'assets/verth.css?v=9312a67245', 'assets/fonts.css?v=21274b4724', 'assets/app.js?v=3e50b76373', 'assets/helper.js?v=e61fabd6b2', 'assets/site.js?v=8963b9a74f', 'assets/splash.js?v=b96e382081', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-a65b262f81';
+const SHELL = ['app.html', './', 'assets/verth.css?v=528c95ddc6', 'assets/fonts.css?v=21274b4724', 'assets/app.js?v=91139a0325', 'assets/helper.js?v=e61fabd6b2', 'assets/site.js?v=8963b9a74f', 'assets/splash.js?v=b96e382081', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   // 'reload' skips the browser's own short-term cache, so the saved copies are really the new ones.
