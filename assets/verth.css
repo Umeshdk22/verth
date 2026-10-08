@@ -3,7 +3,7 @@
   --bg:#F6F4FF; --surface:#FFFFFF; --surface-2:#F4F1FD; --ink:#16132B; --muted:#5F5A78; --line:#E4DFF4;
   --accent:#6B3DF0; --accent-2:#5A2FDB; --accent-ink:#FFFFFF; --accent-soft:rgba(107,61,240,.10);
   --teal:#0E8C7E;
-  --ok:#0F9D6B; --ok-bg:rgba(15,157,107,.10); --bad:#DC3545; --bad-bg:rgba(220,53,69,.08); --wait:#B26A00; --wait-bg:rgba(245,166,35,.14);
+  --ok:#0A855A; --ok-bg:rgba(15,157,107,.10); --bad:#DC3545; --bad-bg:rgba(220,53,69,.08); --wait:#B26A00; --wait-bg:rgba(245,166,35,.14);
   --display:"Rozha One","Hind",Georgia,serif;
   --body:"Hind","Segoe UI",system-ui,sans-serif;
   --arch:22px;
@@ -485,6 +485,7 @@ label.check input{width:20px;height:20px;min-height:0;margin:2px 0 0;flex:none;a
 .steps3 li span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#EEE9FB;color:var(--muted);font-weight:700}
 .steps3 li.now{color:var(--accent)}.steps3 li.now span{background:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-soft)}
 .steps3 li.done{color:var(--ok)}.steps3 li.done span{background:var(--ok);color:#fff}
+.steps3 li.skip{color:var(--muted)}.steps3 li.skip span{background:#E4DFF4;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.btn.bio.glow{animation:none}}
 
 /* inviting people */
@@ -878,7 +879,7 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
   .sec-hd.plain{display:block}.sec-hd.plain>.eyebrow{display:block;margin-bottom:4px}
   .rq-wrap blockquote{margin:0;font-family:var(--display);font-size:21px;line-height:1.3}
   .rq-wrap figcaption{margin-top:8px;font-size:13.5px;color:rgba(255,255,255,.75)}
-  @keyframes rqFade{0%{opacity:.001}1%,9%{opacity:1;transform:none}10.5%,100%{opacity:0;transform:translateY(-8px)}}
+  @keyframes rqFade{0%,1.2%{opacity:0;transform:translateY(8px)}2.6%,9%{opacity:1;transform:none}10%,100%{opacity:0;transform:translateY(-8px)}}
   .rl-tip{display:flex;gap:12px;background:linear-gradient(135deg,#FFF6DA,#FFE7A3)!important;border-color:transparent!important}
   .rl-tip .rt-ic{font-size:26px}
   .rl-tip b{display:block;font-size:16px;margin:2px 0}
@@ -1036,3 +1037,7 @@ html.hv-open{overflow:hidden}
 @media (max-width:620px){.setup-opts{grid-template-columns:1fr}.setup-opt{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:10px}.setup-opt svg{margin:0}.setup-opt span{flex-basis:100%;padding-left:36px;margin-top:-4px}}
 /* Help button: never on top of the profile picture */
 body.no-tabs:has(.top .me-btn) .vh{top:auto;bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+/* Any icon inside a button stays button-sized, unless a rule above says otherwise */
+:where(.btn)>svg{width:20px;height:20px;flex:none;vertical-align:-4px;margin-right:6px}
+/* Website pages on phones: a round help button, so it never covers page buttons */
+@media (max-width:560px){body:not(.has-tabs):not(.no-tabs) .vh-fab{width:50px;min-height:50px;padding:0;justify-content:center}body:not(.has-tabs):not(.no-tabs) .vh-fab span{display:none}}

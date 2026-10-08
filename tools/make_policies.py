@@ -105,6 +105,7 @@ PAGES = {
 """),
     "pricing": ("Pricing", """
 <p>All prices are in Indian Rupees, per month, and include applicable taxes. Paid plans renew monthly until you cancel.</p>
+<p><b>7-day free trial:</b> every new account gets everything unlimited for its first 7 days, with no card needed. After that you stay on Free unless you choose a paid plan.</p>
 <div class="price-table">
 <div><h2>Free</h2><p class="amt">₹0</p><ul><li>Up to 5 people in a circle</li><li>20 verification checks a month</li><li>2 scam checks a day</li><li>5 free photo / screenshot checks</li><li>12 private messages and 3 Pay safely payments a day</li></ul></div>
 <div><h2>Personal</h2><p class="amt">₹149 <small>/ month</small></p><ul><li>Unlimited scam checks for you</li><li>Unlimited photo / screenshot checks</li><li>Unlimited private chat and Pay safely</li><li>Everything in Free</li></ul></div>

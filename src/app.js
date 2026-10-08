@@ -301,7 +301,7 @@ function readPerson(f, p) {
 }
 const smsStep = () => S.smsOn && (S.profile?.phone || S.signupInfo?.phone || '+91').startsWith('+91');
 const STEP_NAMES = () => ['Your details', 'Verify email', ...(smsStep() ? ['Verify mobile'] : []), ...(passkeySupported() ? ['Fingerprint'] : []), 'You’re in'];
-const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => `<li class="${i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"><span>${i + 1 < n ? '✓' : i + 1}</span>${t}</li>`).join('')}</ol>`;
+const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => { const skip = i + 1 < n && t === 'Fingerprint' && !store.get('verth-pk'); return `<li class="${skip ? 'skip' : i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"${skip ? ' title="Skipped. You can turn it on later."' : ''}><span>${skip ? '–' : i + 1 < n ? '✓' : i + 1}</span>${t}</li>`; }).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
   const pk = passkeySupported();
@@ -1063,7 +1063,7 @@ function viewScan() {
       <p class="muted">What do you want to check? Tap one.</p>
       ${tiles}
       ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary big" type="submit" ${S.photoBusy ? 'disabled' : ''}>${S.photoBusy ? '<span class="spin" aria-hidden="true"></span> Reading your picture…' : 'Check it'}</button></form>`}
-      <p class="muted small">${img ? 'Your picture stays on your phone. Verth reads it here and never uploads it.' : 'Checks run on your device. Verth doesn’t store what you paste.'} If you report something, only a scrambled fingerprint of it is saved.</p></section>
+      <p class="muted small">${img ? 'Your picture stays on your phone. Verth reads it here and never uploads it.' : 'Checks run on your device. Verth doesn’t store what you paste.'} If it turns out to be a scam, Verth saves only a scrambled fingerprint so others are warned.</p></section>
     ${left === 0 && !r ? limitCard : ''}
     ${r ? scanResultCard(r) : ''}`;
 }
@@ -2694,7 +2694,7 @@ function viewProfile() {
   const p = S.profile || {}, [k, label] = badgeOf(), hist = scanHist(), c = countryBy(p.country || 'IN');
   const since = p.createdAt ? new Date(tsMs(p.createdAt)).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '';
   const mineChecks = (S.checks || []).filter((x) => x.fromUid === S.user.uid || x.toUid === S.user.uid);
-  const caught = hist.filter((x) => x.v === 'danger').length, reported = hist.filter((x) => x.rep).length;
+  const caught = hist.filter((x) => x.v === 'danger').length;
   const badge = k === 'trial' ? `✨ Free trial · ${trialDaysLeft() <= 1 ? 'last day' : `${trialDaysLeft()} days left`}` : k === 'free' ? 'Free plan' : `${label} member`;
   const kindName = { message: 'Message', link: 'Link', phone: 'Number', job: 'Job offer', image: 'Photo' };
   const vName = { danger: ['bad', 'Scam'], caution: ['wait', 'Careful'], clear: ['ok', 'No flags'] };
@@ -2716,13 +2716,13 @@ function viewProfile() {
     <section class="pf-stats">
       <div><b>${hist.length}</b><span>Scam checks</span></div>
       <div class="bad"><b>${caught}</b><span>Scams caught</span></div>
-      <div><b>${reported}</b><span>Reported</span></div>
+      <div><b>${guardScore()}<small>/10</small></b><span>Phone safety today</span></div>
       <div><b>${mineChecks.length}</b><span>Verify checks</span></div>
     </section>
     ${k === 'free' || k === 'trial' ? `<section class="pf-up"><div><b>${k === 'trial' ? 'Enjoying everything unlimited?' : 'Get the full Verth'}</b><span>Unlimited checks, chat and payments, and a ${BADGE_IC.personal} badge on your profile.</span></div><button class="btn gold" data-act="${S.circle ? 'tab' : 'trial-plans'}" data-tab="plan">See plans</button></section>` : ''}
     <section class="card"><div class="split"><h2>Scam check history</h2>${hist.length ? '<button class="link small" data-act="hist-clear">Clear</button>' : ''}</div>
       <p class="muted small">${ICON.lock} Kept only on this phone. Verth’s servers never see what you check.</p>
-      ${hist.length ? `<ul class="list sh-list">${hist.slice(0, 30).map((x) => `<li><span class="sh-k">${kindName[x.k] || 'Check'}</span><span class="grow"><b>${esc(x.l || '—')}</b><span class="muted small">${ago(x.at)}${x.rep ? ' · you reported it' : ''}</span></span><span class="pill ${vName[x.v]?.[0] || 'wait'}">${vName[x.v]?.[1] || ''}</span></li>`).join('')}</ul>` : '<p class="muted">No checks yet. Anything you check in Scam check appears here.</p>'}
+      ${hist.length ? `<ul class="list sh-list">${hist.slice(0, 30).map((x) => `<li><span class="sh-k">${kindName[x.k] || 'Check'}</span><span class="grow"><b>${esc(x.l || '—')}</b><span class="muted small">${ago(x.at)}</span></span><span class="pill ${vName[x.v]?.[0] || 'wait'}">${vName[x.v]?.[1] || ''}</span></li>`).join('')}</ul>` : '<p class="muted">No checks yet. Anything you check in Scam check appears here.</p>'}
       <button class="btn ghost small" data-act="${S.circle ? 'tab' : 'profile-close'}" data-tab="scan">Check something</button></section>
     ${S.circle ? `<section class="card"><div class="split"><h2>Verification history</h2><button class="link small" data-act="tab" data-tab="log">Full log</button></div>
       ${mineChecks.length ? `<ul class="list">${mineChecks.slice(0, 8).map(logRow).join('')}</ul>` : '<p class="muted">No checks with your circle yet.</p>'}</section>

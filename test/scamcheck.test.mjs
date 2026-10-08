@@ -198,3 +198,20 @@ test('photo: blank or unreadable pictures are reported, not judged', () => {
   assert.equal(cleanOcr('visit https:/ /x.com'), 'visit https://x.com');
   assert.equal(cleanOcr('Scan to receive\na\n[=] 0 gL. [=]\nEL Ta\nronn\nyour money now'), 'Scan to receive\nronn\nyour money now');
 });
+
+test('real-world examples: common Indian scams are high risk, everyday messages are not', async () => {
+  const { check } = await import('../src/scamcheck.js');
+  const danger = [
+    ['message', 'Dear consumer your electricity power will be disconnected tonight at 9.30pm because your previous month bill was not updated. Please immediately contact our electricity officer 9876543210'],
+    ['message', 'Congratulations! You have won Rs 25,00,000 in KBC lottery. To claim pay processing fee Rs 5000 to this UPI id kbc@ybl'],
+    ['message', 'Part time job! Earn 3000 daily by liking YouTube videos. Contact on Telegram @hr_riya. Small registration fee only.'],
+    ['message', 'Your FedEx parcel containing illegal drugs and fake passports is seized by customs. Press 1 to speak to police officer'],
+    ['message', 'Join our VIP stock tips WhatsApp group. Guaranteed 30% monthly returns. Invest through our app https://bit.ly/vipstox'],
+    ['message', 'This is CBI officer. Your Aadhaar is linked to money laundering case. You are under digital arrest.'],
+  ];
+  for (const [k, t] of danger) assert.equal(check(k, t).verdict, 'danger', t);
+  for (const t of ['Your Swiggy order is on the way! Track it in the app.', 'Mom, I reached the hostel safely. Will call at night.',
+    'Your electricity bill of Rs 1,240 is due on 15-Oct. Pay via the official app to avoid disconnection.']) assert.notEqual(check('message', t).verdict, 'danger', t);
+  assert.equal(check('link', 'https://onlinesbi.sbi.bank.in').verdict, 'clear'); // banks' new .bank.in addresses
+  assert.equal(check('phone', '1930').verdict, 'clear');
+});

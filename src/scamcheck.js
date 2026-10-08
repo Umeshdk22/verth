@@ -69,6 +69,9 @@ function isOfficialFor(host, brand) {
   return list.some((d) => host === d || host.endsWith('.' + d));
 }
 function officialBrandOf(host) {
+  // RBI lets only registered Indian banks use .bank.in (and .fin.in for other financial firms).
+  if (/\.bank\.in$/.test(host)) return 'Indian bank (.bank.in, only for RBI-registered banks)';
+  if (/\.fin\.in$/.test(host)) return 'Indian financial company (.fin.in, only for registered firms)';
   for (const [brand, list] of Object.entries(OFFICIAL)) if (list.some((d) => host === d || host.endsWith('.' + d))) return brand;
   return null;
 }
@@ -172,6 +175,12 @@ export function checkPhone(input) {
   } else if (/^(1800|1860)\d{6,7}$/.test(national)) {
     type = 'tollfree';
     flags.push(flag(LOW, 'Toll-free customer care number', 'Real companies use these, but scammers post fake “customer care” numbers online. Only trust numbers from the official app or website.'));
+  } else if (/^(1930|112|100|101|102|108|1091|1098|181|14567|155260)$/.test(national)) {
+    type = 'helpline';
+    good.push(national === '1930' ? 'This is India’s National Cyber Crime Helpline. Call it if you have lost money to a scam.' : 'This is an official Indian emergency or government helpline number.');
+  } else if (/^1800\d{6,7}$/.test(national)) {
+    type = 'tollfree';
+    good.push('This is a toll-free 1800 number. Check it is listed on the company’s official website: caller ID can be faked.');
   } else if (/^[6-9]\d{9}$/.test(national)) {
     type = 'mobile';
     flags.push(flag(LOW, 'Ordinary mobile number', 'Banks, RBI, TRAI, police and courier companies don’t verify accounts, KYC or parcels from personal mobile numbers. If this caller claims to be one of them, it’s a red flag. Banks use numbers starting with 1600.'));
@@ -216,7 +225,7 @@ const RULES = [
   [MED, 'Guaranteed or fast investment returns', 'Nobody can guarantee returns. “Double your money”, secret trading tips and IPO allotment offers are investment scams.', /\b(guaranteed\s+(return|profit)|double\s+(your\s+)?money|(\d{2,3})\s*%\s*(daily|weekly|monthly|return)|trading\s+tips|stock\s+tips|crypto|bitcoin|usdt|ipo\s+allotment|vip\s+group)\b/i],
   [MED, 'Asks you to pay a fee or send money', 'Being asked to pay a “processing”, “registration” or “release” fee to get something is a hallmark of fraud.', /(processing|registration|clearance|release|customs|delivery|verification)\s+(fee|charge|charges)|send\s+(me\s+)?(money|rs|₹)|pay\s+(now|immediately|the\s+fee)|transfer\s+(rs|₹|\d)|upi\s*id/i],
   [MED, 'Parcel or courier trouble', 'Fake courier messages claim your parcel is held, has drugs in it, or needs a small fee. Check on the courier’s official site instead.', /(parcel|courier|package|shipment|consignment|fedex|dhl|blue\s*dart|india\s*post|speed\s*post).{0,60}(held|seized|illegal|drugs|customs|failed|pending|re-?deliver|address\s+(update|incomplete))/i],
-  [MED, 'Electricity or gas disconnection threat', 'Utility companies don’t cut power “tonight” over a text. Scammers use this to get you to call them.', /(electricity|electric|power|bijli|gas)\s+(bill|connection).{0,60}(disconnect|cut|tonight|today)/i],
+  [MED, 'Electricity or gas disconnection threat', 'Utility companies don’t cut power “tonight” over a text. Scammers use this to get you to call them.', /(electricity|electric|power|bijli|gas)\b.{0,60}(disconnect|cut\s*off|be\s+cut|tonight)/i],
   [MED, 'Asks you to keep it secret', 'Scammers tell you not to tell family or colleagues because they would spot the scam.', /(don'?t|do\s+not)\s+(tell|inform)\s+(anyone|anybody|your\s+(family|wife|husband|parents|bank|boss|colleagues))|keep\s+(this|it)\s+(secret|confidential|between\s+us)|between\s+us|confidential\s+matter|kisi\s+ko\s+mat\s+batana/i],
   [LOW, 'Generic greeting', 'Real companies usually use your name. “Dear customer” or “Dear user” suggests a mass message.', /\b(dear\s+(customer|user|valued|sir\/?madam|account\s*holder|beneficiary))\b/i],
   [LOW, 'Asks you to click or call urgently', 'Messages that push you to click a link or call a number right away want you to act before you check.', /\b(click|tap)\s+(here|the\s+link|below|now)|call\s+(us\s+)?(now|immediately|on)\b/i],
@@ -276,6 +285,13 @@ export function checkMessage(input) {
     if (p.type === 'international') flags.push(flag(MED, `International number in the message: ${p.normalized}`, 'Be very careful with numbers from abroad in messages that claim to be Indian organisations.'));
   }
   if (links.length && flags.some((f) => /OTP|KYC|block|Rushes/.test(f.title))) flags.push(flag(LOW, 'Pressure plus a link', 'A threat or deadline combined with a link is the most common phishing pattern.'));
+  // Combinations that together are almost always a scam.
+  const has = (t) => flags.some((f) => f.title.startsWith(t));
+  if (has('Asks you to pay a fee') && has('Prize, lottery')) flags.push(flag(HIGH, 'A prize you have to pay for', 'Real prizes and refunds never ask you to pay a fee first. This is how lottery and KBC scams work.'));
+  if ((has('Asks you to pay a fee') || /deposit|registration|joining\s+fee|invest/i.test(text)) && has('Work-from-home or task job')) flags.push(flag(HIGH, 'A job that asks you for money', 'Task and part-time jobs that take a fee or deposit are the most common job scam in India. You will be asked for more and more money.'));
+  if (has('Parcel or courier') && /(drug|narcotic|illegal|passport|police|officer|press\s*1|customs\s+(duty|fine))/i.test(text)) flags.push(flag(HIGH, 'Fake courier “police” threat', 'Couriers don’t find drugs and transfer you to police. This is the start of a “digital arrest” scam.'));
+  if (has('Guaranteed or fast investment') && (links.length || /group|app|telegram|whatsapp/i.test(text))) flags.push(flag(HIGH, 'Guaranteed profits through a group or app', 'Stock-tip groups and trading apps promising fixed returns are investment scams. Invest only through registered brokers.'));
+  if (has('Electricity or gas') && (phones.some((p) => p.type === 'mobile') || /officer|call\s+(on|now|us)/i.test(text))) flags.push(flag(HIGH, 'Power cut threat asking you to call someone', 'Electricity boards don’t ask you to call an “officer” on a mobile number. This is a common bill scam.'));
   if (!text.trim()) return { kind: 'message', verdict: 'caution', score: 0, flags: [flag(LOW, 'Nothing to check', 'Paste the message, SMS or email text.')], good, links, phones, normalized: '' };
 
   const score = flags.reduce((a, f) => a + f.level, 0);
@@ -358,6 +374,7 @@ export function checkJob(input, claimed = '') {
       if (officialFor(h, company)) { good.push(`Link to ${h} is an official ${company.name} website.`); continue; }
       const hostWords = h.replace(/[^a-z0-9.-]/g, '').split(/[.-]/).join(' ');
       if (company.words.some((w) => wordRe(w.replace(/\s+/g, '')).test(hostWords) || hostWords.includes(w.replace(/\s+/g, '')))) {
+        l.verdict = 'danger'; // the link list should say so too
         add(HIGH, `Look-alike ${company.name} website: ${h}`, `It uses the ${company.name} name but isn’t on ${company.domains.join(' or ')}. Copying a real company’s website is easy; the address is what gives it away.`);
       }
     }

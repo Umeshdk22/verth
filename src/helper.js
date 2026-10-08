@@ -68,7 +68,7 @@ export const TOPICS = [
   },
   {
     id: 'chat', q: 'How do I chat privately or send money safely?',
-    keys: ['private chat', 'chat privately', 'chat tab', 'privately', 'personal message', 'confidential', 'secret message', 'send a document', 'send document', 'certificate', 'send a file', 'send file', 'send pdf', 'pay safely', 'pay someone in my circle', 'pay a member', 'pay my family', 'in my circle safely', 'upi id', 'my upi', 'receive money', 'end to end', 'encrypted chat'],
+    keys: ['private chat', 'chat privately', 'chat tab', 'privately', 'personal message', 'confidential', 'secret message', 'send a document', 'send document', 'certificate', 'send a file', 'send file', 'send pdf', 'pay safely', 'pay someone', 'pay someone safely', 'send money safely', 'safe payment', 'receipt', 'payment history', 'pay someone in my circle', 'pay a member', 'pay my family', 'in my circle safely', 'upi id', 'my upi', 'receive money', 'end to end', 'encrypted chat'],
     a: 'Open the Chat tab and tap a person in your circle.\n• Chat is end-to-end encrypted: only the two of you can read it, not other members, admins or Verth.\n• Send documents and photos up to 2 MB with the paperclip.\n• Pay safely: tap “₹ Pay”, enter the amount, and your own UPI app (GPay, PhonePe, Paytm) opens with that person’s saved UPI ID filled in. You approve with your PIN; Verth never touches your money.\n• After paying, tap “Mark as paid” (add the UPI reference if you like); the other person taps “I received it”. Tap “View receipt” for a receipt you can save as PDF. All your payments are under “Your payments” in the Chat tab.\n• Copying text is turned off in private chats, and the chat hides when you leave the app.\n• To be paid, add your UPI ID at the bottom of the Chat tab.\n• Free plan: 12 messages and 3 payments a day. Paid plans are unlimited.',
     go: [['Open Chat', 'chat']],
   },
@@ -91,7 +91,7 @@ export const TOPICS = [
   },
   {
     id: 'code', q: 'What is the 6-digit Verth code?',
-    keys: ['6 digit', 'six digit', 'verth code', 'their code', 'check a code', 'live call', 'video call', 'deepfake', 'code changes', 'code wrong', 'code mismatch'],
+    keys: ['6 digit', 'six digit', 'verth code', 'what is verth code', 'what is my verth code', 'my verth code', 'their code', 'check a code', 'live call', 'video call', 'deepfake', 'code changes', 'code wrong', 'code mismatch'],
     a: 'On a live phone or video call you can ask the caller for their Verth code.\n• Each pair of people in a circle has its own 6-digit code that changes every 30 seconds.\n• Open Verify, choose “Check a code”, pick who they claim to be and type the code they tell you.\n• A match means you’re talking to them. A wrong code means stop: it may be a fake voice or video.',
     go: [['Check a code', 'verify']],
   },
@@ -138,7 +138,7 @@ export const TOPICS = [
   },
   {
     id: 'plans', q: 'What do the plans cost?',
-    keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'charges', 'buy', 'subscribe'],
+    keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'free trial', 'trial', '7 days', 'seven days', 'trial over', 'trial ended', 'charges', 'buy', 'subscribe'],
     a: 'Every new account gets 7 days with everything unlimited, free. Then:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
   },
@@ -179,7 +179,7 @@ export const TOPICS = [
   {
     id: 'report', q: 'How do I report a scam?',
     keys: ['report scam', 'report number', 'report fraud', 'complain', 'complaint', 'chakshu', 'sanchar saathi', 'block number', 'warn others'],
-    a: 'In Scam check, after a result, tap “Report this … as a scam”. Other Verth users then see how many people reported it. Only a scrambled fingerprint is saved, never the text itself.\n• To report a fraud call or SMS to the government, use Chakshu on sancharsaathi.gov.in.\n• If you lost money, call 1930 straight away.',
+    a: 'Just check it in Scam check. When Verth finds a scam, it adds it to its scam database by itself, so everyone who checks the same message, link or number next is warned. Nobody can mark something as a scam by hand, so honest numbers can’t be falsely labelled. Only a scrambled fingerprint is saved, never the text itself.\n• To report a fraud call or SMS to the government, use Chakshu on sancharsaathi.gov.in.\n• If you lost money, call 1930 straight away.',
     go: [['Open Scam check', 'scan']],
   },
   {
@@ -364,7 +364,7 @@ export function mountHelper({ go, ai = null, raised = false } = {}) {
   const wrap = document.createElement('div');
   wrap.className = 'vh' + (raised ? ' raised' : '');
   wrap.innerHTML = `
-    <button class="vh-fab" type="button" aria-expanded="false" aria-controls="vh-panel">${BUBBLE}<span>Need help?</span></button>
+    <button class="vh-fab" type="button" aria-label="Need help? Ask Verth Helper" aria-expanded="false" aria-controls="vh-panel">${BUBBLE}<span>Need help?</span></button>
     <section class="vh-panel" id="vh-panel" role="dialog" aria-modal="false" aria-labelledby="vh-title" hidden>
       <header class="vh-head"><div><h2 id="vh-title">Verth Helper</h2><p>${ai ? 'Your guide to staying safe · AI-assisted' : 'Answers from the Verth guide'}</p></div>
         <button class="vh-x" type="button" aria-label="Close helper">✕</button></header>

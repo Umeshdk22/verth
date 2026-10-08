@@ -17,7 +17,11 @@ const SLOW = process.env.CI ? 3 : 1;
     p.on('pageerror', (e) => errors.push(n + ' pageerror: ' + e.message));
     p.on('console', (m) => { if (m.type() === 'error') errors.push(n + ' console: ' + m.text()); });
   }
-  const shot = (p, name) => p.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
+  const AUD = process.env.AUDIT ? require('./audit.cjs') : null, audited = {};
+  const shot = async (p, name) => {
+    await p.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
+    if (AUD) { try { audited[name] = (await AUD.auditPage(p)).issues; require('node:fs').writeFileSync(process.env.AUDIT + '/app-audit.json', JSON.stringify(audited, null, 1)); } catch (e) { audited[name] = [{ kind: 'audit-failed', detail: e.message }]; } }
+  };
   // Video frame: the phone screen as the person sees it, plus where to show a tap.
   const vmeta = {};
   const vs = async (p, name, tap, scrollTo) => {
@@ -733,9 +737,10 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Wide screens: sidebar, page and safety corner fill the window', async () => {
     await A.setViewportSize({ width: 1440, height: 900 });
-    for (const [tab, name] of [['Home', 'wide-home'], ['Scan', 'wide-scan'], ['Chat', 'wide-chat'], ['Circle', 'wide-circle']]) {
+    for (const [tab, name] of [['Home', 'wide-home'], ['Scan', 'wide-scan'], ['Verify', 'wide-verify'], ['Chat', 'wide-chat'], ['Circle', 'wide-circle'], ['Plan', 'wide-plan'], ['Verification log', 'wide-log'], ['Safety check-up', 'wide-guard'], ['How to use Verth', 'wide-guide']]) {
       await A.click(`nav >> text=${tab}`); await A.waitForTimeout(500);
       await A.screenshot({ path: OUT + '/' + name + '.png' });
+      if (process.env.AUDIT) await shot(A, name + '-full');
     }
     await A.click('nav >> text=My profile'); await A.waitForTimeout(400); await A.screenshot({ path: OUT + '/wide-profile.png' });
     await A.setViewportSize({ width: 1907, height: 900 }); await A.click('nav >> text=Home'); await A.waitForTimeout(600);
