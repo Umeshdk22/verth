@@ -562,6 +562,15 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.click('nav >> text=Verify'); await C.getByRole('heading', { name: 'Verify works with your circle' }).waitFor({ timeout: 3000 * SLOW }); await C.screenshot({ path: OUT + '/13b-C-solo-verify.png' });
     await C.click('nav >> text=Plan'); await C.getByRole('heading', { name: 'Family and Team plans' }).waitFor({ timeout: 3000 * SLOW });
     await C.click('nav >> text=Scan');
+    if (process.env.AUDIT) {
+      const go = (t) => C.evaluate((tt) => document.querySelector(`[data-act="tab"][data-tab="${tt}"]`)?.click(), t);
+      for (const [w, h] of [[360, 740], [1024, 768], [1366, 768]]) {
+        await C.setViewportSize({ width: w, height: h });
+        for (const t of ['home', 'verify', 'circle', 'plan', 'profile']) { await go(t); await C.waitForTimeout(300); await C.evaluate(() => window.scrollTo(0, 0)); await shot(C, `size-${w}-solo-${t}`); }
+        for (const ty of ['family', 'org', 'join']) { await go('circle'); await C.click(`.setup-opt[data-type="${ty}"]`); await C.waitForTimeout(400); await shot(C, `size-${w}-setup-${ty}`); await C.evaluate(() => document.querySelector('[data-act="setup-back"]')?.click()); await C.waitForTimeout(300); }
+      }
+      await C.setViewportSize({ width: 400, height: 860 }); await go('scan');
+    }
     // A fake exam offer shared to Verth from another app (Android share sheet) opens ready to check.
     const offer = 'From: TCS Recruitment <hr.tcs.careers@gmail.com>\nCongratulations! You have been shortlisted for the TCS online exam. Pay the refundable exam fee of Rs 1500 to confirm your slot: https://tcs-careers-india.in/slot';
     await C.goto(URL + '&share_text=' + encodeURIComponent(offer));
@@ -792,6 +801,33 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(A, '23-A-video');
     await A.click('[data-hv-close]');
     if (await A.locator('#hv-modal').count()) throw new Error('video window did not close');
+  });
+  await step('Every screen size (final check)', async () => {
+    if (!process.env.AUDIT) return;
+    const tabs = ['home', 'scan', 'verify', 'chat', 'circle', 'plan', 'log', 'guard', 'guide', 'profile'];
+    const go = (p, t) => p.evaluate((tt) => document.querySelector(`[data-act="tab"][data-tab="${tt}"]`)?.click(), t);
+    for (const [w, h] of [[360, 740], [390, 844], [768, 1024], [1024, 768], [1280, 800], [1366, 768], [1920, 1080]]) {
+      await A.setViewportSize({ width: w, height: h });
+      for (const t of tabs) { await go(A, t); await A.waitForTimeout(350); await A.evaluate(() => window.scrollTo(0, 0)); await shot(A, `size-${w}-${t}`); }
+    }
+    // helper, video and a chat room at a phone and a laptop size
+    for (const [w, h] of [[390, 844], [1366, 768]]) {
+      await A.setViewportSize({ width: w, height: h });
+      await go(A, 'chat'); await A.click('.chat-row:has-text("Priya Nair")'); await A.waitForTimeout(500); await shot(A, `size-${w}-chatroom`);
+      await A.click('.chat-head .back');
+      await go(A, 'scan'); await A.click('.hv[data-hv="scan"] [data-hv-play]'); await A.waitForTimeout(500); await shot(A, `size-${w}-video`); await A.click('[data-hv-close]');
+      await A.click('.vh-fab'); await A.waitForTimeout(400); await shot(A, `size-${w}-helper`); await A.click('.vh-fab');
+    }
+    // someone without a circle, and the set-up screens
+    const C = extra.find(([n]) => n === 'C')?.[1];
+    if (C && !C.isClosed()) {
+      for (const [w, h] of [[390, 844], [1366, 768]]) {
+        await C.setViewportSize({ width: w, height: h });
+        for (const t of ['home', 'verify', 'chat', 'circle', 'plan']) { await go(C, t); await C.waitForTimeout(300); await shot(C, `size-${w}-solo-${t}`); }
+        for (const ty of ['family', 'org', 'join']) { await go(C, 'circle'); await C.click(`.setup-opt[data-type="${ty}"]`); await C.waitForTimeout(400); await shot(C, `size-${w}-setup-${ty}`); await C.evaluate(() => document.querySelector('[data-act="setup-back"]')?.click()); await C.waitForTimeout(300); }
+      }
+    }
+    await A.setViewportSize({ width: 400, height: 860 }); await go(A, 'home');
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');

@@ -2528,7 +2528,7 @@ Object.assign(forms, {
 
 /* ---------- wide screens: side navigation and a right-hand panel ---------- */
 // Laptops and desktops get a three-column layout; phones keep the bottom tabs. Everything here is
-// hidden below 1100px wide.
+// hidden below 1280px wide.
 const DAILY_TIPS = [
   ['Pause before you pay', 'Scammers create panic so you don’t think. A 2-minute check beats a lifetime of regret.'],
   ['Banks never ask for OTPs', 'No bank, police officer or company will ever ask for your OTP, UPI PIN or CVV.'],

@@ -831,7 +831,7 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
 
 /* ===== Wide screens (laptops, desktops): sidebar · page · safety corner ===== */
 .tabs .xtra,.rail,.auth-side{display:none}
-@media (min-width:1100px){
+@media (min-width:900px){
   body{background:
     radial-gradient(900px 600px at -10% -10%,rgba(139,92,246,.18),transparent 60%),
     radial-gradient(800px 600px at 110% 20%,rgba(255,200,87,.16),transparent 60%),
@@ -840,7 +840,6 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
     #F6F4FF;background-attachment:fixed}
   .app,.app.solo{max-width:1760px;min-height:100vh;display:grid;grid-template-columns:250px minmax(0,1fr) 340px;grid-template-rows:auto 1fr;
     grid-template-areas:"top top top" "nav main rail";column-gap:28px;padding:0 28px 28px}
-  .app.solo{grid-template-columns:minmax(0,1fr) 380px;grid-template-areas:"top top" "main rail";max-width:1400px}
   .app>header.top{grid-area:top;margin:0 -28px 22px;padding:14px 36px;border-radius:0 0 22px 22px}
   .app>main.content{grid-area:main;padding:0 0 40px;max-width:820px;width:100%;justify-self:center}
   .app.in-chat>main.content{padding-bottom:20px}
@@ -1041,3 +1040,12 @@ body.no-tabs:has(.top .me-btn) .vh{top:auto;bottom:calc(18px + env(safe-area-ins
 :where(.btn)>svg{width:20px;height:20px;flex:none;vertical-align:-4px;margin-right:6px}
 /* Website pages on phones: a round help button, so it never covers page buttons */
 @media (max-width:560px){body:not(.has-tabs):not(.no-tabs) .vh-fab{width:50px;min-height:50px;padding:0;justify-content:center}body:not(.has-tabs):not(.no-tabs) .vh-fab span{display:none}}
+/* Narrow phones: a person's name and details get the full row; their buttons go underneath */
+@media (max-width:520px){.list.people li>.grow{flex:1 1 calc(100% - 64px);min-width:0}.list.people li>.btn,.list.people li>.row{margin-left:56px}.list.people li>.btn+.btn{margin-left:0}}
+
+/* Small laptops and tablets on their side: menu on the left, page in the middle (the safety corner needs more room) */
+@media (min-width:900px) and (max-width:1279px){
+  .app,.app.solo{grid-template-columns:220px minmax(0,1fr);grid-template-areas:"top top" "nav main";column-gap:22px;padding:0 22px 22px}
+  .app>header.top{margin:0 -22px 20px}
+  .app>aside.rail{display:none}
+}
