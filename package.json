@@ -15,7 +15,7 @@
     "@tesseract.js-data/eng": "^1.0.0",
     "firebase": "12.19.0",
     "jsqr": "^1.4.0",
-    "qrcode-generator": "^1.4.4",
+    "qrcode-generator": "^2.0.4",
     "tesseract.js": "^7.0.0",
     "tesseract.js-core": "^7.0.0"
   },
