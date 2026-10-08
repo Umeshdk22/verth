@@ -23,18 +23,18 @@ export const TOPICS = [
   {
     id: 'email', q: 'I didn’t get the verification email',
     keys: ['verification email', 'verify email', 'confirm email', 'email not received', 'no email', 'didnt get email', 'did not get email', 'mail nahi aaya', 'email nahi', 'link not received', 'resend'],
-    a: 'The 6-digit code comes from Verth (sender “Verth”).\n• Check Spam, Promotions and Updates folders.\n• Wait 30 seconds, then tap “Send a new code”. Use the newest email.\n• Make sure the email address is spelled correctly, or tap “Use a different email”.\n• In a hurry? “Sign up with Google” or “Log in with Google” needs no code.',
+    a: 'The 6-digit code comes from Verth (sender “Verth”).\n• Check Spam, Promotions and Updates folders.\n• Wait 30 seconds, then tap “Send a new code”. Use the newest email.\n• Make sure the email address is spelled correctly, or tap “Use a different email”.\n• In a hurry? “Continue with Google” needs no code.',
   },
   {
     id: 'signin', q: 'I can’t sign in',
     keys: ['sign in', 'signin', 'log in', 'login', 'cant login', 'cannot login', 'wrong password', 'forgot password', 'reset password', 'password bhool', 'login nahi', 'locked out', 'too many attempts', 'code nahi aaya', 'no code', 'didnt get code', 'otp not received', 'verification code', 'login code', 'get the code', 'got the code', 'code not', 'no email', 'email not', 'send code'],
-    a: 'Verth has no password to forget:\n• Tap “Log in”, type your email and tap “Send code”. Enter the 6-digit code from the email.\n• Turned on fingerprint / face login? Just tap “Log in with fingerprint or face”.\n• “No Verth account uses this email” means you need to tap “Create account” first.\n• No email? Check spam or promotions, wait 30 seconds and tap “Send a new code”.\n• Signed up with Google? Tap “Log in with Google”.\n• “Too many codes” or “too many tries” means wait an hour and try again. This protects your account.\n• Never sign in to Verth on someone else’s phone.',
+    a: 'Verth has no password to forget:\n• Tap “Log in”, type your email, tick “I’m not a robot” and tap “Email me a code”. Enter the 6-digit code from the email.\n• Turned on fingerprint / face login? Just tap “Log in with fingerprint or face”.\n• “No Verth account uses this email” means you need to tap “Create account” first.\n• No email? Check spam or promotions, wait 30 seconds and tap “Send a new code”.\n• Signed up with Google? Tap “Continue with Google”.\n• “Too many codes” or “too many tries” means wait an hour and try again. This protects your account.\n• Never sign in to Verth on someone else’s phone.',
     go: [['Open the app', 'app']],
   },
   {
     id: 'bio', q: 'How do I log in with fingerprint or face?',
     keys: ['fingerprint', 'face', 'biometric', 'biometrics', 'face id', 'touch id', 'passkey', 'finger', 'face lock', 'screen lock', 'without email'],
-    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in your profile (tap your picture at the top) under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• App lock: each time you open Verth (and after 5 minutes away), it asks for your fingerprint or face, or emails you a code if you don’t use fingerprint. You can switch App lock off in your profile.\n• Lost the phone? Remove it in the Plan tab from another device, and log in with an email code.',
+    a: 'Fingerprint / face login lets you log in without typing your email.\n• Turn it on: right after you create your account, or later in your profile (tap your picture at the top) under “Account and device” → “Turn on for this device”.\n• Next time, tap “Log in with fingerprint or face” on the Log in page.\n• Your fingerprint or face never leaves your phone. Verth only gets a secure key.\n• App lock: once fingerprint / face login is on, Verth asks for it each time you open Verth (and after 5 minutes away). You can switch App lock off in your profile.\n• Lost the phone? Log in on another device with an email code, then remove the old device in your profile.',
     go: [['Open the app', 'app']],
   },
   {

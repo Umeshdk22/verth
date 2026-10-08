@@ -217,6 +217,7 @@ function paint(html) {
   if (focused) document.getElementById(focused)?.focus();
   root.querySelectorAll('select[data-dial]').forEach(syncDial);
   { const tabs = !!root.querySelector('nav.tabs'); document.body.classList.toggle('has-tabs', tabs); document.body.classList.toggle('no-tabs', !tabs); } // where the help button sits
+  document.body.classList.toggle('auth-bg', !!root.querySelector('.auth-frame')); // night-city backdrop behind log-in and set-up screens
   document.body.classList.toggle('in-chat', !!document.getElementById('chat-scroll')); // hide the help button over the message box
   tick();
 }
@@ -1246,6 +1247,13 @@ function mySubscriptions() {
   }
   return out;
 }
+// Forget everything Verth kept on this device about the person (used after deleting an account).
+function wipeDevice() {
+  try {
+    for (const k of Object.keys(localStorage)) if (/^verth-/.test(k) && k !== 'verth-vlang') localStorage.removeItem(k);
+    for (const k of Object.keys(sessionStorage)) if (/^verth-/.test(k) && k !== 'verth-splash') sessionStorage.removeItem(k);
+  } catch {}
+}
 async function doSignout() { store.set('verth-me', null); try { localStorage.removeItem('verth-photo'); } catch {} stopListeners(); pendingWatch.forEach((u) => u()); pendingWatch = []; S.seen.clear(); S.passkeys = null; S.confirmDelete = false; S.authMode = 'login'; await signOut(auth); }
 function openSignout() {
   closeSignout();
@@ -1852,7 +1860,15 @@ const forms = {
     if (needCaptcha()) return setErr('a-err', (robotTicked() ? 'One moment: we’re still checking you’re not a robot. Then tap again.' : 'Please tick “I’m not a robot” first.'));
     busy(f, true); setErr('a-err', '');
     try { S.authMode = 'login'; await sendCode(email); renderCode(); }
-    catch (e) { setErr('a-err', captchaHint(friendlyError(e))); busy(f, false); resetCaptcha(); }
+    catch (e) {
+      // That account doesn't exist (any more): stop greeting it on this device.
+      const last = store.get('verth-last');
+      if (/No Verth account uses this email/i.test(e?.message || '') && last && String(last.email || '').toLowerCase() === email.toLowerCase()) {
+        store.set('verth-last', null); store.set('verth-pk', null);
+        renderAuth(); const em = document.getElementById('a-email'); if (em) em.value = email;
+      }
+      setErr('a-err', captchaHint(friendlyError(e))); busy(f, false); resetCaptcha();
+    }
   },
   signup: async (f) => {
     const name = f.querySelector('#a-name').value.trim().replace(/\s+/g, ' '), email = f.querySelector('#a-email').value.trim();
@@ -1885,8 +1901,8 @@ const forms = {
     try {
       await payApi('/account/delete', { confirm: 'DELETE' });
       S.confirmDelete = false;
-      store.set('verth-last', null); store.set('verth-pk', null);
       await doSignout();
+      wipeDevice(); // after signing out, so nothing writes the name back
       S.authMode = 'login'; renderAuth('Your account has been deleted, and any subscription you paid for will not renew. Thank you for using Verth.');
     } catch (e) { setErr('d-err', e.message || 'Couldn’t delete the account. Try again.'); busy(f, false); }
   },

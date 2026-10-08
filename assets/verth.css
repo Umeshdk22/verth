@@ -1050,3 +1050,16 @@ body.no-tabs:has(.top .me-btn) .vh{top:auto;bottom:calc(18px + env(safe-area-ins
   .app>aside.rail{display:none}
 }
 .legal-links{text-align:center;font-size:12.5px;color:var(--muted);margin:-6px 0 18px}.legal-links a{color:var(--muted)}
+
+/* Log-in, sign-up and set-up screens: night city behind a floating card (instead of a plain page) */
+body.auth-bg{background:
+  radial-gradient(600px 380px at 50% 34%,rgba(124,77,255,.38),transparent 70%),
+  linear-gradient(180deg,rgba(13,6,38,.92) 0%,rgba(28,12,74,.72) 42%,rgba(13,6,38,.25) 78%,rgba(13,6,38,.55) 100%),
+  url(bg-dusk.webp) center bottom/cover no-repeat fixed,#160A3D}
+body.auth-bg .auth-frame>.shell>.brand{color:#fff}
+body.auth-bg .auth-frame>.shell>.brand svg{box-shadow:0 8px 24px -6px rgba(124,77,255,.8)}
+body.auth-bg .auth-frame>.shell>.panel{box-shadow:0 30px 80px -24px rgba(5,2,20,.75),0 0 0 1px rgba(255,255,255,.08);border-color:transparent}
+body.auth-bg .auth-frame .foot{color:rgba(255,255,255,.82)}
+body.auth-bg .auth-frame .foot a{color:#FFD36E}
+body.auth-bg .auth-frame>.shell::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background-image:radial-gradient(1.5px 1.5px at 12% 18%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 28% 8%,rgba(255,255,255,.6),transparent),radial-gradient(1.5px 1.5px at 66% 14%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 84% 26%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 46% 22%,rgba(255,255,255,.5),transparent),radial-gradient(1.5px 1.5px at 92% 6%,rgba(255,255,255,.6),transparent)}
