@@ -247,7 +247,7 @@ export function checkMessage(input) {
   if (from) {
     const addr = (from[1].match(/<?([^\s<>]+@[^\s<>]+)>?/) || [])[1];
     const dom = addr ? addr.split('@')[1].toLowerCase().replace(/[>)\].,]+$/, '') : '';
-    const name = from[1].replace(/<[^>]*>/, '').toLowerCase();
+    const name = from[1].replace(/<[^>]*>?/g, ' ').toLowerCase(); // only used to compare words, never shown as HTML
     if (dom) {
       for (const [tok, brand] of Object.entries(BRAND_TOKENS)) {
         if (tok.length > 3 && (name.includes(tok) || dom.includes(tok)) && !isOfficialFor(dom, brand)) {

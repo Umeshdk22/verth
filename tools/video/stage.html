@@ -46,15 +46,23 @@ html[lang=hi] .cap{line-height:1.6}
 <div class="bubble" id="bubble"></div>
 <div class="cover" id="cover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><h2 id="cover-h"></h2><p id="cover-p"></p><span class="url" id="cover-u" hidden></span></div>
 <script>
+// Video-making tool: runs only on the maker's own computer, never on the live website.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) { document.documentElement.innerHTML = ''; throw new Error('local tool'); }
 const q = new URLSearchParams(location.search);
 document.documentElement.lang = q.get('lang') || 'en';
 // phones: "name|label|scale,name|label|scale"
 const phones = (q.get('phones') || 'a|Phone|0.78').split(',').map((p) => p.split('|'));
-document.getElementById('phones').innerHTML = phones.map(([name, label, s]) =>
-  `<div class="ph"><span class="who">${label}</span><div class="frame" style="--s:${s}"><iframe name="${name}" src="app.html?emu" allow="clipboard-read; clipboard-write"></iframe></div></div>`).join('');
-if (q.get('pw')) document.documentElement.style.setProperty('--pw', q.get('pw') + 'px');
-if (q.get('h1')) document.documentElement.style.setProperty('--h1', q.get('h1') + 'px');
-if (q.get('capsize')) document.documentElement.style.setProperty('--capsize', q.get('capsize') + 'px');
+const box = document.getElementById('phones');
+for (const [name, label, sc] of phones) {
+  const ph = document.createElement('div'); ph.className = 'ph';
+  const who = document.createElement('span'); who.className = 'who'; who.textContent = label || '';
+  const fr = document.createElement('div'); fr.className = 'frame'; fr.style.setProperty('--s', String(parseFloat(sc) || 0.78));
+  const ifr = document.createElement('iframe'); ifr.name = String(name || '').replace(/[^a-z0-9_-]/gi, ''); ifr.src = 'app.html?emu'; ifr.allow = 'clipboard-read; clipboard-write';
+  fr.append(ifr); ph.append(who, fr); box.append(ph);
+}
+if (q.get('pw')) document.documentElement.style.setProperty('--pw', (parseFloat(q.get('pw')) || 0) + 'px');
+if (q.get('h1')) document.documentElement.style.setProperty('--h1', (parseFloat(q.get('h1')) || 0) + 'px');
+if (q.get('capsize')) document.documentElement.style.setProperty('--capsize', (parseFloat(q.get('capsize')) || 0) + 'px');
 window.stage = {
   scene(kicker, title, cap) {
     document.getElementById('kicker').textContent = kicker || '';

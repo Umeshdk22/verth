@@ -51,7 +51,8 @@ const SITE_URL = 'https://umeshdk22.github.io/verth/';
 const pendingInvite = () => { try { return sessionStorage.getItem('verth-invite') || ''; } catch { return ''; } };
 const clearInvite = () => { try { sessionStorage.removeItem('verth-invite'); } catch {} };
 // Tests can point payments at a stand-in server (local emulator builds only).
-const PAY_API = EMU ? params.get('payapi') || '' : PAYMENTS.api;
+const testApi = (u) => (/^https?:\/\/(localhost|127\.0\.0\.1|[a-z0-9-]+\.test\.workers\.dev)(:\d+)?\/?$/.test(u || '') ? u : '');
+const PAY_API = EMU ? testApi(params.get('payapi')) : PAYMENTS.api;
 const NEW_DEVICE_WARN_MS = 7 * 24 * 3600 * 1000;
 const CHANNELS = ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other'];
 

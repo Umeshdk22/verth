@@ -14,23 +14,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
           queries: security-extended
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
         with: { category: '/language:javascript', output: sarif-results }
       - name: List the findings in this run
         if: always()
         run: |
           node -e '
-            const fs = require("fs"); let n = 0;
+            const fs = require("fs"); let n = 0; const all = [];
             for (const f of fs.readdirSync("sarif-results")) {
               const s = JSON.parse(fs.readFileSync("sarif-results/" + f, "utf8"));
               for (const run of s.runs) for (const r of run.results || []) {
-                const loc = r.locations?.[0]?.physicalLocation; n++;
-                if (n <= 40) console.log(`::warning file=${loc?.artifactLocation?.uri},line=${loc?.region?.startLine},title=CodeQL ${r.ruleId}::${(r.message?.text || "").slice(0, 300)}`);
+                const loc = r.locations?.[0]?.physicalLocation; n++; all.push(`${r.ruleId} ${loc?.artifactLocation?.uri}:${loc?.region?.startLine}`);
+                if (n <= 9) console.log(`::warning file=${loc?.artifactLocation?.uri},line=${loc?.region?.startLine},title=CodeQL ${r.ruleId}::${(r.message?.text || "").slice(0, 300)}`);
               }
             }
-            console.log(`::notice title=CodeQL::${n} finding(s)`);'
+            console.log(`::notice title=CodeQL::${n} finding(s): ${all.join(" | ").slice(0, 3000)}`);'

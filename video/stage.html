@@ -56,6 +56,8 @@
 <div class="card" id="c2"></div>
 </div>
 <script>
+// Video-making tool: runs only on the maker's own computer, never on the live website.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) { document.documentElement.innerHTML = ''; throw new Error('local tool'); }
 // Everything is drawn from a single time value, so every frame is exact (no dropped frames).
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
