@@ -83,7 +83,7 @@ for (const [id, v] of Object.entries(scripts)) {
     if (!ONLY.includes('all') && !ONLY.includes(id) && !ONLY.includes(lang) && !ONLY.includes(`${id}-${lang}`)) continue;
     const lines = v.lines.map((p) => p[li]), keys = lines.map((_, n) => `${id}-${lang}-${n + 1}`);
     const missing = keys.filter((k, n) => REDO || !existsSync(`video/voice/${k}.wav`) || report[k]?.line !== lines[n]);
-    if (missing.length < 3) continue; // a few lines are fixed one by one below
+    if (missing.length < lines.length) continue; // only brand-new videos are recorded whole; fixes go line by line
     const r = await tts((lang === 'en' ? STYLE.en : '') + lines.join('\n\n'), lang);
     if (!r.file) { console.log(`::warning::${id}-${lang} whole: ${r.error}`); continue; }
     writeFileSync(`video/voice/${id}-${lang}.wav`, r.file);
@@ -93,7 +93,7 @@ for (const [id, v] of Object.entries(scripts)) {
     for (let n = 0; n < lines.length; n++) {
       const seg = wav(pcm.subarray(Math.round(edges[n] * rate) * 2, Math.round(edges[n + 1] * rate) * 2), rate);
       const h = await heard(seg, lang), score = h ? match(lines[n], h) : null, more = h ? extra(lines[n], h) : 0;
-      const good = score == null || (score >= 0.55 && Math.abs(more) <= 5);
+      const good = score == null || (score >= 0.85 && Math.abs(more) <= 2); // strict: a cut in the wrong pause is rejected
       report[keys[n]] = { ok: good, line: lines[n], heard: h, score, model: r.model, voice: VOICE[lang], from: 'whole' };
       if (good) writeFileSync(`video/voice/${keys[n]}.wav`, seg);
       else console.log(`::warning::${keys[n]} (split) heard "${h.slice(0, 100)}" (${Math.round((score || 0) * 100)}%)`);
