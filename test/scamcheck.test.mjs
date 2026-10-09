@@ -215,3 +215,15 @@ test('real-world examples: common Indian scams are high risk, everyday messages 
   assert.equal(check('link', 'https://onlinesbi.sbi.bank.in').verdict, 'clear'); // banks' new .bank.in addresses
   assert.equal(check('phone', '1930').verdict, 'clear');
 });
+
+test('message: "sent by mistake, please return" is danger', () => {
+  assert.equal(checkMessage('I sent you 5000 by mistake on GPay, please return it, check your account. Approve the request I sent.').verdict, 'danger');
+  assert.equal(checkMessage('Galti se aapke account mein 2000 bhej diye, please wapas kar do').verdict, 'danger');
+  assert.notEqual(checkMessage('Sorry, sent that photo to you by mistake, please ignore').verdict, 'danger');
+});
+
+test('message: like-and-review task job and upfront-fee loan are danger', () => {
+  assert.equal(checkMessage('Hi, I am HR from Amazon. Part time job, earn 3000/day by liking YouTube videos. Contact on Telegram @amz_task').verdict, 'danger');
+  assert.equal(checkMessage('Get loan of 5 lakh instantly without CIBIL. Pay 2,000 registration fee first. Approved!').verdict, 'danger');
+  assert.notEqual(checkMessage('Your home loan EMI of Rs 12,400 is due on 5 Nov. -HDFC Bank').verdict, 'danger');
+});
