@@ -1313,9 +1313,9 @@ async function payApi(path, body) {
   let r;
   try {
     r = await fetch(PAY_API.replace(/\/+$/, '') + path, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify(body) });
-  } catch { throw new Error('Couldn’t reach the payment service. Check your connection.'); }
+  } catch { throw new Error('Couldn’t reach Verth’s server. Check your internet and try again.'); }
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw Object.assign(new Error(j.error || 'The payment service had a problem. Try again in a minute.'), { status: r.status });
+  if (!r.ok) throw Object.assign(new Error(j.error || 'Verth’s server had a problem. Try again in a minute.'), { status: r.status });
   return j;
 }
 let checkoutLoading = null;
