@@ -6,10 +6,10 @@ Razorpay asks every merchant website for these pages. Edit the text here, then r
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-UPDATED = "8 October 2026"
-OWNER = "Umesh"            # use your full legal name exactly as in your Razorpay KYC
+UPDATED = "9 October 2026"
+OWNER = "Umesh"            # full legal name, as in the Razorpay KYC
 EMAIL = "umeshdk22@gmail.com"
-PLACE = "India"            # add your city, e.g. "Bengaluru, Karnataka, India"
+PLACE = "Datarpur, District Hoshiarpur, Punjab, India"
 
 PAGES = {
     "terms": ("Terms and Conditions", f"""
@@ -42,7 +42,7 @@ PAGES = {
 <h2>Copyright</h2>
 <p>Verth’s name, logo, content, videos and software belong to {OWNER}. See <a href="copyright.html">Copyright and Trademarks</a> for what you may and may not do with them.</p>
 <h2>Changes and law</h2>
-<p>We may update these terms; the date below shows the latest version and we’ll tell you by email about important changes. These terms are governed by the laws of India, and disputes are subject to the courts of India.</p>
+<p>We may update these terms; the date below shows the latest version and we’ll tell you by email about important changes. These terms are governed by the laws of India, and disputes are subject to the courts at Hoshiarpur, Punjab.</p>
 """),
     "privacy": ("Privacy Policy", f"""
 <p>This policy explains what Verth collects and why. Verth is run by {OWNER}, {PLACE}. We follow India’s Digital Personal Data Protection Act, 2023.</p>
@@ -90,7 +90,7 @@ PAGES = {
 """),
     "copyright": ("Copyright and Trademarks", f"""
 <p>© 2026 {OWNER}. All rights reserved.</p>
-<p>The Verth name and shield logo, this website and app, their design, text, illustrations, how-to videos, voice-overs and music, and the Verth software are owned by {OWNER} ({PLACE}) and protected by the Copyright Act, 1957 and other laws.</p>
+<p>The Verth name and shield logo, this website and app, their design, text, illustrations, how-to videos, voice-overs and music, and the Verth software are owned by {OWNER} of {PLACE} and protected by the Copyright Act, 1957 and other laws.</p>
 <h2>What you may do</h2>
 <ul><li>Use Verth for yourself, your family and your organisation under our <a href="terms.html">Terms</a>.</li>
 <li>Share links to Verth pages and videos, and quote small parts of our safety tips with credit to Verth, to help others stay safe.</li>
