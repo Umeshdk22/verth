@@ -713,3 +713,22 @@ test('every server answer carries strict security headers', async () => {
   assert.match(r.headers.get('strict-transport-security'), /max-age=\d+/);
   assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'none'/);
 });
+
+test('new address: passkeys made on verth.in work on www.verth.in; old github.io passkeys stay on github.io', async () => {
+  const multi = { ...otpEnv, ALLOWED_ORIGIN: 'https://verth.in,https://www.verth.in,https://umeshdk22.github.io' };
+  assert.equal(rpId(multi, 'https://www.verth.in'), 'verth.in');
+  assert.equal(rpId(multi, 'https://umeshdk22.github.io'), 'umeshdk22.github.io');
+  assert.equal(rpId(multi, 'https://evil.example'), 'verth.in');
+  const f = otpFakes(); const token = await idToken({ sub: 'uidA' });
+  const call = async (path, body, origin, tok) => { const r = await handle(new Request('https://w.example' + path, { method: 'POST', headers: { origin, 'cf-connecting-ip': '7.7.7.8', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify(body) }), multi, { ...f.deps, fetch: jwksFetch }); return { status: r.status, body: await r.json(), cors: r.headers.get('access-control-allow-origin') }; };
+  const opts = await call('/passkey/register-options', {}, 'https://verth.in', token);
+  assert.equal(opts.body.rp.id, 'verth.in'); assert.equal(opts.cors, 'https://verth.in');
+  const dev = await authenticator('verth.in');
+  assert.equal((await call('/passkey/register', await dev.create(opts.body, 'https://verth.in'), 'https://verth.in', token)).status, 200);
+  const lo = await call('/passkey/login-options', {}, 'https://www.verth.in');
+  assert.equal(lo.body.rpId, 'verth.in');
+  assert.equal((await call('/passkey/login', await dev.get(lo.body, 'https://www.verth.in'), 'https://www.verth.in')).status, 200);
+  // The verth.in key can't be passed off on the old address.
+  const lo2 = await call('/passkey/login-options', {}, 'https://umeshdk22.github.io');
+  assert.equal((await call('/passkey/login', await dev.get(lo2.body, 'https://umeshdk22.github.io'), 'https://umeshdk22.github.io')).status, 400);
+});

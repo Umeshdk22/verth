@@ -7,7 +7,7 @@ workers_dev = true
 
 [vars]
 FIREBASE_PROJECT_ID = "verth-ece65"
-ALLOWED_ORIGIN = "https://umeshdk22.github.io"
+ALLOWED_ORIGIN = "https://verth.in,https://www.verth.in,https://umeshdk22.github.io"
 # Razorpay plan IDs (Dashboard → Subscriptions → Plans). Plan IDs are not secret.
 PLAN_PERSONAL = "plan_REPLACE_PERSONAL"
 PLAN_FAMILY = "plan_REPLACE_FAMILY"

@@ -682,7 +682,12 @@ export const PASSKEY = { ttlMs: 5 * 60_000, perIpHour: 30, maxPerUser: 10 };
 const sha256 = async (bytes) => new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
 const fromB64 = (s, what) => { if (typeof s !== 'string' || s.length > 4096 || !/^[A-Za-z0-9_-]*$/.test(s)) throw new HttpError(400, `Bad ${what}.`); return fromB64url(s); };
 const origins = (env) => String(env.ALLOWED_ORIGIN || '').split(',').map((x) => x.trim()).filter(Boolean);
-export const rpId = (env) => env.RP_ID || new URL(origins(env)[0]).hostname;
+// Passkeys belong to the website they were made on: verth.in (shared by www.verth.in), or the old github.io address.
+export const rpId = (env, origin) => {
+  if (env.RP_ID) return env.RP_ID;
+  const list = origins(env), o = list.includes(origin) ? origin : list[0];
+  return new URL(o).hostname.replace(/^www\./, '');
+};
 const eqBytes = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 async function newChallenge(fs, type, uid, now) {
@@ -699,11 +704,11 @@ async function useChallenge(fs, env, clientDataJSON, type, now) {
   const ch = await fs.get('pkchal/' + cd.challenge);
   if (!ch || ch.type !== type.split('.')[1] || new Date(ch.exp).getTime() < now) throw new HttpError(400, 'That request expired. Try again.');
   await fs.remove('pkchal/' + cd.challenge, ch);
-  return ch;
+  return { ...ch, origin: cd.origin };
 }
-async function checkAuthData(env, authData) {
+async function checkAuthData(env, authData, origin) {
   if (authData.length < 37) throw new HttpError(400, 'Bad authenticator data.');
-  if (!eqBytes(authData.slice(0, 32), await sha256(enc.encode(rpId(env))))) throw new HttpError(400, 'Wrong website.');
+  if (!eqBytes(authData.slice(0, 32), await sha256(enc.encode(rpId(env, origin))))) throw new HttpError(400, 'Wrong website.');
   const flags = authData[32];
   if (!(flags & 0x01) || !(flags & 0x04)) throw new HttpError(400, 'Your fingerprint, face or screen lock wasn’t confirmed. Try again.');
   return { flags, count: ((authData[33] << 24) | (authData[34] << 16) | (authData[35] << 8) | authData[36]) >>> 0 };
@@ -722,7 +727,7 @@ async function passkeyRegisterOptions(body, user, env, fs, deps, now = Date.now(
   const mine = (await fs.get('pkusers/' + user.uid))?.keys || {};
   if (Object.keys(mine).length >= PASSKEY.maxPerUser) throw new HttpError(400, 'You already have the most fingerprint / face logins allowed. Remove one first.');
   return {
-    challenge: await newChallenge(fs, 'create', user.uid, now), rp: { id: rpId(env), name: 'Verth' },
+    challenge: await newChallenge(fs, 'create', user.uid, now), rp: { id: rpId(env, deps.origin), name: 'Verth' },
     user: { id: b64url(enc.encode(user.uid)), name: user.email || user.uid, displayName: cleanName(user.name) || user.email || 'Verth user' },
     exclude: Object.values(mine).map((k) => k.credId).filter(Boolean),
   };
@@ -731,7 +736,7 @@ async function passkeyRegister(body, user, env, fs, deps, now = Date.now()) {
   const ch = await useChallenge(fs, env, body.clientDataJSON, 'webauthn.create', now);
   if (ch.uid !== user.uid) throw new HttpError(403, 'That request belongs to a different account.');
   const authData = fromB64(body.authenticatorData, 'authenticator data');
-  const { flags } = await checkAuthData(env, authData);
+  const { flags } = await checkAuthData(env, authData, ch.origin);
   const credId = String(body.id || '');
   const raw = fromB64(credId, 'credential');
   if (!raw.length || raw.length > 1023) throw new HttpError(400, 'Bad credential.');
@@ -750,16 +755,16 @@ async function passkeyRegister(body, user, env, fs, deps, now = Date.now()) {
 }
 async function passkeyLoginOptions(body, env, fs, deps, ip, now = Date.now()) {
   await limit(fs, 'pkip/' + (await hmacHex(env.OTP_SECRET || 'verth', 'ip:' + ip)), PASSKEY.perIpHour, now, 'Too many tries from this network. Try again in an hour.');
-  return { challenge: await newChallenge(fs, 'get', '', now), rpId: rpId(env) };
+  return { challenge: await newChallenge(fs, 'get', '', now), rpId: rpId(env, deps.origin) };
 }
 async function passkeyLogin(body, env, fs, deps, now = Date.now()) {
   const path = await pkDoc(String(body.id || ''));
   const key = await fs.get(path);
   if (!key) throw new HttpError(401, 'This fingerprint / face login isn’t set up on Verth any more. Log in with an email code instead.');
   const clientBytes = fromB64(body.clientDataJSON, 'client data');
-  await useChallenge(fs, env, body.clientDataJSON, 'webauthn.get', now);
+  const ch = await useChallenge(fs, env, body.clientDataJSON, 'webauthn.get', now);
   const authData = fromB64(body.authenticatorData, 'authenticator data');
-  const { count } = await checkAuthData(env, authData);
+  const { count } = await checkAuthData(env, authData, ch.origin);
   if (body.userHandle && new TextDecoder().decode(fromB64(body.userHandle, 'user')) !== key.uid) throw new HttpError(401, 'That login belongs to a different account.');
   const alg = ALGS[String(key.alg)];
   const pub = await crypto.subtle.importKey('spki', fromB64url(key.pk), alg.imp, false, ['verify']);
@@ -885,7 +890,7 @@ export async function handle(request, env, deps = {}) {
     const d = {
       mail: deps.mail || mailer(env, fetchFn), auth: deps.auth || firebaseAuth(env, fetchFn),
       captcha: deps.captcha || ((token, from) => checkCaptcha(env, token, from, fetchFn)),
-      sms: deps.sms || smsSender(env, fetchFn), ip,
+      sms: deps.sms || smsSender(env, fetchFn), ip, origin,
     };
     let body;
     try { body = JSON.parse(raw || '{}'); } catch { throw new HttpError(400, 'Bad request.'); }
