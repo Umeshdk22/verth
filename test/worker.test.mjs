@@ -741,3 +741,23 @@ test('Phone Doctor: same AI, with the phone-doctor instructions added', async ()
   await aiCall(f, { messages: [{ role: 'user', text: 'hello' }] }, { fetchFn });
   assert.doesNotMatch(sent.systemInstruction.parts[0].text, /PHONE DOCTOR MODE/);
 });
+
+test('reviewer login: a fixed code for review@verth.in only, only while REVIEW_CODE is set, and still rate-limited', async () => {
+  const f = otpFakes();
+  const call = async (path, body, e) => { const r = await handle(new Request('https://w.example' + path, { method: 'POST', headers: { origin: ORIGIN, 'cf-connecting-ip': '8.8.4.4' }, body: JSON.stringify(body) }), e, f.deps); return { status: r.status, body: await r.json() }; };
+  const on = { ...otpEnv, REVIEW_EMAIL: 'review@verth.in', REVIEW_CODE: '482916' };
+  assert.equal((await call('/otp/send', { email: 'Review@Verth.in' }, on)).status, 200);
+  assert.equal(f.mails.length, 0); // no email goes out
+  assert.equal((await call('/otp/verify', { email: 'review@verth.in', code: '111111' }, on)).status, 400);
+  const ok = await call('/otp/verify', { email: 'review@verth.in', code: '482916' }, on);
+  assert.equal(ok.status, 200); assert.equal(ok.body.token, 'custom.uid-review');
+  // Any other email gets a normal random code by email, not the review code.
+  await call('/otp/send', { email: 'asha@x.in' }, on);
+  assert.equal(f.mails.length, 1); assert.notEqual(f.mails[0].code, '482916');
+  // With REVIEW_CODE removed, the review address is an ordinary email again.
+  const f2 = otpFakes();
+  await handle(new Request('https://w.example/otp/send', { method: 'POST', headers: { origin: ORIGIN, 'cf-connecting-ip': '8.8.4.5' }, body: JSON.stringify({ email: 'review@verth.in' }) }), { ...otpEnv, REVIEW_EMAIL: 'review@verth.in' }, f2.deps);
+  assert.equal(f2.mails.length, 1); assert.notEqual(f2.mails[0].code, '482916');
+  // A code that isn't exactly 6 digits never switches it on.
+  assert.equal((await import('../worker/src/index.js')).isReviewEmail({ REVIEW_EMAIL: 'review@verth.in', REVIEW_CODE: '12345' }, 'review@verth.in'), false);
+});

@@ -10,3 +10,5 @@ keep_vars = true
 # Websites the Verth app runs on. Set here (not only in the dashboard) so a new address goes live with the code.
 [vars]
 ALLOWED_ORIGIN = "https://verth.in,https://www.verth.in,https://umeshdk22.github.io"
+# Test login for Razorpay's website review: works only while the REVIEW_CODE secret is set in Cloudflare.
+REVIEW_EMAIL = "review@verth.in"

@@ -419,6 +419,7 @@ async function limit(fs, path, max, now, msg, windowMs = 3600_000) {
   await fs.set(path, { windowStart: fresh ? new Date(now) : new Date(d.windowStart), count: count + 1 }, d);
 }
 
+export const isReviewEmail = (env, email) => !!env.REVIEW_EMAIL && /^\d{6}$/.test(String(env.REVIEW_CODE || '')) && normEmail(env.REVIEW_EMAIL) === email;
 async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
   const email = normEmail(body.email);
   const mode = body.mode === 'signup' ? 'signup' : 'login';
@@ -445,14 +446,18 @@ async function otpSend(body, env, fs, deps, ip, now = Date.now()) {
   if (mode === 'login' && !existing) throw new HttpError(404, NO_ACCOUNT);
   if (mode === 'login' && existing.disabled) throw new HttpError(403, 'This account has been switched off. Contact support.');
   if (mode === 'signup' && existing) throw new HttpError(409, 'You already have a Verth account with this email. Tap “Log in” instead.');
-  const code = makeCode();
+  // Razorpay's website review needs a test login. Only for REVIEW_EMAIL (an address nobody receives
+  // mail at), and only while the REVIEW_CODE secret is set: the code is that fixed 6-digit number and
+  // no email is sent. Every other limit still applies. Delete REVIEW_CODE after the review.
+  const review = isReviewEmail(env, email);
+  const code = review ? String(env.REVIEW_CODE) : makeCode();
   await fs.set('otp/' + id, {
     codeHash: await hmacHex(env.OTP_SECRET, id + ':' + code), expires: new Date(now + OTP.ttlMs), tries: 0,
     sentAt: new Date(now), windowStart: fresh ? new Date(now) : new Date(prev.windowStart), sends: sends + 1,
     mode, ...(mode === 'signup' ? { name } : {}),
     ...failState(prev, now),
   }, prev);
-  await deps.mail.sendCode(email, code);
+  if (!review) await deps.mail.sendCode(email, code);
   return { sent: true, resendInSeconds: OTP.resendMs / 1000 };
 }
 
