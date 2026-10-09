@@ -13,7 +13,7 @@ PLACE = "Datarpur, District Hoshiarpur, Punjab, India"
 
 PAGES = {
     "terms": ("Terms and Conditions", f"""
-<p>These terms apply to Verth (the website at umeshdk22.github.io/verth and the Verth app), run by {OWNER}, {PLACE} (“Verth”, “we”). By creating an account you agree to them.</p>
+<p>These terms apply to Verth (the website at verth.in and the Verth app), run by {OWNER}, {PLACE} (“Verth”, “we”). By creating an account you agree to them.</p>
 <h2>What Verth does</h2>
 <p>Verth helps people avoid scams. <b>Scam check</b> looks at a message, email, job offer, link or phone number you paste and points out warning signs. <b>Verify</b> lets people in a family or organisation “circle” confirm a request with the real person on their own registered device.</p>
 <h2>Verth gives guidance, not guarantees</h2>

@@ -75,7 +75,7 @@ window.setup = async (plan) => {
   P.img = {};
   for (const s of srcs) { const im = new Image(); im.src = s; scr.insertBefore(im, scr.firstChild); P.img[s] = im; }
   document.getElementById('c1').innerHTML = `<img src="../assets/icon-512.png" alt=""><h1>${plan.title}</h1><h2>${plan.open}</h2>`;
-  document.getElementById('c2').innerHTML = `<img src="../assets/icon-512.png" alt=""><h1>${plan.endTitle}</h1><p>${plan.endText}</p><span class="url">umeshdk22.github.io/verth</span>`;
+  document.getElementById('c2').innerHTML = `<img src="../assets/icon-512.png" alt=""><h1>${plan.endTitle}</h1><p>${plan.endText}</p><span class="url">verth.in</span>`;
   await document.fonts.ready;
   await Promise.all(Object.values(P.img).map((im) => im.decode().catch(() => {})));
 };

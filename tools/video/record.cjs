@@ -158,7 +158,7 @@ const LAYOUT = {
       },
       async outro(s) {
         await F('a').click('.vh-x').catch(() => {});
-        await page.evaluate(([h, p, u]) => window.stage.cover(true, h, p, u), [T(s, 'title'), T(s, 'say'), 'umeshdk22.github.io/verth']);
+        await page.evaluate(([h, p, u]) => window.stage.cover(true, h, p, u), [T(s, 'title'), T(s, 'say'), 'verth.in']);
       },
     },
     org: {
@@ -241,7 +241,7 @@ const LAYOUT = {
         await sleep(600); await scroll(adm, 'text=Change code', 'center');
       },
       async outro(s) {
-        await page.evaluate(([h, p, u]) => window.stage.cover(true, h, p, u), [T(s, 'title'), T(s, 'say'), 'umeshdk22.github.io/verth']);
+        await page.evaluate(([h, p, u]) => window.stage.cover(true, h, p, u), [T(s, 'title'), T(s, 'say'), 'verth.in']);
       },
     },
   }[video];

@@ -30,7 +30,7 @@ import {
 /* global __TEST_ALLOW_FRAME__ */
 // (__TEST_ALLOW_FRAME__ exists only in the local video/test build; the live site always refuses frames.)
 if (window.top !== window.self && typeof __TEST_ALLOW_FRAME__ === 'undefined') {
-  document.body.innerHTML = '<p style="padding:24px;font:16px system-ui">For your safety, Verth can’t be shown inside another website. <a href="https://umeshdk22.github.io/verth/app.html" target="_top">Open Verth directly</a>.</p>';
+  document.body.innerHTML = '<p style="padding:24px;font:16px system-ui">For your safety, Verth can’t be shown inside another website. <a href="https://verth.in/app.html" target="_top">Open Verth directly</a>.</p>';
   throw new Error('framed');
 }
 
@@ -41,8 +41,8 @@ const EMU = ['localhost', '127.0.0.1'].includes(location.hostname) && params.has
 const CAPTCHA_KEY = EMU ? '' : TURNSTILE_SITE_KEY;
 const cfg = EMU ? { apiKey: 'demo-key', authDomain: 'demo-verth.firebaseapp.com', projectId: 'demo-verth', appId: 'demo' } : firebaseConfig;
 const CONFIGURED = EMU || !String(cfg.apiKey).includes('REPLACE');
-const APP_URL = 'https://umeshdk22.github.io/verth/app.html';
-const SITE_URL = 'https://umeshdk22.github.io/verth/';
+const APP_URL = 'https://verth.in/app.html';
+const SITE_URL = 'https://verth.in/';
 // An invite link (join.html → app.html?invite=CODE) keeps the code until the person has joined.
 (() => {
   const c = String(params.get('invite') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');

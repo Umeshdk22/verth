@@ -1,5 +1,5 @@
 Contact: mailto:umeshdk22@gmail.com
 Expires: 2027-10-01T00:00:00.000Z
 Preferred-Languages: en, hi
-Canonical: https://umeshdk22.github.io/verth/.well-known/security.txt
+Canonical: https://verth.in/.well-known/security.txt
 Policy: https://github.com/Umeshdk22/verth/blob/main/SECURITY.md
