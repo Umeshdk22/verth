@@ -865,7 +865,7 @@ export async function handle(request, env, deps = {}) {
         const j = await r.json().catch(() => ({}));
         return json({ upiName: r.ok && !!j.customer_name, mode: String(env.RAZORPAY_KEY_ID).startsWith('rzp_live') ? 'live' : 'test', status: r.status, error: String(j.error?.description || '').slice(0, 200) }, 200, { 'access-control-allow-origin': '*' });
       }
-      return json({ ok: true, version: WORKER_VERSION, ai: !!env.GEMINI_API_KEY, aiModel: env.GEMINI_MODEL || AI.model, emailCodes: !!(env.OTP_SECRET && env.BREVO_API_KEY && env.MAIL_FROM), passkeys: !!env.ALLOWED_ORIGIN, captcha: !!env.TURNSTILE_SECRET, sms: !!env.TWOFACTOR_API_KEY, payments: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) }, 200, { 'access-control-allow-origin': '*' });
+      return json({ ok: true, version: WORKER_VERSION, ai: !!env.GEMINI_API_KEY, aiModel: env.GEMINI_MODEL || AI.model, emailCodes: !!(env.OTP_SECRET && env.BREVO_API_KEY && env.MAIL_FROM), passkeys: !!env.ALLOWED_ORIGIN, sites: origins(env).map((o) => o.replace('https://', '')), captcha: !!env.TURNSTILE_SECRET, sms: !!env.TWOFACTOR_API_KEY, payments: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) }, 200, { 'access-control-allow-origin': '*' });
     }
     if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, h);
     const fs = deps.fs || firestore(env, fetchFn), rp = deps.rp || razorpay(env, fetchFn);

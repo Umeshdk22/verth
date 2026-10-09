@@ -6,3 +6,7 @@ main = "src/index.js"
 compatibility_date = "2026-09-01"
 workers_dev = true
 keep_vars = true
+
+# Websites the Verth app runs on. Set here (not only in the dashboard) so a new address goes live with the code.
+[vars]
+ALLOWED_ORIGIN = "https://verth.in,https://www.verth.in,https://umeshdk22.github.io"
