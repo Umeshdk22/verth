@@ -62,8 +62,8 @@ export const TOPICS = [
   },
   {
     id: 'guard', q: 'How do I make my phone safe from hackers?',
-    keys: ['phone safe', 'phone security', 'secure my phone', 'phone hacked', 'hacked', 'hack', 'virus', 'malware', 'apk', 'anydesk', 'teamviewer', 'quicksupport', 'screen share', 'screen sharing', 'remote access', 'accessibility', 'play protect', 'safety check', 'check-up', 'checkup', 'security guard', 'unknown apps'],
-    a: 'Open “Phone safety check-up” on your Verth Home screen. It walks you through 10 quick fixes, like screen lock, Play Protect, no unknown APK installs, removing screen-sharing apps (AnyDesk, TeamViewer), checking Accessibility access and WhatsApp two-step verification.\n• Tick each one when it’s done and watch your safety score go up.\n• Verth can’t scan your phone or see your settings, so you check them yourself and Verth guides you.\n• If you already installed an app from a link or shared your screen: turn on airplane mode, call your bank’s official number, and call 1930.',
+    keys: ['phone safe', 'phone security', 'x-ray', 'xray', 'phone doctor', 'safety board', 'battery drain', 'pop up ads', 'popup', 'secure my phone', 'phone hacked', 'hacked', 'hack', 'virus', 'malware', 'apk', 'anydesk', 'teamviewer', 'quicksupport', 'screen share', 'screen sharing', 'remote access', 'accessibility', 'play protect', 'safety check', 'check-up', 'checkup', 'security guard', 'unknown apps'],
+    a: 'Open “Phone safety check-up” on your Verth Home screen. It walks you through 10 quick fixes, like screen lock, Play Protect, no unknown APK installs, removing screen-sharing apps (AnyDesk, TeamViewer), checking Accessibility access and WhatsApp two-step verification.\n• Tick each one when it’s done and watch your safety score go up. The check-up starts again every day.\n• “Verth checked this device” shows what your browser can tell: screen lock, Android or iOS version and whether your browser is up to date.\n• App X-ray: take a screenshot of Settings → Apps and Verth reads it on your phone to spot AnyDesk-type, spy, SMS-forwarding, fake “KYC/bill/reward” and loan apps.\n• AI Phone Doctor: describe what’s strange (hot phone, pop-up ads, an OTP you didn’t ask for) and get steps.\n• In a circle, you can share your daily score; Family and Team plans show everyone’s score on one board.\n• Verth can’t scan your phone or see your settings by itself, so you check them and Verth guides you.\n• If you already installed an app from a link or shared your screen: turn on airplane mode, call your bank’s official number, and call 1930.',
     go: [['Open safety check-up', 'guard']],
   },
   {
@@ -139,7 +139,7 @@ export const TOPICS = [
   {
     id: 'plans', q: 'What do the plans cost?',
     keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'free trial', 'trial', '7 days', 'seven days', 'trial over', 'trial ended', 'charges', 'buy', 'subscribe'],
-    a: 'Every new account gets 7 days with everything unlimited, free. Then:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, CSV export of the log.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
+    a: 'Every new account gets 7 days with everything unlimited, free. Then:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks, App X-ray and Phone Doctor for you.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks for everyone, the family phone-safety board, and log export.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, staff phone-safety board, log export, faster email support (reply within 1 working day).\nFree also includes the daily phone check-up, 1 App X-ray and 3 Phone Doctor questions a day; Personal, Family and Team make them unlimited.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
   },
   {
@@ -173,7 +173,7 @@ export const TOPICS = [
   {
     id: 'log', q: 'Where can I see past checks?',
     keys: ['log', 'history', 'past checks', 'old checks', 'records', 'export', 'csv', 'report check', 'audit'],
-    a: 'The Log tab lists every check in your circle: who asked, what for, and the answer.\n• Tap “Report” on a check that was a scam attempt so everyone sees it.\n• Team plans can export the log as a CSV file for audits.',
+    a: 'The Log tab lists every check in your circle: who asked, what for, and the answer.\n• Tap “Report” on a check that was a scam attempt so everyone sees it.\n• Family and Team plans can export the log as a spreadsheet (CSV) file, for example for auditors.',
     go: [['Open Log', 'log']],
   },
   {

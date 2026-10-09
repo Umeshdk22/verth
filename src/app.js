@@ -15,8 +15,9 @@ import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } fro
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
-import { guardCard, viewGuard, guardSet, guardScore, guardRepeat } from './guard.js';
-import { videoCard, bindVideos } from './videos.js';
+import { guardCard, viewGuard, guardSet, guardScore, guardRepeat, guardState, guardStreak, today as guardDay } from './guard.js';
+import { deviceChecks, xrayText } from './phonelab.js';
+import { videoCard, bindVideos, videoLang } from './videos.js';
 import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
@@ -623,7 +624,7 @@ function renderMain() {
     guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
   }[S.tab];
   const vid = ['scan', 'verify', 'circle', 'log', 'plan', 'guard'].includes(S.tab) || (S.tab === 'chat' && !S.chatWith) ? videoCard(S.tab) : S.tab === 'home' && inTrial() ? videoCard('intro') : '';
-  const body = (HEAD ? pageHead(...HEAD) : '') + vid + { home: viewHome, scan: viewScan, verify: viewVerify, guard: viewGuard, profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const body = (HEAD ? pageHead(...HEAD) : '') + vid + { home: viewHome, scan: viewScan, verify: viewVerify, guard: () => viewGuard(guardOpts()), profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
   const unread = unreadCount();
   // Keep the chat scrolled to the newest message, unless the person scrolled up to read.
@@ -1126,6 +1127,88 @@ async function scanPhoto(f) {
   loadReportCount(r);
 }
 
+/* ---------- phone check-up tools: device checks, App X-ray, Phone Doctor, circle board ---------- */
+const FREE_TOOLS = { xray: 1, doctor: 3 }; // a day, on the free plan
+function toolUse() { const u = store.get('verth-gtools') || {}; return u.day === guardDay() ? u : { day: guardDay(), xray: 0, doctor: 0 }; }
+function toolSpend(k) { const u = toolUse(); u[k] = (u[k] || 0) + 1; store.set('verth-gtools', u); }
+const toolsPaid = () => !!unlimitedTalk();
+const toolLeft = (k) => Math.max(0, FREE_TOOLS[k] - (toolUse()[k] || 0));
+const shareKey = () => `verth-gshare-${S.user?.uid}-${S.circleId}`;
+const sharing = () => !!(S.circleId && store.get(shareKey()) === 1);
+function guardOpts() {
+  return {
+    paid: toolsPaid(), device: S.gDevice, xray: S.xray, xrayBusy: S.xrayBusy, xrayLeft: toolLeft('xray'),
+    doctor: S.doctor, doctorBusy: S.doctorBusy, doctorLeft: toolLeft('doctor'), lang: videoLang(),
+    inCircle: !!S.circleId, board: boardRows(), boardOpen: circlePaid() || inTrial(), shareOn: sharing(),
+  };
+}
+function boardRows() {
+  if (!S.circleId || !S.board) return [];
+  return Object.entries(S.board).map(([uid, b]) => ({ uid, me: uid === S.user?.uid, name: member(uid)?.name || 'Member', score: Number(b.score) || 0, streak: Number(b.streak) || 0, today: b.day === guardDay() }))
+    .filter((r) => member(r.uid)?.status === 'active').sort((a, b) => Number(b.me) - Number(a.me) || Number(b.today) - Number(a.today) || a.score - b.score);
+}
+// Runs when the check-up opens: what the browser can tell, and the circle board.
+async function guardExtras() {
+  if (!S.gDevice) {
+    try { S.gDevice = await deviceChecks(); } catch { S.gDevice = { results: [] }; }
+    // A screen lock the browser can see counts as today's "Screen lock is on".
+    if (S.gDevice.results?.some((r) => r.id === 'lock' && r.state === 'ok') && !guardState().lock) { guardSet('lock', true); shareScore(); }
+  }
+  if (S.circleId) {
+    if (sharing()) await shareScore();
+    try { const snap = await getDocs(collection(db, 'circles', S.circleId, 'safety')); S.board = Object.fromEntries(snap.docs.map((d) => [d.id, d.data()])); } catch { S.board = S.board || {}; }
+  }
+  if (S.tab === 'guard' || S.soloTab === 'guard') renderScanView();
+}
+async function shareScore() {
+  if (!sharing()) return;
+  const data = { score: guardScore(), day: guardDay(), streak: guardStreak() };
+  try { await setDoc(doc(db, 'circles', S.circleId, 'safety', S.user.uid), { ...data, at: serverTimestamp() }); S.board = { ...(S.board || {}), [S.user.uid]: data }; } catch (e) { console.warn('share score', e?.code); }
+}
+async function runXray(file) {
+  if (!file) return;
+  if (!/^image\//.test(file.type)) return toast('That file isn’t a picture. Choose a screenshot.', 'bad');
+  if (!toolsPaid() && toolLeft('xray') <= 0) return renderScanView();
+  S.xray = null; S.xrayBusy = { stage: 'Opening your screenshot', pct: 3 }; renderScanView();
+  let read;
+  try {
+    const mod = await import(OCR_MODULE);
+    read = await mod.readImage(file, (stage, pct) => {
+      S.xrayBusy = { stage, pct };
+      const a = document.getElementById('xray-stage'), b = document.getElementById('xray-bar');
+      if (a) a.textContent = stage; if (b) b.style.width = pct + '%';
+    });
+  } catch (e) {
+    S.xrayBusy = null; renderScanView();
+    return setErr('xray-err', e?.message === 'too-big' ? 'That picture is too large. Try a normal screenshot.' : 'Couldn’t read the screenshot. Check your internet (the reader downloads once), then try again.');
+  }
+  const r = xrayText(read.text);
+  S.xrayBusy = null;
+  if (r.unreadable) { renderScanView(); return setErr('xray-err', 'Verth couldn’t read app names in this picture. Take a clear screenshot of your apps list. This didn’t use up your free X-ray.'); }
+  toolSpend('xray'); S.xray = r; renderScanView();
+  document.getElementById('xray-result')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+let doctorAI = null;
+async function askDoctor(q) {
+  q = String(q || '').trim().slice(0, 600);
+  if (!q || S.doctorBusy) return;
+  if (!toolsPaid() && toolLeft('doctor') <= 0) return renderScanView();
+  if (looksSensitive(q)) return toast('Please don’t type OTPs, PINs or passwords. Describe the problem without them.', 'bad');
+  doctorAI = doctorAI || (AI_HELPER.enabled ? makeServerAI(PAY_API, 'doctor') : null);
+  S.doctor = [...(S.doctor || []), { q }]; S.doctorBusy = true; renderScanView();
+  const turn = S.doctor[S.doctor.length - 1];
+  try {
+    if (!doctorAI) throw new Error('off');
+    const history = S.doctor.slice(0, -1).flatMap((m) => (m.a ? [{ role: 'user', text: m.q }, { role: 'model', text: m.a }] : [])).concat([{ role: 'user', text: q }]);
+    turn.a = await doctorAI(q, history);
+    toolSpend('doctor');
+  } catch (e) {
+    turn.err = e?.message === 'limit' ? 'The Phone Doctor is busy right now. Try again in a little while.' : e?.message === 'network' ? 'Couldn’t reach Verth. Check your internet and try again.' : 'The Phone Doctor isn’t available right now. Meanwhile, go through the check-up list above, and if you shared an OTP or installed an app from a link, call your bank and 1930 now.';
+  }
+  S.doctorBusy = false; renderScanView();
+  document.querySelector('#doctor .doc-chat > :last-child')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 // People who haven't joined or made a circle yet still get the whole app: Scan and the safety
 // check-up work straight away, and Verify, Chat and Circle explain what a circle adds and set one up.
 function setupCircleCard(title, text) {
@@ -1169,7 +1252,7 @@ function renderScanOnly() {
       <section class="card"><h2>Family and Team plans</h2><p class="muted">Family (₹199 a month, up to 10 people) and Team (₹299 a month, no limit) protect everyone in a circle. Set up a circle to choose one.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div></section>
       ${accountCard()}`,
-    guard: () => `${videoCard('guard')}${viewGuard()}`,
+    guard: () => `${videoCard('guard')}${viewGuard(guardOpts())}`,
     profile: () => viewProfile(),
   };
   paint(`<div class="app solo">
@@ -1226,10 +1309,10 @@ function viewPlan() {
     <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p>
       <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
     <div class="plans">
-      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', '12 private messages and 3 Pay safely payments a day', 'Signed push checks and rolling codes'])}
-      ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Unlimited private chat and Pay safely for you', 'Everything in Free'])}
-      ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Unlimited private chat and Pay safely', 'Log export'])}
-      ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Admin controls and priority support', 'Everything in every plan'])}
+      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', '12 private messages and 3 Pay safely payments a day', 'Daily phone check-up, 1 App X-ray and 3 Phone Doctor questions a day', 'Signed push checks and rolling codes'])}
+      ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Unlimited App X-ray and AI Phone Doctor', 'Unlimited private chat and Pay safely for you', 'Everything in Free'])}
+      ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Family phone-safety board: see everyone’s daily score', 'Unlimited App X-ray and AI Phone Doctor for everyone', 'Unlimited private chat and Pay safely', 'Log export'])}
+      ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Staff phone-safety board', 'Admin controls: company email lock, staff list, two-admin approval', 'Faster email support: reply within 1 working day', 'Everything in every plan'])}
     </div>
     <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     <section class="card"><div class="split"><h2>Your account</h2><button class="btn small" data-act="profile-open">Open profile</button></div><p class="muted small">Your photo, history, fingerprint login, sign out and account settings are in your profile.</p></section>`;
@@ -1671,7 +1754,7 @@ const actions = {
   'setup-back': () => (clearInvite(), S.circle ? renderMain() : S.pending.length ? renderPending() : S.profile?.onboarded ? renderScanOnly() : (S.tourStep = TOUR.length - 1, renderTour())),
   setup: (el) => renderSetup(el.dataset.type),
   replay: () => { S.tourStep = 0; renderTour(); },
-  tab: (el) => { if (!S.circle) { S.soloTab = el.dataset.tab; renderScanOnly(); window.scrollTo(0, 0); return; } if (S.chatWith) closeChat(); S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
+  tab: (el) => { if (el.dataset.tab === 'guard') setTimeout(guardExtras, 0); if (!S.circle) { S.soloTab = el.dataset.tab; renderScanOnly(); window.scrollTo(0, 0); return; } if (S.chatWith) closeChat(); S.tab = el.dataset.tab; S.confirmRemove = null; renderMain(); window.scrollTo(0, 0); },
   goverify: (el) => { if (!S.circle) { S.soloTab = 'verify'; renderScanOnly(); window.scrollTo(0, 0); return; } S.tab = 'verify'; S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   vmode: (el) => { S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   newcheck: () => { S.lastSentId = null; renderMain(); },
@@ -1833,6 +1916,7 @@ async function removeMember(uid, word) {
 }
 
 const forms = {
+  doctor: (f) => { const t = f.querySelector('#doc-q'); const q = t?.value || ''; if (!q.trim()) { t?.focus(); return; } if (!looksSensitive(q)) t.value = ''; askDoctor(q); },
   scan: async (f) => {
     if (S.scanKind === 'image') return scanPhoto(f);
     const el = f.querySelector('textarea, input'), text = el.value.trim(); // first field is the content
@@ -2348,10 +2432,23 @@ function qrSvg(text) {
 Object.assign(actions, {
   'chat-open': (el) => { S.tab = 'chat'; openChat(el.dataset.uid); renderMain(); },
   'chat-back': () => { closeChat(); renderMain(); },
-  'guard-open': () => { if (S.circle) { S.tab = 'guard'; renderMain(); } else { S.guardOpen = true; renderScanView(); } window.scrollTo(0, 0); },
+  'guard-open': () => { if (S.circle) { S.tab = 'guard'; renderMain(); } else { S.guardOpen = true; renderScanView(); } window.scrollTo(0, 0); guardExtras(); },
   'guard-close': () => { S.guardOpen = false; S.soloTab = 'home'; renderScanView(); },
-  'guard-repeat': () => { guardRepeat(); toast('Confirmed for today. Well done! 🛡️', 'ok'); renderScanView(); },
-  'guard-tick': (el) => { guardSet(el.dataset.id, !el.closest('.g-item').classList.contains('done')); renderScanView(); },
+  'guard-repeat': () => { guardRepeat(); toast('Confirmed for today. Well done! 🛡️', 'ok'); renderScanView(); shareScore(); },
+  'guard-tick': (el) => { guardSet(el.dataset.id, !el.closest('.g-item').classList.contains('done')); renderScanView(); shareScore(); },
+  'guard-plans': () => { if (S.circle) { S.tab = 'plan'; renderMain(); } else { S.soloTab = 'plan'; renderScanView(); } window.scrollTo(0, 0); },
+  'guard-share': async () => {
+    if (!S.circleId) return;
+    if (sharing()) {
+      store.set(shareKey(), null);
+      try { const b = writeBatch(db); b.delete(doc(db, 'circles', S.circleId, 'safety', S.user.uid)); await b.commit(); } catch {}
+      if (S.board) delete S.board[S.user.uid];
+      toast('Your score is no longer shared.', 'ok');
+    } else { store.set(shareKey(), 1); await shareScore(); toast('Your circle can now see your daily safety score.', 'ok'); }
+    renderScanView();
+  },
+  'xray-clear': () => { S.xray = null; renderScanView(); },
+  'doctor-ask': (el) => askDoctor(el.dataset.q),
   'trial-plans': () => { store.set('verth-trial-seen', 1); if (S.circle) { S.tab = 'plan'; renderMain(); } else renderScanView(); },
   'chat-check': (el) => { closeChat(); S.tab = 'scan'; S.scanKind = 'link'; S.prefill = { kind: 'link', text: el.dataset.text, from: 'chat' }; renderMain(); },
   'pay-open': () => { S.payOpen = !S.payOpen; S.payQr = null; loadDaily('pay').then(renderMain); renderMain(); },
@@ -2966,6 +3063,7 @@ root.addEventListener('change', (e) => {
   if (e.target.id === 'circle-switch') openCircle(e.target.value);
   if (e.target.id === 'code-for') { S.codeFor = e.target.value; lastCodeKey = ''; tick(); }
   if (e.target.id === 's-image') setPhoto(e.target.files?.[0]);
+  if (e.target.id === 'xray-file') runXray(e.target.files?.[0]);
 });
 
 // Paste or drop a screenshot anywhere on the Scam check screen.

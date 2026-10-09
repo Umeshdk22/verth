@@ -46,7 +46,7 @@ async function auditPage(page) {
     for (const el of document.querySelectorAll('h1,h2,h3,b,strong,button,a,label,p,span')) {
       if (!vis(el)) continue;
       const cs = getComputedStyle(el);
-      if (!el.matches('.sr,.sr-only,.visually-hidden') && (cs.overflow.includes('hidden') || cs.overflowX === 'hidden') && cs.textOverflow !== 'ellipsis' && el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !el.querySelector('img,svg,video'))
+      if (!el.matches('.sr,.sr-only,.visually-hidden,.vh-sr') && (cs.overflow.includes('hidden') || cs.overflowX === 'hidden') && cs.textOverflow !== 'ellipsis' && el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !el.querySelector('img,svg,video'))
         issues.push({ kind: 'clipped', detail: `"${text(el)}" (${label(el)})` });
     }
     // 5. fonts

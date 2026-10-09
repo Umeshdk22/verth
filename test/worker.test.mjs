@@ -732,3 +732,12 @@ test('new address: passkeys made on verth.in work on www.verth.in; old github.io
   const lo2 = await call('/passkey/login-options', {}, 'https://umeshdk22.github.io');
   assert.equal((await call('/passkey/login', await dev.get(lo2.body, 'https://umeshdk22.github.io'), 'https://umeshdk22.github.io')).status, 400);
 });
+
+test('Phone Doctor: same AI, with the phone-doctor instructions added', async () => {
+  const f = otpFakes(); let sent;
+  const fetchFn = async (url, init) => { sent = JSON.parse(init.body); return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'Probably normal.' }] } }] })); };
+  const r = await aiCall(f, { messages: [{ role: 'user', text: 'my phone gets hot' }], mode: 'doctor' }, { fetchFn });
+  assert.equal(r.status, 200); assert.match(sent.systemInstruction.parts[0].text, /PHONE DOCTOR MODE/);
+  await aiCall(f, { messages: [{ role: 'user', text: 'hello' }] }, { fetchFn });
+  assert.doesNotMatch(sent.systemInstruction.parts[0].text, /PHONE DOCTOR MODE/);
+});

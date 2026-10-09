@@ -607,3 +607,17 @@ test('profile photos: only a small JPEG, only your own, also on your member reco
   await no('too big', updateDoc(doc(db('priya'), 'users/priya'), { photo: 'data:image/jpeg;base64,' + 'A'.repeat(90000) }));
   await assertSucceeds(updateDoc(doc(db('priya'), 'users/priya'), { photo: null }));
 });
+
+/* ---------- phone safety board ---------- */
+test('members share only their own safety score, in the right shape', async () => {
+  const ok = { score: 8, day: '2026-10-09', streak: 2, at: serverTimestamp() };
+  await assertSucceeds(setDoc(doc(db('priya'), 'circles/c1/safety/priya'), ok));
+  await assertSucceeds(getDocs(collection(db('rajesh'), 'circles/c1/safety')));
+  await assertFails(setDoc(doc(db('priya'), 'circles/c1/safety/rajesh'), ok));                    // someone else's score
+  await assertFails(setDoc(doc(db('priya'), 'circles/c1/safety/priya'), { ...ok, score: 11 }));   // impossible score
+  await assertFails(setDoc(doc(db('priya'), 'circles/c1/safety/priya'), { ...ok, apps: 'x' }));   // extra data
+  await assertFails(setDoc(doc(db('priya'), 'circles/c1/safety/priya'), { ...ok, day: 'today' }));
+  await assertFails(setDoc(doc(db('mallory'), 'circles/c1/safety/mallory'), ok));                // pending member
+  await assertFails(getDocs(collection(db('outsider'), 'circles/c1/safety')));                    // outsiders can't read
+  await assertSucceeds(deleteDoc(doc(db('priya'), 'circles/c1/safety/priya')));                   // stop sharing
+});
