@@ -725,7 +725,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('nav >> text=Home');
     await A.click('.guard-card button:has-text("today’s check-up")');
     await A.getByRole('heading', { name: /Phone safety:/ }).waitFor({ timeout: 5000 * SLOW });
-    await A.getByText('Screen lock is on').waitFor();
+    await A.locator('.g-item', { hasText: 'Screen lock is on' }).waitFor();
     await A.evaluate(() => window.scrollTo(0, 0)); await vs(A, 'guard-top');
     await vs(A, 'guard-item', '.g-item details[open] >> text=I’ve done this ✓');
     await A.click('.g-item details[open] >> text=I’ve done this ✓');
