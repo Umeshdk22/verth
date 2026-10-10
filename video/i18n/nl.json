@@ -1,0 +1,86 @@
+{
+ "code": "nl",
+ "name": "Nederlands",
+ "titles": {
+  "intro": "Welkom bij Verth",
+  "scan": "Zo gebruik je Scan",
+  "verify": "Zo gebruik je Verify",
+  "chat": "Zo gebruik je Chat",
+  "circle": "Zo gebruik je je Circle",
+  "plan": "Abonnementen en je gratis proefperiode",
+  "log": "De Log: alle controles",
+  "guard": "Dagelijkse veiligheidscheck"
+ },
+ "lines": {
+  "intro": [
+   "Welkom bij Verth. Oplichters in India doen zich nu voor als je baas, je bank of zelfs je eigen familie.",
+   "UPI vertelt je wie je betaalt. Verth vertelt je of je dat moet doen.",
+   "Scan controleert elk bericht, elke link, elk telefoonnummer, elk vacature-aanbod of elke screenshot in seconden.",
+   "Verify vraagt het de echte persoon op diens eigen telefoon, voordat je betaalt of een OTP deelt.",
+   "Je Circle houdt familie of collega's bij elkaar, met privé, versleutelde chat en veilige betalingen.",
+   "En de dagelijkse veiligheidscheck houdt je telefoon goed op slot tegen hackers.",
+   "Je eerste zeven dagen zijn helemaal gratis. Maak je account aan, en check voordat je betaalt."
+  ],
+  "scan": [
+   "Dit is Scan. Gebruik het als een bericht, telefoontje of aanbod een beetje vreemd voelt.",
+   "Kies eerst wat je wilt controleren: een bericht, een link, een telefoonnummer, een vacature of een foto.",
+   "Plak het bericht hier en tik op Check it.",
+   "Verth laat meteen het risico zien en legt elk waarschuwingsteken uit in simpele woorden.",
+   "Is het oplichting, dan zet Verth het zelf in de oplichtingsdatabase, zodat de volgende persoon ook gewaarschuwd wordt.",
+   "Je bericht zelf wordt nooit geüpload. Alleen een onleesbare vingerafdruk wordt bewaard.",
+   "Onthoud: als het riskant lijkt, betaal niet, klik niet en deel nooit een OTP."
+  ],
+  "verify": [
+   "Dit is Verify. Vraagt je baas of een familielid via een bericht om geld? Check het eerst bij hen.",
+   "Kies van wie het verzoek zou komen, en waar het vandaan kwam, zoals WhatsApp of een telefoontje.",
+   "Typ wat ze je vragen te doen en tik dan op Send check.",
+   "De echte persoon krijgt de vraag op de eigen telefoon en antwoordt Yes of No.",
+   "Zeggen ze No, of antwoorden ze niet, stop dan. Iemand doet zich voor als hen.",
+   "In een gesprek of video? Vraag om hun Verth-code. Een nepbeller of deepfake kan die niet geven."
+  ],
+  "chat": [
+   "Dit is Chat: een privé chat met end-to-end-versleuteling, met de mensen in je Circle.",
+   "Tik op iemand om de chat te openen. Alleen jullie twee telefoons kunnen hem lezen. Zelfs Verth niet.",
+   "Stuur veilig berichten, foto's en pdf-documenten, zoals certificaten.",
+   "Om geld te sturen, tik op Pay safely. Verth laat zien wie je betaalt en opent dan je UPI-app.",
+   "Na het betalen krijgen jullie allebei een bon, en die wordt bewaard in je betaalgeschiedenis.",
+   "Het gratis abonnement bevat twaalf berichten en drie betalingen per dag."
+  ],
+  "circle": [
+   "Dit is je Circle: de mensen die je vertrouwt, zoals je familie of je team.",
+   "Nodig mensen uit vanuit je contacten, via WhatsApp, of door je uitnodigingscode te delen.",
+   "Niemand komt erin zonder goedkeuring. Check hun e-mail en telefoonnummer en tik dan op Approve.",
+   "Bedrijven kunnen de Circle beperken tot hun werkmail, en twee beheerders laten goedkeuren.",
+   "Als iemand een nieuwe telefoon neemt, laat Verth dat zien, zodat een gehackt account je niet misleidt.",
+   "Is je uitnodigingscode per ongeluk gedeeld? Verander hem met één tik."
+  ],
+  "plan": [
+   "Dit is Plan. Elk nieuw account krijgt zeven dagen gratis, met alles onbeperkt.",
+   "Daarna blijft het Free-abonnement voor altijd gratis, voor maximaal vijf mensen.",
+   "Personal, voor honderdnegenenveertig roepie per maand, geeft je onbeperkte oplichtingschecks.",
+   "Family, voor honderdnegenennegentig, en Team, voor tweehonderdnegenennegentig, beschermen iedereen in je Circle.",
+   "Betaal met UPI of kaart via Razorpay, en zeg op wanneer je wilt."
+  ],
+  "log": [
+   "Dit is de Log: een overzicht van elke controle in je Circle.",
+   "Je ziet wie het vroeg, wie antwoordde, waar het over ging en wanneer.",
+   "Groen betekent bevestigd. Rood betekent gestopt, dus er is geen oplichting doorgekomen.",
+   "Niemand kan regels aanpassen of wissen, dus het is altijd duidelijk wie wat goedkeurde.",
+   "Met een betaald abonnement kun je de Log exporteren voor je boekhouding of accountants."
+  ],
+  "guard": [
+   "Dit is de dagelijkse veiligheidscheck: de bewaker van je telefoon.",
+   "Hij loopt met je tien beveiligingen door, zoals schermvergrendeling, Play Protect en het blokkeren van onbekende apps.",
+   "Tik op een punt om te zien waarom het belangrijk is, en waar je precies tikt op je telefoon.",
+   "Ben je klaar, vink het af, en je score gaat omhoog.",
+   "De check wordt elke dag vernieuwd. Is er niets veranderd, bevestig dan alles met één tik.",
+   "Houd je reeks vol, en lees de veiligheidstip van vandaag."
+  ]
+ },
+ "ui": {
+  "watch": "Bekijk de video",
+  "play": "Video afspelen",
+  "close": "Sluiten",
+  "subtitles": "Ondertitels"
+ }
+}

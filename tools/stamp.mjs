@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const FILES = ['app.js', 'verth.css', 'helper.js', 'site.js', 'splash.js', 'join.js', 'fonts.css', 'demo.js'];
+const FILES = ['app.js', 'verth.css', 'helper.js', 'site.js', 'live.js', 'splash.js', 'join.js', 'fonts.css', 'demo.js'];
 const hash = (f) => createHash('sha256').update(readFileSync('assets/' + f)).digest('hex').slice(0, 10);
 const v = Object.fromEntries(FILES.filter((f) => existsSync('assets/' + f)).map((f) => [f, hash(f)]));
 const stampAll = (text) => text.replace(/assets\/([a-z]+\.(?:js|css))(\?v=[a-f0-9]+)?(?=["'])/g, (m, f) => (v[f] ? `assets/${f}?v=${v[f]}` : m));

@@ -117,6 +117,8 @@ PAGES = {
 <li>you were charged after you had cancelled;</li>
 <li>a technical problem on our side meant your paid plan didn’t work, and we couldn’t fix it within 3 days of you telling us; or</li>
 <li>you ask within 7 days of your first-ever payment for a plan (a 7-day money-back guarantee for new subscribers).</li></ul>
+<h2>Failed payments</h2>
+<p>If a payment fails (for example “insufficient balance” or a declined UPI Autopay request) but money left your account, Verth never received it: your bank returns it automatically, usually within 1–5 working days. If it hasn’t come back by then, raise a dispute in your UPI app or bank (“money debited but transaction failed”) with the UPI reference number, or email us and we’ll help.</p>
 <h2>How to ask for a refund</h2>
 <p>Email <a href="mailto:{EMAIL}">{EMAIL}</a> from your Verth account email with the payment date and amount (or the Razorpay payment ID from your receipt). We reply within 2 working days. Approved refunds are sent to the original payment method through Razorpay and usually reach you within 5–7 working days, depending on your bank.</p>
 """),

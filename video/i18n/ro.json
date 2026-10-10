@@ -1,0 +1,86 @@
+{
+ "code": "ro",
+ "name": "Română",
+ "titles": {
+  "intro": "Bun venit în Verth",
+  "scan": "Cum folosești Scan",
+  "verify": "Cum folosești Verify",
+  "chat": "Cum folosești Chat",
+  "circle": "Cum folosești Circle-ul tău",
+  "plan": "Planuri și perioada ta gratuită",
+  "log": "Log: toate verificările",
+  "guard": "Verificarea zilnică de siguranță"
+ },
+ "lines": {
+  "intro": [
+   "Bun venit în Verth. În India, escrocii se dau acum drept șeful tău, banca ta sau chiar familia ta.",
+   "UPI îți spune pe cine plătești. Verth îți spune dacă ar trebui s-o faci.",
+   "Scan verifică în câteva secunde orice mesaj, link, număr de telefon, ofertă de muncă sau captură de ecran.",
+   "Verify întreabă persoana reală pe propriul ei telefon, înainte să plătești sau să dai un OTP.",
+   "Circle-ul tău ține familia sau colegii împreună, cu chat privat, criptat, și plăți sigure.",
+   "Iar verificarea zilnică de siguranță îți ține telefonul bine apărat de hackeri.",
+   "Primele șapte zile sunt complet gratuite. Creează-ți contul și verifică înainte să plătești."
+  ],
+  "scan": [
+   "Acesta este Scan. Folosește-l când un mesaj, un apel sau o ofertă ți se pare puțin ciudată.",
+   "Mai întâi, alege ce vrei să verifici: un mesaj, un link, un număr de telefon, o ofertă de muncă sau o poză.",
+   "Lipește mesajul aici și apasă Check it.",
+   "Verth arată imediat riscul și explică fiecare semnal de alarmă în cuvinte simple.",
+   "Dacă e o înșelătorie, Verth o adaugă singur în baza sa de date, ca și următoarea persoană să fie avertizată.",
+   "Mesajul tău nu este niciodată încărcat. Se salvează doar o amprentă amestecată.",
+   "Ține minte: dacă pare riscant, nu plăti, nu da click și nu da niciodată un OTP."
+  ],
+  "verify": [
+   "Acesta este Verify. Șeful sau cineva din familie îți cere bani prin mesaj? Verifică mai întâi cu ei.",
+   "Alege de la cine pretinde că vine cererea și de unde a venit, de exemplu WhatsApp sau un apel.",
+   "Scrie ce ți se cere să faci, apoi apasă Send check.",
+   "Persoana reală primește întrebarea pe propriul telefon și răspunde Yes sau No.",
+   "Dacă spune No sau nu răspunde, oprește-te. Cineva se dă drept ea.",
+   "Ești într-un apel sau video? Cere-i codul Verth. Un apelant fals sau un deepfake nu-l poate da."
+  ],
+  "chat": [
+   "Acesta este Chat: un chat privat, criptat end-to-end, cu oamenii din Circle-ul tău.",
+   "Apasă pe o persoană ca să deschizi chatul. Doar cele două telefoane îl pot citi. Nici măcar Verth.",
+   "Trimite în siguranță mesaje, poze și documente PDF, cum ar fi certificate.",
+   "Ca să trimiți bani, apasă Pay safely. Verth arată pe cine plătești, apoi deschide aplicația ta UPI.",
+   "După plată, primiți amândoi o chitanță, salvată în istoricul plăților.",
+   "Planul gratuit include douăsprezece mesaje și trei plăți pe zi."
+  ],
+  "circle": [
+   "Acesta este Circle-ul tău: oamenii în care ai încredere, ca familia sau echipa ta.",
+   "Invită oameni din contacte, pe WhatsApp sau trimițând codul tău de invitație.",
+   "Nimeni nu intră fără aprobare. Verifică-i emailul și numărul de telefon, apoi apasă Approve.",
+   "Firmele pot limita Circle-ul la emailul de serviciu și pot cere aprobarea a doi admini.",
+   "Dacă cineva trece pe un telefon nou, Verth îți arată, ca un cont spart să nu te păcălească.",
+   "Dacă ai trimis din greșeală codul de invitație, schimbă-l cu o singură apăsare."
+  ],
+  "plan": [
+   "Acesta este Plan. Fiecare cont nou primește șapte zile gratuite, cu totul nelimitat.",
+   "După aceea, planul Free rămâne gratuit pentru totdeauna, pentru până la cinci persoane.",
+   "Personal, la o sută patruzeci și nouă de rupii pe lună, îți dă verificări nelimitate.",
+   "Family, la o sută nouăzeci și nouă, și Team, la două sute nouăzeci și nouă, protejează pe toți din Circle.",
+   "Plătește cu UPI sau card prin Razorpay și renunță oricând."
+  ],
+  "log": [
+   "Acesta este Log: o evidență a fiecărei verificări din Circle-ul tău.",
+   "Vezi cine a întrebat, cine a răspuns, despre ce era vorba și când.",
+   "Verde înseamnă confirmat. Roșu înseamnă oprit, deci o înșelătorie n-a trecut.",
+   "Nimeni nu poate modifica sau șterge intrări, așa că e mereu clar cine ce a aprobat.",
+   "Pe planurile plătite, poți exporta Log-ul pentru contabilitate sau auditori."
+  ],
+  "guard": [
+   "Aceasta este verificarea zilnică de siguranță: paznicul telefonului tău.",
+   "Te ghidează prin zece protecții, ca blocarea ecranului, Play Protect și blocarea aplicațiilor necunoscute.",
+   "Apasă pe un punct ca să vezi de ce contează și unde exact să apeși pe telefon.",
+   "Când e gata, bifează-l, iar scorul tău crește.",
+   "Verificarea se reînnoiește zilnic. Dacă nu s-a schimbat nimic, confirmă totul cu o apăsare.",
+   "Păstrează-ți seria și citește sfatul de siguranță de azi."
+  ]
+ },
+ "ui": {
+  "watch": "Vezi videoclipul",
+  "play": "Redă videoclipul",
+  "close": "Închide",
+  "subtitles": "Subtitrări"
+ }
+}

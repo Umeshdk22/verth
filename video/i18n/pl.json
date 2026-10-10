@@ -1,0 +1,86 @@
+{
+ "code": "pl",
+ "name": "Polski",
+ "titles": {
+  "intro": "Witaj w Verth",
+  "scan": "Jak używać Scan",
+  "verify": "Jak używać Verify",
+  "chat": "Jak używać Chat",
+  "circle": "Jak używać swojego Circle",
+  "plan": "Plany i darmowy okres próbny",
+  "log": "Log: wszystkie sprawdzenia",
+  "guard": "Codzienny przegląd bezpieczeństwa"
+ },
+ "lines": {
+  "intro": [
+   "Witaj w Verth. Oszuści w Indiach podszywają się dziś pod twojego szefa, twój bank, a nawet twoją rodzinę.",
+   "UPI mówi ci, komu płacisz. Verth mówi ci, czy powinieneś.",
+   "Scan w kilka sekund sprawdza każdą wiadomość, link, numer telefonu, ofertę pracy czy zrzut ekranu.",
+   "Verify pyta prawdziwą osobę na jej własnym telefonie, zanim zapłacisz albo podasz kod OTP.",
+   "Twój Circle łączy rodzinę lub współpracowników, z prywatnym, szyfrowanym czatem i bezpiecznymi płatnościami.",
+   "A codzienny przegląd bezpieczeństwa dobrze chroni twój telefon przed hakerami.",
+   "Pierwsze siedem dni jest całkowicie za darmo. Załóż konto i sprawdzaj, zanim zapłacisz."
+  ],
+  "scan": [
+   "To jest Scan. Używaj go zawsze, gdy wiadomość, telefon albo oferta wydaje się trochę dziwna.",
+   "Najpierw wybierz, co chcesz sprawdzić: wiadomość, link, numer telefonu, ofertę pracy albo zdjęcie.",
+   "Wklej tu wiadomość i dotknij Check it.",
+   "Verth od razu pokazuje ryzyko i prostymi słowami wyjaśnia każdy sygnał ostrzegawczy.",
+   "Jeśli to oszustwo, Verth sam dodaje je do swojej bazy, żeby następna osoba też została ostrzeżona.",
+   "Twoja wiadomość nigdy nie jest wysyłana. Zapisywany jest tylko zaszyfrowany odcisk.",
+   "Pamiętaj: jeśli wygląda to ryzykownie, nie płać, nie klikaj i nigdy nie podawaj kodu OTP."
+  ],
+  "verify": [
+   "To jest Verify. Szef albo ktoś z rodziny prosi w wiadomości o pieniądze? Najpierw sprawdź to u nich.",
+   "Wybierz, od kogo rzekomo jest prośba i skąd przyszła, na przykład z WhatsApp lub z rozmowy.",
+   "Wpisz, o co cię proszą, a potem dotknij Send check.",
+   "Prawdziwa osoba dostaje pytanie na swój telefon i odpowiada Yes albo No.",
+   "Jeśli odpowie No albo nie odpowie, zatrzymaj się. Ktoś się pod nią podszywa.",
+   "Rozmowa lub wideo? Poproś o jej kod Verth. Fałszywy rozmówca ani deepfake go nie poda."
+  ],
+  "chat": [
+   "To jest Chat: prywatny czat szyfrowany end-to-end z osobami z twojego Circle.",
+   "Dotknij osoby, by otworzyć czat. Czytać go mogą tylko wasze dwa telefony. Nawet Verth nie może.",
+   "Bezpiecznie wysyłaj wiadomości, zdjęcia i dokumenty PDF, na przykład certyfikaty.",
+   "Aby wysłać pieniądze, dotknij Pay safely. Verth pokaże, komu płacisz, i otworzy twoją aplikację UPI.",
+   "Po płatności oboje dostajecie potwierdzenie, zapisane w historii płatności.",
+   "Darmowy plan obejmuje dwanaście wiadomości i trzy płatności dziennie."
+  ],
+  "circle": [
+   "To jest twój Circle: ludzie, którym ufasz, jak twoja rodzina albo twój zespół.",
+   "Zapraszaj ludzi z kontaktów, przez WhatsApp albo udostępniając swój kod zaproszenia.",
+   "Nikt nie wejdzie bez zgody. Sprawdź jego e-mail i numer telefonu, a potem dotknij Approve.",
+   "Firmy mogą ograniczyć Circle do służbowych e-maili i wymagać zgody dwóch adminów.",
+   "Gdy ktoś zmieni telefon, Verth to pokaże, żeby przejęte konto cię nie oszukało.",
+   "Jeśli twój kod zaproszenia zostanie przez pomyłkę udostępniony, zmień go jednym dotknięciem."
+  ],
+  "plan": [
+   "To jest Plan. Każde nowe konto dostaje siedem dni za darmo, wszystko bez limitu.",
+   "Potem plan Free zostaje darmowy na zawsze, dla maksymalnie pięciu osób.",
+   "Personal, za sto czterdzieści dziewięć rupii miesięcznie, daje ci nielimitowane sprawdzanie oszustw.",
+   "Family, za sto dziewięćdziesiąt dziewięć, i Team, za dwieście dziewięćdziesiąt dziewięć, chronią cały twój Circle.",
+   "Płać przez UPI lub kartą przez Razorpay i zrezygnuj w dowolnej chwili."
+  ],
+  "log": [
+   "To jest Log: zapis każdego sprawdzenia w twoim Circle.",
+   "Widzisz, kto pytał, kto odpowiedział, czego to dotyczyło i kiedy.",
+   "Zielony to potwierdzone. Czerwony to zatrzymane, więc oszustwo się nie udało.",
+   "Nikt nie może edytować ani usuwać wpisów, więc zawsze wiadomo, kto co zatwierdził.",
+   "W płatnych planach możesz wyeksportować Log dla księgowości lub audytorów."
+  ],
+  "guard": [
+   "To jest codzienny przegląd bezpieczeństwa: ochroniarz twojego telefonu.",
+   "Przeprowadzi cię przez dziesięć zabezpieczeń, jak blokada ekranu, Play Protect i blokowanie nieznanych aplikacji.",
+   "Dotknij punktu, by zobaczyć, dlaczego jest ważny i gdzie dokładnie dotknąć w telefonie.",
+   "Gdy skończysz, zaznacz go, a twój wynik wzrośnie.",
+   "Przegląd odnawia się codziennie. Jeśli nic się nie zmieniło, potwierdź wszystko jednym dotknięciem.",
+   "Utrzymuj swoją serię i przeczytaj dzisiejszą wskazówkę."
+  ]
+ },
+ "ui": {
+  "watch": "Obejrzyj film",
+  "play": "Odtwórz film",
+  "close": "Zamknij",
+  "subtitles": "Napisy"
+ }
+}

@@ -489,6 +489,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 5000 * SLOW });
     await B.getByText('Pretends to be State Bank of India', { exact: false }).first().waitFor();
     await shot(B, '10-B-scan-danger');
+    await B.addStyleTag({ content: 'header.top,.tabs,.vh-fab{visibility:hidden!important}' }).then((h) => B.locator('#scan-result').screenshot({ path: OUT + '/10c-B-result.png' }).finally(() => h.evaluate((e) => e.remove())));
     await vs(B, 'scan-result', null, '#scan-result h2');
     await vs(B, 'scan-flags', null, '.flags');
   });
@@ -546,6 +547,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.press('#vh-q', 'Enter');
     await C.locator('.vh-msg.bot', { hasText: 'Please don’t type OTPs' }).waitFor();
     await shot(C, '13a-C-helper');
+    if (VS) { await C.locator('.vh-panel').first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70)).catch(() => {}); await vs(C, 'slide-helper', null, null); }
     await C.fill('#vh-q', 'sbi-kyc-update.xyz/login');
     await C.press('#vh-q', 'Enter');
     await C.click('.vh-act:has-text("Check it in Scam check")');
@@ -583,6 +585,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByText('Asks you to pay for a job, exam, interview or training').waitFor();
     await C.getByText('@tcs.com', { exact: false }).first().waitFor();
     await shot(C, '14-C-job-check');
+    if (VS) { await C.locator('#scan-result').first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70)).catch(() => {}); await vs(C, 'slide-job', null, null); }
     // Photo and screenshot checks: read on the device, 5 free, then the plan screen.
     const FIX = require('node:path').join(__dirname, 'fixtures');
     await C.click('text=Check something else');
@@ -603,6 +606,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByText('A QR code you’re told will give you money').waitFor({ timeout: 60000 * SLOW });
     await C.getByText('A UPI QR code that pays ₹4,999', { exact: false }).waitFor();
     await shot(C, '14b-C-photo-qr');
+    if (VS) { await C.locator('#scan-result').first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70)).catch(() => {}); await vs(C, 'slide-photo', null, null); }
     for (let i = 3; i <= 5; i++) {
       await C.click('text=Check something else');
       await C.click('.kinds >> text=Photo or screenshot');
@@ -759,7 +763,7 @@ const SLOW = process.env.CI ? 3 : 1;
     });
     await A.click('#doctor .chip >> nth=0');
     await A.locator('#doctor .doc-a li', { hasText: 'Battery usage' }).waitFor({ timeout: 8000 * SLOW });
-    if (doctorBody?.mode !== 'doctor' || !/battery/i.test(doctorBody.messages.at(-1).text)) throw new Error('Phone Doctor should ask in doctor mode: ' + JSON.stringify(doctorBody));
+    if (doctorBody?.mode !== 'doctor' || !/battery|बैटरी/i.test(doctorBody.messages.at(-1).text)) throw new Error('Phone Doctor should ask in doctor mode: ' + JSON.stringify(doctorBody));
     await A.fill('#doc-q', 'It started after I installed an app from a WhatsApp link');
     await A.click('#doctor button:has-text("Ask the Phone Doctor")');
     await A.locator('#doctor .doc-q', { hasText: 'WhatsApp link' }).waitFor();

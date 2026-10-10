@@ -15,9 +15,10 @@ import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } fro
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
-import { guardCard, viewGuard, guardSet, guardScore, guardRepeat, guardState, guardStreak, today as guardDay } from './guard.js';
+import { guardCard, viewGuard, guardSet, guardScore, guardRepeat, guardState, guardStreak, guardHistory, today as guardDay } from './guard.js';
 import { deviceChecks, xrayText } from './phonelab.js';
-import { videoCard, bindVideos, videoLang } from './videos.js';
+import { areaChart, barChart, gauge, lastDays, bindCharts } from './charts.js';
+import { videoCard, bindVideos, videoLang, setVideoCountry } from './videos.js';
 import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
@@ -204,6 +205,7 @@ function renderLoading(msg = 'Opening your Verth…') {
   S.screen = 'loading';
 }
 function paint(html) {
+  setVideoCountry(S.profile?.country || ''); // the second video language follows the person's country
   if (/^\s*<div class="shell narrow">/.test(html)) html = authFrame(html);
   const keep = {};
   root.querySelectorAll('input[id],select[id],textarea[id]').forEach((el) => { if (el.type !== 'password') keep[el.id] = el.value; });
@@ -696,15 +698,18 @@ function viewHome() {
   return `
     ${heroBanner(esc, { name: me()?.name || S.profile?.name, place: S.circle.name, people: active().length, checks: used, stopped })}
     ${mine.map(incomingCard).join('')}
+    ${dashboard()}
     ${'Notification' in window && Notification.permission === 'default' ? `<div class="banner"><span>Turn on alerts so you see checks while this tab is in the background.</span><button class="btn small" data-act="notify">Turn on</button></div>` : ''}
     ${others().length === 0 ? `<div class="banner accent"><span><b>Invite people to start.</b> A check needs the other person in your circle.</span><button class="btn small" data-act="tab" data-tab="circle">Invite</button></div>` : ''}
     ${quoteCarousel()}
     <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
     ${quickTiles([
-      ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet'],
-      ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal'],
-      ['goverify', 'Ask on their phone', 'Is it really them?', 'ask', 'data-mode="push"', 'amber'],
-      ['goverify', 'Check a caller’s code', 'For calls and video', 'code', 'data-mode="code"', 'red'],
+      ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet', 'Scan message'],
+      ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal', 'Scan screenshot'],
+      ['scan-kind', 'Check a link', 'Before you tap it', 'link', 'data-kind="link"', 'blue', 'Check link'],
+      ['scan-kind', 'Check a phone number', 'Who is calling?', 'phone', 'data-kind="phone"', 'slate', 'Check number'],
+      ['goverify', 'Ask on their phone', 'Is it really them?', 'ask', 'data-mode="push"', 'amber', 'Send a check'],
+      ['goverify', 'Check a caller’s code', 'For calls and video', 'code', 'data-mode="code"', 'red', 'Check code'],
     ])}
     ${guardCard()}
     <section class="card code-home"><div class="split"><h2>Your Verth code</h2>${lim !== Infinity ? `<span class="muted small">${used} of ${lim} free checks this month</span>` : ''}</div>${thisDeviceActive() ? codeCard() : '<p class="muted">Your code is shown on your registered device.</p>'}</section>
@@ -984,8 +989,20 @@ async function autoFlag(r) {
   const fps = [];
   if (r.fp) fps.push([r.fp, kind(r.kind)]);
   for (const l of r.links || []) if (l.verdict === 'danger' && l.normalized) fps.push([await fingerprint('link', l.normalized), 'link']);
-  await Promise.all(fps.map(([fp, k]) => setDoc(doc(db, 'reports', fp, 'auto', S.user.uid), { kind: k, at: serverTimestamp() }).catch(() => {})));
+  if (!fps.length) return;
+  // The first scam record also adds 1 to today's live counter (the database allows exactly that, once).
+  const [fp0, k0] = fps[0];
+  try {
+    const b = writeBatch(db);
+    b.set(doc(db, 'reports', fp0, 'auto', S.user.uid), { kind: k0, at: serverTimestamp() });
+    b.set(doc(db, 'stats', statDay()), { n: increment(1), [k0]: increment(1), last: fp0 }, { merge: true });
+    await b.commit();
+  } catch { await setDoc(doc(db, 'reports', fp0, 'auto', S.user.uid), { kind: k0, at: serverTimestamp() }).catch(() => {}); }
+  await Promise.all(fps.slice(1).map(([fp, k]) => setDoc(doc(db, 'reports', fp, 'auto', S.user.uid), { kind: k, at: serverTimestamp() }).catch(() => {})));
+  S.live = null; // refresh the live chart
 }
+// Days are counted in India time, numbered from 1 January 1970 (the database checks the same number).
+const statDay = (t = Date.now()) => String(Math.floor((t + 19800000) / 86400000));
 async function loadReportCount(r) {
   if (!r?.fp) return;
   await autoFlag(r).catch(() => {});
@@ -1002,6 +1019,59 @@ const VERDICT = {
   caution: ['wait', 'Be careful: there are warning signs'],
   clear: ['ok', 'No obvious red flags'],
 };
+// 0–100, higher is safer: warning signs pull it down, and a scam-database match caps it.
+function safetyScore(r, flagged) {
+  let v = 100 - (r.score || 0) * 12;
+  if (r.verdict === 'danger') v = Math.min(v, 30);
+  else if (r.verdict === 'caution') v = Math.min(Math.max(v, 40), 69);
+  else v = Math.max(v, r.good?.length ? 92 : 85);
+  if (flagged >= 2) v = Math.min(v, 5);
+  return Math.max(3, Math.min(100, Math.round(v)));
+}
+const FLAG_KIND = [
+  ['secret', /OTP|PIN|CVV|password|screen-sharing|AnyDesk|control/i],
+  ['link', /link|web address|domain|https|look-alike|address|Pretends to be|site|short/i],
+  ['pressure', /rush|threat|block|pressure|secret|arrest|police|CBI|deadline|urgent|disconnect/i],
+  ['money', /fee|pay|money|prize|lottery|refund|investment|returns|loan|deposit|job|QR|cashback/i],
+];
+const flagKinds = (flags) => new Set(flags.flatMap((f) => FLAG_KIND.filter(([, re]) => re.test(f.title)).map(([k]) => k)));
+// Four plain checks, like a security report: each one passes or fails.
+function assessment(r, flags, flagged) {
+  const k = flagKinds(flags), badLinks = (r.links || []).some((l) => l.verdict !== 'clear');
+  return [
+    [!k.has('secret'), k.has('secret') ? 'Asks for an OTP, PIN or control' : 'No OTP or PIN request'],
+    [!k.has('link') && !badLinks, k.has('link') || badLinks ? 'Suspicious link or address' : r.kind === 'phone' ? 'No suspicious number pattern' : 'No suspicious links'],
+    [!k.has('pressure'), k.has('pressure') ? 'Pressure or threats' : 'No pressure or threats'],
+    [!k.has('money') && flagged < 2, flagged >= 2 ? 'Known scam in Verth’s database' : k.has('money') ? 'Money or fee bait' : 'No money bait'],
+  ];
+}
+// What Verth looked at, with a status for each, like a scanner's report.
+function elements(r, flags, flagged) {
+  const out = [flags.length ? [flags.some((f) => f.level >= 3) ? 'bad' : 'warn', 'Warning-sign check', `${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} found.`] : ['clean', 'Warning-sign check', 'None of the patterns real scams use.']];
+  out.push(flagged ? ['bad', 'Verth scam database', `Found to be a scam in ${flagged} earlier ${flagged === 1 ? 'check' : 'checks'}.`] : ['clean', 'Verth scam database', 'No scam record for this yet.']);
+  const links = r.kind === 'link' ? [r] : r.links || [];
+  if (links.length) {
+    const bad = links.filter((l) => l.verdict === 'danger').length, warn = links.filter((l) => l.verdict === 'caution').length;
+    out.push([bad ? 'bad' : warn ? 'warn' : 'clean', 'Link check', bad ? `${bad} risky ${bad === 1 ? 'link' : 'links'}.` : warn ? 'A link needs care.' : `${links.length === 1 ? 'The link looks' : 'The links look'} normal.`]);
+  }
+  if (r.kind === 'phone') out.push([r.verdict === 'clear' ? 'clean' : r.verdict === 'danger' ? 'bad' : 'warn', 'Number check', r.type ? `Looks like a ${String(r.type).replace(/-/g, ' ')} number.` : 'Checked the number’s pattern.']);
+  if (r.kind === 'image') out.push([r.qr?.type === 'upi' ? 'warn' : 'clean', 'QR code check', r.qr ? (r.qr.type === 'upi' ? 'A payment QR: scanning it sends money.' : 'QR code read.') : 'No QR code in the picture.']);
+  return out;
+}
+function techDetails(r) {
+  const rows = [];
+  if (r.kind === 'link') {
+    const insecure = r.flags.some((f) => /https/.test(f.title)), official = r.good.some((g) => /official/i.test(g));
+    rows.push(['Domain', r.domain || r.host || '–'], ['Address', r.host || r.normalized || '–'], ['Secure (https)', insecure ? 'No' : 'Yes', insecure ? 'bad' : 'ok'], ['Official site', official ? 'Yes' : 'Not recognised', official ? 'ok' : 'wait']);
+  } else if (r.kind === 'phone') {
+    rows.push(['Number', r.normalized || '–'], ['Type', r.type ? String(r.type).replace(/-/g, ' ') : 'Unknown']);
+  } else {
+    rows.push(['Checked as', r.kind === 'image' ? 'Photo or screenshot' : r.kind === 'job' || r.sub === 'job' ? 'Job or exam offer' : 'Message or email'], ['Links found', String(r.links?.length || 0)], ['Phone numbers found', String(r.phones?.length || 0)]);
+    if (r.kind === 'image') rows.push(['QR code', r.qr ? (r.qr.type === 'upi' ? 'UPI payment' : r.qr.type === 'link' ? 'Web link' : 'Text') : 'None']);
+  }
+  rows.push(['Checked on', 'This device', 'ok']);
+  return rows;
+}
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
   // Only Verth's own checks add to the scam database (no report button that people could misuse).
@@ -1010,26 +1080,48 @@ function scanResultCard(r) {
   const what = { link: 'link', phone: 'number', message: 'message', job: 'offer', image: 'message' }[r.kind];
   const isJob = r.kind === 'job' || r.sub === 'job';
   const qr = r.qr;
+  // A possible risk (warning signs) is kept apart from a confirmed scam (already in Verth's scam database).
+  const label = crowd ? ['known', 'Known scam'] : r.verdict === 'danger' ? ['likely', 'Likely scam'] : r.verdict === 'caution' ? ['possible', 'Possible risk'] : ['none', 'No warning signs found'];
+  const summary = crowd ? `This ${what} is already in Verth’s scam database: earlier checks found it to be a scam ${flagged} times.`
+    : r.verdict === 'danger' ? `Verth found ${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} that scammers use. Treat it as a scam.`
+      : r.verdict === 'caution' ? `Verth found ${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'}. It may be genuine, but check before you act.`
+        : 'Verth didn’t find any of the warning signs it knows. That doesn’t prove it’s safe.';
+  const linksBad = (r.links || []).filter((l) => l.verdict !== 'clear').length;
+  const steps = isJob ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict];
   return `<div class="result verdict ${cls}" id="scan-result">
-    <div class="split"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
-      <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div></div>
-    <h2>${head}</h2>
+    <div class="rv-hero">
+      <div class="rv-gauge">${gauge(safetyScore(r, flagged), 100, { label: 'Safety score', tone: crowd || r.verdict === 'danger' ? 'bad' : r.verdict === 'caution' ? 'mid' : 'good' })}</div>
+      <div class="rv-side">
+        <span class="rv-label rv-${label[0]}">${label[0] === 'none' ? ICON.ok : label[0] === 'possible' ? ICON.wait : ICON.bad}${label[1]}</span>
+        <h2>${head}</h2>
+        <p class="rv-time">${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+        <h3 class="rv-ah">Security assessment</h3>
+        <ul class="rv-assess">${assessment(r, flags, flagged).map(([ok, t]) => `<li class="${ok ? 'ok' : 'no'}">${ok ? ICON.ok : ICON.bad}<span>${t}</span></li>`).join('')}</ul>
+      </div>
+    </div>
+    <p class="rv-summary">${summary}</p>
+    <div class="rv-chips"><span><b>${flags.length}</b> warning ${flags.length === 1 ? 'sign' : 'signs'}</span>${r.links?.length ? `<span><b>${r.links.length}</b> ${r.links.length === 1 ? 'link' : 'links'} checked${linksBad ? `, ${linksBad} suspicious` : ''}</span>` : ''}<span>${flagged ? `<b>${flagged}</b> earlier scam ${flagged === 1 ? 'record' : 'records'}` : 'No scam record yet'}</span></div>
+    <div class="rv-grid">
+      <section class="rv-panel"><h3>${ICON.shield}Security elements</h3><ul class="rv-elems">${elements(r, flags, flagged).map(([st, t, d]) => `<li class="el-${st}"><i>${st === 'clean' ? ICON.ok : st === 'warn' ? ICON.wait : ICON.bad}</i><div><b>${t}</b><span>${d}</span></div><em>${st === 'clean' ? 'Clean' : st === 'warn' ? 'Check' : 'Found'}</em></li>`).join('')}</ul></section>
+      <section class="rv-panel"><h3>${ICON.shield}Technical details</h3><dl class="rv-tech">${techDetails(r).map(([k, v, pill]) => `<div><dt>${k}</dt><dd>${pill ? `<span class="pill ${pill}">${esc(v)}</span>` : esc(v)}</dd></div>`).join('')}</dl></section>
+    </div>
     ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Verth found it to be a scam in ${flagged} earlier checks. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
-    ${flags.length ? `<ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul>` : ''}
-    ${r.good.length ? `<ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>` : ''}
-    ${r.links?.length ? `<div class="found"><b>Links found</b>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
+    ${flags.length ? `<div class="rv-sec"><h3>Why it looks suspicious</h3><ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
+    ${r.good.length ? `<div class="rv-sec"><h3>Good signs</h3><ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></div>` : ''}
+    ${r.links?.length ? `<div class="rv-sec found"><h3>Links checked</h3>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
     <div class="community">${flagged ? `<span class="cm-stats"><b>🛡️ In Verth’s scam database: found to be a scam in ${flagged} ${flagged === 1 ? 'check' : 'checks'}</b></span>` : `<span>🛡️ Checked against Verth’s scam database: no scam record for this ${what} yet.</span>`}
       ${r.verdict === 'danger' ? '<span class="small muted">Verth saved this to its scam database by itself, so everyone who checks it next is warned. Only a scrambled fingerprint is kept, never the content.</span>' : '<span class="small muted">Verth adds anything it finds to be a scam to the database automatically. Nobody can mark a number or link as a scam by hand.</span>'}</div>
-    ${r.kind === 'image' ? `<div class="found"><b>What Verth found in your picture</b>
+    ${r.kind === 'image' ? `<div class="rv-sec found"><h3>What Verth found in your picture</h3>
       ${qr?.type === 'upi' ? `<span>A UPI QR code that pays ${qr.amount ? esc(qr.amount) + ' to ' : ''}<b>${esc(qr.name || qr.payee)}</b>${qr.name && qr.payee ? ` (${esc(qr.payee)})` : ''}.</span>` : qr?.type === 'link' ? `<span>A QR code that opens <span class="mono">${esc(qr.host)}</span>.</span>` : qr ? '<span>A QR code with some text in it.</span>' : ''}
       ${r.text ? `<details><summary>Show the words Verth read</summary><p class="ocr-text">${esc(r.text)}</p></details>` : ''}</div>` : ''}
     ${isJob && r.company ? `<div class="company"><b>${esc(r.company.name)}: the only real email addresses</b><span class="mono">${r.company.domains.map((d) => '@' + esc(d)).join('  ')}</span><span class="small">Apply and verify offers only through the Careers page on <b>${esc(r.company.site)}</b>. Type the address yourself; don’t use links in the message.</span></div>` : ''}
     ${isJob && !r.company ? '<div class="company"><b>Check the company yourself</b><span class="small">Search for the company’s official website, open its Careers page, and confirm the job exists there. Their recruitment emails should come from that same website’s domain, never Gmail or Yahoo.</span></div>' : ''}
-    <div class="advice"><b>What to do</b><ul>${(isJob ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict]).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
+    <div class="advice rv-sec"><h3>What to do next</h3><ol class="rv-steps">${steps.map((a) => `<li>${esc(a)}</li>`).join('')}</ol>
       <p class="small">Report fraud calls and messages at <a href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener noreferrer">Sanchar Saathi (Chakshu)</a>. Lost money? Call <b>1930</b> or report at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">cybercrime.gov.in</a> immediately.</p></div>
-    ${S.circle && r.verdict !== 'clear' ? '<button class="btn primary" data-act="goverify" data-mode="push">Ask the real person on Verth</button>' : ''}
-    <button class="btn ghost" data-act="scan-again">Check something else</button>
+    <div class="rv-actions">${S.circle && r.verdict !== 'clear' ? '<button class="btn primary" data-act="goverify" data-mode="push">Ask the real person on Verth</button>' : ''}
+    <button class="btn ghost" data-act="scan-again">Check something else</button></div>
+    <p class="rv-note">Verth looks for warning signs that real scams use, and checks its scam database. It can’t catch every scam, so a clean result isn’t a guarantee. When money or an OTP is involved, check with the real person first.</p>
   </div>`;
 }
 const KINDS = [
@@ -1044,6 +1136,14 @@ function photoField() {
   }
   return `<label class="drop" for="s-image">${ICON.camera}<b>Tap here to add a screenshot or photo</b>
       <span>Take a photo of the message, or choose a screenshot from your gallery.</span></label>`;
+}
+// What happens to what people check. Every line here matches what the code does: the check and the
+// picture reading run in this browser; only a one-way fingerprint is looked up (and saved for scams).
+function privacyNote(img) {
+  return `<div class="privacy-note"><i aria-hidden="true">${ICON.lock}</i><div><b>Private by design</b>
+    <ul><li>${img ? 'Your screenshot is read on this device. Verth never uploads or saves it.' : 'Checked on this device. Verth never uploads or saves what you paste.'}</li>
+    <li>Only a one-way fingerprint, not the content, is compared with Verth’s scam database.</li>
+    <li>Your history stays on this phone. Clear it any time in your profile.</li></ul></div></div>`;
 }
 function viewScan() {
   const k = S.scanKind, r = S.scanResult, img = k === 'image';
@@ -1074,7 +1174,7 @@ function viewScan() {
       <p class="muted">What do you want to check? Tap one.</p>
       ${tiles}
       ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary big" type="submit" ${S.photoBusy ? 'disabled' : ''}>${S.photoBusy ? '<span class="spin" aria-hidden="true"></span> Reading your picture…' : 'Check it'}</button></form>`}
-      <p class="muted small">${img ? 'Your picture stays on your phone. Verth reads it here and never uploads it.' : 'Checks run on your device. Verth doesn’t store what you paste.'} If it turns out to be a scam, Verth saves only a scrambled fingerprint so others are warned.</p></section>
+      ${privacyNote(img)}</section>
     ${left === 0 && !r ? limitCard : ''}
     ${r ? scanResultCard(r) : ''}`;
 }
@@ -1127,6 +1227,59 @@ async function scanPhoto(f) {
   loadReportCount(r);
 }
 
+/* ---------- safety dashboard: real numbers, drawn as charts ---------- */
+const istDay = (ms) => new Date(ms).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+function dashboard() {
+  setTimeout(loadLive, 0);
+  const days = lastDays(14), hist = scanHist(), now = Date.now();
+  const byDay = (list, test) => days.map((d) => list.filter((h) => istDay(h.at) === d.key && test(h)).length);
+  const checks = byDay(hist, () => true), scams = byDay(hist, (h) => h.v === 'danger');
+  const in30 = hist.filter((h) => now - h.at < 30 * 864e5), prev30 = hist.filter((h) => now - h.at >= 30 * 864e5 && now - h.at < 60 * 864e5);
+  const caught = in30.filter((h) => h.v === 'danger').length, n = guardScore();
+  const delta = in30.length - prev30.length;
+  const DIC = { d1: ICON.scan, d2: ICON.bad, d3: ICON.shield };
+  const stat = (k, v, label, sub) => `<div class="dstat ${k}"><div class="dtop"><span class="dl">${label}</span><i class="dico" aria-hidden="true">${DIC[k] || ICON.shield}</i></div><b>${v}</b>${sub ? `<span class="ds">${sub}</span>` : ''}</div>`;
+  const circle = !!S.circle && !S.scanOnly;
+  const ver = circle ? days.map((d) => S.checks.filter((c) => istDay(tsMs(c.createdAt)) === d.key)) : null;
+  const live = S.live?.days;
+  return `<section class="dash" aria-label="Your safety dashboard">
+    <div class="dash-hd"><div><span class="eyebrow">Your safety dashboard</span><h2>Today at a glance</h2></div><span class="live-dot" title="Updates as things happen">Live</span></div>
+    <div class="dash-grid">
+      <button type="button" class="dcard dgauge" data-act="guard-open">${gauge(n, 10, { label: 'Phone safety', tone: n >= 9 ? 'good' : n >= 6 ? 'violet' : n >= 3 ? 'mid' : 'bad', sub: n === 10 ? 'Today’s check-up is done' : `${10 - n} left in today’s check-up` })}</button>
+      ${stat('d1', in30.length, 'Scam checks · 30 days', in30.length || prev30.length ? `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta)} vs the 30 days before` : 'Check anything suspicious')}
+      ${stat('d2', caught, 'Scams caught for you', caught ? 'in the last 30 days' : 'Nothing dangerous yet')}
+      ${circle ? stat('d3', monthChecks(), 'Verifications this month', `${S.checks.filter((c) => ['denied', 'code-mismatch'].includes(c.status)).length} scams stopped in your circle`) : stat('d3', guardStreak(), 'Safety streak', guardStreak() === 1 ? 'day fully protected' : 'days fully protected in a row')}
+    </div>
+    <div class="dash-charts">
+      <div class="dcard dchart"><div class="dc-hd"><b>Your scam checks</b><span class="muted small">Last 14 days · kept on this phone</span></div>
+        ${hist.length ? areaChart({ labels: days.map((d) => d.label), series: [{ name: 'checks', values: checks, color: '#6B3DF0' }, { name: 'scams found', values: scams, color: '#DC3545' }], title: 'Your scam checks in the last 14 days' }) : '<p class="dc-empty">Your checks will appear here. Try one: paste a suspicious message in Scan.</p>'}</div>
+      ${circle ? `<div class="dcard dchart"><div class="dc-hd"><b>Verifications in ${esc(S.circle.name)}</b><span class="muted small">Last 14 days</span></div>
+        ${S.checks.length ? barChart({ labels: days.map((d) => d.label), groups: [{ name: 'confirmed', values: ver.map((l) => l.filter((c) => c.status === 'confirmed' || c.status === 'code-match').length), color: '#12A66B' }, { name: 'stopped', values: ver.map((l) => l.filter((c) => ['denied', 'code-mismatch'].includes(c.status)).length), color: '#DC3545' }, { name: 'no answer', values: ver.map((l) => l.filter((c) => !['confirmed', 'code-match', 'denied', 'code-mismatch'].includes(c.status)).length), color: '#E8A33D' }], title: 'Verification checks in the last 14 days' }) : '<p class="dc-empty">When someone in your circle asks the real person, it shows here.</p>'}</div>` : ''}
+      <div class="dcard dchart dlive"><div class="dc-hd"><b><span class="live-dot sm"></span>Scams caught by Verth</b><span class="muted small">Everyone’s checks · last 14 days</span></div>
+        ${live ? `<div class="dl-tot"><b>${live.reduce((a, d) => a + d.n, 0)}</b><span>scams found in 14 days · <b>${live[live.length - 1].n}</b> today</span></div>
+          ${areaChart({ labels: days.map((d) => d.label), series: [{ name: 'scams found', values: live.map((d) => d.n), color: '#16A34A' }], height: 150, title: 'Scams found by everyone using Verth in the last 14 days' })}
+          <p class="muted small">Real counts from Verth’s scam database. Only a number per day is kept, never what was checked.</p>` : '<p class="dc-empty">Loading live numbers…</p>'}</div>
+    </div></section>`;
+}
+// The live scam count: the last 13 days once, and today's number as it changes.
+async function loadLive() {
+  if (S.liveLoading || (S.live && Date.now() - S.live.at < 5 * 60000)) return;
+  S.liveLoading = true;
+  try {
+    const keys = Array.from({ length: 14 }, (_, i) => statDay(Date.now() - (13 - i) * 864e5));
+    const snaps = await Promise.all(keys.map((k) => getDoc(doc(db, 'stats', k)).catch(() => null)));
+    S.live = { at: Date.now(), days: snaps.map((sn) => ({ n: Number(sn?.exists() ? sn.data().n : 0) || 0 })) };
+    if (!S.liveUnsub) {
+      S.liveUnsub = onSnapshot(doc(db, 'stats', keys[13]), (sn) => {
+        const n = Number(sn.exists() ? sn.data().n : 0) || 0;
+        if (S.live && S.live.days[13].n !== n) { S.live.days[13].n = n; if ((S.tab === 'home' || S.soloTab === 'home' || !S.soloTab) && !document.querySelector('input:focus,textarea:focus')) renderScanView(); }
+      }, () => {});
+    }
+  } catch { S.live = { at: Date.now(), days: Array.from({ length: 14 }, () => ({ n: 0 })) }; }
+  S.liveLoading = false;
+  if (document.querySelector('.dlive .dc-empty')) renderScanView();
+}
+
 /* ---------- phone check-up tools: device checks, App X-ray, Phone Doctor, circle board ---------- */
 const FREE_TOOLS = { xray: 1, doctor: 3 }; // a day, on the free plan
 function toolUse() { const u = store.get('verth-gtools') || {}; return u.day === guardDay() ? u : { day: guardDay(), xray: 0, doctor: 0 }; }
@@ -1140,6 +1293,7 @@ function guardOpts() {
     paid: toolsPaid(), device: S.gDevice, xray: S.xray, xrayBusy: S.xrayBusy, xrayLeft: toolLeft('xray'),
     doctor: S.doctor, doctorBusy: S.doctorBusy, doctorLeft: toolLeft('doctor'), lang: videoLang(),
     inCircle: !!S.circleId, board: boardRows(), boardOpen: circlePaid() || inTrial(), shareOn: sharing(),
+    history: (() => { const h = guardHistory(), d = lastDays(14); return Object.keys(h).length > 1 ? areaChart({ labels: d.map((x) => x.label), series: [{ name: 'out of 10', values: d.map((x) => h[x.key] ?? 0), color: '#12A66B' }], height: 150, title: 'Your phone safety score in the last 14 days' }) : ''; })(),
   };
 }
 function boardRows() {
@@ -1229,14 +1383,16 @@ function renderScanOnly() {
         ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`;
   const pending = S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : '';
   const views = {
-    home: () => `${inTrial() ? videoCard('intro') : ''}${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}${pending}
+    home: () => `${inTrial() ? videoCard('intro') : ''}${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}${pending}${dashboard()}
       ${quoteCarousel()}
       <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
       ${quickTiles([
-        ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet'],
-        ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal'],
-        ['scan-kind', 'Check a phone number', 'Who is calling?', 'ask', 'data-kind="phone"', 'amber'],
-        ['scan-kind', 'Check a link', 'Before you tap it', 'code', 'data-kind="link"', 'red'],
+        ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet', 'Scan message'],
+        ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal', 'Scan screenshot'],
+        ['scan-kind', 'Check a link', 'Before you tap it', 'link', 'data-kind="link"', 'blue', 'Check link'],
+        ['scan-kind', 'Check a phone number', 'Who is calling?', 'phone', 'data-kind="phone"', 'slate', 'Check number'],
+        ['scan-kind', 'Check a job offer', 'Exam, interview or offer letter', 'job', 'data-kind="job"', 'amber', 'Check offer'],
+        ['guard-open', 'Phone safety check-up', 'Today’s 1-minute check', 'shield', '', 'red', 'Start check-up'],
       ])}
       ${guardCard()}
       ${setupCircleCard('Protect your family or team', 'Set up a circle to check money requests with the real person, on their own phone, before anyone pays or shares anything. It also opens private chat and Pay safely.')}
@@ -1248,7 +1404,7 @@ function renderScanOnly() {
       ${setupCircleCard('Chat with people in your circle', 'Private, end-to-end encrypted chat, files like certificates, and Pay safely with receipts. Start a circle or join one to begin.')}`,
     circle: () => `${pageHead('Your circle', 'Your people', 'The family or colleagues you check money requests with.', 'family', 'teal')}${videoCard('circle')}${pending}
       ${setupCircleCard('You’re not in a circle yet', 'Make a family circle, set up your organisation, or join with an invite code someone sent you. Nobody gets in without approval.')}`,
-    plan: () => `${pageHead('Plan & account', 'Plans and billing', 'Your plan, your free trial and this device.', 'key', 'amber')}${videoCard('plan')}${personal}
+    plan: () => `${pageHead('Plan & account', 'Plans and billing', 'Your plan, your free trial and this device.', 'key', 'amber')}${payTrouble()}${videoCard('plan')}${personal}
       <section class="card"><h2>Family and Team plans</h2><p class="muted">Family (₹199 a month, up to 10 people) and Team (₹299 a month, no limit) protect everyone in a circle. Set up a circle to choose one.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div></section>
       ${accountCard()}`,
@@ -1301,7 +1457,7 @@ function viewPlan() {
   };
   const LOOK = { free: ['gift', 'To try Verth'], personal: ['user', 'Just for you'], family: ['people', 'For your family · up to 10'], team: ['building', 'Whole organisation · no limits'] };
   const card = (id, title, price, items) => `<div class="plan p-${id} ${(id === 'personal' ? personal : cp === id && !(id === 'free' && personal)) ? 'current' : ''}">${id === 'team' ? '<span class="flag">Everything unlimited</span>' : ''}<div class="plan-hd"><span class="plan-ic">${ICON[LOOK[id][0]]}</span><div><h3>${title}</h3><span class="who">${LOOK[id][1]}</span></div></div><div class="price">${price}</div><ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>${action(id)}</div>`;
-  return `<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
+  return `${payTrouble()}<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
       ${checkLimit() === Infinity ? 'Unlimited checks.' : `${used} of ${checkLimit()} checks used this month.`} ${cp === 'team' ? `${count} people, no limit.` : `${count} of ${memberLimit()} places used.`}</p></section>
     ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
     ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
@@ -1428,9 +1584,12 @@ async function startCheckout(planId) {
         handler: (resp) => payApi('/verify', resp).then(resolve, reject),
         modal: { ondismiss: () => reject(new Error('dismissed')), confirm_close: true },
       });
+      // Razorpay offers "Try again" itself; remember the bank's reason to explain it after the window closes.
+      rzp.on?.('payment.failed', (resp) => { S.payFailed = { plan: planId, reason: String(resp?.error?.description || '').slice(0, 160), at: Date.now() }; });
       rzp.open();
     });
     await refreshProfile();
+    S.payFailed = null;
     if (result.paid) toast(`Payment received. ${PLANS[planId].name} is now active.`, 'ok');
     else {
       toast('Payment is being confirmed. Your plan switches on within a few minutes.');
@@ -1439,7 +1598,30 @@ async function startCheckout(planId) {
     }
   } catch (e) {
     if (e.message !== 'dismissed') toast(e.message, 'bad');
+    else {
+      // The window was closed. Sometimes the payment went through anyway (for example the UPI app
+      // approved it after the QR timed out): Razorpay then tells the Verth server, so look again.
+      if (!S.payFailed) S.payClosed = { plan: planId, at: Date.now() };
+      const before = paidKey();
+      for (const ms of [5000, 15000, 40000, 90000]) setTimeout(() => refreshProfile().then(async () => { if (S.circleId) { const c = await getDoc(doc(db, 'circles', S.circleId)).catch(() => null); if (c?.exists()) S.circle = { ...S.circle, ...c.data() }; } if (paidKey() !== before) { S.payFailed = S.payClosed = null; toast('Payment received. Your plan is now active.', 'ok'); } renderScanView(); }).catch(() => {}), ms);
+    }
   } finally { S.payBusy = null; renderScanView(); }
+}
+const paidKey = () => `${S.profile?.plan || ''}|${S.circle?.plan || ''}`;
+// Shown on the Plan page after a payment fails or the payment window is closed.
+function payTrouble() {
+  const f = S.payFailed, c = !f && S.payClosed && Date.now() - S.payClosed.at < 30 * 60000 ? S.payClosed : null;
+  if (!f && !c) return '';
+  return `<section class="card pay-trouble" role="status"><h2>${f ? 'Your payment didn’t go through' : 'Payment window closed'}</h2>
+    ${f ? `<p>${f.reason ? `Your bank said: <b>${esc(f.reason)}</b>` : 'Your bank or UPI app declined the payment.'} Verth didn’t receive any money, and nothing was switched on.</p>`
+      : '<p>If you finished paying in your UPI app, Verth is checking and your plan will switch on by itself within a few minutes. You don’t need to pay again.</p>'}
+    <ul>
+      <li><b>Money left your account anyway?</b> Your bank returns a failed UPI payment automatically, usually within 1–5 working days. You don’t need to do anything.</li>
+      <li><b>Not back after 5 working days?</b> Open the payment in your UPI app → Help / Raise dispute → “Money debited but transaction failed”. Keep the UPI reference (UTR).</li>
+      <li><b>Try again another way:</b> choose <b>Cards</b> (debit or credit), or pick a different UPI app or bank account. Some banks don’t support UPI Autopay (monthly payments) yet.</li>
+      <li><b>Still stuck?</b> Email <a href="mailto:umeshdk22@gmail.com">umeshdk22@gmail.com</a> with the date and amount, and we’ll sort it out.</li>
+    </ul>
+    <button class="btn small ghost" data-act="pay-trouble-close">OK, got it</button></section>`;
 }
 
 /* ---------- signatures ---------- */
@@ -2448,6 +2630,7 @@ Object.assign(actions, {
     renderScanView();
   },
   'xray-clear': () => { S.xray = null; renderScanView(); },
+  'pay-trouble-close': () => { S.payFailed = S.payClosed = null; renderScanView(); },
   'doctor-ask': (el) => askDoctor(el.dataset.q),
   'trial-plans': () => { store.set('verth-trial-seen', 1); if (S.circle) { S.tab = 'plan'; renderMain(); } else renderScanView(); },
   'chat-check': (el) => { closeChat(); S.tab = 'scan'; S.scanKind = 'link'; S.prefill = { kind: 'link', text: el.dataset.text, from: 'chat' }; renderMain(); },
@@ -3132,7 +3315,7 @@ function helperGo(to, text) {
 // and only with App Check, so only the real Verth site can use the project's AI quota.
 function makeAI() { return AI_HELPER.enabled ? makeServerAI(PAY_API) : null; }
 const helper = mountHelper({ go: helperGo, ai: makeAI(), raised: true });
-bindVideos();
+bindVideos(); bindCharts();
 
 /* ---------- routing ---------- */
 function route() {

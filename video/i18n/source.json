@@ -1,0 +1,84 @@
+{
+ "titles": {
+  "intro": "Welcome to Verth",
+  "scan": "How to use Scan",
+  "verify": "How to use Verify",
+  "chat": "How to use Chat",
+  "circle": "How to use your Circle",
+  "plan": "Plans and your free trial",
+  "log": "The Verification log",
+  "guard": "Daily safety check-up"
+ },
+ "lines": {
+  "intro": [
+   "Welcome to Verth. Scammers in India now pretend to be your boss, your bank, or even your own family.",
+   "UPI tells you who you're paying. Verth tells you whether you should.",
+   "Scan checks any message, link, phone number, job offer or screenshot in seconds.",
+   "Verify asks the real person on their own phone, before you pay or share an OTP.",
+   "Your circle keeps family or colleagues together, with private, encrypted chat and safe payments.",
+   "And the daily safety check-up keeps your phone locked tight against hackers.",
+   "Your first seven days are completely free. Create your account, and check before you pay."
+  ],
+  "scan": [
+   "This is Scan. Use it whenever a message, call or offer feels a little off.",
+   "First, choose what you want to check: a message, a link, a phone number, a job offer, or a photo.",
+   "Paste the message here, and tap Check it.",
+   "Verth shows the risk straight away, and explains every warning sign in simple words.",
+   "If it's a scam, Verth adds it to its scam database by itself, so the next person who checks it is warned too.",
+   "Your message itself is never uploaded. Only a scrambled fingerprint is saved.",
+   "Remember: if it looks risky, don't pay, don't click, and never share an OTP."
+  ],
+  "verify": [
+   "This is Verify. Got a message from your boss or a family member asking for money? Check with them first.",
+   "Choose who the request claims to be from, and where it came from, like WhatsApp or a phone call.",
+   "Type what they're asking you to do, then tap Send check.",
+   "The real person gets the question on their own phone, and answers Yes or No.",
+   "If they say No, or don't answer, stop. Someone is pretending to be them.",
+   "On a call or video? Ask for their Verth code. A fake caller or deepfake can't produce it."
+  ],
+  "chat": [
+   "This is Chat: a private, end-to-end encrypted chat with people in your circle.",
+   "Tap a person to open your chat. Only your two phones can read it. Not even Verth can.",
+   "Send messages, photos and PDF documents, like certificates, safely.",
+   "To send money, tap Pay safely. Verth shows who you're paying, then opens your UPI app.",
+   "After paying, both of you get a receipt, and it's saved in your payment history.",
+   "The free plan includes twelve messages and three payments a day."
+  ],
+  "circle": [
+   "This is your Circle: the people you trust, like your family or your team.",
+   "Invite people from your contacts, on WhatsApp, or by sharing your invite code.",
+   "Nobody gets in without approval. Check their email and phone number, then tap Approve.",
+   "Companies can lock the circle to their work email, and ask for two admins to approve.",
+   "If someone moves to a new phone, Verth shows it, so a hacked account can't fool you.",
+   "If your invite code is ever shared by mistake, change it with one tap."
+  ],
+  "plan": [
+   "This is Plan. Every new account gets seven days free, with everything unlimited.",
+   "After that, the Free plan stays free forever, for up to five people.",
+   "Personal, at one hundred and forty-nine rupees a month, gives you unlimited scam checks.",
+   "Family, at one hundred and ninety-nine, and Team, at two hundred and ninety-nine, protect everyone in your circle.",
+   "Pay with UPI or card through Razorpay, and cancel any time."
+  ],
+  "log": [
+   "This is the Verification log: a record of every check in your circle.",
+   "You can see who asked, who answered, what it was about, and when.",
+   "Green means confirmed. Red means it was stopped, so a scam didn't go through.",
+   "Nobody can edit or delete entries, so there's always a clear record of who approved what.",
+   "On paid plans, you can export the log for your accounts team or auditors."
+  ],
+  "guard": [
+   "This is the daily safety check-up: your phone's security guard.",
+   "It walks you through ten protections, like screen lock, Play Protect, and blocking unknown apps.",
+   "Tap an item to see why it matters, and exactly where to tap on your phone.",
+   "When it's done, tick it, and your score goes up.",
+   "The check-up refreshes every day. If nothing changed, confirm everything in one tap.",
+   "Keep your streak going, and read today's safety tip."
+  ]
+ },
+ "ui": {
+  "watch": "Watch the video",
+  "play": "Play video",
+  "close": "Close",
+  "subtitles": "Subtitles"
+ }
+}

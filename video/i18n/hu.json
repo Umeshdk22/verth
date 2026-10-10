@@ -1,0 +1,86 @@
+{
+ "code": "hu",
+ "name": "Magyar",
+ "titles": {
+  "intro": "Üdvözöl a Verth",
+  "scan": "A Scan használata",
+  "verify": "A Verify használata",
+  "chat": "A Chat használata",
+  "circle": "A Circle használata",
+  "plan": "Csomagok és az ingyenes próbaidő",
+  "log": "A Verification log",
+  "guard": "Napi biztonsági ellenőrzés"
+ },
+ "lines": {
+  "intro": [
+   "Üdvözöl a Verth. Indiában a csalók ma már a főnöködnek, a bankodnak, sőt a saját családodnak is kiadják magukat.",
+   "A UPI megmondja, kinek fizetsz. A Verth megmondja, hogy fizess-e.",
+   "A Scan másodpercek alatt ellenőriz bármilyen üzenetet, linket, telefonszámot, állásajánlatot vagy képernyőképet.",
+   "A Verify a valódi személyt kérdezi meg a saját telefonján, mielőtt fizetsz vagy megosztasz egy OTP-t.",
+   "A Circle összetartja a családot vagy a kollégákat, privát, titkosított csevegéssel és biztonságos fizetéssel.",
+   "A napi biztonsági ellenőrzés pedig szorosan lezárva tartja a telefonodat a hekkerek elől.",
+   "Az első hét napod teljesen ingyenes. Hozd létre a fiókodat, és ellenőrizz, mielőtt fizetsz."
+  ],
+  "scan": [
+   "Ez a Scan. Használd, valahányszor egy üzenet, hívás vagy ajánlat kicsit gyanús.",
+   "Először válaszd ki, mit szeretnél ellenőrizni: üzenetet, linket, telefonszámot, állásajánlatot vagy fotót.",
+   "Illeszd be ide az üzenetet, és koppints a „Check it” gombra.",
+   "A Verth azonnal megmutatja a kockázatot, és egyszerű szavakkal elmagyaráz minden figyelmeztető jelet.",
+   "Ha csalásról van szó, a Verth magától felveszi a csalási adatbázisába, így a következő ellenőrzőt is figyelmezteti.",
+   "Magát az üzenetedet soha nem tölti fel. Csak egy összekevert ujjlenyomat kerül mentésre.",
+   "Ne feledd: ha kockázatosnak tűnik, ne fizess, ne kattints, és soha ne add meg az OTP-t."
+  ],
+  "verify": [
+   "Ez a Verify. Pénzt kér tőled üzenetben a főnököd vagy egy családtagod? Előbb kérdezd meg őt.",
+   "Válaszd ki, kitől származik állítólag a kérés, és honnan jött, például WhatsAppon vagy telefonhívásban.",
+   "Írd be, mit kér tőled, majd koppints a „Send check” gombra.",
+   "A valódi személy a saját telefonján kapja meg a kérdést, és Yes vagy No választ ad.",
+   "Ha No a válasz, vagy nem válaszol, állj meg. Valaki kiadja magát érte.",
+   "Hívásban vagy videóban vagy? Kérd el a Verth-kódját. Egy hamis hívó vagy deepfake ezt nem tudja megadni."
+  ],
+  "chat": [
+   "Ez a Chat: privát, végponttól végpontig titkosított csevegés a Circle tagjaival.",
+   "Koppints egy személyre a csevegés megnyitásához. Csak a ti két telefonotok olvashatja. Még a Verth sem.",
+   "Küldj biztonságosan üzeneteket, fotókat és PDF-dokumentumokat, például bizonyítványokat.",
+   "Pénzküldéshez koppints a „Pay safely” gombra. A Verth megmutatja, kinek fizetsz, majd megnyitja a UPI-alkalmazásodat.",
+   "Fizetés után mindketten nyugtát kaptok, és az a fizetési előzményekbe kerül.",
+   "Az ingyenes csomag napi tizenkét üzenetet és három fizetést tartalmaz."
+  ],
+  "circle": [
+   "Ez a Circle: azok az emberek, akikben megbízol, például a családod vagy a csapatod.",
+   "Hívj meg embereket a névjegyeid közül, WhatsAppon, vagy a meghívókódod megosztásával.",
+   "Jóváhagyás nélkül senki sem léphet be. Ellenőrizd az e-mail-címét és a telefonszámát, majd koppints az Approve gombra.",
+   "A cégek a Circle-t a céges e-mail-címekre korlátozhatják, és két admin jóváhagyását kérhetik.",
+   "Ha valaki új telefonra vált, a Verth jelzi, így egy feltört fiók nem téveszthet meg.",
+   "Ha a meghívókódod véletlenül kikerül, egy koppintással megváltoztathatod."
+  ],
+  "plan": [
+   "Ez a Plan. Minden új fiók hét nap ingyenes használatot kap, korlátlanul mindennel.",
+   "Utána a Free csomag örökre ingyenes marad, legfeljebb öt főre.",
+   "A Personal havi ₹149-ért korlátlan csalásellenőrzést ad.",
+   "A Family ₹199-ért és a Team ₹299-ért a Circle minden tagját védi.",
+   "Fizess UPI-jal vagy kártyával a Razorpayen keresztül, és bármikor lemondhatod."
+  ],
+  "log": [
+   "Ez a Verification log: a Circle minden ellenőrzésének nyilvántartása.",
+   "Láthatod, ki kérdezett, ki válaszolt, miről szólt, és mikor.",
+   "A zöld azt jelenti: megerősítve. A piros azt, hogy leállították, így a csalás nem ment át.",
+   "A bejegyzéseket senki sem szerkesztheti vagy törölheti, így mindig világos, ki mit hagyott jóvá.",
+   "Fizetős csomagokban exportálhatod a naplót a könyvelésnek vagy a könyvvizsgálóknak."
+  ],
+  "guard": [
+   "Ez a napi biztonsági ellenőrzés: a telefonod biztonsági őre.",
+   "Végigvezet tíz védelmen, például a képernyőzáron, a Play Protecten és az ismeretlen alkalmazások letiltásán.",
+   "Koppints egy elemre, hogy lásd, miért fontos, és pontosan hova kell koppintani a telefonodon.",
+   "Ha kész, pipáld ki, és nő a pontszámod.",
+   "Az ellenőrzés minden nap frissül. Ha semmi sem változott, egy koppintással mindent megerősíthetsz.",
+   "Tartsd fenn a sorozatodat, és olvasd el a mai biztonsági tippet."
+  ]
+ },
+ "ui": {
+  "watch": "Nézd meg a videót",
+  "play": "Videó lejátszása",
+  "close": "Bezárás",
+  "subtitles": "Feliratok"
+ }
+}

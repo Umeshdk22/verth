@@ -1,0 +1,86 @@
+{
+ "code": "vi",
+ "name": "Tiếng Việt",
+ "titles": {
+  "intro": "Chào mừng bạn đến với Verth",
+  "scan": "Cách dùng Scan",
+  "verify": "Cách dùng Verify",
+  "chat": "Cách dùng Chat",
+  "circle": "Cách dùng Circle của bạn",
+  "plan": "Các gói và thời gian dùng thử miễn phí",
+  "log": "Verification log",
+  "guard": "Kiểm tra an toàn hằng ngày"
+ },
+ "lines": {
+  "intro": [
+   "Chào mừng bạn đến với Verth. Kẻ lừa đảo ở Ấn Độ giờ giả làm sếp, ngân hàng, hay thậm chí người nhà của bạn.",
+   "UPI cho bạn biết bạn đang trả tiền cho ai. Verth cho bạn biết có nên trả hay không.",
+   "Scan kiểm tra mọi tin nhắn, đường link, số điện thoại, lời mời việc làm hay ảnh chụp màn hình chỉ trong vài giây.",
+   "Verify hỏi chính người thật trên điện thoại của họ, trước khi bạn trả tiền hay chia sẻ OTP.",
+   "Circle của bạn gắn kết gia đình hoặc đồng nghiệp, với trò chuyện riêng tư được mã hóa và thanh toán an toàn.",
+   "Và kiểm tra an toàn hằng ngày giữ điện thoại của bạn khóa chặt trước tin tặc.",
+   "Bảy ngày đầu tiên hoàn toàn miễn phí. Hãy tạo tài khoản, và kiểm tra trước khi trả tiền."
+  ],
+  "scan": [
+   "Đây là Scan. Hãy dùng nó mỗi khi một tin nhắn, cuộc gọi hay lời mời có gì đó không ổn.",
+   "Trước tiên, chọn thứ bạn muốn kiểm tra: tin nhắn, đường link, số điện thoại, lời mời việc làm hoặc ảnh.",
+   "Dán tin nhắn vào đây, rồi chạm \"Check it\".",
+   "Verth cho thấy mức rủi ro ngay lập tức, và giải thích từng dấu hiệu cảnh báo bằng lời đơn giản.",
+   "Nếu là lừa đảo, Verth tự thêm nó vào cơ sở dữ liệu lừa đảo, để người tiếp theo kiểm tra cũng được cảnh báo.",
+   "Tin nhắn của bạn không bao giờ được tải lên. Chỉ một dấu vân tay đã được xáo trộn được lưu lại.",
+   "Hãy nhớ: nếu thấy rủi ro, đừng trả tiền, đừng bấm vào, và không bao giờ chia sẻ OTP."
+  ],
+  "verify": [
+   "Đây là Verify. Nhận được tin nhắn từ sếp hay người nhà xin tiền? Hãy hỏi lại họ trước.",
+   "Chọn người mà yêu cầu tự nhận là gửi đến, và nó đến từ đâu, như WhatsApp hay cuộc gọi.",
+   "Gõ điều họ đang nhờ bạn làm, rồi chạm \"Send check\".",
+   "Người thật sẽ nhận câu hỏi trên điện thoại của chính họ, và trả lời Yes hoặc No.",
+   "Nếu họ trả lời No, hoặc không trả lời, hãy dừng lại. Có người đang giả mạo họ.",
+   "Đang gọi điện hay gọi video? Hãy xin mã Verth của họ. Kẻ gọi giả hay deepfake không thể đưa ra mã đó."
+  ],
+  "chat": [
+   "Đây là Chat: trò chuyện riêng tư, mã hóa đầu cuối với những người trong Circle của bạn.",
+   "Chạm vào một người để mở cuộc trò chuyện. Chỉ hai điện thoại của hai bạn đọc được. Ngay cả Verth cũng không.",
+   "Gửi tin nhắn, ảnh và tài liệu PDF, như giấy chứng nhận, một cách an toàn.",
+   "Để chuyển tiền, chạm \"Pay safely\". Verth cho thấy bạn đang trả cho ai, rồi mở ứng dụng UPI của bạn.",
+   "Sau khi trả, cả hai đều nhận được biên lai, và nó được lưu trong lịch sử thanh toán.",
+   "Gói miễn phí gồm mười hai tin nhắn và ba lần thanh toán mỗi ngày."
+  ],
+  "circle": [
+   "Đây là Circle của bạn: những người bạn tin tưởng, như gia đình hay nhóm làm việc.",
+   "Mời mọi người từ danh bạ, qua WhatsApp, hoặc bằng cách chia sẻ mã mời của bạn.",
+   "Không ai vào được nếu chưa được duyệt. Kiểm tra email và số điện thoại của họ, rồi chạm Approve.",
+   "Công ty có thể giới hạn Circle chỉ cho email công ty, và yêu cầu hai quản trị viên duyệt.",
+   "Nếu ai đó đổi sang điện thoại mới, Verth sẽ báo, để tài khoản bị hack không lừa được bạn.",
+   "Nếu mã mời của bạn lỡ bị chia sẻ nhầm, hãy đổi nó chỉ với một chạm."
+  ],
+  "plan": [
+   "Đây là Plan. Mỗi tài khoản mới được bảy ngày miễn phí, dùng mọi thứ không giới hạn.",
+   "Sau đó, gói Free vẫn miễn phí mãi mãi, cho tối đa năm người.",
+   "Personal, giá ₹149 một tháng, cho bạn kiểm tra lừa đảo không giới hạn.",
+   "Family, giá ₹199, và Team, giá ₹299, bảo vệ mọi người trong Circle của bạn.",
+   "Thanh toán bằng UPI hoặc thẻ qua Razorpay, và hủy bất cứ lúc nào."
+  ],
+  "log": [
+   "Đây là Verification log: bản ghi mọi lần kiểm tra trong Circle của bạn.",
+   "Bạn có thể xem ai hỏi, ai trả lời, về việc gì, và khi nào.",
+   "Màu xanh lá là đã xác nhận. Màu đỏ là đã bị chặn, nên vụ lừa đảo không thành.",
+   "Không ai có thể sửa hay xóa bản ghi, nên luôn rõ ràng ai đã duyệt việc gì.",
+   "Với gói trả phí, bạn có thể xuất log cho bộ phận kế toán hoặc kiểm toán viên."
+  ],
+  "guard": [
+   "Đây là kiểm tra an toàn hằng ngày: người bảo vệ cho điện thoại của bạn.",
+   "Nó hướng dẫn bạn qua mười lớp bảo vệ, như khóa màn hình, Play Protect, và chặn ứng dụng lạ.",
+   "Chạm vào một mục để xem vì sao nó quan trọng, và chính xác cần chạm vào đâu trên điện thoại.",
+   "Làm xong thì đánh dấu, và điểm của bạn sẽ tăng.",
+   "Phần kiểm tra được làm mới mỗi ngày. Nếu không có gì thay đổi, xác nhận tất cả chỉ với một chạm.",
+   "Hãy giữ chuỗi ngày liên tiếp, và đọc mẹo an toàn hôm nay."
+  ]
+ },
+ "ui": {
+  "watch": "Xem video",
+  "play": "Phát video",
+  "close": "Đóng",
+  "subtitles": "Phụ đề"
+ }
+}

@@ -1,0 +1,86 @@
+{
+ "code": "sw",
+ "name": "Kiswahili",
+ "titles": {
+  "intro": "Karibu Verth",
+  "scan": "Jinsi ya kutumia Scan",
+  "verify": "Jinsi ya kutumia Verify",
+  "chat": "Jinsi ya kutumia Chat",
+  "circle": "Jinsi ya kutumia Circle yako",
+  "plan": "Mipango na kipindi chako cha majaribio bure",
+  "log": "Verification log",
+  "guard": "Ukaguzi wa usalama wa kila siku"
+ },
+ "lines": {
+  "intro": [
+   "Karibu Verth. Matapeli nchini India sasa hujifanya kuwa bosi wako, benki yako, au hata familia yako.",
+   "UPI inakuambia unamlipa nani. Verth inakuambia kama unapaswa kulipa.",
+   "Scan hukagua ujumbe wowote, kiungo, namba ya simu, ofa ya kazi au picha ya skrini kwa sekunde chache.",
+   "Verify humuuliza mtu halisi kwenye simu yake mwenyewe, kabla hujalipa au kutoa OTP.",
+   "Circle yako huunganisha familia au wafanyakazi wenzako, kwa gumzo la siri lililosimbwa na malipo salama.",
+   "Na ukaguzi wa usalama wa kila siku huifunga simu yako vizuri dhidi ya wadukuzi.",
+   "Siku zako saba za kwanza ni bure kabisa. Fungua akaunti yako, na ukague kabla ya kulipa."
+  ],
+  "scan": [
+   "Hii ni Scan. Itumie kila ujumbe, simu au ofa inapoonekana kuwa na shaka kidogo.",
+   "Kwanza, chagua unachotaka kukagua: ujumbe, kiungo, namba ya simu, ofa ya kazi, au picha.",
+   "Bandika ujumbe hapa, kisha gusa \"Check it\".",
+   "Verth inaonyesha hatari papo hapo, na inaeleza kila ishara ya onyo kwa maneno rahisi.",
+   "Ikiwa ni utapeli, Verth yenyewe huuongeza kwenye hifadhidata yake ya utapeli, ili anayefuata kuukagua naye aonywe.",
+   "Ujumbe wako wenyewe haupakiwi kamwe. Ni alama ya kidole iliyochanganywa tu inayohifadhiwa.",
+   "Kumbuka: ikionekana hatari, usilipe, usibofye, na kamwe usitoe OTP."
+  ],
+  "verify": [
+   "Hii ni Verify. Umepata ujumbe kutoka kwa bosi au mwanafamilia akiomba pesa? Hakikisha nao kwanza.",
+   "Chagua ombi linadai kutoka kwa nani, na limetoka wapi, kama WhatsApp au simu.",
+   "Andika wanachokuomba ufanye, kisha gusa \"Send check\".",
+   "Mtu halisi anapokea swali kwenye simu yake mwenyewe, na anajibu Yes au No.",
+   "Wakijibu No, au wasipojibu, acha. Kuna mtu anayejifanya kuwa wao.",
+   "Uko kwenye simu au video? Omba msimbo wao wa Verth. Mpigaji bandia au deepfake hawezi kuutoa."
+  ],
+  "chat": [
+   "Hii ni Chat: gumzo la siri lililosimbwa mwanzo hadi mwisho na watu walio kwenye Circle yako.",
+   "Gusa jina la mtu kufungua gumzo lenu. Simu zenu mbili pekee ndizo zinaweza kulisoma. Hata Verth haiwezi.",
+   "Tuma ujumbe, picha na nyaraka za PDF, kama vyeti, kwa usalama.",
+   "Kutuma pesa, gusa \"Pay safely\". Verth inaonyesha unamlipa nani, kisha inafungua programu yako ya UPI.",
+   "Baada ya kulipa, nyote wawili mnapata risiti, na inahifadhiwa kwenye historia ya malipo yako.",
+   "Mpango wa bure una jumbe kumi na mbili na malipo matatu kwa siku."
+  ],
+  "circle": [
+   "Hii ni Circle yako: watu unaowaamini, kama familia yako au timu yako.",
+   "Alika watu kutoka kwa anwani zako, kupitia WhatsApp, au kwa kushiriki msimbo wako wa mwaliko.",
+   "Hakuna anayeingia bila idhini. Kagua barua pepe na namba yao ya simu, kisha gusa Approve.",
+   "Kampuni zinaweza kufunga Circle kwa barua pepe za kazi pekee, na kutaka idhini ya wasimamizi wawili.",
+   "Mtu akihamia simu mpya, Verth inaonyesha, ili akaunti iliyodukuliwa isikudanganye.",
+   "Msimbo wako wa mwaliko ukishirikiwa kwa makosa, ubadilishe kwa mguso mmoja."
+  ],
+  "plan": [
+   "Hii ni Plan. Kila akaunti mpya inapata siku saba bure, kila kitu bila kikomo.",
+   "Baada ya hapo, mpango wa Free unabaki bure milele, kwa hadi watu watano.",
+   "Personal, kwa ₹149 kwa mwezi, inakupa ukaguzi wa utapeli bila kikomo.",
+   "Family, kwa ₹199, na Team, kwa ₹299, zinamlinda kila mtu kwenye Circle yako.",
+   "Lipa kwa UPI au kadi kupitia Razorpay, na usitishe wakati wowote."
+  ],
+  "log": [
+   "Hii ni Verification log: kumbukumbu ya kila ukaguzi kwenye Circle yako.",
+   "Unaweza kuona nani aliuliza, nani alijibu, ilihusu nini, na lini.",
+   "Kijani maana yake imethibitishwa. Nyekundu maana yake ilizuiwa, hivyo utapeli haukufanikiwa.",
+   "Hakuna anayeweza kuhariri au kufuta rekodi, kwa hivyo daima kuna kumbukumbu wazi ya nani aliidhinisha nini.",
+   "Kwenye mipango ya kulipia, unaweza kuhamisha log kwa timu yako ya hesabu au wakaguzi wa hesabu."
+  ],
+  "guard": [
+   "Huu ni ukaguzi wa usalama wa kila siku: mlinzi wa usalama wa simu yako.",
+   "Unakuongoza kupitia kinga kumi, kama kufuli ya skrini, Play Protect, na kuzuia programu zisizojulikana.",
+   "Gusa kipengele kuona kwa nini ni muhimu, na hasa mahali pa kugusa kwenye simu yako.",
+   "Ukimaliza, kiwekee tiki, na alama zako zinapanda.",
+   "Ukaguzi unasasishwa kila siku. Ikiwa hakuna kilichobadilika, thibitisha vyote kwa mguso mmoja.",
+   "Endeleza mfululizo wako, na usome kidokezo cha usalama cha leo."
+  ]
+ },
+ "ui": {
+  "watch": "Tazama video",
+  "play": "Cheza video",
+  "close": "Funga",
+  "subtitles": "Manukuu"
+ }
+}

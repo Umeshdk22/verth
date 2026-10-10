@@ -202,6 +202,25 @@ service cloud.firestore {
     // ---------- community scam reports ----------
     // Only a SHA-256 fingerprint of the reported link, number or message is stored, never the
     // content itself. One report per person per item; anyone signed in can see the count.
+    // ---------- live scam counter (public numbers only) ----------
+    // One document per day (India time, as a day number). Each time Verth's own check records a NEW
+    // scam fingerprint for a person, that same write may add exactly 1 to today's count, once.
+    function cnt(f) { return resource == null ? 0 : resource.data.get(f, 0); }
+    function bump(f) { return request.resource.data.get(f, 0) == cnt(f) + 1; }
+    function same(f) { return request.resource.data.get(f, 0) == cnt(f); }
+    match /stats/{day} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && day == string(int((request.time.toMillis() + 19800000) / 86400000))
+        && request.resource.data.keys().hasOnly(['n', 'message', 'link', 'phone', 'last'])
+        && request.resource.data.last is string && request.resource.data.last.matches('^[a-f0-9]{64}$')
+        && !exists(/databases/$(database)/documents/reports/$(request.resource.data.last)/auto/$(me()))
+        && existsAfter(/databases/$(database)/documents/reports/$(request.resource.data.last)/auto/$(me()))
+        && bump('n')
+        && ((bump('message') && same('link') && same('phone')) || (same('message') && bump('link') && same('phone')) || (same('message') && same('link') && bump('phone')));
+      allow delete: if false;
+    }
+
     match /reports/{fp} {
       // Automatic flags: recorded when Verth's own check finds a scam (high risk), once per person.
       match /auto/{uid} {

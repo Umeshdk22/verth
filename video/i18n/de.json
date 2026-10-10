@@ -1,0 +1,86 @@
+{
+ "code": "de",
+ "name": "Deutsch",
+ "titles": {
+  "intro": "Willkommen bei Verth",
+  "scan": "So nutzt du Scan",
+  "verify": "So nutzt du Verify",
+  "chat": "So nutzt du Chat",
+  "circle": "So nutzt du deinen Circle",
+  "plan": "Tarife und deine Gratis-Testphase",
+  "log": "Das Log: alle Prüfungen",
+  "guard": "Täglicher Sicherheits-Check"
+ },
+ "lines": {
+  "intro": [
+   "Willkommen bei Verth. Betrüger in Indien geben sich heute als dein Chef, deine Bank oder sogar deine Familie aus.",
+   "UPI sagt dir, wen du bezahlst. Verth sagt dir, ob du es tun solltest.",
+   "Scan prüft jede Nachricht, jeden Link, jede Telefonnummer, jedes Jobangebot oder jeden Screenshot in Sekunden.",
+   "Verify fragt die echte Person auf ihrem eigenen Handy, bevor du zahlst oder ein OTP weitergibst.",
+   "Dein Circle hält Familie oder Kollegen zusammen, mit privatem, verschlüsseltem Chat und sicheren Zahlungen.",
+   "Und der tägliche Sicherheits-Check schützt dein Handy fest vor Hackern.",
+   "Deine ersten sieben Tage sind komplett kostenlos. Erstelle dein Konto und prüfe, bevor du zahlst."
+  ],
+  "scan": [
+   "Das ist Scan. Nutze es immer, wenn dir eine Nachricht, ein Anruf oder ein Angebot komisch vorkommt.",
+   "Wähle zuerst, was du prüfen willst: eine Nachricht, einen Link, eine Telefonnummer, ein Jobangebot oder ein Foto.",
+   "Füge die Nachricht hier ein und tippe auf Check it.",
+   "Verth zeigt das Risiko sofort und erklärt jedes Warnzeichen in einfachen Worten.",
+   "Ist es Betrug, trägt Verth ihn selbst in seine Betrugsdatenbank ein, damit auch die nächste Person gewarnt wird.",
+   "Deine Nachricht selbst wird nie hochgeladen. Nur ein verschlüsselter Fingerabdruck wird gespeichert.",
+   "Denk daran: Wenn es riskant aussieht, nicht zahlen, nicht klicken und nie ein OTP weitergeben."
+  ],
+  "verify": [
+   "Das ist Verify. Dein Chef oder ein Familienmitglied bittet per Nachricht um Geld? Frag zuerst bei ihnen nach.",
+   "Wähle, von wem die Anfrage angeblich kommt und woher, zum Beispiel WhatsApp oder ein Anruf.",
+   "Schreib, worum sie dich bitten, und tippe dann auf Send check.",
+   "Die echte Person bekommt die Frage auf ihr eigenes Handy und antwortet mit Yes oder No.",
+   "Sagt sie No oder antwortet nicht, dann hör auf. Jemand gibt sich als sie aus.",
+   "Im Anruf oder Video? Frag nach ihrem Verth-Code. Ein falscher Anrufer oder Deepfake kann ihn nicht nennen."
+  ],
+  "chat": [
+   "Das ist Chat: ein privater, Ende-zu-Ende-verschlüsselter Chat mit den Leuten in deinem Circle.",
+   "Tippe auf eine Person, um den Chat zu öffnen. Nur eure zwei Handys können ihn lesen. Nicht mal Verth.",
+   "Sende Nachrichten, Fotos und PDF-Dokumente, wie Urkunden, ganz sicher.",
+   "Um Geld zu senden, tippe auf Pay safely. Verth zeigt, wen du bezahlst, und öffnet dann deine UPI-App.",
+   "Nach dem Zahlen bekommt ihr beide eine Quittung, und sie wird in deinem Zahlungsverlauf gespeichert.",
+   "Der kostenlose Tarif enthält zwölf Nachrichten und drei Zahlungen pro Tag."
+  ],
+  "circle": [
+   "Das ist dein Circle: die Menschen, denen du vertraust, wie deine Familie oder dein Team.",
+   "Lade Leute aus deinen Kontakten ein, über WhatsApp oder mit deinem Einladungscode.",
+   "Niemand kommt ohne Freigabe rein. Prüfe E-Mail und Telefonnummer und tippe dann auf Approve.",
+   "Firmen können den Circle auf ihre Arbeits-E-Mail beschränken und zwei Admins zur Freigabe verlangen.",
+   "Wechselt jemand das Handy, zeigt Verth das an, damit dich ein gehacktes Konto nicht täuscht.",
+   "Wurde dein Einladungscode aus Versehen geteilt, ändere ihn mit einem Tipp."
+  ],
+  "plan": [
+   "Das ist Plan. Jedes neue Konto bekommt sieben Tage gratis, alles unbegrenzt.",
+   "Danach bleibt der Free-Tarif für immer kostenlos, für bis zu fünf Personen.",
+   "Personal, für einhundertneunundvierzig Rupien im Monat, gibt dir unbegrenzte Betrugsprüfungen.",
+   "Family, für einhundertneunundneunzig, und Team, für zweihundertneunundneunzig, schützen alle in deinem Circle.",
+   "Zahle mit UPI oder Karte über Razorpay und kündige jederzeit."
+  ],
+  "log": [
+   "Das ist das Log: eine Liste jeder Prüfung in deinem Circle.",
+   "Du siehst, wer gefragt hat, wer geantwortet hat, worum es ging und wann.",
+   "Grün heißt bestätigt. Rot heißt gestoppt, also ist ein Betrug nicht durchgekommen.",
+   "Niemand kann Einträge ändern oder löschen, so ist immer klar, wer was freigegeben hat.",
+   "In bezahlten Tarifen kannst du das Log für deine Buchhaltung oder Prüfer exportieren."
+  ],
+  "guard": [
+   "Das ist der tägliche Sicherheits-Check: der Wachmann für dein Handy.",
+   "Er führt dich durch zehn Schutzmaßnahmen, wie Bildschirmsperre, Play Protect und das Blockieren unbekannter Apps.",
+   "Tippe auf einen Punkt, um zu sehen, warum er wichtig ist und wo genau du auf deinem Handy tippen musst.",
+   "Wenn er erledigt ist, hak ihn ab, und dein Punktestand steigt.",
+   "Der Check erneuert sich jeden Tag. Hat sich nichts geändert, bestätige alles mit einem Tipp.",
+   "Bleib dran, Tag für Tag, und lies den Sicherheitstipp von heute."
+  ]
+ },
+ "ui": {
+  "watch": "Video ansehen",
+  "play": "Video abspielen",
+  "close": "Schließen",
+  "subtitles": "Untertitel"
+ }
+}

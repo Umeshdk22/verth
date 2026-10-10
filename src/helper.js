@@ -143,6 +143,12 @@ export const TOPICS = [
     go: [['See plans', 'plan']],
   },
   {
+    id: 'payfail', q: 'My payment failed or money was deducted but my plan isn’t active',
+    keys: ['payment failed', 'payment fail', 'failed payment', 'money deducted', 'amount deducted', 'debited', 'paise kat', 'paisa kat', 'insufficient balance', 'transaction failed', 'payment not done', 'plan not active', 'paid but'],
+    a: 'Don’t pay again yet.\n• If you closed the payment window after paying, wait a few minutes: Verth checks with Razorpay and switches your plan on by itself.\n• If the payment failed (for example “insufficient balance”) but money left your account, Verth didn’t receive it. Your bank returns it automatically, usually within 1–5 working days.\n• Not back after 5 working days? In your UPI app, open that payment → Help / Raise dispute → “Money debited but transaction failed”, using the UPI reference (UTR).\n• To try again, choose Cards (debit or credit) or another UPI app or bank account. Some banks don’t support UPI Autopay yet.\n• Still stuck? Email umeshdk22@gmail.com with the date and amount.',
+    go: [['Open Plan', 'plan']],
+  },
+{
     id: 'billing', q: 'How do I cancel or get a refund?',
     keys: ['cancel subscription', 'cancel my subscription', 'cancel my plan', 'cancel plan', 'unsubscribe', 'stop subscription', 'stop renewal', 'autopay', 'auto pay', 'mandate', 'refund', 'money back', 'charged twice', 'double charged', 'payment failed', 'plan not active', 'paid but', 'receipt', 'invoice', 'cancel'],
     a: 'Cancel any time: open the Plan tab and tap “Cancel subscription”. Renewals stop, and you keep the plan until the end of the month you paid for. You can also cancel the UPI Autopay mandate in your UPI app.\n• Charged twice, charged after cancelling, or plan not switched on within 1 hour of paying? Email umeshdk22@gmail.com with the payment date and amount for a full refund.\n• New subscribers can also ask for a refund within 7 days of their first payment.\n• Refunds reach your account in 5–7 working days.',

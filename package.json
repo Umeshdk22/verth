@@ -4,11 +4,11 @@
   "version": "0.1.0",
   "description": "Verth: two-factor authentication for people",
   "scripts": {
-    "build": "esbuild src/app.js --bundle --format=esm --minify --target=es2020 --alias:re2js=./src/shims/re2js.js --outfile=assets/app.js && esbuild src/helper-site.js --bundle --format=esm --minify --target=es2020 --outfile=assets/helper.js && npm run build:ocr && node tools/stamp.mjs",
+    "build": "esbuild src/app.js --bundle --format=esm --minify --target=es2020 --alias:re2js=./src/shims/re2js.js --outfile=assets/app.js && esbuild src/helper-site.js --bundle --format=esm --minify --target=es2020 --outfile=assets/helper.js && esbuild src/site-live.js --bundle --format=esm --minify --target=es2020 --outfile=assets/live.js && npm run build:ocr && node tools/stamp.mjs",
     "watch": "esbuild src/app.js --bundle --format=esm --sourcemap --target=es2020 --outfile=assets/app.js --watch",
     "test:rules": "firebase emulators:exec --only firestore --project demo-verth \"node --test test/rules.test.mjs\"",
     "test:e2e": "bash test/run-e2e.sh",
-    "test:unit": "node --test test/scamcheck.test.mjs test/helper.test.mjs test/worker.test.mjs test/guard.test.mjs test/phonelab.test.mjs",
+    "test:unit": "node --test test/scamcheck.test.mjs test/helper.test.mjs test/worker.test.mjs test/guard.test.mjs test/phonelab.test.mjs test/videos.test.mjs",
     "build:ocr": "mkdir -p assets/ocr && cp node_modules/tesseract.js/dist/worker.min.js node_modules/tesseract.js-core/tesseract-core-lstm.wasm.js node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js node_modules/tesseract.js-core/tesseract-core-relaxedsimd-lstm.wasm.js assets/ocr/ && cp node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz assets/ocr/ && esbuild src/imagecheck.js --bundle --format=esm --minify --target=es2020 --outfile=assets/ocr/imagecheck.js"
   },
   "dependencies": {

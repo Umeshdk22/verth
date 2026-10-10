@@ -1,0 +1,86 @@
+{
+ "code": "fi",
+ "name": "Suomi",
+ "titles": {
+  "intro": "Tervetuloa Verthiin",
+  "scan": "Näin käytät Scania",
+  "verify": "Näin käytät Verifyta",
+  "chat": "Näin käytät Chatia",
+  "circle": "Näin käytät Circleä",
+  "plan": "Tilaukset ja ilmainen kokeilujakso",
+  "log": "Vahvistusloki",
+  "guard": "Päivittäinen turvatarkastus"
+ },
+ "lines": {
+  "intro": [
+   "Tervetuloa Verthiin. Huijarit Intiassa esiintyvät nyt pomonasi, pankkinasi tai jopa omana perheenäsi.",
+   "UPI kertoo, kenelle maksat. Verth kertoo, kannattaako maksaa.",
+   "Scan tarkistaa minkä tahansa viestin, linkin, puhelinnumeron, työtarjouksen tai kuvakaappauksen sekunneissa.",
+   "Verify kysyy oikealta henkilöltä hänen omassa puhelimessaan, ennen kuin maksat tai jaat OTP-koodin.",
+   "Circle pitää perheen tai työkaverit yhdessä, yksityisellä salatulla chatilla ja turvallisilla maksuilla.",
+   "Ja päivittäinen turvatarkastus pitää puhelimesi tiukasti lukossa hakkereilta.",
+   "Ensimmäiset seitsemän päivää ovat täysin ilmaisia. Luo tili ja tarkista ennen kuin maksat."
+  ],
+  "scan": [
+   "Tämä on Scan. Käytä sitä aina, kun viesti, puhelu tai tarjous tuntuu vähän oudolta.",
+   "Valitse ensin, mitä haluat tarkistaa: viesti, linkki, puhelinnumero, työtarjous tai kuva.",
+   "Liitä viesti tähän ja napauta Check it.",
+   "Verth näyttää riskin heti ja selittää jokaisen varoitusmerkin selkein sanoin.",
+   "Jos kyse on huijauksesta, Verth lisää sen itse huijaustietokantaansa, jotta seuraavakin tarkistaja saa varoituksen.",
+   "Itse viestiäsi ei koskaan lähetetä. Vain salattu sormenjälki tallennetaan.",
+   "Muista: jos se näyttää riskialttiilta, älä maksa, älä klikkaa äläkä koskaan jaa OTP-koodia."
+  ],
+  "verify": [
+   "Tämä on Verify. Tuliko pomoltasi tai sukulaiselta viesti, jossa pyydetään rahaa? Tarkista ensin heiltä.",
+   "Valitse, keneltä pyyntö väittää olevan ja mistä se tuli, esimerkiksi WhatsAppista tai puhelusta.",
+   "Kirjoita, mitä sinua pyydetään tekemään, ja napauta Send check.",
+   "Oikea henkilö saa kysymyksen omaan puhelimeensa ja vastaa Yes tai No.",
+   "Jos hän vastaa No tai ei vastaa ollenkaan, pysähdy. Joku esiintyy hänenä.",
+   "Puhelussa tai videolla? Pyydä hänen Verth-koodiaan. Valesoittaja tai deepfake ei pysty antamaan sitä."
+  ],
+  "chat": [
+   "Tämä on Chat: yksityinen, päästä päähän salattu chat Circlesi ihmisten kanssa.",
+   "Avaa keskustelu napauttamalla henkilöä. Vain teidän kaksi puhelintanne voi lukea sen. Ei edes Verth.",
+   "Lähetä viestejä, kuvia ja PDF-asiakirjoja, kuten todistuksia, turvallisesti.",
+   "Kun haluat lähettää rahaa, napauta Pay safely. Verth näyttää, kenelle maksat, ja avaa UPI-sovelluksesi.",
+   "Maksun jälkeen saatte molemmat kuitin, ja se tallentuu maksuhistoriaasi.",
+   "Ilmaiseen tilaukseen sisältyy kaksitoista viestiä ja kolme maksua päivässä."
+  ],
+  "circle": [
+   "Tämä on Circle: ihmiset, joihin luotat, kuten perheesi tai tiimisi.",
+   "Kutsu ihmisiä yhteystiedoistasi, WhatsAppissa tai jakamalla kutsukoodisi.",
+   "Kukaan ei pääse mukaan ilman hyväksyntää. Tarkista sähköposti ja puhelinnumero ja napauta Approve.",
+   "Yritykset voivat rajata Circlen työsähköposteihin ja vaatia kahden ylläpitäjän hyväksynnän.",
+   "Jos joku vaihtaa uuteen puhelimeen, Verth näyttää sen, jotta hakkeroitu tili ei voi huijata sinua.",
+   "Jos kutsukoodisi joskus jaetaan vahingossa, vaihda se yhdellä napautuksella."
+  ],
+  "plan": [
+   "Tämä on Plan. Jokainen uusi tili saa seitsemän päivää ilmaiseksi, kaikki rajattomasti.",
+   "Sen jälkeen Free-tilaus on ilmainen ikuisesti, enintään viidelle hengelle.",
+   "Personal, ₹149 kuukaudessa, antaa rajattomat huijaustarkistukset.",
+   "Family, ₹199, ja Team, ₹299, suojaavat kaikkia Circlessäsi.",
+   "Maksa UPI:lla tai kortilla Razorpayn kautta, ja peru milloin tahansa."
+  ],
+  "log": [
+   "Tämä on vahvistusloki: kirjaus jokaisesta tarkistuksesta Circlessäsi.",
+   "Näet, kuka kysyi, kuka vastasi, mistä oli kyse ja milloin.",
+   "Vihreä tarkoittaa vahvistettua. Punainen tarkoittaa pysäytettyä, joten huijaus ei mennyt läpi.",
+   "Kukaan ei voi muokata tai poistaa merkintöjä, joten aina näkyy selvästi, kuka hyväksyi mitä.",
+   "Maksullisissa tilauksissa voit viedä lokin kirjanpitoon tai tilintarkastajille."
+  ],
+  "guard": [
+   "Tämä on päivittäinen turvatarkastus: puhelimesi vartija.",
+   "Se opastaa sinut kymmenen suojauksen läpi, kuten näytön lukitus, Play Protect ja tuntemattomien sovellusten esto.",
+   "Napauta kohtaa nähdäksesi, miksi se on tärkeä ja mihin puhelimessa tarkalleen napautetaan.",
+   "Kun se on tehty, merkitse se, niin pisteesi nousevat.",
+   "Tarkastus päivittyy joka päivä. Jos mikään ei muuttunut, vahvista kaikki yhdellä napautuksella.",
+   "Pidä putkesi käynnissä ja lue päivän turvavinkki."
+  ]
+ },
+ "ui": {
+  "watch": "Katso video",
+  "play": "Toista video",
+  "close": "Sulje",
+  "subtitles": "Tekstitys"
+ }
+}

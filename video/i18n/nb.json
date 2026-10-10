@@ -1,0 +1,86 @@
+{
+ "code": "nb",
+ "name": "Norsk bokmål",
+ "titles": {
+  "intro": "Velkommen til Verth",
+  "scan": "Slik bruker du Scan",
+  "verify": "Slik bruker du Verify",
+  "chat": "Slik bruker du Chat",
+  "circle": "Slik bruker du din Circle",
+  "plan": "Abonnementer og gratis prøveperiode",
+  "log": "Verifiseringsloggen",
+  "guard": "Daglig sikkerhetssjekk"
+ },
+ "lines": {
+  "intro": [
+   "Velkommen til Verth. Svindlere i India later nå som de er sjefen din, banken din eller til og med din egen familie.",
+   "UPI forteller deg hvem du betaler. Verth forteller deg om du bør.",
+   "Scan sjekker enhver melding, lenke, telefonnummer, jobbtilbud eller skjermbilde på sekunder.",
+   "Verify spør den ekte personen på deres egen telefon, før du betaler eller deler en OTP.",
+   "Din Circle holder familie eller kolleger samlet, med privat, kryptert chat og trygge betalinger.",
+   "Og den daglige sikkerhetssjekken holder telefonen din godt låst mot hackere.",
+   "De første sju dagene er helt gratis. Opprett kontoen din, og sjekk før du betaler."
+  ],
+  "scan": [
+   "Dette er Scan. Bruk den når en melding, en samtale eller et tilbud virker litt rart.",
+   "Velg først hva du vil sjekke: en melding, en lenke, et telefonnummer, et jobbtilbud eller et bilde.",
+   "Lim inn meldingen her, og trykk på Check it.",
+   "Verth viser risikoen med en gang, og forklarer hvert varseltegn med enkle ord.",
+   "Er det svindel, legger Verth det selv inn i svindeldatabasen sin, så neste person som sjekker også blir advart.",
+   "Selve meldingen lastes aldri opp. Bare et kryptert fingeravtrykk lagres.",
+   "Husk: Ser det risikabelt ut, ikke betal, ikke klikk, og del aldri en OTP."
+  ],
+  "verify": [
+   "Dette er Verify. Fått en melding fra sjefen eller et familiemedlem som ber om penger? Sjekk med dem først.",
+   "Velg hvem forespørselen sier den er fra, og hvor den kom fra, som WhatsApp eller en telefonsamtale.",
+   "Skriv hva de ber deg om, og trykk så på Send check.",
+   "Den ekte personen får spørsmålet på sin egen telefon, og svarer Yes eller No.",
+   "Sier de No, eller svarer ikke, så stopp. Noen later som de er dem.",
+   "I en samtale eller videosamtale? Be om Verth-koden deres. En falsk innringer eller deepfake kan ikke gi den."
+  ],
+  "chat": [
+   "Dette er Chat: en privat, ende-til-ende-kryptert chat med folk i din Circle.",
+   "Trykk på en person for å åpne chatten. Bare deres to telefoner kan lese den. Ikke engang Verth.",
+   "Send meldinger, bilder og PDF-dokumenter, som attester, trygt.",
+   "For å sende penger, trykk på Pay safely. Verth viser hvem du betaler, og åpner så UPI-appen din.",
+   "Etter betalingen får dere begge en kvittering, og den lagres i betalingshistorikken din.",
+   "Gratisplanen gir tolv meldinger og tre betalinger om dagen."
+  ],
+  "circle": [
+   "Dette er din Circle: folkene du stoler på, som familien eller teamet ditt.",
+   "Inviter folk fra kontaktene dine, på WhatsApp eller ved å dele invitasjonskoden din.",
+   "Ingen kommer inn uten godkjenning. Sjekk e-posten og telefonnummeret deres, og trykk så på Approve.",
+   "Bedrifter kan låse sin Circle til jobb-e-post, og kreve at to administratorer godkjenner.",
+   "Bytter noen til ny telefon, viser Verth det, så en hacket konto ikke kan lure deg.",
+   "Blir invitasjonskoden din delt ved en feil, kan du endre den med ett trykk."
+  ],
+  "plan": [
+   "Dette er Plan. Hver nye konto får sju dager gratis, med alt ubegrenset.",
+   "Etter det er Free-planen gratis for alltid, for opptil fem personer.",
+   "Personal, til ₹149 i måneden, gir deg ubegrensede svindelsjekker.",
+   "Family, til ₹199, og Team, til ₹299, beskytter alle i din Circle.",
+   "Betal med UPI eller kort via Razorpay, og si opp når som helst."
+  ],
+  "log": [
+   "Dette er verifiseringsloggen: en oversikt over hver sjekk i din Circle.",
+   "Du ser hvem som spurte, hvem som svarte, hva det gjaldt, og når.",
+   "Grønn betyr bekreftet. Rød betyr stoppet, så en svindel ikke gikk gjennom.",
+   "Ingen kan endre eller slette oppføringer, så det finnes alltid en tydelig oversikt over hvem som godkjente hva.",
+   "På betalte planer kan du eksportere loggen til regnskapsavdelingen eller revisorer."
+  ],
+  "guard": [
+   "Dette er den daglige sikkerhetssjekken: telefonens egen vekter.",
+   "Den tar deg gjennom ti beskyttelser, som skjermlås, Play Protect og blokkering av ukjente apper.",
+   "Trykk på et punkt for å se hvorfor det er viktig, og nøyaktig hvor du skal trykke på telefonen.",
+   "Når det er gjort, huk det av, og poengsummen din går opp.",
+   "Sjekken oppdateres hver dag. Har ingenting endret seg, bekreft alt med ett trykk.",
+   "Hold rekken gående, og les dagens sikkerhetstips."
+  ]
+ },
+ "ui": {
+  "watch": "Se videoen",
+  "play": "Spill av video",
+  "close": "Lukk",
+  "subtitles": "Undertekster"
+ }
+}

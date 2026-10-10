@@ -95,11 +95,11 @@ function runQuery(q) {
 }
 export async function getDoc(ref) { return snapDoc(ref.path); }
 export async function getDocs(q) { return runQuery(q.kind === 'col' ? { path: q.path, c: [] } : q); }
-export async function setDoc(ref, data) { commitOps([{ type: 'set', path: ref.path, data }]); }
+export async function setDoc(ref, data, o) { commitOps([{ type: o?.merge ? 'merge' : 'set', path: ref.path, data }]); }
 export async function updateDoc(ref, data) { commitOps([{ type: 'update', path: ref.path, data }]); }
 export function writeBatch() {
   const ops = [];
-  return { set: (r, d) => ops.push({ type: 'set', path: r.path, data: d }), update: (r, d) => ops.push({ type: 'update', path: r.path, data: d }), delete: (r) => ops.push({ type: 'delete', path: r.path, data: {} }), commit: async () => commitOps(ops) };
+  return { set: (r, d, o) => ops.push({ type: o?.merge ? 'merge' : 'set', path: r.path, data: d }), update: (r, d) => ops.push({ type: 'update', path: r.path, data: d }), delete: (r) => ops.push({ type: 'delete', path: r.path, data: {} }), commit: async () => commitOps(ops) };
 }
 export function onSnapshot(ref, cb) {
   const run = () => cb(ref.kind === 'doc' ? snapDoc(ref.path) : runQuery(ref.kind === 'col' ? { path: ref.path, c: [] } : ref));

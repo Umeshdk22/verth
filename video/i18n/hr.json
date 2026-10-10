@@ -1,0 +1,86 @@
+{
+ "code": "hr",
+ "name": "Hrvatski",
+ "titles": {
+  "intro": "Dobro došli u Verth",
+  "scan": "Kako koristiti Scan",
+  "verify": "Kako koristiti Verify",
+  "chat": "Kako koristiti Chat",
+  "circle": "Kako koristiti svoj Circle",
+  "plan": "Planovi i besplatno probno razdoblje",
+  "log": "Zapisnik provjera",
+  "guard": "Svakodnevna sigurnosna provjera"
+ },
+ "lines": {
+  "intro": [
+   "Dobro došli u Verth. Prevaranti u Indiji sada se predstavljaju kao vaš šef, vaša banka, pa čak i vaša obitelj.",
+   "UPI vam kaže kome plaćate. Verth vam kaže biste li trebali.",
+   "Scan za nekoliko sekundi provjerava svaku poruku, poveznicu, broj telefona, ponudu za posao ili snimku zaslona.",
+   "Verify pita pravu osobu na njezinu telefonu, prije nego što platite ili podijelite OTP.",
+   "Vaš Circle okuplja obitelj ili kolege, uz privatni šifrirani chat i sigurna plaćanja.",
+   "A svakodnevna sigurnosna provjera drži vaš telefon dobro zaključanim od hakera.",
+   "Prvih sedam dana potpuno je besplatno. Napravite račun i provjerite prije nego što platite."
+  ],
+  "scan": [
+   "Ovo je Scan. Koristite ga kad god vam poruka, poziv ili ponuda djeluje malo čudno.",
+   "Najprije odaberite što želite provjeriti: poruku, poveznicu, broj telefona, ponudu za posao ili fotografiju.",
+   "Zalijepite poruku ovdje i dodirnite Check it.",
+   "Verth odmah pokazuje rizik i jednostavnim riječima objašnjava svaki znak upozorenja.",
+   "Ako je prijevara, Verth je sam dodaje u svoju bazu prijevara, pa će i sljedeća osoba koja je provjeri biti upozorena.",
+   "Vaša poruka nikada se ne prenosi. Sprema se samo šifrirani otisak.",
+   "Zapamtite: ako djeluje rizično, ne plaćajte, ne klikajte i nikada ne dijelite OTP."
+  ],
+  "verify": [
+   "Ovo je Verify. Stigla vam je poruka od šefa ili člana obitelji koji traži novac? Najprije provjerite s njima.",
+   "Odaberite od koga zahtjev navodno dolazi i odakle je stigao, na primjer WhatsApp ili telefonski poziv.",
+   "Upišite što traže od vas, pa dodirnite Send check.",
+   "Prava osoba dobiva pitanje na svom telefonu i odgovara Yes ili No.",
+   "Ako kaže No ili ne odgovori, stanite. Netko se predstavlja kao ta osoba.",
+   "U pozivu ili na videu? Zatražite njihov Verth kod. Lažni pozivatelj ili deepfake ne može ga dati."
+  ],
+  "chat": [
+   "Ovo je Chat: privatni chat sa šifriranjem s kraja na kraj s ljudima iz vašeg Circlea.",
+   "Dodirnite osobu da otvorite chat. Mogu ga čitati samo vaša dva telefona. Čak ni Verth.",
+   "Sigurno šaljite poruke, fotografije i PDF dokumente, poput potvrda.",
+   "Za slanje novca dodirnite Pay safely. Verth pokazuje kome plaćate, pa otvara vašu UPI aplikaciju.",
+   "Nakon plaćanja oboje dobivate potvrdu, koja se sprema u povijest plaćanja.",
+   "Besplatni plan uključuje dvanaest poruka i tri plaćanja dnevno."
+  ],
+  "circle": [
+   "Ovo je vaš Circle: ljudi kojima vjerujete, poput vaše obitelji ili tima.",
+   "Pozovite ljude iz kontakata, putem WhatsAppa ili dijeljenjem svog koda za pozivnicu.",
+   "Nitko ne ulazi bez odobrenja. Provjerite njihov e-mail i broj telefona, pa dodirnite Approve.",
+   "Tvrtke mogu ograničiti Circle na poslovni e-mail i tražiti odobrenje dvaju administratora.",
+   "Ako netko prijeđe na novi telefon, Verth to pokazuje, pa vas hakirani račun ne može prevariti.",
+   "Ako vaš kod za pozivnicu ikada greškom bude podijeljen, promijenite ga jednim dodirom."
+  ],
+  "plan": [
+   "Ovo je Plan. Svaki novi račun dobiva sedam dana besplatno, sa svime neograničeno.",
+   "Nakon toga plan Free ostaje besplatan zauvijek, za do pet osoba.",
+   "Personal, za ₹149 mjesečno, daje vam neograničene provjere prijevara.",
+   "Family, za ₹199, i Team, za ₹299, štite sve u vašem Circleu.",
+   "Platite UPI-jem ili karticom putem Razorpaya i otkažite bilo kada."
+  ],
+  "log": [
+   "Ovo je zapisnik provjera: zapis svake provjere u vašem Circleu.",
+   "Vidite tko je pitao, tko je odgovorio, o čemu se radilo i kada.",
+   "Zeleno znači potvrđeno. Crveno znači zaustavljeno, pa prijevara nije prošla.",
+   "Nitko ne može mijenjati ni brisati unose, pa uvijek postoji jasan zapis o tome tko je što odobrio.",
+   "Na plaćenim planovima možete izvesti zapisnik za računovodstvo ili revizore."
+  ],
+  "guard": [
+   "Ovo je svakodnevna sigurnosna provjera: čuvar vašeg telefona.",
+   "Vodi vas kroz deset zaštita, poput zaključavanja zaslona, Play Protecta i blokiranja nepoznatih aplikacija.",
+   "Dodirnite stavku da vidite zašto je važna i gdje točno dodirnuti na telefonu.",
+   "Kad završite, označite je kvačicom i vaš rezultat raste.",
+   "Provjera se obnavlja svaki dan. Ako se ništa nije promijenilo, potvrdite sve jednim dodirom.",
+   "Održite svoj niz i pročitajte današnji sigurnosni savjet."
+  ]
+ },
+ "ui": {
+  "watch": "Pogledajte video",
+  "play": "Pokreni video",
+  "close": "Zatvori",
+  "subtitles": "Titlovi"
+ }
+}
