@@ -701,10 +701,12 @@ function viewHome() {
     ${quoteCarousel()}
     <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
     ${quickTiles([
-      ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet'],
-      ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal'],
-      ['goverify', 'Ask on their phone', 'Is it really them?', 'ask', 'data-mode="push"', 'amber'],
-      ['goverify', 'Check a caller’s code', 'For calls and video', 'code', 'data-mode="code"', 'red'],
+      ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet', 'Scan message'],
+      ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal', 'Scan screenshot'],
+      ['scan-kind', 'Check a link', 'Before you tap it', 'link', 'data-kind="link"', 'blue', 'Check link'],
+      ['scan-kind', 'Check a phone number', 'Who is calling?', 'phone', 'data-kind="phone"', 'slate', 'Check number'],
+      ['goverify', 'Ask on their phone', 'Is it really them?', 'ask', 'data-mode="push"', 'amber', 'Send a check'],
+      ['goverify', 'Check a caller’s code', 'For calls and video', 'code', 'data-mode="code"', 'red', 'Check code'],
     ])}
     ${guardCard()}
     <section class="card code-home"><div class="split"><h2>Your Verth code</h2>${lim !== Infinity ? `<span class="muted small">${used} of ${lim} free checks this month</span>` : ''}</div>${thisDeviceActive() ? codeCard() : '<p class="muted">Your code is shown on your registered device.</p>'}</section>
@@ -1010,26 +1012,37 @@ function scanResultCard(r) {
   const what = { link: 'link', phone: 'number', message: 'message', job: 'offer', image: 'message' }[r.kind];
   const isJob = r.kind === 'job' || r.sub === 'job';
   const qr = r.qr;
+  // A possible risk (warning signs) is kept apart from a confirmed scam (already in Verth's scam database).
+  const label = crowd ? ['known', 'Known scam'] : r.verdict === 'danger' ? ['likely', 'Likely scam'] : r.verdict === 'caution' ? ['possible', 'Possible risk'] : ['none', 'No warning signs found'];
+  const summary = crowd ? `This ${what} is already in Verth’s scam database: earlier checks found it to be a scam ${flagged} times.`
+    : r.verdict === 'danger' ? `Verth found ${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} that scammers use. Treat it as a scam.`
+      : r.verdict === 'caution' ? `Verth found ${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'}. It may be genuine, but check before you act.`
+        : 'Verth didn’t find any of the warning signs it knows. That doesn’t prove it’s safe.';
+  const linksBad = (r.links || []).filter((l) => l.verdict !== 'clear').length;
+  const steps = isJob ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict];
   return `<div class="result verdict ${cls}" id="scan-result">
-    <div class="split"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
-      <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div></div>
-    <h2>${head}</h2>
+    <div class="rv-top"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
+      <div class="rv-head"><span class="rv-label rv-${label[0]}">${label[1]}</span><h2>${head}</h2></div></div>
+    <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div>
+    <p class="rv-summary">${summary}</p>
+    <div class="rv-chips"><span><b>${flags.length}</b> warning ${flags.length === 1 ? 'sign' : 'signs'}</span>${r.links?.length ? `<span><b>${r.links.length}</b> ${r.links.length === 1 ? 'link' : 'links'} checked${linksBad ? `, ${linksBad} suspicious` : ''}</span>` : ''}<span>${flagged ? `<b>${flagged}</b> earlier scam ${flagged === 1 ? 'record' : 'records'}` : 'No scam record yet'}</span></div>
     ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Verth found it to be a scam in ${flagged} earlier checks. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
-    ${flags.length ? `<ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul>` : ''}
-    ${r.good.length ? `<ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>` : ''}
-    ${r.links?.length ? `<div class="found"><b>Links found</b>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
+    ${flags.length ? `<div class="rv-sec"><h3>Why it looks suspicious</h3><ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
+    ${r.good.length ? `<div class="rv-sec"><h3>Good signs</h3><ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></div>` : ''}
+    ${r.links?.length ? `<div class="rv-sec found"><h3>Links checked</h3>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
     <div class="community">${flagged ? `<span class="cm-stats"><b>🛡️ In Verth’s scam database: found to be a scam in ${flagged} ${flagged === 1 ? 'check' : 'checks'}</b></span>` : `<span>🛡️ Checked against Verth’s scam database: no scam record for this ${what} yet.</span>`}
       ${r.verdict === 'danger' ? '<span class="small muted">Verth saved this to its scam database by itself, so everyone who checks it next is warned. Only a scrambled fingerprint is kept, never the content.</span>' : '<span class="small muted">Verth adds anything it finds to be a scam to the database automatically. Nobody can mark a number or link as a scam by hand.</span>'}</div>
-    ${r.kind === 'image' ? `<div class="found"><b>What Verth found in your picture</b>
+    ${r.kind === 'image' ? `<div class="rv-sec found"><h3>What Verth found in your picture</h3>
       ${qr?.type === 'upi' ? `<span>A UPI QR code that pays ${qr.amount ? esc(qr.amount) + ' to ' : ''}<b>${esc(qr.name || qr.payee)}</b>${qr.name && qr.payee ? ` (${esc(qr.payee)})` : ''}.</span>` : qr?.type === 'link' ? `<span>A QR code that opens <span class="mono">${esc(qr.host)}</span>.</span>` : qr ? '<span>A QR code with some text in it.</span>' : ''}
       ${r.text ? `<details><summary>Show the words Verth read</summary><p class="ocr-text">${esc(r.text)}</p></details>` : ''}</div>` : ''}
     ${isJob && r.company ? `<div class="company"><b>${esc(r.company.name)}: the only real email addresses</b><span class="mono">${r.company.domains.map((d) => '@' + esc(d)).join('  ')}</span><span class="small">Apply and verify offers only through the Careers page on <b>${esc(r.company.site)}</b>. Type the address yourself; don’t use links in the message.</span></div>` : ''}
     ${isJob && !r.company ? '<div class="company"><b>Check the company yourself</b><span class="small">Search for the company’s official website, open its Careers page, and confirm the job exists there. Their recruitment emails should come from that same website’s domain, never Gmail or Yahoo.</span></div>' : ''}
-    <div class="advice"><b>What to do</b><ul>${(isJob ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict]).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>
+    <div class="advice rv-sec"><h3>What to do next</h3><ol class="rv-steps">${steps.map((a) => `<li>${esc(a)}</li>`).join('')}</ol>
       <p class="small">Report fraud calls and messages at <a href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener noreferrer">Sanchar Saathi (Chakshu)</a>. Lost money? Call <b>1930</b> or report at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">cybercrime.gov.in</a> immediately.</p></div>
-    ${S.circle && r.verdict !== 'clear' ? '<button class="btn primary" data-act="goverify" data-mode="push">Ask the real person on Verth</button>' : ''}
-    <button class="btn ghost" data-act="scan-again">Check something else</button>
+    <div class="rv-actions">${S.circle && r.verdict !== 'clear' ? '<button class="btn primary" data-act="goverify" data-mode="push">Ask the real person on Verth</button>' : ''}
+    <button class="btn ghost" data-act="scan-again">Check something else</button></div>
+    <p class="rv-note">Verth looks for warning signs that real scams use, and checks its scam database. It can’t catch every scam, so a clean result isn’t a guarantee. When money or an OTP is involved, check with the real person first.</p>
   </div>`;
 }
 const KINDS = [
@@ -1044,6 +1057,14 @@ function photoField() {
   }
   return `<label class="drop" for="s-image">${ICON.camera}<b>Tap here to add a screenshot or photo</b>
       <span>Take a photo of the message, or choose a screenshot from your gallery.</span></label>`;
+}
+// What happens to what people check. Every line here matches what the code does: the check and the
+// picture reading run in this browser; only a one-way fingerprint is looked up (and saved for scams).
+function privacyNote(img) {
+  return `<div class="privacy-note"><i aria-hidden="true">${ICON.lock}</i><div><b>Private by design</b>
+    <ul><li>${img ? 'Your screenshot is read on this device. Verth never uploads or saves it.' : 'Checked on this device. Verth never uploads or saves what you paste.'}</li>
+    <li>Only a one-way fingerprint, not the content, is compared with Verth’s scam database.</li>
+    <li>Your history stays on this phone. Clear it any time in your profile.</li></ul></div></div>`;
 }
 function viewScan() {
   const k = S.scanKind, r = S.scanResult, img = k === 'image';
@@ -1074,7 +1095,7 @@ function viewScan() {
       <p class="muted">What do you want to check? Tap one.</p>
       ${tiles}
       ${left === 0 && !r ? '' : `<form data-form="scan" class="stack" novalidate>${field}<p class="err" id="scan-err" role="alert"></p><button class="btn primary big" type="submit" ${S.photoBusy ? 'disabled' : ''}>${S.photoBusy ? '<span class="spin" aria-hidden="true"></span> Reading your picture…' : 'Check it'}</button></form>`}
-      <p class="muted small">${img ? 'Your picture stays on your phone. Verth reads it here and never uploads it.' : 'Checks run on your device. Verth doesn’t store what you paste.'} If it turns out to be a scam, Verth saves only a scrambled fingerprint so others are warned.</p></section>
+      ${privacyNote(img)}</section>
     ${left === 0 && !r ? limitCard : ''}
     ${r ? scanResultCard(r) : ''}`;
 }
@@ -1233,10 +1254,12 @@ function renderScanOnly() {
       ${quoteCarousel()}
       <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
       ${quickTiles([
-        ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet'],
-        ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal'],
-        ['scan-kind', 'Check a phone number', 'Who is calling?', 'ask', 'data-kind="phone"', 'amber'],
-        ['scan-kind', 'Check a link', 'Before you tap it', 'code', 'data-kind="link"', 'red'],
+        ['scan-kind', 'Check a message', 'SMS, WhatsApp or email', 'sms', 'data-kind="message"', 'violet', 'Scan message'],
+        ['scan-kind', 'Check a screenshot', 'Photo or QR code', 'camera', 'data-kind="image"', 'teal', 'Scan screenshot'],
+        ['scan-kind', 'Check a link', 'Before you tap it', 'link', 'data-kind="link"', 'blue', 'Check link'],
+        ['scan-kind', 'Check a phone number', 'Who is calling?', 'phone', 'data-kind="phone"', 'slate', 'Check number'],
+        ['scan-kind', 'Check a job offer', 'Exam, interview or offer letter', 'job', 'data-kind="job"', 'amber', 'Check offer'],
+        ['guard-open', 'Phone safety check-up', 'Today’s 1-minute check', 'shield', '', 'red', 'Start check-up'],
       ])}
       ${guardCard()}
       ${setupCircleCard('Protect your family or team', 'Set up a circle to check money requests with the real person, on their own phone, before anyone pays or shares anything. It also opens private chat and Pay safely.')}

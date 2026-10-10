@@ -21,6 +21,7 @@ const IC = {
   camera: svg('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
   ask: svg('<path d="M4 5h16v11H9l-5 4z"/><path d="M9.5 9a2.5 2.5 0 114 1.9c-.8.5-1.5 1-1.5 2"/><circle cx="12" cy="15.5" r=".5" fill="currentColor"/>'),
   code: svg('<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h.01M10 12h.01M13 12h.01M16 12h.01"/>'),
+  link: svg('<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>'),
   heart: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/>'),
 };
 
@@ -114,6 +115,19 @@ function greeting() {
   return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 // esc: the app's HTML escaper; o: { name, place, people, checks, stopped, scanOnly }
+// Original shield illustration for the home banner (drawn for Verth, solid colours).
+const HERO_ART = `<svg viewBox="0 0 220 220" class="hero-art" aria-hidden="true" focusable="false">
+  <circle cx="110" cy="110" r="104" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="2"/>
+  <circle cx="110" cy="110" r="80" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="2" stroke-dasharray="4 8"/>
+  <circle cx="110" cy="110" r="58" fill="rgba(124,92,255,.16)"/>
+  <path d="M110 40l52 19v38c0 34-22 62-52 75-30-13-52-41-52-75V59z" fill="#6B3DF0"/>
+  <path d="M110 40l52 19v38c0 34-22 62-52 75z" fill="#5A2FDB"/>
+  <path d="M110 56l38 14v28c0 25-16 46-38 56-22-10-38-31-38-56V70z" fill="#8B6CFF"/>
+  <path d="M91 106l13 13 26-28" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(150 140)"><rect x="0" y="12" width="40" height="32" rx="8" fill="#F5B630"/><path d="M8 13v-5a12 12 0 0124 0v5" fill="none" stroke="#F5B630" stroke-width="6" stroke-linecap="round"/><circle cx="20" cy="27" r="4.5" fill="#3A2400"/><path d="M20 30v6" stroke="#3A2400" stroke-width="3.5" stroke-linecap="round"/></g>
+  <circle cx="44" cy="62" r="5" fill="#2DD4A7"/><circle cx="178" cy="54" r="3.5" fill="#F5B630"/><circle cx="36" cy="150" r="3" fill="#8B6CFF"/>
+</svg>`;
+
 export function heroBanner(esc, o) {
   const first = String(o.name || '').trim().split(/\s+/)[0] || 'there';
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
@@ -121,12 +135,15 @@ export function heroBanner(esc, o) {
     <div class="hero-in">
       <span class="hero-date">${esc(today)}</span>
       <h1>${greeting()}, ${esc(first)}</h1>
-      <p>${o.scanOnly ? 'Check anything suspicious before you reply, click or pay.' : `You and ${o.people === 1 ? 'your circle' : `${o.people} people`} in <b>${esc(o.place)}</b> are protected by Verth.`}</p>
+      <p class="hero-tag">Stop scams before they cost you.</p>
+      <p class="hero-sub">${o.scanOnly ? 'Check a message, link, phone number or screenshot in seconds, before you reply, click or pay.' : `Check anything suspicious in seconds, and confirm money requests with the real person on their own phone. You and ${o.people === 1 ? 'your circle' : `${o.people} people`} in <b>${esc(o.place)}</b> are protected.`}</p>
       <div class="hero-badges">
         <span class="hb"><i>${IC.shield}</i>Protected</span>
         ${o.scanOnly ? '' : `<span class="hb"><b>${o.checks}</b> checks this month</span><span class="hb"><b>${o.stopped}</b> scams stopped</span>`}
       </div>
-    </div></section>`;
+      <div class="hero-cta"><button type="button" class="btn hero-btn" data-act="tab" data-tab="scan">${IC.scan}Check something now</button></div>
+    </div>
+    ${HERO_ART}</section>`;
 }
 
 export function quoteCarousel() {
@@ -139,8 +156,10 @@ export function quoteCarousel() {
 }
 
 // tiles: [[act, label, sub, icon, extra-data-attrs]]
+// tiles: [[act, label, sub, icon, extra-data-attrs, tone, action words]]. Every card is the same size
+// and ends with the same kind of action line, so they read as one set.
 export function quickTiles(tiles) {
-  return `<section class="tiles">${tiles.map(([act, label, sub, ic, data = '', tone = 'violet']) => `<button type="button" class="tile t-${tone}" data-act="${act}" ${data}><i>${IC[ic] || ''}</i><b>${label}</b><span>${sub}</span></button>`).join('')}</section>`;
+  return `<section class="tiles-wrap"><div class="tiles">${tiles.map(([act, label, sub, ic, data = '', tone = 'violet', go = 'Start']) => `<button type="button" class="tile t-${tone}" data-act="${act}" ${data}><i>${IC[ic] || ''}</i><b>${label}</b><span>${sub}</span><em>${go} <span aria-hidden="true">→</span></em></button>`).join('')}</div></section>`;
 }
 
 export function alertShow() {
