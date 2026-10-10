@@ -20,7 +20,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with: { node-version: 22 }
       - name: Bring earlier voices
         run: git fetch origin voices && git checkout FETCH_HEAD -- video/voice && rm -f video/voice/intro-en.wav video/voice/intro-hi.wav || true
