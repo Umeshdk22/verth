@@ -1248,7 +1248,7 @@ function renderScanOnly() {
       ${setupCircleCard('Chat with people in your circle', 'Private, end-to-end encrypted chat, files like certificates, and Pay safely with receipts. Start a circle or join one to begin.')}`,
     circle: () => `${pageHead('Your circle', 'Your people', 'The family or colleagues you check money requests with.', 'family', 'teal')}${videoCard('circle')}${pending}
       ${setupCircleCard('You’re not in a circle yet', 'Make a family circle, set up your organisation, or join with an invite code someone sent you. Nobody gets in without approval.')}`,
-    plan: () => `${pageHead('Plan & account', 'Plans and billing', 'Your plan, your free trial and this device.', 'key', 'amber')}${videoCard('plan')}${personal}
+    plan: () => `${pageHead('Plan & account', 'Plans and billing', 'Your plan, your free trial and this device.', 'key', 'amber')}${payTrouble()}${videoCard('plan')}${personal}
       <section class="card"><h2>Family and Team plans</h2><p class="muted">Family (₹199 a month, up to 10 people) and Team (₹299 a month, no limit) protect everyone in a circle. Set up a circle to choose one.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div></section>
       ${accountCard()}`,
@@ -1301,7 +1301,7 @@ function viewPlan() {
   };
   const LOOK = { free: ['gift', 'To try Verth'], personal: ['user', 'Just for you'], family: ['people', 'For your family · up to 10'], team: ['building', 'Whole organisation · no limits'] };
   const card = (id, title, price, items) => `<div class="plan p-${id} ${(id === 'personal' ? personal : cp === id && !(id === 'free' && personal)) ? 'current' : ''}">${id === 'team' ? '<span class="flag">Everything unlimited</span>' : ''}<div class="plan-hd"><span class="plan-ic">${ICON[LOOK[id][0]]}</span><div><h3>${title}</h3><span class="who">${LOOK[id][1]}</span></div></div><div class="price">${price}</div><ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>${action(id)}</div>`;
-  return `<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
+  return `${payTrouble()}<section class="card"><h2>Your plan</h2><p><b>${esc(plan().name)}</b> for ${esc(S.circle.name)}${personal ? ', plus <b>Personal</b> for you' : ''}.
       ${checkLimit() === Infinity ? 'Unlimited checks.' : `${used} of ${checkLimit()} checks used this month.`} ${cp === 'team' ? `${count} people, no limit.` : `${count} of ${memberLimit()} places used.`}</p></section>
     ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
     ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
@@ -1428,9 +1428,12 @@ async function startCheckout(planId) {
         handler: (resp) => payApi('/verify', resp).then(resolve, reject),
         modal: { ondismiss: () => reject(new Error('dismissed')), confirm_close: true },
       });
+      // Razorpay offers "Try again" itself; remember the bank's reason to explain it after the window closes.
+      rzp.on?.('payment.failed', (resp) => { S.payFailed = { plan: planId, reason: String(resp?.error?.description || '').slice(0, 160), at: Date.now() }; });
       rzp.open();
     });
     await refreshProfile();
+    S.payFailed = null;
     if (result.paid) toast(`Payment received. ${PLANS[planId].name} is now active.`, 'ok');
     else {
       toast('Payment is being confirmed. Your plan switches on within a few minutes.');
@@ -1439,7 +1442,30 @@ async function startCheckout(planId) {
     }
   } catch (e) {
     if (e.message !== 'dismissed') toast(e.message, 'bad');
+    else {
+      // The window was closed. Sometimes the payment went through anyway (for example the UPI app
+      // approved it after the QR timed out): Razorpay then tells the Verth server, so look again.
+      if (!S.payFailed) S.payClosed = { plan: planId, at: Date.now() };
+      const before = paidKey();
+      for (const ms of [5000, 15000, 40000, 90000]) setTimeout(() => refreshProfile().then(async () => { if (S.circleId) { const c = await getDoc(doc(db, 'circles', S.circleId)).catch(() => null); if (c?.exists()) S.circle = { ...S.circle, ...c.data() }; } if (paidKey() !== before) { S.payFailed = S.payClosed = null; toast('Payment received. Your plan is now active.', 'ok'); } renderScanView(); }).catch(() => {}), ms);
+    }
   } finally { S.payBusy = null; renderScanView(); }
+}
+const paidKey = () => `${S.profile?.plan || ''}|${S.circle?.plan || ''}`;
+// Shown on the Plan page after a payment fails or the payment window is closed.
+function payTrouble() {
+  const f = S.payFailed, c = !f && S.payClosed && Date.now() - S.payClosed.at < 30 * 60000 ? S.payClosed : null;
+  if (!f && !c) return '';
+  return `<section class="card pay-trouble" role="status"><h2>${f ? 'Your payment didn’t go through' : 'Payment window closed'}</h2>
+    ${f ? `<p>${f.reason ? `Your bank said: <b>${esc(f.reason)}</b>` : 'Your bank or UPI app declined the payment.'} Verth didn’t receive any money, and nothing was switched on.</p>`
+      : '<p>If you finished paying in your UPI app, Verth is checking and your plan will switch on by itself within a few minutes. You don’t need to pay again.</p>'}
+    <ul>
+      <li><b>Money left your account anyway?</b> Your bank returns a failed UPI payment automatically, usually within 1–5 working days. You don’t need to do anything.</li>
+      <li><b>Not back after 5 working days?</b> Open the payment in your UPI app → Help / Raise dispute → “Money debited but transaction failed”. Keep the UPI reference (UTR).</li>
+      <li><b>Try again another way:</b> choose <b>Cards</b> (debit or credit), or pick a different UPI app or bank account. Some banks don’t support UPI Autopay (monthly payments) yet.</li>
+      <li><b>Still stuck?</b> Email <a href="mailto:umeshdk22@gmail.com">umeshdk22@gmail.com</a> with the date and amount, and we’ll sort it out.</li>
+    </ul>
+    <button class="btn small ghost" data-act="pay-trouble-close">OK, got it</button></section>`;
 }
 
 /* ---------- signatures ---------- */
@@ -2448,6 +2474,7 @@ Object.assign(actions, {
     renderScanView();
   },
   'xray-clear': () => { S.xray = null; renderScanView(); },
+  'pay-trouble-close': () => { S.payFailed = S.payClosed = null; renderScanView(); },
   'doctor-ask': (el) => askDoctor(el.dataset.q),
   'trial-plans': () => { store.set('verth-trial-seen', 1); if (S.circle) { S.tab = 'plan'; renderMain(); } else renderScanView(); },
   'chat-check': (el) => { closeChat(); S.tab = 'scan'; S.scanKind = 'link'; S.prefill = { kind: 'link', text: el.dataset.text, from: 'chat' }; renderMain(); },

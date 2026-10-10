@@ -1104,3 +1104,5 @@ body.auth-bg .auth-frame>.shell::before{content:"";position:fixed;inset:0;pointe
 .g-board li.stale{opacity:.75}
 .gb-n{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:#8A84A3}
 .gb-n.g-strong{background:var(--ok)}.gb-n.g-good{background:var(--accent)}.gb-n.g-weak{background:#C2410C}.gb-n.g-low{background:var(--bad)}
+.pay-trouble{border:1px solid #F7D58A;background:#FFFBEB}
+.pay-trouble ul{margin:.4em 0 .8em;padding-left:1.2em}.pay-trouble li{margin:.35em 0}
