@@ -1,0 +1,86 @@
+{
+ "code": "fr",
+ "name": "Français",
+ "titles": {
+  "intro": "Bienvenue sur Verth",
+  "scan": "Comment utiliser Scan",
+  "verify": "Comment utiliser Verify",
+  "chat": "Comment utiliser Chat",
+  "circle": "Comment utiliser votre Circle",
+  "plan": "Les offres et votre essai gratuit",
+  "log": "Le Log : toutes les vérifications",
+  "guard": "Le contrôle de sécurité quotidien"
+ },
+ "lines": {
+  "intro": [
+   "Bienvenue sur Verth. En Inde, les escrocs se font passer pour votre patron, votre banque, ou même votre famille.",
+   "UPI vous dit qui vous payez. Verth vous dit si vous devriez le faire.",
+   "Scan vérifie en quelques secondes un message, un lien, un numéro, une offre d'emploi ou une capture d'écran.",
+   "Verify interroge la vraie personne sur son propre téléphone, avant que vous payiez ou donniez un OTP.",
+   "Votre Circle réunit famille ou collègues, avec une messagerie privée et chiffrée et des paiements sûrs.",
+   "Et le contrôle de sécurité quotidien protège bien votre téléphone contre les pirates.",
+   "Vos sept premiers jours sont entièrement gratuits. Créez votre compte, et vérifiez avant de payer."
+  ],
+  "scan": [
+   "Voici Scan. Utilisez-le dès qu'un message, un appel ou une offre vous semble un peu bizarre.",
+   "D'abord, choisissez quoi vérifier : un message, un lien, un numéro, une offre d'emploi ou une photo.",
+   "Collez le message ici, puis appuyez sur Check it.",
+   "Verth affiche le risque tout de suite et explique chaque signal d'alerte avec des mots simples.",
+   "Si c'est une arnaque, Verth l'ajoute tout seul à sa base, pour que la prochaine personne soit prévenue aussi.",
+   "Votre message n'est jamais envoyé. Seule une empreinte brouillée est enregistrée.",
+   "N'oubliez pas : si ça semble risqué, ne payez pas, ne cliquez pas, et ne donnez jamais un OTP."
+  ],
+  "verify": [
+   "Voici Verify. Votre patron ou un proche vous demande de l'argent par message ? Vérifiez d'abord avec lui.",
+   "Choisissez de qui la demande prétend venir, et d'où elle vient, par exemple WhatsApp ou un appel.",
+   "Écrivez ce qu'on vous demande de faire, puis appuyez sur Send check.",
+   "La vraie personne reçoit la question sur son propre téléphone et répond Yes ou No.",
+   "Si elle dit No, ou ne répond pas, arrêtez. Quelqu'un se fait passer pour elle.",
+   "En appel ou en vidéo ? Demandez son code Verth. Un faux appelant ou un deepfake ne peut pas le donner."
+  ],
+  "chat": [
+   "Voici Chat : une messagerie privée, chiffrée de bout en bout, avec les personnes de votre Circle.",
+   "Touchez une personne pour ouvrir la discussion. Seuls vos deux téléphones peuvent la lire. Même pas Verth.",
+   "Envoyez des messages, des photos et des documents PDF, comme des certificats, en toute sécurité.",
+   "Pour envoyer de l'argent, appuyez sur Pay safely. Verth montre qui vous payez, puis ouvre votre appli UPI.",
+   "Après le paiement, vous recevez tous les deux un reçu, enregistré dans votre historique de paiements.",
+   "L'offre gratuite comprend douze messages et trois paiements par jour."
+  ],
+  "circle": [
+   "Voici votre Circle : les personnes de confiance, comme votre famille ou votre équipe.",
+   "Invitez des gens depuis vos contacts, sur WhatsApp, ou en partageant votre code d'invitation.",
+   "Personne n'entre sans accord. Vérifiez son e-mail et son numéro, puis appuyez sur Approve.",
+   "Les entreprises peuvent réserver le Circle à leur e-mail pro, et exiger l'accord de deux admins.",
+   "Si quelqu'un change de téléphone, Verth l'indique, pour qu'un compte piraté ne vous trompe pas.",
+   "Si votre code d'invitation est partagé par erreur, changez-le d'un seul geste."
+  ],
+  "plan": [
+   "Voici Plan. Chaque nouveau compte a sept jours gratuits, avec tout en illimité.",
+   "Ensuite, l'offre Free reste gratuite pour toujours, jusqu'à cinq personnes.",
+   "Personal, à cent quarante-neuf roupies par mois, vous donne des vérifications d'arnaques illimitées.",
+   "Family, à cent quatre-vingt-dix-neuf, et Team, à deux cent quatre-vingt-dix-neuf, protègent tout votre Circle.",
+   "Payez par UPI ou carte via Razorpay, et résiliez quand vous voulez."
+  ],
+  "log": [
+   "Voici le Log : la trace de chaque vérification dans votre Circle.",
+   "Vous voyez qui a demandé, qui a répondu, à quel sujet, et quand.",
+   "Vert veut dire confirmé. Rouge veut dire bloqué : une arnaque n'est pas passée.",
+   "Personne ne peut modifier ou effacer une ligne, on sait donc toujours qui a approuvé quoi.",
+   "Avec une offre payante, vous pouvez exporter le Log pour votre comptabilité ou vos auditeurs."
+  ],
+  "guard": [
+   "Voici le contrôle de sécurité quotidien : le gardien de votre téléphone.",
+   "Il vous guide à travers dix protections, comme le verrouillage d'écran, Play Protect et le blocage des applis inconnues.",
+   "Touchez un point pour voir pourquoi il compte, et où appuyer exactement sur votre téléphone.",
+   "Une fois fait, cochez-le, et votre score monte.",
+   "Le contrôle se renouvelle chaque jour. Si rien n'a changé, confirmez tout d'un seul geste.",
+   "Gardez votre série en cours, et lisez le conseil sécurité du jour."
+  ]
+ },
+ "ui": {
+  "watch": "Regarder la vidéo",
+  "play": "Lire la vidéo",
+  "close": "Fermer",
+  "subtitles": "Sous-titres"
+ }
+}

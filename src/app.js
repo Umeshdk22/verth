@@ -15,9 +15,10 @@ import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } fro
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
-import { guardCard, viewGuard, guardSet, guardScore, guardRepeat, guardState, guardStreak, today as guardDay } from './guard.js';
+import { guardCard, viewGuard, guardSet, guardScore, guardRepeat, guardState, guardStreak, guardHistory, today as guardDay } from './guard.js';
 import { deviceChecks, xrayText } from './phonelab.js';
-import { videoCard, bindVideos, videoLang } from './videos.js';
+import { areaChart, barChart, gauge, lastDays, bindCharts } from './charts.js';
+import { videoCard, bindVideos, videoLang, setVideoCountry } from './videos.js';
 import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
@@ -204,6 +205,7 @@ function renderLoading(msg = 'Opening your Verth…') {
   S.screen = 'loading';
 }
 function paint(html) {
+  setVideoCountry(S.profile?.country || ''); // the second video language follows the person's country
   if (/^\s*<div class="shell narrow">/.test(html)) html = authFrame(html);
   const keep = {};
   root.querySelectorAll('input[id],select[id],textarea[id]').forEach((el) => { if (el.type !== 'password') keep[el.id] = el.value; });
@@ -696,6 +698,7 @@ function viewHome() {
   return `
     ${heroBanner(esc, { name: me()?.name || S.profile?.name, place: S.circle.name, people: active().length, checks: used, stopped })}
     ${mine.map(incomingCard).join('')}
+    ${dashboard()}
     ${'Notification' in window && Notification.permission === 'default' ? `<div class="banner"><span>Turn on alerts so you see checks while this tab is in the background.</span><button class="btn small" data-act="notify">Turn on</button></div>` : ''}
     ${others().length === 0 ? `<div class="banner accent"><span><b>Invite people to start.</b> A check needs the other person in your circle.</span><button class="btn small" data-act="tab" data-tab="circle">Invite</button></div>` : ''}
     ${quoteCarousel()}
@@ -986,8 +989,20 @@ async function autoFlag(r) {
   const fps = [];
   if (r.fp) fps.push([r.fp, kind(r.kind)]);
   for (const l of r.links || []) if (l.verdict === 'danger' && l.normalized) fps.push([await fingerprint('link', l.normalized), 'link']);
-  await Promise.all(fps.map(([fp, k]) => setDoc(doc(db, 'reports', fp, 'auto', S.user.uid), { kind: k, at: serverTimestamp() }).catch(() => {})));
+  if (!fps.length) return;
+  // The first scam record also adds 1 to today's live counter (the database allows exactly that, once).
+  const [fp0, k0] = fps[0];
+  try {
+    const b = writeBatch(db);
+    b.set(doc(db, 'reports', fp0, 'auto', S.user.uid), { kind: k0, at: serverTimestamp() });
+    b.set(doc(db, 'stats', statDay()), { n: increment(1), [k0]: increment(1), last: fp0 }, { merge: true });
+    await b.commit();
+  } catch { await setDoc(doc(db, 'reports', fp0, 'auto', S.user.uid), { kind: k0, at: serverTimestamp() }).catch(() => {}); }
+  await Promise.all(fps.slice(1).map(([fp, k]) => setDoc(doc(db, 'reports', fp, 'auto', S.user.uid), { kind: k, at: serverTimestamp() }).catch(() => {})));
+  S.live = null; // refresh the live chart
 }
+// Days are counted in India time, numbered from 1 January 1970 (the database checks the same number).
+const statDay = (t = Date.now()) => String(Math.floor((t + 19800000) / 86400000));
 async function loadReportCount(r) {
   if (!r?.fp) return;
   await autoFlag(r).catch(() => {});
@@ -1004,6 +1019,59 @@ const VERDICT = {
   caution: ['wait', 'Be careful: there are warning signs'],
   clear: ['ok', 'No obvious red flags'],
 };
+// 0–100, higher is safer: warning signs pull it down, and a scam-database match caps it.
+function safetyScore(r, flagged) {
+  let v = 100 - (r.score || 0) * 12;
+  if (r.verdict === 'danger') v = Math.min(v, 30);
+  else if (r.verdict === 'caution') v = Math.min(Math.max(v, 40), 69);
+  else v = Math.max(v, r.good?.length ? 92 : 85);
+  if (flagged >= 2) v = Math.min(v, 5);
+  return Math.max(3, Math.min(100, Math.round(v)));
+}
+const FLAG_KIND = [
+  ['secret', /OTP|PIN|CVV|password|screen-sharing|AnyDesk|control/i],
+  ['link', /link|web address|domain|https|look-alike|address|Pretends to be|site|short/i],
+  ['pressure', /rush|threat|block|pressure|secret|arrest|police|CBI|deadline|urgent|disconnect/i],
+  ['money', /fee|pay|money|prize|lottery|refund|investment|returns|loan|deposit|job|QR|cashback/i],
+];
+const flagKinds = (flags) => new Set(flags.flatMap((f) => FLAG_KIND.filter(([, re]) => re.test(f.title)).map(([k]) => k)));
+// Four plain checks, like a security report: each one passes or fails.
+function assessment(r, flags, flagged) {
+  const k = flagKinds(flags), badLinks = (r.links || []).some((l) => l.verdict !== 'clear');
+  return [
+    [!k.has('secret'), k.has('secret') ? 'Asks for an OTP, PIN or control' : 'No OTP or PIN request'],
+    [!k.has('link') && !badLinks, k.has('link') || badLinks ? 'Suspicious link or address' : r.kind === 'phone' ? 'No suspicious number pattern' : 'No suspicious links'],
+    [!k.has('pressure'), k.has('pressure') ? 'Pressure or threats' : 'No pressure or threats'],
+    [!k.has('money') && flagged < 2, flagged >= 2 ? 'Known scam in Verth’s database' : k.has('money') ? 'Money or fee bait' : 'No money bait'],
+  ];
+}
+// What Verth looked at, with a status for each, like a scanner's report.
+function elements(r, flags, flagged) {
+  const out = [flags.length ? [flags.some((f) => f.level >= 3) ? 'bad' : 'warn', 'Warning-sign check', `${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} found.`] : ['clean', 'Warning-sign check', 'None of the patterns real scams use.']];
+  out.push(flagged ? ['bad', 'Verth scam database', `Found to be a scam in ${flagged} earlier ${flagged === 1 ? 'check' : 'checks'}.`] : ['clean', 'Verth scam database', 'No scam record for this yet.']);
+  const links = r.kind === 'link' ? [r] : r.links || [];
+  if (links.length) {
+    const bad = links.filter((l) => l.verdict === 'danger').length, warn = links.filter((l) => l.verdict === 'caution').length;
+    out.push([bad ? 'bad' : warn ? 'warn' : 'clean', 'Link check', bad ? `${bad} risky ${bad === 1 ? 'link' : 'links'}.` : warn ? 'A link needs care.' : `${links.length === 1 ? 'The link looks' : 'The links look'} normal.`]);
+  }
+  if (r.kind === 'phone') out.push([r.verdict === 'clear' ? 'clean' : r.verdict === 'danger' ? 'bad' : 'warn', 'Number check', r.type ? `Looks like a ${String(r.type).replace(/-/g, ' ')} number.` : 'Checked the number’s pattern.']);
+  if (r.kind === 'image') out.push([r.qr?.type === 'upi' ? 'warn' : 'clean', 'QR code check', r.qr ? (r.qr.type === 'upi' ? 'A payment QR: scanning it sends money.' : 'QR code read.') : 'No QR code in the picture.']);
+  return out;
+}
+function techDetails(r) {
+  const rows = [];
+  if (r.kind === 'link') {
+    const insecure = r.flags.some((f) => /https/.test(f.title)), official = r.good.some((g) => /official/i.test(g));
+    rows.push(['Domain', r.domain || r.host || '–'], ['Address', r.host || r.normalized || '–'], ['Secure (https)', insecure ? 'No' : 'Yes', insecure ? 'bad' : 'ok'], ['Official site', official ? 'Yes' : 'Not recognised', official ? 'ok' : 'wait']);
+  } else if (r.kind === 'phone') {
+    rows.push(['Number', r.normalized || '–'], ['Type', r.type ? String(r.type).replace(/-/g, ' ') : 'Unknown']);
+  } else {
+    rows.push(['Checked as', r.kind === 'image' ? 'Photo or screenshot' : r.kind === 'job' || r.sub === 'job' ? 'Job or exam offer' : 'Message or email'], ['Links found', String(r.links?.length || 0)], ['Phone numbers found', String(r.phones?.length || 0)]);
+    if (r.kind === 'image') rows.push(['QR code', r.qr ? (r.qr.type === 'upi' ? 'UPI payment' : r.qr.type === 'link' ? 'Web link' : 'Text') : 'None']);
+  }
+  rows.push(['Checked on', 'This device', 'ok']);
+  return rows;
+}
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
   // Only Verth's own checks add to the scam database (no report button that people could misuse).
@@ -1021,11 +1089,22 @@ function scanResultCard(r) {
   const linksBad = (r.links || []).filter((l) => l.verdict !== 'clear').length;
   const steps = isJob ? [...JOB_ADVICE, ...ADVICE[r.verdict].slice(r.verdict === 'clear' ? 0 : 1)] : ADVICE[r.verdict];
   return `<div class="result verdict ${cls}" id="scan-result">
-    <div class="rv-top"><div class="state-icon ${cls}">${cls === 'ok' ? ICON.ok : cls === 'bad' ? ICON.bad : ICON.wait}</div>
-      <div class="rv-head"><span class="rv-label rv-${label[0]}">${label[1]}</span><h2>${head}</h2></div></div>
-    <div class="meter" aria-label="Risk ${Math.min(10, r.score)} out of 10"><span style="width:${Math.min(100, 8 + r.score * 11)}%"></span></div>
+    <div class="rv-hero">
+      <div class="rv-gauge">${gauge(safetyScore(r, flagged), 100, { label: 'Safety score', tone: crowd || r.verdict === 'danger' ? 'bad' : r.verdict === 'caution' ? 'mid' : 'good' })}</div>
+      <div class="rv-side">
+        <span class="rv-label rv-${label[0]}">${label[0] === 'none' ? ICON.ok : label[0] === 'possible' ? ICON.wait : ICON.bad}${label[1]}</span>
+        <h2>${head}</h2>
+        <p class="rv-time">${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+        <h3 class="rv-ah">Security assessment</h3>
+        <ul class="rv-assess">${assessment(r, flags, flagged).map(([ok, t]) => `<li class="${ok ? 'ok' : 'no'}">${ok ? ICON.ok : ICON.bad}<span>${t}</span></li>`).join('')}</ul>
+      </div>
+    </div>
     <p class="rv-summary">${summary}</p>
     <div class="rv-chips"><span><b>${flags.length}</b> warning ${flags.length === 1 ? 'sign' : 'signs'}</span>${r.links?.length ? `<span><b>${r.links.length}</b> ${r.links.length === 1 ? 'link' : 'links'} checked${linksBad ? `, ${linksBad} suspicious` : ''}</span>` : ''}<span>${flagged ? `<b>${flagged}</b> earlier scam ${flagged === 1 ? 'record' : 'records'}` : 'No scam record yet'}</span></div>
+    <div class="rv-grid">
+      <section class="rv-panel"><h3>${ICON.shield}Security elements</h3><ul class="rv-elems">${elements(r, flags, flagged).map(([st, t, d]) => `<li class="el-${st}"><i>${st === 'clean' ? ICON.ok : st === 'warn' ? ICON.wait : ICON.bad}</i><div><b>${t}</b><span>${d}</span></div><em>${st === 'clean' ? 'Clean' : st === 'warn' ? 'Check' : 'Found'}</em></li>`).join('')}</ul></section>
+      <section class="rv-panel"><h3>${ICON.shield}Technical details</h3><dl class="rv-tech">${techDetails(r).map(([k, v, pill]) => `<div><dt>${k}</dt><dd>${pill ? `<span class="pill ${pill}">${esc(v)}</span>` : esc(v)}</dd></div>`).join('')}</dl></section>
+    </div>
     ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Verth found it to be a scam in ${flagged} earlier checks. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
     ${flags.length ? `<div class="rv-sec"><h3>Why it looks suspicious</h3><ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
@@ -1148,6 +1227,59 @@ async function scanPhoto(f) {
   loadReportCount(r);
 }
 
+/* ---------- safety dashboard: real numbers, drawn as charts ---------- */
+const istDay = (ms) => new Date(ms).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+function dashboard() {
+  setTimeout(loadLive, 0);
+  const days = lastDays(14), hist = scanHist(), now = Date.now();
+  const byDay = (list, test) => days.map((d) => list.filter((h) => istDay(h.at) === d.key && test(h)).length);
+  const checks = byDay(hist, () => true), scams = byDay(hist, (h) => h.v === 'danger');
+  const in30 = hist.filter((h) => now - h.at < 30 * 864e5), prev30 = hist.filter((h) => now - h.at >= 30 * 864e5 && now - h.at < 60 * 864e5);
+  const caught = in30.filter((h) => h.v === 'danger').length, n = guardScore();
+  const delta = in30.length - prev30.length;
+  const DIC = { d1: ICON.scan, d2: ICON.bad, d3: ICON.shield };
+  const stat = (k, v, label, sub) => `<div class="dstat ${k}"><div class="dtop"><span class="dl">${label}</span><i class="dico" aria-hidden="true">${DIC[k] || ICON.shield}</i></div><b>${v}</b>${sub ? `<span class="ds">${sub}</span>` : ''}</div>`;
+  const circle = !!S.circle && !S.scanOnly;
+  const ver = circle ? days.map((d) => S.checks.filter((c) => istDay(tsMs(c.createdAt)) === d.key)) : null;
+  const live = S.live?.days;
+  return `<section class="dash" aria-label="Your safety dashboard">
+    <div class="dash-hd"><div><span class="eyebrow">Your safety dashboard</span><h2>Today at a glance</h2></div><span class="live-dot" title="Updates as things happen">Live</span></div>
+    <div class="dash-grid">
+      <button type="button" class="dcard dgauge" data-act="guard-open">${gauge(n, 10, { label: 'Phone safety', tone: n >= 9 ? 'good' : n >= 6 ? 'violet' : n >= 3 ? 'mid' : 'bad', sub: n === 10 ? 'Today’s check-up is done' : `${10 - n} left in today’s check-up` })}</button>
+      ${stat('d1', in30.length, 'Scam checks · 30 days', in30.length || prev30.length ? `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta)} vs the 30 days before` : 'Check anything suspicious')}
+      ${stat('d2', caught, 'Scams caught for you', caught ? 'in the last 30 days' : 'Nothing dangerous yet')}
+      ${circle ? stat('d3', monthChecks(), 'Verifications this month', `${S.checks.filter((c) => ['denied', 'code-mismatch'].includes(c.status)).length} scams stopped in your circle`) : stat('d3', guardStreak(), 'Safety streak', guardStreak() === 1 ? 'day fully protected' : 'days fully protected in a row')}
+    </div>
+    <div class="dash-charts">
+      <div class="dcard dchart"><div class="dc-hd"><b>Your scam checks</b><span class="muted small">Last 14 days · kept on this phone</span></div>
+        ${hist.length ? areaChart({ labels: days.map((d) => d.label), series: [{ name: 'checks', values: checks, color: '#6B3DF0' }, { name: 'scams found', values: scams, color: '#DC3545' }], title: 'Your scam checks in the last 14 days' }) : '<p class="dc-empty">Your checks will appear here. Try one: paste a suspicious message in Scan.</p>'}</div>
+      ${circle ? `<div class="dcard dchart"><div class="dc-hd"><b>Verifications in ${esc(S.circle.name)}</b><span class="muted small">Last 14 days</span></div>
+        ${S.checks.length ? barChart({ labels: days.map((d) => d.label), groups: [{ name: 'confirmed', values: ver.map((l) => l.filter((c) => c.status === 'confirmed' || c.status === 'code-match').length), color: '#12A66B' }, { name: 'stopped', values: ver.map((l) => l.filter((c) => ['denied', 'code-mismatch'].includes(c.status)).length), color: '#DC3545' }, { name: 'no answer', values: ver.map((l) => l.filter((c) => !['confirmed', 'code-match', 'denied', 'code-mismatch'].includes(c.status)).length), color: '#E8A33D' }], title: 'Verification checks in the last 14 days' }) : '<p class="dc-empty">When someone in your circle asks the real person, it shows here.</p>'}</div>` : ''}
+      <div class="dcard dchart dlive"><div class="dc-hd"><b><span class="live-dot sm"></span>Scams caught by Verth</b><span class="muted small">Everyone’s checks · last 14 days</span></div>
+        ${live ? `<div class="dl-tot"><b>${live.reduce((a, d) => a + d.n, 0)}</b><span>scams found in 14 days · <b>${live[live.length - 1].n}</b> today</span></div>
+          ${areaChart({ labels: days.map((d) => d.label), series: [{ name: 'scams found', values: live.map((d) => d.n), color: '#16A34A' }], height: 150, title: 'Scams found by everyone using Verth in the last 14 days' })}
+          <p class="muted small">Real counts from Verth’s scam database. Only a number per day is kept, never what was checked.</p>` : '<p class="dc-empty">Loading live numbers…</p>'}</div>
+    </div></section>`;
+}
+// The live scam count: the last 13 days once, and today's number as it changes.
+async function loadLive() {
+  if (S.liveLoading || (S.live && Date.now() - S.live.at < 5 * 60000)) return;
+  S.liveLoading = true;
+  try {
+    const keys = Array.from({ length: 14 }, (_, i) => statDay(Date.now() - (13 - i) * 864e5));
+    const snaps = await Promise.all(keys.map((k) => getDoc(doc(db, 'stats', k)).catch(() => null)));
+    S.live = { at: Date.now(), days: snaps.map((sn) => ({ n: Number(sn?.exists() ? sn.data().n : 0) || 0 })) };
+    if (!S.liveUnsub) {
+      S.liveUnsub = onSnapshot(doc(db, 'stats', keys[13]), (sn) => {
+        const n = Number(sn.exists() ? sn.data().n : 0) || 0;
+        if (S.live && S.live.days[13].n !== n) { S.live.days[13].n = n; if ((S.tab === 'home' || S.soloTab === 'home' || !S.soloTab) && !document.querySelector('input:focus,textarea:focus')) renderScanView(); }
+      }, () => {});
+    }
+  } catch { S.live = { at: Date.now(), days: Array.from({ length: 14 }, () => ({ n: 0 })) }; }
+  S.liveLoading = false;
+  if (document.querySelector('.dlive .dc-empty')) renderScanView();
+}
+
 /* ---------- phone check-up tools: device checks, App X-ray, Phone Doctor, circle board ---------- */
 const FREE_TOOLS = { xray: 1, doctor: 3 }; // a day, on the free plan
 function toolUse() { const u = store.get('verth-gtools') || {}; return u.day === guardDay() ? u : { day: guardDay(), xray: 0, doctor: 0 }; }
@@ -1161,6 +1293,7 @@ function guardOpts() {
     paid: toolsPaid(), device: S.gDevice, xray: S.xray, xrayBusy: S.xrayBusy, xrayLeft: toolLeft('xray'),
     doctor: S.doctor, doctorBusy: S.doctorBusy, doctorLeft: toolLeft('doctor'), lang: videoLang(),
     inCircle: !!S.circleId, board: boardRows(), boardOpen: circlePaid() || inTrial(), shareOn: sharing(),
+    history: (() => { const h = guardHistory(), d = lastDays(14); return Object.keys(h).length > 1 ? areaChart({ labels: d.map((x) => x.label), series: [{ name: 'out of 10', values: d.map((x) => h[x.key] ?? 0), color: '#12A66B' }], height: 150, title: 'Your phone safety score in the last 14 days' }) : ''; })(),
   };
 }
 function boardRows() {
@@ -1250,7 +1383,7 @@ function renderScanOnly() {
         ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`;
   const pending = S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : '';
   const views = {
-    home: () => `${inTrial() ? videoCard('intro') : ''}${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}${pending}
+    home: () => `${inTrial() ? videoCard('intro') : ''}${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}${pending}${dashboard()}
       ${quoteCarousel()}
       <div class="sec-hd plain"><span class="eyebrow">Quick actions</span><h2>What would you like to do?</h2></div>
       ${quickTiles([
@@ -3182,7 +3315,7 @@ function helperGo(to, text) {
 // and only with App Check, so only the real Verth site can use the project's AI quota.
 function makeAI() { return AI_HELPER.enabled ? makeServerAI(PAY_API) : null; }
 const helper = mountHelper({ go: helperGo, ai: makeAI(), raised: true });
-bindVideos();
+bindVideos(); bindCharts();
 
 /* ---------- routing ---------- */
 function route() {

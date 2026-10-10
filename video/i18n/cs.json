@@ -1,0 +1,86 @@
+{
+ "code": "cs",
+ "name": "Čeština",
+ "titles": {
+  "intro": "Vítejte ve Verth",
+  "scan": "Jak používat Scan",
+  "verify": "Jak používat Verify",
+  "chat": "Jak používat Chat",
+  "circle": "Jak používat svůj Circle",
+  "plan": "Tarify a zkušební verze zdarma",
+  "log": "Verification log",
+  "guard": "Denní bezpečnostní kontrola"
+ },
+ "lines": {
+  "intro": [
+   "Vítejte ve Verth. Podvodníci v Indii se dnes vydávají za vašeho šéfa, vaši banku, nebo dokonce vaši rodinu.",
+   "UPI vám řekne, komu platíte. Verth vám řekne, jestli byste měli platit.",
+   "Scan během pár sekund zkontroluje jakoukoli zprávu, odkaz, telefonní číslo, pracovní nabídku nebo snímek obrazovky.",
+   "Verify se zeptá skutečné osoby na jejím vlastním telefonu, než zaplatíte nebo sdílíte OTP.",
+   "Váš Circle drží pohromadě rodinu nebo kolegy, se soukromým šifrovaným chatem a bezpečnými platbami.",
+   "A denní bezpečnostní kontrola udržuje váš telefon pevně zamčený před hackery.",
+   "Prvních sedm dní je zcela zdarma. Vytvořte si účet a kontrolujte, než zaplatíte."
+  ],
+  "scan": [
+   "Tohle je Scan. Použijte ho, kdykoli vám zpráva, hovor nebo nabídka přijde trochu podezřelá.",
+   "Nejprve vyberte, co chcete zkontrolovat: zprávu, odkaz, telefonní číslo, pracovní nabídku nebo fotku.",
+   "Vložte sem zprávu a klepněte na „Check it“.",
+   "Verth hned ukáže riziko a každé varovné znamení vysvětlí jednoduchými slovy.",
+   "Pokud jde o podvod, Verth ho sám přidá do své databáze podvodů, aby byl varován i další, kdo ho zkontroluje.",
+   "Vaše zpráva samotná se nikdy nenahrává. Ukládá se jen zakódovaný otisk.",
+   "Pamatujte: když to vypadá rizikově, neplaťte, neklikejte a nikdy nesdílejte OTP."
+  ],
+  "verify": [
+   "Tohle je Verify. Přišla vám zpráva od šéfa nebo člena rodiny, který chce peníze? Nejdřív si to u něj ověřte.",
+   "Vyberte, od koho žádost údajně je a odkud přišla, třeba z WhatsAppu nebo z telefonátu.",
+   "Napište, o co vás žádá, a klepněte na „Send check“.",
+   "Skutečná osoba dostane otázku na svůj vlastní telefon a odpoví Yes nebo No.",
+   "Když odpoví No, nebo neodpoví vůbec, zastavte se. Někdo se za ni vydává.",
+   "Jste v hovoru nebo na videu? Požádejte o jejich Verth kód. Falešný volající ani deepfake ho nezíská."
+  ],
+  "chat": [
+   "Tohle je Chat: soukromý chat s koncovým šifrováním s lidmi ve vašem Circle.",
+   "Klepnutím na osobu otevřete chat. Číst ho můžou jen vaše dva telefony. Ani Verth ne.",
+   "Posílejte bezpečně zprávy, fotky a PDF dokumenty, třeba certifikáty.",
+   "Chcete-li poslat peníze, klepněte na „Pay safely“. Verth ukáže, komu platíte, a pak otevře vaši UPI aplikaci.",
+   "Po zaplacení dostanete oba účtenku a uloží se do historie plateb.",
+   "Bezplatný tarif zahrnuje dvanáct zpráv a tři platby denně."
+  ],
+  "circle": [
+   "Tohle je váš Circle: lidé, kterým věříte, třeba rodina nebo tým.",
+   "Pozvěte lidi ze svých kontaktů, přes WhatsApp, nebo sdílením svého zvacího kódu.",
+   "Bez schválení se nikdo nedostane dovnitř. Zkontrolujte jejich e-mail a telefonní číslo a klepněte na Approve.",
+   "Firmy mohou Circle omezit na pracovní e-maily a vyžadovat schválení dvou adminů.",
+   "Když někdo přejde na nový telefon, Verth to ukáže, takže vás napadený účet neoklame.",
+   "Pokud se váš zvací kód omylem dostane ven, změňte ho jedním klepnutím."
+  ],
+  "plan": [
+   "Tohle je Plan. Každý nový účet dostane sedm dní zdarma a vše bez omezení.",
+   "Potom zůstává tarif Free navždy zdarma, až pro pět lidí.",
+   "Personal za ₹149 měsíčně vám dává neomezené kontroly podvodů.",
+   "Family za ₹199 a Team za ₹299 chrání všechny ve vašem Circle.",
+   "Plaťte přes UPI nebo kartou přes Razorpay a kdykoli můžete zrušit."
+  ],
+  "log": [
+   "Tohle je Verification log: záznam každé kontroly ve vašem Circle.",
+   "Vidíte, kdo se ptal, kdo odpověděl, o co šlo a kdy.",
+   "Zelená znamená potvrzeno. Červená znamená zastaveno, takže podvod neprošel.",
+   "Záznamy nikdo nemůže upravit ani smazat, takže je vždy jasné, kdo co schválil.",
+   "U placených tarifů můžete log exportovat pro účetní nebo auditory."
+  ],
+  "guard": [
+   "Tohle je denní bezpečnostní kontrola: hlídač bezpečnosti vašeho telefonu.",
+   "Provede vás deseti ochranami, jako je zámek obrazovky, Play Protect a blokování neznámých aplikací.",
+   "Klepněte na položku a uvidíte, proč je důležitá a kam přesně v telefonu klepnout.",
+   "Až bude hotovo, odškrtněte ji a vaše skóre stoupne.",
+   "Kontrola se obnovuje každý den. Pokud se nic nezměnilo, potvrďte vše jedním klepnutím.",
+   "Udržte svou sérii a přečtěte si dnešní bezpečnostní tip."
+  ]
+ },
+ "ui": {
+  "watch": "Podívejte se na video",
+  "play": "Přehrát video",
+  "close": "Zavřít",
+  "subtitles": "Titulky"
+ }
+}

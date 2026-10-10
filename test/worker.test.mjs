@@ -761,3 +761,16 @@ test('reviewer login: a fixed code for review@verth.in only, only while REVIEW_C
   // A code that isn't exactly 6 digits never switches it on.
   assert.equal((await import('../worker/src/index.js')).isReviewEmail({ REVIEW_EMAIL: 'review@verth.in', REVIEW_CODE: '12345' }, 'review@verth.in'), false);
 });
+
+test('live numbers: last 14 days of scams found, public, and nothing else', async () => {
+  const f = otpFakes(), now = Date.UTC(2026, 9, 10, 12), today = Math.floor((now + 19800000) / 86400000);
+  await f.deps.fs.set('stats/' + today, { n: 3, message: 2, link: 1, last: 'x' });
+  await f.deps.fs.set('stats/' + (today - 2), { n: 1, phone: 1 });
+  const { liveStats } = await import('../worker/src/index.js');
+  const r = await liveStats(otpEnv, f.deps, undefined, now), j = await r.json();
+  assert.equal(r.headers.get('access-control-allow-origin'), '*');
+  assert.equal(j.days.length, 14); assert.equal(j.total, 4);
+  assert.deepEqual(j.days.at(-1), { day: '2026-10-10', n: 3, message: 2, link: 1, phone: 0 });
+  assert.equal(j.days.at(-3).phone, 1);
+  assert.ok(!JSON.stringify(j).includes('last'));
+});

@@ -1,0 +1,86 @@
+{
+ "code": "fil",
+ "name": "Filipino",
+ "titles": {
+  "intro": "Maligayang pagdating sa Verth",
+  "scan": "Paano gamitin ang Scan",
+  "verify": "Paano gamitin ang Verify",
+  "chat": "Paano gamitin ang Chat",
+  "circle": "Paano gamitin ang iyong Circle",
+  "plan": "Mga plan at ang iyong libreng trial",
+  "log": "Ang Verification log",
+  "guard": "Araw-araw na pagsusuri sa kaligtasan"
+ },
+ "lines": {
+  "intro": [
+   "Maligayang pagdating sa Verth. Nagpapanggap na ngayon ang mga scammer sa India bilang boss mo, bangko mo, o kahit sarili mong pamilya.",
+   "Sinasabi ng UPI kung sino ang binabayaran mo. Sinasabi ng Verth kung dapat ka bang magbayad.",
+   "Sinusuri ng Scan ang anumang mensahe, link, numero ng telepono, alok na trabaho o screenshot sa loob ng ilang segundo.",
+   "Tinatanong ng Verify ang totoong tao sa sarili niyang phone, bago ka magbayad o magbigay ng OTP.",
+   "Pinagsasama ng iyong Circle ang pamilya o mga katrabaho, na may pribado at encrypted na chat at ligtas na bayaran.",
+   "At ang araw-araw na pagsusuri sa kaligtasan ay pinananatiling mahigpit na nakakandado ang phone mo laban sa mga hacker.",
+   "Libreng-libre ang unang pitong araw mo. Gumawa ng account, at mag-check muna bago magbayad."
+  ],
+  "scan": [
+   "Ito ang Scan. Gamitin ito tuwing may mensahe, tawag o alok na parang may mali.",
+   "Una, piliin ang gusto mong i-check: mensahe, link, numero ng telepono, alok na trabaho, o litrato.",
+   "I-paste dito ang mensahe, at i-tap ang \"Check it\".",
+   "Agad ipinapakita ng Verth ang panganib, at ipinapaliwanag ang bawat babala sa simpleng salita.",
+   "Kung scam ito, kusang idinadagdag ito ng Verth sa scam database nito, para mabalaan din ang susunod na magche-check nito.",
+   "Hindi kailanman ina-upload ang mensahe mo. Isang ginulong fingerprint lang ang sine-save.",
+   "Tandaan: kung mukhang delikado, huwag magbayad, huwag mag-click, at huwag kailanman ibigay ang OTP."
+  ],
+  "verify": [
+   "Ito ang Verify. May mensahe ba mula sa boss o kapamilya mo na humihingi ng pera? Tanungin mo muna sila.",
+   "Piliin kung kanino raw galing ang hiling, at saan ito dumating, gaya ng WhatsApp o tawag sa telepono.",
+   "I-type kung ano ang ipinapagawa nila sa iyo, saka i-tap ang \"Send check\".",
+   "Matatanggap ng totoong tao ang tanong sa sarili niyang phone, at sasagot siya ng Yes o No.",
+   "Kung No ang sagot, o walang sumagot, tumigil ka. May nagpapanggap na siya.",
+   "Nasa tawag o video ka? Hingin ang kanilang Verth code. Hindi ito kayang ibigay ng pekeng tumatawag o deepfake."
+  ],
+  "chat": [
+   "Ito ang Chat: pribado at end-to-end encrypted na chat kasama ang mga tao sa iyong Circle.",
+   "I-tap ang isang tao para buksan ang chat ninyo. Ang dalawang phone lang ninyo ang makakabasa. Kahit ang Verth, hindi.",
+   "Magpadala ng mensahe, litrato at PDF na dokumento, gaya ng mga sertipiko, nang ligtas.",
+   "Para magpadala ng pera, i-tap ang \"Pay safely\". Ipapakita ng Verth kung sino ang binabayaran mo, saka bubuksan ang UPI app mo.",
+   "Pagkatapos magbayad, pareho kayong makakatanggap ng resibo, at naka-save ito sa payment history mo.",
+   "Kasama sa libreng plan ang labindalawang mensahe at tatlong bayad bawat araw."
+  ],
+  "circle": [
+   "Ito ang iyong Circle: ang mga taong pinagkakatiwalaan mo, gaya ng pamilya o team mo.",
+   "Mag-imbita ng mga tao mula sa contacts mo, sa WhatsApp, o sa pag-share ng iyong invite code.",
+   "Walang makakapasok nang walang pag-apruba. Tingnan ang email at numero nila, saka i-tap ang Approve.",
+   "Puwedeng i-lock ng mga kumpanya ang Circle sa kanilang work email, at humingi ng pag-apruba ng dalawang admin.",
+   "Kapag lumipat ang isang tao sa bagong phone, ipapakita ito ng Verth, kaya hindi ka maloloko ng na-hack na account.",
+   "Kung aksidenteng naibahagi ang invite code mo, palitan ito sa isang tap lang."
+  ],
+  "plan": [
+   "Ito ang Plan. Bawat bagong account ay may pitong araw na libre, at walang limitasyon ang lahat.",
+   "Pagkatapos noon, ang Free plan ay libre habambuhay, para sa hanggang limang tao.",
+   "Ang Personal, sa halagang ₹149 kada buwan, ay nagbibigay ng walang limitasyong scam check.",
+   "Ang Family, sa ₹199, at ang Team, sa ₹299, ay nagpoprotekta sa lahat sa iyong Circle.",
+   "Magbayad gamit ang UPI o card sa Razorpay, at mag-cancel kahit kailan."
+  ],
+  "log": [
+   "Ito ang Verification log: talaan ng bawat check sa iyong Circle.",
+   "Makikita mo kung sino ang nagtanong, sino ang sumagot, tungkol saan, at kailan.",
+   "Ang berde ay kumpirmado. Ang pula ay napigilan, kaya hindi natuloy ang scam.",
+   "Walang makakapag-edit o makakapagbura ng entry, kaya laging malinaw kung sino ang nag-apruba ng ano.",
+   "Sa mga bayad na plan, puwede mong i-export ang log para sa accounts team o mga auditor mo."
+  ],
+  "guard": [
+   "Ito ang araw-araw na pagsusuri sa kaligtasan: ang security guard ng phone mo.",
+   "Gagabayan ka nito sa sampung proteksyon, gaya ng screen lock, Play Protect, at pag-block ng mga hindi kilalang app.",
+   "I-tap ang isang item para malaman kung bakit ito mahalaga, at kung saan mismo mag-tap sa phone mo.",
+   "Kapag tapos na, lagyan ito ng tsek, at tataas ang score mo.",
+   "Nire-refresh ang pagsusuri araw-araw. Kung walang nagbago, kumpirmahin lahat sa isang tap.",
+   "Ituloy ang iyong streak, at basahin ang safety tip ngayong araw."
+  ]
+ },
+ "ui": {
+  "watch": "Panoorin ang video",
+  "play": "I-play ang video",
+  "close": "Isara",
+  "subtitles": "Subtitle"
+ }
+}

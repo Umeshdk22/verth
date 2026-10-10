@@ -621,3 +621,21 @@ test('members share only their own safety score, in the right shape', async () =
   await assertFails(getDocs(collection(db('outsider'), 'circles/c1/safety')));                    // outsiders can't read
   await assertSucceeds(deleteDoc(doc(db('priya'), 'circles/c1/safety/priya')));                   // stop sharing
 });
+
+/* ---------- live scam counter ---------- */
+const dayNo = () => String(Math.floor((Date.now() + 19800000) / 86400000));
+const FP1 = 'a'.repeat(64), FP2 = 'b'.repeat(64);
+test('the live counter goes up by exactly one, only together with a new scam record', async () => {
+  const d = db('priya'), day = dayNo();
+  const flag = (fp, stats) => { const b = writeBatch(d); b.set(doc(d, `reports/${fp}/auto/priya`), { kind: 'message', at: serverTimestamp() }); if (stats) b.set(doc(d, 'stats', day), stats, { merge: true }); return b.commit(); };
+  await assertSucceeds(flag(FP1, { n: increment(1), message: increment(1), last: FP1 }));
+  await assertSucceeds(getDoc(doc(anon(), 'stats', day)));                                                    // public numbers
+  await assertFails(setDoc(doc(d, 'stats', day), { n: increment(1), message: increment(1), last: FP1 }, { merge: true })); // same scam again
+  await assertFails(flag(FP2, { n: increment(5), message: increment(5), last: FP2 }));                         // more than one
+  await assertFails(flag(FP2, { n: increment(1), message: increment(1), link: increment(1), last: FP2 }));     // two kinds
+  await assertFails(flag(FP2, { n: increment(1), message: increment(1), last: FP2, note: 'x' }));              // extra data
+  await assertSucceeds(flag(FP2, { n: increment(1), link: increment(1), last: FP2 }));
+  const s = (await env.withSecurityRulesDisabled(async (c) => (await getDoc(doc(c.firestore(), 'stats', day))).data()));
+  if (s.n !== 2 || s.message !== 1 || s.link !== 1) throw new Error(JSON.stringify(s));
+  await assertFails(setDoc(doc(d, 'stats', '1'), { n: 1, message: 1, last: 'c'.repeat(64) }));                // another day
+});

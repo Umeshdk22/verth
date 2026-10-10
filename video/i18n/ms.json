@@ -1,0 +1,86 @@
+{
+ "code": "ms",
+ "name": "Bahasa Melayu",
+ "titles": {
+  "intro": "Selamat datang ke Verth",
+  "scan": "Cara menggunakan Scan",
+  "verify": "Cara menggunakan Verify",
+  "chat": "Cara menggunakan Chat",
+  "circle": "Cara menggunakan Circle anda",
+  "plan": "Pelan dan percubaan percuma anda",
+  "log": "Verification log",
+  "guard": "Pemeriksaan keselamatan harian"
+ },
+ "lines": {
+  "intro": [
+   "Selamat datang ke Verth. Penipu di India kini menyamar sebagai bos, bank, malah keluarga anda sendiri.",
+   "UPI memberitahu siapa yang anda bayar. Verth memberitahu sama ada anda patut membayar.",
+   "Scan menyemak sebarang mesej, pautan, nombor telefon, tawaran kerja atau tangkapan skrin dalam beberapa saat.",
+   "Verify bertanya kepada orang sebenar di telefon mereka sendiri, sebelum anda membayar atau berkongsi OTP.",
+   "Circle anda menyatukan keluarga atau rakan sekerja, dengan sembang peribadi yang disulitkan dan pembayaran selamat.",
+   "Dan pemeriksaan keselamatan harian memastikan telefon anda terkunci rapat daripada penggodam.",
+   "Tujuh hari pertama anda percuma sepenuhnya. Cipta akaun anda, dan semak dahulu sebelum membayar."
+  ],
+  "scan": [
+   "Ini Scan. Gunakannya setiap kali mesej, panggilan atau tawaran terasa sedikit pelik.",
+   "Mula-mula, pilih apa yang anda mahu semak: mesej, pautan, nombor telefon, tawaran kerja, atau foto.",
+   "Tampal mesej di sini, dan tekan \"Check it\".",
+   "Verth terus menunjukkan risikonya, dan menerangkan setiap tanda amaran dengan kata-kata mudah.",
+   "Jika ia penipuan, Verth sendiri menambahkannya ke pangkalan data penipuannya, jadi orang seterusnya yang menyemak juga diberi amaran.",
+   "Mesej anda sendiri tidak pernah dimuat naik. Hanya cap jari yang telah diacak disimpan.",
+   "Ingat: jika nampak berisiko, jangan bayar, jangan klik, dan jangan sekali-kali kongsi OTP."
+  ],
+  "verify": [
+   "Ini Verify. Dapat mesej daripada bos atau ahli keluarga yang minta wang? Semak dengan mereka dahulu.",
+   "Pilih siapa yang kononnya membuat permintaan itu, dan dari mana ia datang, seperti WhatsApp atau panggilan telefon.",
+   "Taip apa yang mereka minta anda lakukan, kemudian tekan \"Send check\".",
+   "Orang sebenar menerima soalan itu di telefon mereka sendiri, dan menjawab Yes atau No.",
+   "Jika mereka jawab No, atau tidak menjawab, berhenti. Ada orang yang menyamar sebagai mereka.",
+   "Dalam panggilan atau video? Minta kod Verth mereka. Pemanggil palsu atau deepfake tidak boleh memberikannya."
+  ],
+  "chat": [
+   "Ini Chat: sembang peribadi dengan penyulitan hujung ke hujung bersama orang dalam Circle anda.",
+   "Tekan nama seseorang untuk membuka sembang. Hanya dua telefon anda boleh membacanya. Verth pun tidak boleh.",
+   "Hantar mesej, foto dan dokumen PDF, seperti sijil, dengan selamat.",
+   "Untuk menghantar wang, tekan \"Pay safely\". Verth tunjukkan siapa yang anda bayar, kemudian membuka aplikasi UPI anda.",
+   "Selepas membayar, kedua-dua anda mendapat resit, dan ia disimpan dalam sejarah pembayaran anda.",
+   "Pelan percuma termasuk dua belas mesej dan tiga pembayaran sehari."
+  ],
+  "circle": [
+   "Ini Circle anda: orang yang anda percayai, seperti keluarga atau pasukan anda.",
+   "Jemput orang daripada kenalan anda, melalui WhatsApp, atau dengan berkongsi kod jemputan anda.",
+   "Tiada siapa boleh masuk tanpa kelulusan. Semak e-mel dan nombor telefon mereka, kemudian tekan Approve.",
+   "Syarikat boleh mengunci Circle kepada e-mel kerja mereka, dan meminta dua admin meluluskan.",
+   "Jika seseorang bertukar ke telefon baharu, Verth menunjukkannya, jadi akaun yang digodam tidak dapat menipu anda.",
+   "Jika kod jemputan anda terkongsi secara tidak sengaja, tukarnya dengan satu tekanan."
+  ],
+  "plan": [
+   "Ini Plan. Setiap akaun baharu mendapat tujuh hari percuma, dengan semuanya tanpa had.",
+   "Selepas itu, pelan Free kekal percuma selama-lamanya, untuk sehingga lima orang.",
+   "Personal, pada harga ₹149 sebulan, memberi anda semakan penipuan tanpa had.",
+   "Family, pada ₹199, dan Team, pada ₹299, melindungi semua orang dalam Circle anda.",
+   "Bayar dengan UPI atau kad melalui Razorpay, dan batalkan bila-bila masa."
+  ],
+  "log": [
+   "Ini Verification log: rekod setiap semakan dalam Circle anda.",
+   "Anda boleh lihat siapa yang bertanya, siapa yang menjawab, tentang apa, dan bila.",
+   "Hijau bermaksud disahkan. Merah bermaksud ia dihentikan, jadi penipuan tidak berjaya.",
+   "Tiada siapa boleh mengubah atau memadam catatan, jadi sentiasa ada rekod jelas siapa meluluskan apa.",
+   "Dalam pelan berbayar, anda boleh mengeksport log untuk pasukan akaun atau juruaudit anda."
+  ],
+  "guard": [
+   "Ini pemeriksaan keselamatan harian: pengawal keselamatan telefon anda.",
+   "Ia membimbing anda melalui sepuluh perlindungan, seperti kunci skrin, Play Protect, dan menyekat aplikasi tidak dikenali.",
+   "Tekan satu item untuk melihat mengapa ia penting, dan di mana tepatnya untuk tekan di telefon anda.",
+   "Apabila selesai, tandakannya, dan skor anda naik.",
+   "Pemeriksaan ini dikemas kini setiap hari. Jika tiada yang berubah, sahkan semuanya dengan satu tekanan.",
+   "Teruskan rentetan harian anda, dan baca tip keselamatan hari ini."
+  ]
+ },
+ "ui": {
+  "watch": "Tonton video",
+  "play": "Main video",
+  "close": "Tutup",
+  "subtitles": "Sari kata"
+ }
+}

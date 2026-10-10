@@ -860,6 +860,19 @@ const SECURE = { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff
   'strict-transport-security': 'max-age=31536000; includeSubDomains', 'content-security-policy': "default-src 'none'; frame-ancestors 'none'", 'permissions-policy': 'camera=(), microphone=(), geolocation=()' };
 const json = (data, status, extra) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', ...SECURE, ...extra } });
 
+export async function liveStats(env, deps = {}, fetchFn = fetch, now = Date.now()) {
+  const cache = typeof caches !== 'undefined' ? caches.default : null, key = 'https://verth-stats.local/v1';
+  if (cache) { const hit = await cache.match(key); if (hit) return hit; }
+  const fs = deps.fs || firestore(env, fetchFn), today = Math.floor((now + 19800000) / 86400000);
+  const days = await Promise.all(Array.from({ length: 14 }, (_, i) => today - 13 + i).map(async (d) => {
+    const doc = await fs.get('stats/' + d).catch(() => null);
+    return { day: new Date(d * 86400000).toISOString().slice(0, 10), n: Number(doc?.n) || 0, message: Number(doc?.message) || 0, link: Number(doc?.link) || 0, phone: Number(doc?.phone) || 0 };
+  }));
+  const res = json({ days, total: days.reduce((a, d) => a + d.n, 0), updated: new Date(now).toISOString() }, 200, { 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=60' });
+  if (cache) await cache.put(key, res.clone()).catch(() => {});
+  return res;
+}
+
 export async function handle(request, env, deps = {}) {
   const fetchFn = deps.fetch || fetch;
   const url = new URL(request.url);
@@ -894,6 +907,8 @@ export async function handle(request, env, deps = {}) {
       }
       return json({ ok: true, version: WORKER_VERSION, ai: !!env.GEMINI_API_KEY, aiModel: env.GEMINI_MODEL || AI.model, emailCodes: !!(env.OTP_SECRET && env.BREVO_API_KEY && env.MAIL_FROM), passkeys: !!env.ALLOWED_ORIGIN, sites: origins(env).map((o) => o.replace('https://', '')), captcha: !!env.TURNSTILE_SECRET, sms: !!env.TWOFACTOR_API_KEY, payments: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) }, 200, { 'access-control-allow-origin': '*' });
     }
+    // Public live numbers for the website: scams Verth's checks found on each of the last 14 days.
+    if (request.method === 'GET' && url.pathname === '/stats') return await liveStats(env, deps, fetchFn);
     if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, h);
     const fs = deps.fs || firestore(env, fetchFn), rp = deps.rp || razorpay(env, fetchFn);
     // Voice-overs for the help videos: only for the GitHub build job, which sets a one-time TTS_TOKEN.

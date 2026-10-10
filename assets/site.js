@@ -28,29 +28,58 @@ if (window.top !== window.self) { document.documentElement.style.display = 'none
   }
 })();
 
-// Demo videos: Scam check or For organisations, in English or Hindi.
+// Demo videos. English is always there; the second button is the visitor's own language (from the
+// browser): Hindi has its own voice-over, other languages show the Welcome video with subtitles.
 (function () {
   var video = document.getElementById('demo-video'), note = document.getElementById('video-note');
   if (!video) return;
-  var state = { topic: 'intro', lang: /^hi/i.test(navigator.language || '') ? 'hi' : 'en' };
+  var NAMES = {"el": "Ελληνικά", "zh-TW": "繁體中文", "ru": "Русский", "sv": "Svenska", "sw": "Kiswahili", "sk": "Slovenčina", "zh-CN": "简体中文", "it": "Italiano", "hr": "Hrvatski", "he": "עברית", "am": "አማርኛ", "fil": "Filipino", "cs": "Čeština", "id": "Bahasa Indonesia", "uk": "Українська", "ja": "日本語", "vi": "Tiếng Việt", "fr": "Français", "ne": "नेपाली", "ur": "اردو", "nb": "Norsk bokmål", "pt": "Português", "ro": "Română", "de": "Deutsch", "fi": "Suomi", "bn": "বাংলা", "th": "ไทย", "fa": "فارسی", "bg": "Български", "tr": "Türkçe", "es": "Español", "sr": "Српски", "nl": "Nederlands", "hu": "Magyar", "pl": "Polski", "ms": "Bahasa Melayu", "ar": "العربية", "ko": "한국어", "da": "Dansk", "si": "සිංහල", "hi": "हिन्दी"};
+  function local() {
+    var list = navigator.languages || [navigator.language || ''];
+    for (var i = 0; i < list.length; i++) {
+      var l = String(list[i] || '').toLowerCase(), b = l.split('-')[0];
+      if (/^zh-(tw|hk|mo|hant)/.test(l)) return 'zh-TW';
+      if (b === 'zh') return 'zh-CN';
+      if (b === 'tl') b = 'fil'; if (b === 'no' || b === 'nn') b = 'nb'; if (b === 'iw') b = 'he';
+      if (NAMES[b]) return b;
+    }
+    return '';
+  }
+  var LOC = local(), second = document.querySelector('[data-vlang="hi"]');
+  if (second) { if (LOC) { second.textContent = NAMES[LOC]; second.lang = LOC; second.dataset.vlang = 'local'; } else second.remove(); }
+  var state = { topic: 'intro', lang: LOC ? 'local' : 'en' };
   var NOTE = {
     'intro-en': 'Welcome to Verth, in English · turn the sound on', 'intro-hi': 'वर्थ में आपका स्वागत है, हिन्दी में · आवाज़ चालू करें',
     'scam-en': 'Scam check, in English · turn the sound on', 'scam-hi': 'स्कैम चेक, हिन्दी में · आवाज़ चालू करें',
     'org-en': 'For organisations, in English · turn the sound on', 'org-hi': 'कंपनियों के लिए, हिन्दी में · आवाज़ चालू करें',
   };
   function show(play) {
-    var id = state.topic + '-' + state.lang;
+    var want = state.lang === 'local' ? LOC : 'en';
+    var fileLang = want === 'hi' ? 'hi' : 'en', subs = want !== 'en' && want !== 'hi' && state.topic === 'intro';
+    var id = state.topic + '-' + fileLang;
     document.querySelectorAll('[data-vtopic]').forEach(function (b) { var on = b.dataset.vtopic === state.topic; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     document.querySelectorAll('[data-vlang]').forEach(function (b) { var on = b.dataset.vlang === state.lang; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     video.parentElement.classList.toggle('sq', state.topic === 'intro');
     var file = 'assets/videos/' + (state.topic === 'intro' ? 'help-' : 'verth-') + id;
-    if (video.getAttribute('src') !== file + '.mp4') {
+    if (video.getAttribute('src') !== file + '.mp4' || video.dataset.subs !== String(subs && want)) {
       video.pause();
+      while (video.firstChild && video.firstChild.tagName === 'TRACK') video.removeChild(video.firstChild);
+      video.querySelectorAll('track').forEach(function (t) { t.remove(); });
+      if (subs) {
+        var t = document.createElement('track'); t.kind = 'subtitles'; t.srclang = want; t.label = NAMES[want]; t.default = true;
+        t.src = 'assets/videos/subs/help-intro.' + want + '.vtt'; video.appendChild(t);
+      }
+      video.dataset.subs = String(subs && want);
       video.poster = file + '.jpg';
       video.src = file + '.mp4';
       video.load();
+      if (subs) video.addEventListener('loadedmetadata', function () { for (var i = 0; i < video.textTracks.length; i++) video.textTracks[i].mode = 'showing'; }, { once: true });
     }
-    if (note) { note.textContent = NOTE[id]; note.lang = state.lang; }
+    if (note) {
+      var n = NOTE[id];
+      if (want !== 'en' && want !== 'hi') n = state.topic === 'intro' ? NOTE[id] + ' · ' + NAMES[want] + ' subtitles' : NOTE[id] + ' (subtitles in ' + NAMES[want] + ' on the Welcome video)';
+      note.textContent = n; note.lang = fileLang;
+    }
     if (play) video.play().catch(function () {});
   }
   document.querySelectorAll('[data-vtopic]').forEach(function (b) { b.addEventListener('click', function () { state.topic = b.dataset.vtopic; show(true); }); });

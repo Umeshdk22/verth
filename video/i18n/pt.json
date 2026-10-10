@@ -1,0 +1,86 @@
+{
+ "code": "pt",
+ "name": "Português",
+ "titles": {
+  "intro": "Boas-vindas ao Verth",
+  "scan": "Como usar o Scan",
+  "verify": "Como usar o Verify",
+  "chat": "Como usar o Chat",
+  "circle": "Como usar o seu Circle",
+  "plan": "Planos e seu teste grátis",
+  "log": "O Log: todas as verificações",
+  "guard": "Verificação de segurança diária"
+ },
+ "lines": {
+  "intro": [
+   "Boas-vindas ao Verth. Na Índia, golpistas agora fingem ser seu chefe, seu banco ou até sua própria família.",
+   "O UPI mostra para quem você está pagando. O Verth mostra se você deveria pagar.",
+   "O Scan analisa qualquer mensagem, link, número de telefone, oferta de emprego ou print em segundos.",
+   "O Verify pergunta à pessoa de verdade, no celular dela, antes de você pagar ou passar um OTP.",
+   "O seu Circle reúne família ou colegas, com chat privado e criptografado e pagamentos seguros.",
+   "E a verificação de segurança diária deixa seu celular bem protegido contra hackers.",
+   "Seus primeiros sete dias são totalmente grátis. Crie sua conta e confira antes de pagar."
+  ],
+  "scan": [
+   "Este é o Scan. Use sempre que uma mensagem, ligação ou oferta parecer um pouco estranha.",
+   "Primeiro, escolha o que quer verificar: uma mensagem, um link, um número de telefone, uma oferta de emprego ou uma foto.",
+   "Cole a mensagem aqui e toque em Check it.",
+   "O Verth mostra o risco na hora e explica cada sinal de alerta com palavras simples.",
+   "Se for golpe, o Verth adiciona sozinho ao banco de golpes, para que a próxima pessoa também seja avisada.",
+   "A sua mensagem nunca é enviada. Só uma impressão digital embaralhada é salva.",
+   "Lembre-se: se parecer arriscado, não pague, não clique e nunca passe um OTP."
+  ],
+  "verify": [
+   "Este é o Verify. Seu chefe ou um familiar pediu dinheiro por mensagem? Confirme com eles primeiro.",
+   "Escolha de quem o pedido diz ser, e de onde veio, como WhatsApp ou uma ligação.",
+   "Digite o que estão pedindo para você fazer e toque em Send check.",
+   "A pessoa de verdade recebe a pergunta no próprio celular e responde Yes ou No.",
+   "Se ela disser No, ou não responder, pare. Alguém está fingindo ser ela.",
+   "Em uma ligação ou vídeo? Peça o código Verth dela. Um golpista ou deepfake não consegue informar."
+  ],
+  "chat": [
+   "Este é o Chat: um chat privado, com criptografia de ponta a ponta, com as pessoas do seu Circle.",
+   "Toque em uma pessoa para abrir a conversa. Só os dois celulares podem ler. Nem o Verth consegue.",
+   "Envie mensagens, fotos e documentos PDF, como certificados, com segurança.",
+   "Para enviar dinheiro, toque em Pay safely. O Verth mostra para quem você paga e abre seu app de UPI.",
+   "Depois do pagamento, vocês dois recebem um recibo, que fica salvo no seu histórico de pagamentos.",
+   "O plano grátis inclui doze mensagens e três pagamentos por dia."
+  ],
+  "circle": [
+   "Este é o seu Circle: as pessoas em quem você confia, como sua família ou sua equipe.",
+   "Convide pessoas dos seus contatos, pelo WhatsApp, ou compartilhando seu código de convite.",
+   "Ninguém entra sem aprovação. Confira o e-mail e o número, e toque em Approve.",
+   "Empresas podem limitar o Circle ao e-mail de trabalho e exigir a aprovação de dois admins.",
+   "Se alguém trocar de celular, o Verth mostra, para que uma conta invadida não engane você.",
+   "Se o seu código de convite for compartilhado por engano, troque com um toque."
+  ],
+  "plan": [
+   "Este é o Plan. Toda conta nova ganha sete dias grátis, com tudo ilimitado.",
+   "Depois disso, o plano Free continua grátis para sempre, para até cinco pessoas.",
+   "O Personal, por cento e quarenta e nove rúpias por mês, dá verificações de golpe ilimitadas.",
+   "O Family, por cento e noventa e nove, e o Team, por duzentas e noventa e nove, protegem todos do seu Circle.",
+   "Pague com UPI ou cartão pelo Razorpay e cancele quando quiser."
+  ],
+  "log": [
+   "Este é o Log: um registro de cada verificação no seu Circle.",
+   "Você vê quem pediu, quem respondeu, do que se tratava e quando.",
+   "Verde quer dizer confirmado. Vermelho quer dizer bloqueado, então um golpe não passou.",
+   "Ninguém pode editar ou apagar registros, então sempre fica claro quem aprovou o quê.",
+   "Nos planos pagos, você pode exportar o Log para a contabilidade ou para auditores."
+  ],
+  "guard": [
+   "Esta é a verificação de segurança diária: o segurança do seu celular.",
+   "Ela guia você por dez proteções, como bloqueio de tela, Play Protect e bloqueio de apps desconhecidos.",
+   "Toque em um item para ver por que ele é importante e onde exatamente tocar no seu celular.",
+   "Quando terminar, marque o item, e sua pontuação sobe.",
+   "A verificação se renova todo dia. Se nada mudou, confirme tudo com um toque.",
+   "Mantenha sua sequência e leia a dica de segurança de hoje."
+  ]
+ },
+ "ui": {
+  "watch": "Assistir ao vídeo",
+  "play": "Reproduzir vídeo",
+  "close": "Fechar",
+  "subtitles": "Legendas"
+ }
+}

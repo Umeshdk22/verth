@@ -56,7 +56,7 @@ async function auditPage(page) {
     // 6. buttons and links nobody can understand
     for (const el of document.querySelectorAll('button,a[href]')) if (vis(el) && !el.closest('details:not([open])') && !text(el) && !el.getAttribute('title') && !el.querySelector('img[alt]:not([alt=""])')) issues.push({ kind: 'label', detail: label(el) + ' ' + (el.getAttribute('href') || '') });
     // 6b. icons that grew too big (an icon with no size set fills its box)
-    for (const el of document.querySelectorAll('button svg, a svg, .btn svg, li svg, label svg')) { if (!vis(el)) continue; const r = el.getBoundingClientRect(); if (r.width > 64 || r.height > 64) issues.push({ kind: 'big-icon', detail: `${Math.round(r.width)}×${Math.round(r.height)} icon in ${label(el.closest('button,a,li,label') || el)} "${text(el.closest('button,a,li,label') || el)}"` }); }
+    for (const el of document.querySelectorAll('button svg, a svg, .btn svg, li svg, label svg')) { if (!vis(el) || el.closest('.gauge,.chart')) continue; const r = el.getBoundingClientRect(); if (r.width > 64 || r.height > 64) issues.push({ kind: 'big-icon', detail: `${Math.round(r.width)}×${Math.round(r.height)} icon in ${label(el.closest('button,a,li,label') || el)} "${text(el.closest('button,a,li,label') || el)}"` }); }
     // 6c. slideshows with nothing showing
     for (const box of document.querySelectorAll('[data-rot]')) { if (!vis(box)) continue; const on = [...box.children].filter((c) => getComputedStyle(c).visibility === 'visible'); if (!on.length) issues.push({ kind: 'empty-slide', detail: `${box.dataset.rot}: ${[...box.children].map((c) => c.className).join(' | ')}` }); }
     // 7. help button on top of something important

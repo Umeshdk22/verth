@@ -23,11 +23,11 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://verth.in/assets/og.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Verth","url":"https://verth.in/","applicationCategory":"SecurityApplication","operatingSystem":"Android, iOS, Web","description":"Checks scam messages, fake job offers, links, phone numbers and UPI QR codes, and confirms money requests with the real person on their own phone.","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"INR"},{"@type":"Offer","name":"Personal","price":"149","priceCurrency":"INR"},{"@type":"Offer","name":"Family","price":"199","priceCurrency":"INR"},{"@type":"Offer","name":"Team","price":"299","priceCurrency":"INR"}]}</script>
-<link rel="preload" href="assets/fonts/rozha-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="modulepreload" href="assets/app.js?v=082b7ddc8a">
+<link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="modulepreload" href="assets/app.js?v=e06f6aea44">
 <link rel="prefetch" href="app.html">
 <link rel="stylesheet" href="assets/fonts.css?v=9f9a884557">
-<link rel="stylesheet" href="assets/verth.css?v=af191bf77c">
+<link rel="stylesheet" href="assets/verth.css?v=04d3cd6ad8">
 <script src="assets/splash.js?v=ca761127ff"></script>
 <style>
 /* ---------- home page: clean violet look ---------- */
@@ -331,9 +331,35 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
 .fpanel .art,.org .art{background:#F1EEFC!important}
 .show-card{background:#FFFFFF!important}
 .guard-pitch{background:#0B5E44!important}
+
+/* Skip link, phone section menu, live numbers */
+.skip-link{position:absolute;left:12px;top:-60px;z-index:100;background:#fff;color:#0B1535;padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none;transition:top .15s}
+.skip-link:focus{top:12px}
+h1[tabindex="-1"]:focus{outline:none}
+.mnav{display:none}
+@media (max-width:760px){.mnav{display:flex;gap:8px;overflow-x:auto;padding:2px 0 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.mnav::-webkit-scrollbar{display:none}
+  .mnav a{flex:none;color:#E4E8F5;text-decoration:none;font-size:14px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+  .mnav a:active{background:rgba(255,255,255,.16)}}
+.live-sec{padding-top:56px}
+.live-card{display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:center;background:#0B1535;color:#fff;border-radius:28px;padding:36px}
+.lc-badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#FFB3BC;background:rgba(220,53,69,.18);padding:5px 12px;border-radius:999px}
+.lc-badge i{width:8px;height:8px;border-radius:50%;background:#FF5468;animation:livep 1.6s ease-in-out infinite}
+@keyframes livep{0%,100%{opacity:1}50%{opacity:.3}}
+.live-card h2{color:#fff;margin:12px 0 10px;font-size:clamp(26px,3.4vw,38px)}
+.live-card p{color:#C9D1EA;margin:0 0 18px;line-height:1.6}
+.lc-stats{display:flex;gap:28px;margin-bottom:22px;flex-wrap:wrap}
+.lc-stats b{display:block;font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.lc-stats span{font-size:13.5px;color:#A9B4D6}
+.lc-chart{background:#fff;border-radius:20px;padding:18px 18px 12px;min-height:220px;color:#0F172A}
+.lc-chart .chart .cg{stroke:#E6E9F2}.lc-chart .chart .ct{fill:#8A93A8;font-size:11px}
+.live-card .lc-wait{color:#5B6478;text-align:center;margin:80px 0}
+.lc-chart h3{margin:0 0 8px;font-size:15px;color:#0F172A}
+.live-card .lc-note{font-size:12.5px;color:#5B6478;margin:6px 0 0}
+@media (max-width:860px){.live-card{grid-template-columns:1fr;padding:24px;border-radius:22px}.lc-stats b{font-size:34px}}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="splash" class="splash" aria-hidden="true">
   <div class="sp-glow"></div>
   <div class="sp-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sp-shield" d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path class="sp-tick" d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
@@ -351,12 +377,14 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
         <a href="#teams">For organisations</a>
         <a href="#demo">Demo</a>
         <a href="#plans">Plans</a>
+        <a href="#live">Live</a>
         <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Play background music" title="Play background music"><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/></svg><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="sr" id="sound-label">Music off</span></button>
         <span class="acct" id="acct-out"><a class="btn line" href="app.html?mode=login">Log in</a>
         <a class="btn white" href="app.html?mode=signup">Create account</a></span>
         <a class="open-me" id="acct-in" href="app.html" hidden><span class="om-av" id="me-av">V</span><span class="om-txt"><small>Welcome back</small><b id="me-first">Open my Verth</b></span><span class="om-go" aria-hidden="true">→</span></a>
       </nav>
     </header>
+    <nav class="mnav" aria-label="Sections"><a href="#tools">Scam check</a><a href="#live">Live numbers</a><a href="#teams">Organisations</a><a href="#demo">Demo</a><a href="#plans">Plans</a><a href="contact.html">Contact</a></nav>
     <audio id="theme" src="assets/verth-theme.mp3" loop preload="none"></audio>
 
     <form class="checkbar" id="quick" role="search" aria-label="Check a message">
@@ -368,7 +396,7 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
     <div class="checknote"><span>Got a screenshot instead? Upload it inside the app.</span><span>Free · 2 checks a day · no card needed</span></div>
 
     <section class="hero">
-      <h1>Is it really them?<span>Check before you pay.</span></h1>
+      <h1 id="main" tabindex="-1">Is it really them?<span>Check before you pay.</span></h1>
       <p class="pitch">UPI tells you <em>who</em> you’re paying. <b>Verth tells you whether you should.</b></p>
       <p class="sub">Verth spots scam messages, fake job offers, risky links, unknown numbers and dodgy QR codes, and asks the real person on their own phone before you send money.</p>
       <div class="cta"><a class="btn white" href="app.html?mode=signup">Create your free account</a><a class="btn line" href="#demo">Watch the demo</a></div>
@@ -416,6 +444,20 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
     <div><b>Checked on your phone</b><span>Messages and screenshots are never uploaded</span></div>
     <div><b>Payments by Razorpay</b><span>UPI and cards are handled by Razorpay. Verth never sees your card or UPI PIN</span></div>
     <div><b>Open for review</b><span>Source code and security notes on GitHub</span></div>
+  </div>
+</section>
+
+<section class="sec live-sec" id="live" aria-labelledby="live-title">
+  <div class="wrap">
+    <div class="live-card">
+      <div class="lc-text"><span class="lc-badge"><i></i>Live</span>
+        <h2 id="live-title">Scams caught by Verth</h2>
+        <p>Every time someone checks a message, link or number and Verth finds a scam, this count goes up. Real numbers from Verth’s scam database, updated every minute. Only a number per day is kept, never what was checked.</p>
+        <div class="lc-stats"><div><b id="live-total">–</b><span>scams found in the last 14 days</span></div><div><b id="live-today">–</b><span>found today</span></div></div>
+        <a class="btn white" href="app.html?mode=signup">Check something free</a>
+      </div>
+      <div class="lc-chart" id="live-chart" aria-live="polite"><p class="lc-wait">Loading live numbers…</p></div>
+    </div>
   </div>
 </section>
 
@@ -623,7 +665,8 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
     </div>
   </div>
 </footer>
-<script src="assets/site.js?v=b8456c3e5b"></script>
+<script src="assets/site.js?v=f4ebdbea4d"></script>
+<script type="module" src="assets/live.js?v=c3e9a16892"></script>
 <script type="module" src="assets/helper.js?v=6814649656"></script>
 </body>
 </html>

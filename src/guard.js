@@ -31,6 +31,8 @@ function current() {
   return s;
 }
 function settle(s) {
+  // Keep each day's score for the history chart (last 60 days).
+  s.hist = Object.fromEntries(Object.entries({ ...(s.hist || {}), [s.day]: GUARD.filter((g) => s.ticks[g.id]).length }).sort().slice(-60));
   // A day counts for the streak when every protection is ticked that day.
   if (GUARD.every((g) => s.ticks[g.id]) && s.lastFull !== s.day) { s.streak = s.lastFull === dayBefore(s.day) ? (s.streak || 0) + 1 : 1; s.lastFull = s.day; }
   save(s);
@@ -39,6 +41,8 @@ export function guardState() { return current().ticks; }
 export function guardSet(id, on) { const s = current(); if (on) s.ticks[id] = Date.now(); else delete s.ticks[id]; settle(s); }
 // One tap: everything that was on yesterday is still on today.
 export function guardRepeat() { const s = current(); for (const g of GUARD) if (s.prev?.[g.id]) s.ticks[g.id] = Date.now(); settle(s); }
+// Score per day ('2026-10-10' → 0–10) for the last days the check-up was opened.
+export const guardHistory = () => ({ ...(current().hist || {}), [today()]: GUARD.filter((g) => current().ticks[g.id]).length });
 export const guardScore = () => GUARD.filter((g) => guardState()[g.id]).length;
 const prevScore = () => { const s = current(); return GUARD.filter((g) => s.prev?.[g.id]).length; };
 export const guardStreak = () => { const s = current(); return s.lastFull === s.day || s.lastFull === dayBefore(s.day) ? s.streak || 0 : 0; };
@@ -81,6 +85,7 @@ export function viewGuard(o = {}) {
       ${guardStreak() ? `<span class="g-streak">🔥 ${guardStreak()} ${guardStreak() === 1 ? 'day' : 'days'} in a row fully protected</span>` : ''}</div></section>
     ${n < GUARD.length && prevScore() ? `<section class="g-again"><div class="grow"><b>Nothing changed since yesterday?</b><span class="muted small">Yesterday you had ${prevScore()} of ${GUARD.length} protections on. If they’re all still on, confirm them in one tap.</span></div><button class="btn ok" data-act="guard-repeat">All still on ✓</button></section>` : ''}
     ${deviceSection(o)}
+    ${o.history ? `<section class="card g-hist"><div class="split"><h2>Your safety over time</h2><span class="muted small">Last 14 days</span></div>${o.history}</section>` : ''}
     <section class="g-tipcard"><span>💡</span><div><b>Today’s safety tip</b><p>${guardTip()}</p></div></section>
     <ol class="guard-list">${GUARD.map((g, i) => {
       const done = !!st[g.id];

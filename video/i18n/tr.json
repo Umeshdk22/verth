@@ -1,0 +1,86 @@
+{
+ "code": "tr",
+ "name": "Türkçe",
+ "titles": {
+  "intro": "Verth'e hoş geldiniz",
+  "scan": "Scan nasıl kullanılır",
+  "verify": "Verify nasıl kullanılır",
+  "chat": "Chat nasıl kullanılır",
+  "circle": "Circle nasıl kullanılır",
+  "plan": "Planlar ve ücretsiz deneme",
+  "log": "Doğrulama kaydı",
+  "guard": "Günlük güvenlik kontrolü"
+ },
+ "lines": {
+  "intro": [
+   "Verth'e hoş geldiniz. Hindistan'da dolandırıcılar artık patronunuz, bankanız, hatta aileniz gibi davranıyor.",
+   "UPI kime ödediğinizi söyler. Verth ise ödemeniz gerekip gerekmediğini söyler.",
+   "Scan her mesajı, bağlantıyı, telefon numarasını, iş teklifini veya ekran görüntüsünü saniyeler içinde kontrol eder.",
+   "Verify, ödeme yapmadan veya OTP paylaşmadan önce gerçek kişiye kendi telefonundan sorar.",
+   "Circle ailenizi veya iş arkadaşlarınızı özel, şifreli sohbet ve güvenli ödemelerle bir arada tutar.",
+   "Günlük güvenlik kontrolü de telefonunuzu hackerlara karşı sıkı korur.",
+   "İlk yedi gün tamamen ücretsiz. Hesabınızı oluşturun ve ödemeden önce kontrol edin."
+  ],
+  "scan": [
+   "Bu Scan. Bir mesaj, arama veya teklif biraz tuhaf geldiğinde kullanın.",
+   "Önce neyi kontrol edeceğinizi seçin: mesaj, bağlantı, telefon numarası, iş teklifi veya fotoğraf.",
+   "Mesajı buraya yapıştırın ve \"Check it\"e dokunun.",
+   "Verth riski hemen gösterir ve her uyarı işaretini basit kelimelerle açıklar.",
+   "Dolandırıcılıksa Verth bunu kendiliğinden veritabanına ekler, böylece sonra kontrol eden de uyarılır.",
+   "Mesajınızın kendisi asla yüklenmez. Sadece karıştırılmış bir parmak izi kaydedilir.",
+   "Unutmayın: riskli görünüyorsa ödemeyin, tıklamayın ve OTP'yi asla paylaşmayın."
+  ],
+  "verify": [
+   "Bu Verify. Patronunuzdan veya bir yakınınızdan para isteyen mesaj mı geldi? Önce onlara sorun.",
+   "İsteğin kimden geldiğini iddia ettiğini ve nereden geldiğini seçin, örneğin WhatsApp veya telefon araması.",
+   "Sizden ne istendiğini yazın, sonra \"Send check\"e dokunun.",
+   "Gerçek kişi soruyu kendi telefonunda alır ve \"Yes\" ya da \"No\" diye cevaplar.",
+   "\"No\" derse veya cevap vermezse durun. Biri onun yerine geçiyor.",
+   "Arama veya görüntülü görüşmede misiniz? Verth kodunu isteyin. Sahte arayan ya da deepfake bunu veremez."
+  ],
+  "chat": [
+   "Bu Chat: Circle'ınızdaki kişilerle uçtan uca şifreli, özel sohbet.",
+   "Sohbeti açmak için bir kişiye dokunun. Sadece iki telefonunuz okuyabilir. Verth bile okuyamaz.",
+   "Mesaj, fotoğraf ve sertifika gibi PDF belgelerini güvenle gönderin.",
+   "Para göndermek için \"Pay safely\"ye dokunun. Verth kime ödediğinizi gösterir, sonra UPI uygulamanızı açar.",
+   "Ödemeden sonra ikiniz de makbuz alırsınız ve ödeme geçmişinize kaydedilir.",
+   "Ücretsiz planda günde on iki mesaj ve üç ödeme var."
+  ],
+  "circle": [
+   "Bu sizin Circle'ınız: güvendiğiniz kişiler, örneğin aileniz veya ekibiniz.",
+   "Kişileri rehberinizden, WhatsApp'tan veya davet kodunuzu paylaşarak davet edin.",
+   "Onay olmadan kimse giremez. E-postasını ve telefon numarasını kontrol edin, sonra \"Approve\"a dokunun.",
+   "Şirketler Circle'ı iş e-postasıyla sınırlayabilir ve iki yöneticinin onayını isteyebilir.",
+   "Biri yeni telefona geçerse Verth bunu gösterir, böylece hacklenmiş bir hesap sizi kandıramaz.",
+   "Davet kodunuz yanlışlıkla paylaşılırsa tek dokunuşla değiştirin."
+  ],
+  "plan": [
+   "Bu Plan. Her yeni hesap yedi gün ücretsiz ve her şey sınırsız.",
+   "Sonrasında Free planı beş kişiye kadar sonsuza dek ücretsiz kalır.",
+   "Ayda ₹149 olan Personal, size sınırsız dolandırıcılık kontrolü verir.",
+   "₹199 olan Family ve ₹299 olan Team, Circle'ınızdaki herkesi korur.",
+   "Razorpay üzerinden UPI veya kartla ödeyin, istediğiniz zaman iptal edin."
+  ],
+  "log": [
+   "Bu Doğrulama kaydı: Circle'ınızdaki her kontrolün kaydı.",
+   "Kimin sorduğunu, kimin cevapladığını, konuyu ve zamanını görebilirsiniz.",
+   "Yeşil onaylandı demek. Kırmızı durduruldu demek, yani dolandırıcılık geçmedi.",
+   "Kayıtlar düzenlenemez ya da silinemez, böylece kimin neyi onayladığı hep açıktır.",
+   "Ücretli planlarda kaydı muhasebe ekibiniz veya denetçiler için dışa aktarabilirsiniz."
+  ],
+  "guard": [
+   "Bu günlük güvenlik kontrolü: telefonunuzun güvenlik görevlisi.",
+   "Ekran kilidi, Play Protect ve bilinmeyen uygulamaları engelleme gibi on korumada size yol gösterir.",
+   "Neden önemli olduğunu ve telefonunuzda tam olarak nereye dokunacağınızı görmek için bir maddeye dokunun.",
+   "Bitince işaretleyin, puanınız yükselsin.",
+   "Kontrol her gün yenilenir. Hiçbir şey değişmediyse hepsini tek dokunuşla onaylayın.",
+   "Serinizi sürdürün ve günün güvenlik ipucunu okuyun."
+  ]
+ },
+ "ui": {
+  "watch": "Videoyu izle",
+  "play": "Videoyu oynat",
+  "close": "Kapat",
+  "subtitles": "Altyazılar"
+ }
+}

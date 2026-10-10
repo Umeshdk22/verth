@@ -1,0 +1,86 @@
+{
+ "code": "sv",
+ "name": "Svenska",
+ "titles": {
+  "intro": "Välkommen till Verth",
+  "scan": "Så använder du Scan",
+  "verify": "Så använder du Verify",
+  "chat": "Så använder du Chat",
+  "circle": "Så använder du din Circle",
+  "plan": "Abonnemang och din gratis provperiod",
+  "log": "Verifieringsloggen",
+  "guard": "Daglig säkerhetskoll"
+ },
+ "lines": {
+  "intro": [
+   "Välkommen till Verth. Bedragare i Indien låtsas nu vara din chef, din bank eller till och med din egen familj.",
+   "UPI talar om vem du betalar. Verth talar om ifall du borde.",
+   "Scan kontrollerar alla meddelanden, länkar, telefonnummer, jobberbjudanden eller skärmbilder på några sekunder.",
+   "Verify frågar den riktiga personen i deras egen telefon, innan du betalar eller delar en OTP.",
+   "Din Circle håller ihop familj eller kollegor, med privat, krypterad chatt och säkra betalningar.",
+   "Och den dagliga säkerhetskollen håller din telefon väl skyddad mot hackare.",
+   "De första sju dagarna är helt gratis. Skapa ditt konto och kolla innan du betalar."
+  ],
+  "scan": [
+   "Det här är Scan. Använd den när ett meddelande, samtal eller erbjudande känns lite konstigt.",
+   "Välj först vad du vill kontrollera: ett meddelande, en länk, ett telefonnummer, ett jobberbjudande eller ett foto.",
+   "Klistra in meddelandet här och tryck på Check it.",
+   "Verth visar risken direkt och förklarar varje varningstecken med enkla ord.",
+   "Är det en bluff lägger Verth själv till den i sin bedrägeridatabas, så att nästa person som kollar också blir varnad.",
+   "Själva meddelandet laddas aldrig upp. Bara ett krypterat fingeravtryck sparas.",
+   "Kom ihåg: om det ser riskabelt ut, betala inte, klicka inte och dela aldrig en OTP."
+  ],
+  "verify": [
+   "Det här är Verify. Fått ett meddelande från chefen eller en släkting som ber om pengar? Kolla med dem först.",
+   "Välj vem begäran påstås komma från, och varifrån den kom, till exempel WhatsApp eller ett samtal.",
+   "Skriv vad de ber dig göra och tryck sedan på Send check.",
+   "Den riktiga personen får frågan i sin egen telefon och svarar Yes eller No.",
+   "Om de svarar No, eller inte svarar alls, stoppa. Någon låtsas vara dem.",
+   "I ett samtal eller videosamtal? Be om deras Verth-kod. En falsk uppringare eller deepfake kan inte ta fram den."
+  ],
+  "chat": [
+   "Det här är Chat: en privat, end-to-end-krypterad chatt med personerna i din Circle.",
+   "Tryck på en person för att öppna chatten. Bara era två telefoner kan läsa den. Inte ens Verth kan.",
+   "Skicka meddelanden, foton och PDF-dokument, som intyg, på ett säkert sätt.",
+   "För att skicka pengar, tryck på Pay safely. Verth visar vem du betalar och öppnar sedan din UPI-app.",
+   "Efter betalningen får ni båda ett kvitto, och det sparas i din betalningshistorik.",
+   "Gratisplanen ger tolv meddelanden och tre betalningar per dag."
+  ],
+  "circle": [
+   "Det här är din Circle: de du litar på, som din familj eller ditt team.",
+   "Bjud in folk från dina kontakter, via WhatsApp eller genom att dela din inbjudningskod.",
+   "Ingen kommer in utan godkännande. Kolla deras e-post och telefonnummer och tryck sedan på Approve.",
+   "Företag kan låsa sin Circle till jobbets e-post och kräva att två admins godkänner.",
+   "Om någon byter till en ny telefon visar Verth det, så att ett hackat konto inte kan lura dig.",
+   "Om din inbjudningskod någon gång delas av misstag, byt den med ett tryck."
+  ],
+  "plan": [
+   "Det här är Plan. Varje nytt konto får sju dagar gratis, med allt obegränsat.",
+   "Därefter är Free-planen gratis för alltid, för upp till fem personer.",
+   "Personal, för ₹149 i månaden, ger dig obegränsade bedrägerikontroller.",
+   "Family, för ₹199, och Team, för ₹299, skyddar alla i din Circle.",
+   "Betala med UPI eller kort via Razorpay, och avsluta när du vill."
+  ],
+  "log": [
+   "Det här är verifieringsloggen: en lista över varje kontroll i din Circle.",
+   "Du ser vem som frågade, vem som svarade, vad det gällde och när.",
+   "Grönt betyder bekräftat. Rött betyder stoppat, så att en bluff inte gick igenom.",
+   "Ingen kan ändra eller radera poster, så det finns alltid ett tydligt underlag för vem som godkände vad.",
+   "Med betalda planer kan du exportera loggen till din ekonomiavdelning eller revisorer."
+  ],
+  "guard": [
+   "Det här är den dagliga säkerhetskollen: din telefons säkerhetsvakt.",
+   "Den guidar dig genom tio skydd, som skärmlås, Play Protect och blockering av okända appar.",
+   "Tryck på en punkt för att se varför den är viktig och exakt var du ska trycka i telefonen.",
+   "När du är klar, bocka av den, så går din poäng upp.",
+   "Kollen förnyas varje dag. Om inget har ändrats, bekräfta allt med ett tryck.",
+   "Håll din svit vid liv och läs dagens säkerhetstips."
+  ]
+ },
+ "ui": {
+  "watch": "Titta på videon",
+  "play": "Spela video",
+  "close": "Stäng",
+  "subtitles": "Undertexter"
+ }
+}

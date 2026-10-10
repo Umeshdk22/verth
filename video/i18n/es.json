@@ -1,0 +1,86 @@
+{
+ "code": "es",
+ "name": "Español",
+ "titles": {
+  "intro": "Bienvenido a Verth",
+  "scan": "Cómo usar Scan",
+  "verify": "Cómo usar Verify",
+  "chat": "Cómo usar Chat",
+  "circle": "Cómo usar tu Circle",
+  "plan": "Planes y tu prueba gratis",
+  "log": "El Log: todas las verificaciones",
+  "guard": "Revisión de seguridad diaria"
+ },
+ "lines": {
+  "intro": [
+   "Bienvenido a Verth. En India, los estafadores ahora se hacen pasar por tu jefe, tu banco o incluso tu familia.",
+   "UPI te dice a quién le pagas. Verth te dice si deberías hacerlo.",
+   "Scan revisa cualquier mensaje, enlace, número de teléfono, oferta de trabajo o captura en segundos.",
+   "Verify le pregunta a la persona real en su propio teléfono, antes de que pagues o compartas un OTP.",
+   "Tu Circle une a tu familia o compañeros, con chat privado y cifrado, y pagos seguros.",
+   "Y la revisión de seguridad diaria mantiene tu teléfono bien protegido contra los hackers.",
+   "Tus primeros siete días son totalmente gratis. Crea tu cuenta y revisa antes de pagar."
+  ],
+  "scan": [
+   "Esto es Scan. Úsalo cuando un mensaje, una llamada o una oferta te parezca un poco raro.",
+   "Primero, elige qué quieres revisar: un mensaje, un enlace, un número de teléfono, una oferta de trabajo o una foto.",
+   "Pega el mensaje aquí y toca Check it.",
+   "Verth muestra el riesgo al instante y explica cada señal de alerta con palabras sencillas.",
+   "Si es una estafa, Verth la añade solo a su base de estafas, para que la próxima persona también quede avisada.",
+   "Tu mensaje nunca se sube. Solo se guarda una huella codificada.",
+   "Recuerda: si parece arriesgado, no pagues, no hagas clic y nunca compartas un OTP."
+  ],
+  "verify": [
+   "Esto es Verify. ¿Tu jefe o un familiar te pide dinero por mensaje? Confírmalo con ellos primero.",
+   "Elige de quién dice venir la petición y por dónde llegó, como WhatsApp o una llamada.",
+   "Escribe lo que te piden hacer y luego toca Send check.",
+   "La persona real recibe la pregunta en su propio teléfono y responde Yes o No.",
+   "Si dice No, o no responde, detente. Alguien se está haciendo pasar por ella.",
+   "¿En una llamada o video? Pide su código Verth. Un falso llamante o un deepfake no puede darlo."
+  ],
+  "chat": [
+   "Esto es Chat: un chat privado, cifrado de extremo a extremo, con las personas de tu Circle.",
+   "Toca a una persona para abrir el chat. Solo sus dos teléfonos pueden leerlo. Ni siquiera Verth.",
+   "Envía mensajes, fotos y documentos PDF, como certificados, con total seguridad.",
+   "Para enviar dinero, toca Pay safely. Verth muestra a quién le pagas y luego abre tu app de UPI.",
+   "Después de pagar, ambos reciben un recibo, y se guarda en tu historial de pagos.",
+   "El plan gratis incluye doce mensajes y tres pagos al día."
+  ],
+  "circle": [
+   "Este es tu Circle: las personas en quienes confías, como tu familia o tu equipo.",
+   "Invita a gente desde tus contactos, por WhatsApp, o compartiendo tu código de invitación.",
+   "Nadie entra sin aprobación. Revisa su correo y su número, y luego toca Approve.",
+   "Las empresas pueden limitar el Circle a su correo de trabajo y pedir que aprueben dos administradores.",
+   "Si alguien cambia de teléfono, Verth lo muestra, para que una cuenta hackeada no te engañe.",
+   "Si tu código de invitación se comparte por error, cámbialo con un toque."
+  ],
+  "plan": [
+   "Esto es Plan. Cada cuenta nueva tiene siete días gratis, con todo ilimitado.",
+   "Después, el plan Free sigue gratis para siempre, para hasta cinco personas.",
+   "Personal, por ciento cuarenta y nueve rupias al mes, te da revisiones de estafas ilimitadas.",
+   "Family, por ciento noventa y nueve, y Team, por doscientas noventa y nueve, protegen a todos en tu Circle.",
+   "Paga con UPI o tarjeta a través de Razorpay, y cancela cuando quieras."
+  ],
+  "log": [
+   "Este es el Log: un registro de cada verificación en tu Circle.",
+   "Puedes ver quién preguntó, quién respondió, de qué se trataba y cuándo.",
+   "Verde significa confirmado. Rojo significa detenido, así que una estafa no pasó.",
+   "Nadie puede editar ni borrar entradas, así siempre queda claro quién aprobó qué.",
+   "En los planes de pago, puedes exportar el Log para tu equipo de contabilidad o auditores."
+  ],
+  "guard": [
+   "Esta es la revisión de seguridad diaria: el guardia de seguridad de tu teléfono.",
+   "Te guía por diez protecciones, como el bloqueo de pantalla, Play Protect y bloquear apps desconocidas.",
+   "Toca un punto para ver por qué importa, y dónde tocar exactamente en tu teléfono.",
+   "Cuando esté hecho, márcalo, y tu puntuación sube.",
+   "La revisión se renueva cada día. Si nada cambió, confirma todo con un toque.",
+   "Mantén tu racha y lee el consejo de seguridad de hoy."
+  ]
+ },
+ "ui": {
+  "watch": "Ver el video",
+  "play": "Reproducir video",
+  "close": "Cerrar",
+  "subtitles": "Subtítulos"
+ }
+}
