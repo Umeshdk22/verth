@@ -874,6 +874,18 @@ export async function handle(request, env, deps = {}) {
         const t = await gemini(env, fetchFn, { contents: [{ role: 'user', parts: [{ text: 'Reply with the single word OK.' }] }], generationConfig: { maxOutputTokens: 5 } });
         return json({ ai: !!t.text, model: t.model || '', status: t.status || 200, error: t.error || '' }, 200, { 'access-control-allow-origin': '*' });
       }
+      // ?plans=1 checks that each plan ID exists for the current keys (test or live) and shows its price.
+      if (url.searchParams.get('plans') === '1' && env.RAZORPAY_KEY_ID) {
+        const out = { mode: String(env.RAZORPAY_KEY_ID).startsWith('rzp_live') ? 'live' : 'test', webhookSecret: !!env.RAZORPAY_WEBHOOK_SECRET, review: !!env.REVIEW_CODE };
+        for (const [k, p] of Object.entries(PRODUCTS)) {
+          const id = env[p.envKey];
+          if (!id) { out[k] = 'missing'; continue; }
+          const r = await fetchFn('https://api.razorpay.com/v1/plans/' + encodeURIComponent(id), { headers: { authorization: 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET) } });
+          const j = await r.json().catch(() => ({}));
+          out[k] = r.ok ? `₹${(Number(j.item?.amount) || 0) / 100} every ${j.interval} ${j.period}` : `error ${r.status}: ${String(j.error?.description || '').slice(0, 80)}`;
+        }
+        return json(out, 200, { 'access-control-allow-origin': '*' });
+      }
       // ?vpa=1 checks whether Razorpay's UPI ID check is switched on (with Razorpay's test UPI ID).
       if (url.searchParams.get('vpa') === '1' && env.RAZORPAY_KEY_ID) {
         const r = await fetchFn('https://api.razorpay.com/v1/payments/validate/vpa', { method: 'POST', headers: { authorization: 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET), 'content-type': 'application/json' }, body: JSON.stringify({ vpa: 'success@razorpay' }) });

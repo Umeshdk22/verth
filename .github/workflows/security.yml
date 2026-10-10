@@ -87,5 +87,7 @@ jobs:
           echo "::notice title=Live server health::${body:-no answer}"
           ai=$(curl -s --max-time 40 'https://verth-pay.umeshdk22.workers.dev/health?ai=1' || true)
           echo "::notice title=Live AI test::${ai:-no answer}"
+          plans=$(curl -s --max-time 30 'https://verth-pay.umeshdk22.workers.dev/health?plans=1' || true)
+          echo "::notice title=Payment plans::${plans:-no answer}"
           vpa=$(curl -s --max-time 30 'https://verth-pay.umeshdk22.workers.dev/health?vpa=1' || true)
           echo "::notice title=UPI name check::${vpa:-no answer}"
