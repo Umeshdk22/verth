@@ -635,7 +635,7 @@ test('the live counter goes up by exactly one, only together with a new scam rec
   await assertFails(flag(FP2, { n: increment(1), message: increment(1), link: increment(1), last: FP2 }));     // two kinds
   await assertFails(flag(FP2, { n: increment(1), message: increment(1), last: FP2, note: 'x' }));              // extra data
   await assertSucceeds(flag(FP2, { n: increment(1), link: increment(1), last: FP2 }));
-  const s = (await env.withSecurityRulesDisabled(async (c) => (await getDoc(doc(c.firestore(), 'stats', day))).data()));
+  let s; await env.withSecurityRulesDisabled(async (c) => { s = (await getDoc(doc(c.firestore(), 'stats', day))).data(); });
   if (s.n !== 2 || s.message !== 1 || s.link !== 1) throw new Error(JSON.stringify(s));
   await assertFails(setDoc(doc(d, 'stats', '1'), { n: 1, message: 1, last: 'c'.repeat(64) }));                // another day
 });
