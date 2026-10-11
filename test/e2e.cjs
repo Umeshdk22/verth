@@ -27,7 +27,7 @@ const SLOW = process.env.CI ? 3 : 1;
   // Video frame: the phone screen as the person sees it, plus where to show a tap.
   const vmeta = {}, pmeta = {};
   // Which frames the promo video uses, and what to scroll to on a laptop screen ('' = top of page).
-  const PROMO_AT = { 'scan-filled': '#s-message', 'scan-result': '#scan-result', 'verify-incoming': '.incoming', 'verify-denied': '', home: '', 'guard-full': '', 'chat-room': '' };
+  const PROMO_AT = { 'circle-approve': '.attention', 'circle-company': '.org-sec', 'chat-list': '', 'chat-pay': '.pay-sheet', 'chat-receipt': '', 'scan-filled': '#s-message', 'scan-result': '#scan-result', 'verify-incoming': '.incoming', 'verify-denied': '', home: '', 'guard-full': '', 'chat-room': '' };
   const vs = async (p, name, tap, scrollTo) => {
     if (!VS) return;
     try {

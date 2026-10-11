@@ -62,5 +62,25 @@
     ""
    ]
   ]
+ },
+ "org": {
+  "title": [
+   "Verth for your organisation",
+   ""
+  ],
+  "lines": [
+   [
+    "Running a business? Make a private group for your office. You approve every person who joins, and you can lock it to your company email.",
+    ""
+   ],
+   [
+    "Inside the group, anyone can chat privately, one to one. Messages and files are locked to your two phones. Not even the admin can read them.",
+    ""
+   ],
+   [
+    "Need to send money? Pay safely uses the UPI ID the person saved in Verth, never one sent in a message. You pay from your own UPI app, and both of you get a receipt.",
+    ""
+   ]
+  ]
  }
 }
