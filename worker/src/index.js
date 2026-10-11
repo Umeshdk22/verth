@@ -272,6 +272,8 @@ export async function checkCaptcha(env, token, ip, fetchFn = fetch) {
   const r = await fetchFn('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: form });
   const j = await r.json().catch(() => ({}));
   if (!j.success) throw new HttpError(400, 'The “I’m not a robot” check didn’t pass. Please try it again.');
+  const hosts = origins(env).map((o) => o.replace(/^https?:\/\//, ''));
+  if (j.hostname && hosts.length && !hosts.includes(j.hostname)) throw new HttpError(400, 'The “I’m not a robot” check didn’t pass. Please try it again.');
 }
 
 /* ---------- Razorpay ---------- */
@@ -882,10 +884,16 @@ export async function handle(request, env, deps = {}) {
     if (request.method === 'OPTIONS') return new Response(null, { status: h['access-control-allow-origin'] ? 204 : 403, headers: h });
     // Which features are switched on (never the keys themselves), so setup can be checked from a browser.
     if (request.method === 'GET' && url.pathname === '/health') {
+      // The test probes below call Google or Razorpay, so their answers are cached for 10 minutes:
+      // anyone may look, but repeated requests can't use up those services' limits.
+      const probe = ['ai', 'plans', 'vpa'].find((k) => url.searchParams.get(k) === '1');
+      const pcache = probe && typeof caches !== 'undefined' ? caches.default : null, pkey = 'https://verth-health.local/' + probe;
+      if (pcache) { const hit = await pcache.match(pkey); if (hit) return hit; }
+      const keep = async (res) => { if (pcache) { const c = new Response(res.clone().body, res); c.headers.set('cache-control', 'public, max-age=600'); await pcache.put(pkey, c).catch(() => {}); } return res; };
       // ?ai=1 makes one tiny test call to Gemini and reports Google's answer (never the key).
       if (url.searchParams.get('ai') === '1' && env.GEMINI_API_KEY) {
         const t = await gemini(env, fetchFn, { contents: [{ role: 'user', parts: [{ text: 'Reply with the single word OK.' }] }], generationConfig: { maxOutputTokens: 5 } });
-        return json({ ai: !!t.text, model: t.model || '', status: t.status || 200, error: t.error || '' }, 200, { 'access-control-allow-origin': '*' });
+        return keep(json({ ai: !!t.text, model: t.model || '', status: t.status || 200, error: t.error || '' }, 200, { 'access-control-allow-origin': '*' }));
       }
       // ?plans=1 checks that each plan ID exists for the current keys (test or live) and shows its price.
       if (url.searchParams.get('plans') === '1' && env.RAZORPAY_KEY_ID) {
@@ -897,13 +905,13 @@ export async function handle(request, env, deps = {}) {
           const j = await r.json().catch(() => ({}));
           out[k] = r.ok ? `₹${(Number(j.item?.amount) || 0) / 100} every ${j.interval} ${j.period}` : `error ${r.status}: ${String(j.error?.description || '').slice(0, 80)}`;
         }
-        return json(out, 200, { 'access-control-allow-origin': '*' });
+        return keep(json(out, 200, { 'access-control-allow-origin': '*' }));
       }
       // ?vpa=1 checks whether Razorpay's UPI ID check is switched on (with Razorpay's test UPI ID).
       if (url.searchParams.get('vpa') === '1' && env.RAZORPAY_KEY_ID) {
         const r = await fetchFn('https://api.razorpay.com/v1/payments/validate/vpa', { method: 'POST', headers: { authorization: 'Basic ' + btoa(env.RAZORPAY_KEY_ID + ':' + env.RAZORPAY_KEY_SECRET), 'content-type': 'application/json' }, body: JSON.stringify({ vpa: 'success@razorpay' }) });
         const j = await r.json().catch(() => ({}));
-        return json({ upiName: r.ok && !!j.customer_name, mode: String(env.RAZORPAY_KEY_ID).startsWith('rzp_live') ? 'live' : 'test', status: r.status, error: String(j.error?.description || '').slice(0, 200) }, 200, { 'access-control-allow-origin': '*' });
+        return keep(json({ upiName: r.ok && !!j.customer_name, mode: String(env.RAZORPAY_KEY_ID).startsWith('rzp_live') ? 'live' : 'test', status: r.status, error: String(j.error?.description || '').slice(0, 200) }, 200, { 'access-control-allow-origin': '*' }));
       }
       return json({ ok: true, version: WORKER_VERSION, ai: !!env.GEMINI_API_KEY, aiModel: env.GEMINI_MODEL || AI.model, emailCodes: !!(env.OTP_SECRET && env.BREVO_API_KEY && env.MAIL_FROM), passkeys: !!env.ALLOWED_ORIGIN, sites: origins(env).map((o) => o.replace('https://', '')), captcha: !!env.TURNSTILE_SECRET, sms: !!env.TWOFACTOR_API_KEY, payments: !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) }, 200, { 'access-control-allow-origin': '*' });
     }
@@ -913,7 +921,7 @@ export async function handle(request, env, deps = {}) {
     const fs = deps.fs || firestore(env, fetchFn), rp = deps.rp || razorpay(env, fetchFn);
     // Voice-overs for the help videos: only for the GitHub build job, which sets a one-time TTS_TOKEN.
     if (url.pathname === '/tts') {
-      if (!env.TTS_TOKEN || !env.GEMINI_API_KEY || request.headers.get('x-tts-token') !== env.TTS_TOKEN) throw new HttpError(404, 'Not found.');
+      if (!env.TTS_TOKEN || !env.GEMINI_API_KEY || !safeEqual(request.headers.get('x-tts-token') || '', env.TTS_TOKEN)) throw new HttpError(404, 'Not found.');
       return json(await tts(JSON.parse((await request.text()) || '{}'), env, fetchFn), 200);
     }
     if (Number(request.headers.get('content-length') || 0) > 100_000) throw new HttpError(413, 'Too large.');
