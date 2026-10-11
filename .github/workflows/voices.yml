@@ -9,7 +9,8 @@ on:
       voice_en: { description: 'English voice', default: 'Kore' }
       voice_hi: { description: 'Hindi voice', default: 'Kore' }
       scripts: { description: 'Script file', default: 'video/scripts.json' }
-      style_en: { description: 'How to say English lines (blank = default)', default: '' }
+      style_en: { description: 'How to say English lines (blank = default, none = no instructions)', default: '' }
+      say: { description: 'Pronunciation, e.g. Verth=Vurth', default: '' }
 permissions:
   contents: write
 concurrency: voices
@@ -32,7 +33,7 @@ jobs:
           echo -n "$T" | npx --yes wrangler@4 secret put TTS_TOKEN --name verth-pay
           sleep 20
       - name: Make the voices
-        env: { REDO: '${{ inputs.redo }}', ONLY: '${{ inputs.only }}', VOICE_EN: '${{ inputs.voice_en }}', VOICE_HI: '${{ inputs.voice_hi }}', SCRIPTS: '${{ inputs.scripts }}', STYLE_EN: '${{ inputs.style_en }}' }
+        env: { REDO: '${{ inputs.redo }}', ONLY: '${{ inputs.only }}', VOICE_EN: '${{ inputs.voice_en }}', VOICE_HI: '${{ inputs.voice_hi }}', SCRIPTS: '${{ inputs.scripts }}', STYLE_EN: '${{ inputs.style_en }}', SAY: '${{ inputs.say }}' }
         run: node tools/make_voices.mjs
       - name: Close the voice endpoint
         if: always()

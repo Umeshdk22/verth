@@ -25,7 +25,9 @@ const SLOW = process.env.CI ? 3 : 1;
     if (AUD) { try { audited[name] = (await AUD.auditPage(p)).issues; require('node:fs').writeFileSync(process.env.AUDIT + '/app-audit.json', JSON.stringify(audited, null, 1)); } catch (e) { audited[name] = [{ kind: 'audit-failed', detail: e.message }]; } }
   };
   // Video frame: the phone screen as the person sees it, plus where to show a tap.
-  const vmeta = {};
+  const vmeta = {}, pmeta = {};
+  // Which frames the promo video uses, and what to scroll to on a laptop screen ('' = top of page).
+  const PROMO_AT = { 'scan-filled': '#s-message', 'scan-result': '#scan-result', 'verify-incoming': '.incoming', 'verify-denied': '', home: '', 'guard-full': '', 'chat-room': '' };
   const vs = async (p, name, tap, scrollTo) => {
     if (!VS) return;
     try {
@@ -37,6 +39,20 @@ const SLOW = process.env.CI ? 3 : 1;
       await p.evaluate(() => document.querySelectorAll('.toast').forEach((t) => { t.className = 'toast'; }));
       const box = tap ? await p.locator(tap).first().boundingBox() : null;
       await p.screenshot({ path: `${VS}/${name}.png` });
+      // Promo video: the same moment on a laptop-sized screen (PROMO=dir), with the tap target's place.
+      if (process.env.PROMO && PROMO_AT[name] !== undefined) {
+        const vp = p.viewportSize();
+        await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(500);
+        const sel = PROMO_AT[name];
+        if (sel) await p.locator(sel).first().evaluate((el) => window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 110)));
+        else await p.evaluate(() => window.scrollTo(0, 0));
+        await p.waitForTimeout(450);
+        const lb = tap ? await p.locator(tap).first().boundingBox().catch(() => null) : null;
+        await p.screenshot({ path: `${process.env.PROMO}/${name}.png` });
+        pmeta[name] = lb ? { x: lb.x + lb.width / 2, y: lb.y + lb.height / 2 } : null;
+        require('node:fs').writeFileSync(`${process.env.PROMO}/taps.json`, JSON.stringify(pmeta, null, 1));
+        await p.setViewportSize(vp); await p.waitForTimeout(300);
+      }
       await p.evaluate(() => document.getElementById('vs-hide')?.remove());
       vmeta[name] = box ? { x: box.x + box.width / 2, y: box.y + box.height / 2, w: box.width, h: box.height } : null;
       require('node:fs').writeFileSync(`${VS}/frames.json`, JSON.stringify(vmeta, null, 1));

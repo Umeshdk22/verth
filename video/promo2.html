@@ -1,0 +1,118 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#F4F6FB}
+  body{font-family:'Inter','Hind',system-ui,sans-serif;color:#0F172A;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  #st{position:relative;width:1920px;height:1080px;overflow:hidden;background:#F4F6FB}
+  .layer{position:absolute;inset:0;opacity:0}
+  /* plain title cards */
+  .card{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 220px;gap:26px}
+  .card h1{font-size:76px;line-height:1.12;font-weight:800;letter-spacing:-.035em}
+  .card h1 span{color:#5B3DF5}
+  .items{display:flex;flex-direction:column;gap:22px;align-items:center}
+  .items div{font-size:50px;font-weight:650;color:#334155;opacity:0;letter-spacing:-.02em}
+  .items div b{color:#0F172A}
+  .logo{width:132px;height:132px;border-radius:34px}
+  .name{font-size:96px;font-weight:850;letter-spacing:-.045em;line-height:1}
+  .tag{font-size:46px;font-weight:650;color:#5B3DF5;letter-spacing:-.02em}
+  .url{font-size:44px;font-weight:750;color:#0F172A;background:#fff;border:2px solid #E2E6EF;padding:14px 40px;border-radius:999px;margin-top:6px}
+  .small{font-size:28px;color:#64748B}
+  /* screens */
+  .shot{position:absolute;left:160px;top:56px;width:1600px;height:1000px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(15,23,42,.06),0 30px 70px -30px rgba(15,23,42,.35);border:1px solid #E2E6EF}
+  .shot .bar{height:40px;background:#EEF1F6;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #E2E6EF}
+  .shot .bar i{width:12px;height:12px;border-radius:50%;background:#D5DAE5}
+  .shot .bar span{margin-left:18px;font-size:16px;color:#64748B;background:#fff;border:1px solid #E2E6EF;border-radius:8px;padding:4px 14px}
+  .view{position:relative;width:1600px;height:960px;overflow:hidden}
+  .view img{position:absolute;left:0;top:0;width:1600px;height:auto;opacity:0;transform-origin:50% 30%}
+  .cursor{position:absolute;width:34px;height:34px;opacity:0;z-index:4;pointer-events:none}
+  .ring{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid rgba(91,61,245,.85);opacity:0;z-index:3}
+  /* privacy */
+  .pv{display:flex;flex-direction:column;align-items:center;gap:30px}
+  .pv-ic{width:110px;height:110px;border-radius:30px;background:#E9F7F0;display:grid;place-items:center}
+  .pv-ic svg{width:60px;height:60px}
+  /* subtitles */
+  .sub{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);max-width:1500px;text-align:center;font-size:38px;line-height:1.3;font-weight:600;color:#fff;background:rgba(15,23,42,.86);padding:14px 30px 16px;border-radius:14px;opacity:0;z-index:10;letter-spacing:-.01em}
+</style></head>
+<body><div id="st">
+  <section class="layer card" id="L1"><h1>Every day, someone in India loses money to a message that <span>looked real.</span></h1></section>
+  <section class="layer card" id="L2"><div class="items"><div><b>“Update your KYC</b> or your account will be blocked.”</div><div><b>“Papa, it’s me.</b> I need money urgently.”</div><div><b>“You’re hired!</b> Pay a small fee to confirm.”</div></div></section>
+  <section class="layer card" id="L3"><img class="logo" src="../assets/icon-512.png" alt=""><div class="name">Verth</div><div class="tag">Check before you pay.</div></section>
+  <section class="layer" id="L4"><div class="shot"><div class="bar"><i></i><i></i><i></i><span>verth.in/app.html</span></div><div class="view"><img data-src="scan-filled"><img data-src="scan-result"></div></div></section>
+  <section class="layer" id="L5"><div class="shot"><div class="bar"><i></i><i></i><i></i><span>verth.in/app.html</span></div><div class="view"><img data-src="verify-incoming"><img data-src="verify-denied"></div></div></section>
+  <section class="layer" id="L6"><div class="shot"><div class="bar"><i></i><i></i><i></i><span>verth.in/app.html</span></div><div class="view"><img data-src="home"></div></div></section>
+  <section class="layer" id="L7"><div class="shot"><div class="bar"><i></i><i></i><i></i><span>verth.in/app.html</span></div><div class="view"><img data-src="guard-full"></div></div></section>
+  <section class="layer card" id="L8"><div class="pv"><div class="pv-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#12A66B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div><h1>Checked on your own device.<br><span>Nothing is uploaded.</span></h1></div></section>
+  <section class="layer card" id="L9"><img class="logo" src="../assets/icon-512.png" alt=""><div class="name">Verth</div><div class="tag">Check before you pay.</div><div class="url">verth.in</div><div class="small">Free for 7 days · No card needed</div></section>
+  <svg class="cursor" id="cur" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6 4.2 8.1-3 1.5-4.2-8.2L4 19z" fill="#fff" stroke="#0F172A" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  <div class="ring" id="ring"></div>
+  <div class="sub" id="sub"></div>
+</div>
+<script>
+// Video-making tool: runs only on the maker's own computer, never on the live website.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) { document.documentElement.innerHTML = ''; throw new Error('local tool'); }
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const $ = (id) => document.getElementById(id);
+let P; // { lines: [{ text, start, end }], total, taps: { name: {x, y} } }
+window.setup = async (plan) => {
+  P = plan;
+  for (const im of document.querySelectorAll('img[data-src]')) im.src = `_promo/${im.dataset.src}.png`;
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+};
+// Each layer belongs to one spoken line; it fades in a little before the line and out after it.
+function span(i) { const L = P.lines[i], next = P.lines[i + 1]; return [L.start - 0.35, next ? next.start - 0.25 : P.total]; }
+const K = 1600 / 1440; // laptop screenshots were taken at 1440 px wide
+function screen(id, i, t, swap) {
+  const [a, b] = span(i), el = $(id), imgs = el.querySelectorAll('img');
+  const lt = t - a, dur = b - a;
+  // a calm, slow zoom, like a screen recording that's been gently framed
+  imgs.forEach((im, k) => {
+    const on = imgs.length === 1 ? 1 : k === 0 ? 1 - ease((t - swap) / 0.35) : ease((t - swap) / 0.35);
+    im.style.opacity = on;
+    im.style.transform = `scale(${1 + 0.035 * ease(lt / dur)})`;
+  });
+  return [a, b];
+}
+function cursorTo(name, t, t0, t1, from) {
+  const c = P.taps[name]; if (!c) return false;
+  const x1 = 160 + c.x * K, y1 = 56 + 40 + c.y * K, [x0, y0] = from;
+  const p = ease((t - t0) / (t1 - t0));
+  const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p;
+  const cur = $('cur'); cur.style.opacity = 1; cur.style.left = x - 4 + 'px'; cur.style.top = y - 2 + 'px';
+  const r = (t - t1) / 0.45, ring = $('ring');
+  ring.style.left = x1 + 'px'; ring.style.top = y1 + 'px';
+  ring.style.opacity = r > 0 && r < 1 ? 1 - r : 0; ring.style.transform = `scale(${0.5 + r})`;
+  return true;
+}
+window.render = (t) => {
+  const L = P.lines;
+  for (let i = 0; i < 9; i++) {
+    const [a, b] = span(i), el = $('L' + (i + 1));
+    const al = Math.min(ease((t - a) / 0.45), i === 8 ? 1 : 1 - ease((t - (b - 0.4)) / 0.4));
+    el.style.opacity = Math.max(0, al);
+    el.style.visibility = al > 0 ? 'visible' : 'hidden';
+  }
+  // line 2: the three messages appear one after another
+  document.querySelectorAll('#L2 .items div').forEach((d, k) => { const p = ease((t - L[1].start - k * ((L[1].end - L[1].start) / 3.2)) / 0.4); d.style.opacity = p; d.style.transform = `translateY(${(1 - p) * 14}px)`; });
+  let cur = false;
+  { // scan: the message is pasted, the pointer clicks "Check it", the result appears
+    const [a] = span(3), click = L[3].start + (L[3].end - L[3].start) * 0.45;
+    screen('L4', 3, t, click + 0.35);
+    if (t > a && t < click + 0.8) cur = cursorTo('scan-filled', t, a + 0.6, click, [1500, 880]);
+  }
+  { // verify: the request arrives, the real person taps "No, not me"
+    const [a] = span(4), click = L[4].start + (L[4].end - L[4].start) * 0.55;
+    screen('L5', 4, t, click + 0.35);
+    if (t > a && t < click + 0.8) cur = cursorTo('verify-incoming', t, a + 0.8, click, [1450, 900]) || cur;
+  }
+  screen('L6', 5, t, 1e9); screen('L7', 6, t, 1e9);
+  if (!cur) { $('cur').style.opacity = 0; $('ring').style.opacity = 0; }
+  // subtitle: the line being spoken
+  const s = $('sub'); let on = -1;
+  for (let i = 0; i < L.length; i++) if (t >= L[i].start - 0.15 && t <= L[i].end + 0.35) on = i;
+  if (on >= 0 && on !== 2 && on !== 8) { s.textContent = L[on].text; s.style.opacity = Math.min(ease((t - L[on].start + 0.15) / 0.2), 1 - ease((t - L[on].end - 0.15) / 0.2)); }
+  else s.style.opacity = 0;
+};
+</script></body></html>
