@@ -27,7 +27,7 @@ const SLOW = process.env.CI ? 3 : 1;
   // Video frame: the phone screen as the person sees it, plus where to show a tap.
   const vmeta = {}, pmeta = {};
   // Which frames the promo video uses, and what to scroll to on a laptop screen ('' = top of page).
-  const PROMO_AT = { 'circle-approve': '.attention', 'circle-company': '.org-sec', 'chat-list': '', 'chat-pay': '.pay-sheet', 'chat-receipt': '', 'scan-filled': '#s-message', 'scan-result': '#scan-result', 'verify-incoming': '.incoming', 'verify-denied': '', home: '', 'guard-full': '', 'chat-room': '' };
+  const PROMO_AT = { 'circle-approve': '.attention', 'circle-company': '.org-sec', 'chat-list': '', 'chat-pay': '.pay-sheet', 'chat-receipt': '', 'chat-paid': '', 'scan-filled': '#s-message', 'scan-result': '#scan-result', 'verify-incoming': '.incoming', 'verify-denied': '', home: '', 'guard-full': '', 'chat-room': '' };
   const vs = async (p, name, tap, scrollTo) => {
     if (!VS) return;
     try {
@@ -46,6 +46,8 @@ const SLOW = process.env.CI ? 3 : 1;
         const sel = PROMO_AT[name];
         if (sel) await p.locator(sel).first().evaluate((el) => window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 110)));
         else await p.evaluate(() => window.scrollTo(0, 0));
+        // An open chat: show its newest messages at the bottom of the chat window.
+        await p.evaluate(() => { const box = document.getElementById('chat-scroll'), all = box?.querySelectorAll('.msg'); if (all?.length) box.scrollTop += all[all.length - 1].getBoundingClientRect().bottom - box.getBoundingClientRect().bottom + 24; });
         await p.waitForTimeout(450);
         const lb = tap ? await p.locator(tap).first().boundingBox().catch(() => null) : null;
         await p.screenshot({ path: `${process.env.PROMO}/${name}.png` });
@@ -359,6 +361,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.locator('.sys-pill', { hasText: 'Rajesh marked ₹2,500 as paid' }).waitFor({ timeout: 6000 * SLOW });
     await B.click('.msg.them .pay-card >> text=I received it');
     await A.locator('.pc-chip', { hasText: 'Received' }).waitFor({ timeout: 6000 * SLOW });
+    await vs(A, 'chat-paid');
     await A.click('.msg.me .pay-card >> text=View receipt');
     await A.locator('.rc-card .rc-state', { hasText: 'Received' }).waitFor();
     await A.locator('.rc-card', { hasText: 'UPI ref 427512345678' }).waitFor();
