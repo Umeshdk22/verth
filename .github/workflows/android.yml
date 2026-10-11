@@ -1,0 +1,70 @@
+name: Build Android app
+# Run by hand. Builds the Verth Android app (a Trusted Web Activity for https://verth.in) and saves
+# it on the "android-build" branch:
+#   - Verth-<version>.aab  for Google Play (signed with the upload key)
+#   - Verth-<version>.apk  to install on a phone for testing
+#   - upload-key-sha256.txt and assetlinks.json  for https://verth.in/.well-known/assetlinks.json
+# Signing: the upload key is protected by the ANDROID_KEY_PASSWORD secret (16+ characters). On the
+# first run the key is created and kept on the "android-signing" branch, encrypted with that password.
+# Without the secret, a test-only APK is built with a throwaway key (it can't go to Google Play).
+on:
+  workflow_dispatch:
+    inputs:
+      version: { description: 'Version shown in the Play Store, e.g. 1.0.0', default: '1.0.0' }
+permissions:
+  contents: write
+concurrency: android
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      VERTH_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5
+        with: { distribution: temurin, java-version: '17' }
+      - name: Check the version
+        run: echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::Version must look like 1.0.0"; exit 1; }
+      - name: Get the signing key
+        run: |
+          K=$RUNNER_TEMP/upload-key.p12; echo "VERTH_KEYSTORE=$K" >> $GITHUB_ENV
+          if [ -z "$VERTH_KEY_PASSWORD" ]; then
+            echo "::warning title=Test build only::ANDROID_KEY_PASSWORD isn't set, so this APK is signed with a throwaway key. It can be installed for testing but can't be uploaded to Google Play."
+            P=$(openssl rand -hex 24); echo "::add-mask::$P"; echo "VERTH_KEY_PASSWORD=$P" >> $GITHUB_ENV; echo "TEST_ONLY=1" >> $GITHUB_ENV
+            keytool -genkeypair -storetype PKCS12 -keystore "$K" -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass "$P" -keypass "$P" -dname "CN=Verth test"
+            exit 0
+          fi
+          if [ ${#VERTH_KEY_PASSWORD} -lt 16 ]; then echo "::error::ANDROID_KEY_PASSWORD must be at least 16 characters."; exit 1; fi
+          if git fetch -q origin android-signing 2>/dev/null; then
+            git show FETCH_HEAD:upload-key.p12 > "$K"
+            keytool -list -keystore "$K" -storepass "$VERTH_KEY_PASSWORD" >/dev/null || { echo "::error::ANDROID_KEY_PASSWORD doesn't open the saved upload key. Use the same password as before."; exit 1; }
+          else
+            keytool -genkeypair -storetype PKCS12 -keystore "$K" -alias upload -keyalg RSA -keysize 4096 -validity 10000 \
+              -storepass "$VERTH_KEY_PASSWORD" -keypass "$VERTH_KEY_PASSWORD" -dname "CN=Umesh, O=Verth, L=Hoshiarpur, ST=Punjab, C=IN"
+            D=$(mktemp -d); cp "$K" $D/upload-key.p12
+            printf 'Verth upload key for Google Play, encrypted with the ANDROID_KEY_PASSWORD secret.\nNever delete this branch: every app update must be signed with this key.\n' > $D/README.txt
+            cd $D && git init -q -b android-signing && git add . \
+              && git -c user.name=verth-bot -c user.email=verth-bot@users.noreply.github.com commit -qm "Upload key" \
+              && git push -q "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" android-signing
+            echo "::notice title=Upload key created::Saved on the android-signing branch."
+          fi
+      - name: Build
+        run: |
+          curl -sSL -o $RUNNER_TEMP/gradle.zip https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+          unzip -q $RUNNER_TEMP/gradle.zip -d $RUNNER_TEMP
+          IFS=. read MA MI PA <<< "$VERSION"; CODE=$(( MA * 10000 + MI * 100 + PA ))
+          $RUNNER_TEMP/gradle-8.14.3/bin/gradle -p android --no-daemon bundleRelease assembleRelease -PversionCode=$CODE -PversionName=$VERSION
+      - name: Save to the android-build branch
+        run: |
+          O=$(mktemp -d)
+          cp android/app/build/outputs/apk/release/app-release.apk $O/Verth-$VERSION${TEST_ONLY:+-TEST-ONLY}.apk
+          if [ -z "$TEST_ONLY" ]; then cp android/app/build/outputs/bundle/release/app-release.aab $O/Verth-$VERSION.aab; fi
+          SHA=$(keytool -list -v -keystore "$VERTH_KEYSTORE" -storepass "$VERTH_KEY_PASSWORD" -alias upload | sed -n 's/.*SHA256: *//p' | head -1)
+          echo "$SHA" > $O/upload-key-sha256.txt
+          printf '[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"in.verth.app","sha256_cert_fingerprints":["%s"]}}]\n' "$SHA" > $O/assetlinks.json
+          cd $O && git init -q -b android-build && git add . \
+            && git -c user.name=verth-bot -c user.email=verth-bot@users.noreply.github.com commit -qm "Android app $VERSION" \
+            && git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" android-build
+          echo "::notice title=Android app built::$(ls $O | tr '\n' ' ')"
