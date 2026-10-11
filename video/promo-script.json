@@ -1,16 +1,66 @@
 {
  "promo": {
-  "title": ["Verth", ""],
+  "title": [
+   "Verth",
+   ""
+  ],
   "lines": [
-   ["Every day, someone in India loses money to a message that looked real.", ""],
-   ["A bank asking you to update your KYC. A son asking for money from a new number. A job that wants a small fee first.", ""],
-   ["Verth helps you check, before you pay.", ""],
-   ["Paste any message, link, phone number or screenshot, and Verth shows you the warning signs in seconds.", ""],
-   ["If someone asks for money in the name of your family, or your boss, Verth asks the real person, on their own phone.", ""],
-   ["Your dashboard shows your checks, and your family's safety, at a glance.", ""],
-   ["And a one-minute daily check-up keeps your phone safe from common tricks.", ""],
-   ["Your messages are checked on your own device. Nothing is uploaded.", ""],
-   ["Verth. Check before you pay. Try it free at verth dot in.", ""]
+   [
+    "Every day, someone in India loses money to a message that looked real.",
+    ""
+   ],
+   [
+    "A bank asking you to update your KYC. A son asking for money from a new number. A job that wants a small fee first.",
+    ""
+   ],
+   [
+    "Verth helps you check, before you pay.",
+    ""
+   ],
+   [
+    "Paste any message, link, phone number or screenshot, and Verth shows you the warning signs in seconds.",
+    ""
+   ],
+   [
+    "If someone asks for money in the name of your family, or your boss, Verth asks the real person, on their own phone.",
+    ""
+   ],
+   [
+    "Your dashboard shows your checks, and your family's safety, at a glance.",
+    ""
+   ],
+   [
+    "And a one-minute daily check-up keeps your phone safe from common tricks.",
+    ""
+   ],
+   [
+    "Your messages are checked on your own device. Nothing is uploaded.",
+    ""
+   ],
+   [
+    "Verth. Check before you pay. Try it free at verth dot in.",
+    ""
+   ]
+  ]
+ },
+ "promofix": {
+  "title": [
+   "Verth",
+   ""
+  ],
+  "lines": [
+   [
+    "Verth helps you check, before you pay.",
+    ""
+   ],
+   [
+    "Paste any message, link, phone number or screenshot, and Verth shows you the warning signs in seconds.",
+    ""
+   ],
+   [
+    "Verth. Check before you pay. Try it free at verth dot in.",
+    ""
+   ]
   ]
  }
 }
