@@ -20,12 +20,12 @@
   .url{font-size:44px;font-weight:750;color:#0F172A;background:#fff;border:2px solid #E2E6EF;padding:14px 40px;border-radius:999px;margin-top:6px}
   .small{font-size:28px;color:#64748B}
   /* screens */
-  .shot{position:absolute;left:160px;top:56px;width:1600px;height:1000px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(15,23,42,.06),0 30px 70px -30px rgba(15,23,42,.35);border:1px solid #E2E6EF}
-  .shot .bar{height:40px;background:#EEF1F6;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #E2E6EF}
+  .shot{position:absolute;left:280px;top:26px;width:1360px;height:886px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(15,23,42,.06),0 30px 70px -30px rgba(15,23,42,.35);border:1px solid #E2E6EF}
+  .shot .bar{height:36px;background:#EEF1F6;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #E2E6EF}
   .shot .bar i{width:12px;height:12px;border-radius:50%;background:#D5DAE5}
   .shot .bar span{margin-left:18px;font-size:16px;color:#64748B;background:#fff;border:1px solid #E2E6EF;border-radius:8px;padding:4px 14px}
-  .view{position:relative;width:1600px;height:960px;overflow:hidden}
-  .view img{position:absolute;left:0;top:0;width:1600px;height:auto;opacity:0;transform-origin:50% 30%}
+  .view{position:relative;width:1360px;height:850px;overflow:hidden}
+  .view img{position:absolute;left:0;top:0;width:1360px;height:auto;opacity:0;transform-origin:50% 30%}
   .cursor{position:absolute;width:34px;height:34px;opacity:0;z-index:4;pointer-events:none}
   .ring{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid rgba(91,61,245,.85);opacity:0;z-index:3}
   /* privacy */
@@ -33,7 +33,7 @@
   .pv-ic{width:110px;height:110px;border-radius:30px;background:#E9F7F0;display:grid;place-items:center}
   .pv-ic svg{width:60px;height:60px}
   /* subtitles */
-  .sub{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);max-width:1500px;text-align:center;font-size:38px;line-height:1.3;font-weight:600;color:#fff;background:rgba(15,23,42,.86);padding:14px 30px 16px;border-radius:14px;opacity:0;z-index:10;letter-spacing:-.01em}
+  .sub{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);max-width:1500px;text-align:center;font-size:34px;line-height:1.3;font-weight:600;color:#fff;background:rgba(15,23,42,.88);padding:12px 28px 14px;border-radius:14px;opacity:0;z-index:10;letter-spacing:-.01em}
 </style></head>
 <body><div id="st">
   <section class="layer card" id="L1"><h1>Every day, someone in India loses money to a message that <span>looked real.</span></h1></section>
@@ -63,7 +63,7 @@ window.setup = async (plan) => {
 };
 // Each layer belongs to one spoken line; it fades in a little before the line and out after it.
 function span(i) { const L = P.lines[i], next = P.lines[i + 1]; return [L.start - 0.35, next ? next.start - 0.25 : P.total]; }
-const K = 1600 / 1440; // laptop screenshots were taken at 1440 px wide
+const K = 1360 / 1440, OX = 280, OY = 26 + 36; // laptop screenshots were taken at 1440 px wide
 function screen(id, i, t, swap) {
   const [a, b] = span(i), el = $(id), imgs = el.querySelectorAll('img');
   const lt = t - a, dur = b - a;
@@ -77,7 +77,7 @@ function screen(id, i, t, swap) {
 }
 function cursorTo(name, t, t0, t1, from) {
   const c = P.taps[name]; if (!c) return false;
-  const x1 = 160 + c.x * K, y1 = 56 + 40 + c.y * K, [x0, y0] = from;
+  const x1 = OX + c.x * K, y1 = OY + c.y * K, [x0, y0] = from;
   const p = ease((t - t0) / (t1 - t0));
   const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p;
   const cur = $('cur'); cur.style.opacity = 1; cur.style.left = x - 4 + 'px'; cur.style.top = y - 2 + 'px';
@@ -100,19 +100,19 @@ window.render = (t) => {
   { // scan: the message is pasted, the pointer clicks "Check it", the result appears
     const [a] = span(3), click = L[3].start + (L[3].end - L[3].start) * 0.45;
     screen('L4', 3, t, click + 0.35);
-    if (t > a && t < click + 0.8) cur = cursorTo('scan-filled', t, a + 0.6, click, [1500, 880]);
+    if (t > a && t < click + 0.8) cur = cursorTo('scan-filled', t, a + 0.6, click, [1380, 790]);
   }
   { // verify: the request arrives, the real person taps "No, not me"
     const [a] = span(4), click = L[4].start + (L[4].end - L[4].start) * 0.55;
     screen('L5', 4, t, click + 0.35);
-    if (t > a && t < click + 0.8) cur = cursorTo('verify-incoming', t, a + 0.8, click, [1450, 900]) || cur;
+    if (t > a && t < click + 0.8) cur = cursorTo('verify-incoming', t, a + 0.8, click, [1340, 800]) || cur;
   }
   screen('L6', 5, t, 1e9); screen('L7', 6, t, 1e9);
   if (!cur) { $('cur').style.opacity = 0; $('ring').style.opacity = 0; }
   // subtitle: the line being spoken
   const s = $('sub'); let on = -1;
   for (let i = 0; i < L.length; i++) if (t >= L[i].start - 0.15 && t <= L[i].end + 0.35) on = i;
-  if (on >= 0 && on !== 2 && on !== 8) { s.textContent = L[on].text; s.style.opacity = Math.min(ease((t - L[on].start + 0.15) / 0.2), 1 - ease((t - L[on].end - 0.15) / 0.2)); }
+  if (on >= 0 && ![0, 2, 7, 8].includes(on)) { s.textContent = L[on].text; s.style.opacity = Math.min(ease((t - L[on].start + 0.15) / 0.2), 1 - ease((t - L[on].end - 0.15) / 0.2)); }
   else s.style.opacity = 0;
 };
 </script></body></html>
