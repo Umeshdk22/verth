@@ -9,8 +9,8 @@ const TOKEN = process.env.TTS_TOKEN, ONLY = (process.env.ONLY || 'all').split(',
 const REDO = process.env.REDO === '1';
 const VOICE = { en: process.env.VOICE_EN || 'Kore', hi: process.env.VOICE_HI || 'Kore' };
 // Hindi style words get read out loud, so Hindi lines go in plain.
-const STYLE = { en: 'Say in a warm, friendly, clear voice, at a natural pace: ', hi: '' };
-const scripts = JSON.parse(readFileSync('video/scripts.json', 'utf8'));
+const STYLE = { en: process.env.STYLE_EN || 'Say in a warm, friendly, clear voice, at a natural pace: ', hi: '' };
+const scripts = JSON.parse(readFileSync(process.env.SCRIPTS || 'video/scripts.json', 'utf8'));
 mkdirSync('video/voice', { recursive: true });
 const report = existsSync('video/voice/report.json') ? JSON.parse(readFileSync('video/voice/report.json', 'utf8')) : {};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
