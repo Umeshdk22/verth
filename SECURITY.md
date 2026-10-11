@@ -21,7 +21,10 @@ Verth protects decisions about money, bank details and account access, so it is 
 - After a correct code, the worker looks up (or creates) the Firebase account for that email, marks the email as verified, and returns a one-hour Firebase custom token signed with the service account key.
 - Wrong codes are also counted per email across new codes: 10 wrong in 24 hours locks that email until the next day. `/otp/verify` is limited to 60 tries per hour per network, and all code emails together are capped per day (`OTP_DAILY_CAP`, default 280, under Brevo's free 300) so nobody can burn the quota.
 - **Pre-hijacking is blocked:** if someone opened an account with a victim's email and a password before the victim arrived, the first email-code login removes that password and signs out every existing session (`validSince`) before the real owner gets in. Switch off the Email/Password provider in Firebase as well.
-- Messages don't reveal whether an email is registered: the same steps log in or create an account.
+- **Known trade-off:** "Log in" and "Create account" are separate, so their messages say whether an email already has an account (clearer for people, at the cost of letting someone learn that an email uses Verth). Guesses are slowed by the robot check, 5 codes per email per hour, 20 per network per hour and the daily cap.
+- The robot check (Cloudflare Turnstile) must have been solved on one of Verth's own websites; tokens from anywhere else are refused.
+- The server's public `/health` test probes (`?ai=1`, `?plans=1`, `?vpa=1`) call Google or Razorpay, so their answers are cached for 10 minutes and can't be used to burn those services' limits.
+- The Razorpay review test login is switched off (`REVIEW_EMAIL` is empty and the `REVIEW_CODE` secret deleted).
 
 ### Circles and membership
 - **Admin approval.** Joining with an invite code creates a *pending* membership. Pending people can read only their own membership record, and can't see the circle, its people or its log, or send or receive checks.

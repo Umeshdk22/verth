@@ -484,6 +484,13 @@ test('the robot check is required when switched on', async () => {
   assert.match(sent.url, /challenges\.cloudflare\.com\/turnstile\/v0\/siteverify/); assert.equal(sent.form.secret, 's'); assert.equal(sent.form.remoteip, '1.1.1.1');
   assert.equal(cleanName(' a\u0000b  c '), 'ab c');
 });
+test('a robot check solved on another website is refused', async () => {
+  const env2 = { TURNSTILE_SECRET: 's', ALLOWED_ORIGIN: 'https://verth.in,https://www.verth.in' };
+  const from = (hostname) => async () => new Response(JSON.stringify({ success: true, hostname }));
+  await checkCaptcha(env2, 'good', '1.1.1.1', from('verth.in'));
+  await checkCaptcha(env2, 'good', '1.1.1.1', from('www.verth.in'));
+  await assert.rejects(checkCaptcha(env2, 'good', '1.1.1.1', from('evil.example')), /didn’t pass/);
+});
 
 /* ---------------- fingerprint / face login (passkeys) ---------------- */
 // A pretend phone authenticator: makes a P-256 key, and signs like a real one (DER signatures).
