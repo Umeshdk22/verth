@@ -1,0 +1,791 @@
+{
+ "about": "Verth scam-check test set, written 11 October 2026, before the checker was run on it. Scam messages are modelled on common scams reported in India; genuine messages are the kind of real messages people get, including ones that look alarming. Names, numbers and links are made up. The checker was not changed after seeing these results.",
+ "summary": {
+  "date": "2026-10-11",
+  "total": 79,
+  "scams": 45,
+  "genuine": 34,
+  "scam": {
+   "high": 30,
+   "caution": 8,
+   "clear": 7
+  },
+  "real": {
+   "clear": 28,
+   "caution": 6,
+   "high": 0
+  },
+  "byType": {
+   "scam|Bank and KYC": {
+    "n": 7,
+    "danger": 5,
+    "caution": 0,
+    "clear": 2
+   },
+   "scam|Family and boss impersonation": {
+    "n": 6,
+    "danger": 1,
+    "caution": 5,
+    "clear": 0
+   },
+   "scam|Jobs and exams": {
+    "n": 7,
+    "danger": 6,
+    "caution": 1,
+    "clear": 0
+   },
+   "scam|Police and digital arrest": {
+    "n": 5,
+    "danger": 3,
+    "caution": 1,
+    "clear": 1
+   },
+   "scam|UPI, QR and refunds": {
+    "n": 5,
+    "danger": 4,
+    "caution": 0,
+    "clear": 1
+   },
+   "scam|Prizes and investments": {
+    "n": 5,
+    "danger": 4,
+    "caution": 1,
+    "clear": 0
+   },
+   "scam|Bills, parcels and others": {
+    "n": 10,
+    "danger": 7,
+    "caution": 0,
+    "clear": 3
+   },
+   "genuine|Bank and payments": {
+    "n": 8,
+    "danger": 0,
+    "caution": 2,
+    "clear": 6
+   },
+   "genuine|Delivery and shopping": {
+    "n": 6,
+    "danger": 0,
+    "caution": 0,
+    "clear": 6
+   },
+   "genuine|Bills and services": {
+    "n": 5,
+    "danger": 0,
+    "caution": 1,
+    "clear": 4
+   },
+   "genuine|Jobs and exams": {
+    "n": 4,
+    "danger": 0,
+    "caution": 2,
+    "clear": 2
+   },
+   "genuine|Family, friends and work": {
+    "n": 11,
+    "danger": 0,
+    "caution": 1,
+    "clear": 10
+   }
+  }
+ },
+ "rows": [
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "Dear Customer, your SBI YONO account will be blocked today. Update your PAN immediately: http://sbi-yono-kyc.xyz/update",
+   "verdict": "danger",
+   "flags": [
+    "Threatens to block, cut off or penalise you",
+    "Rushes you",
+    "KYC, PAN or Aadhaar “update”",
+    "Generic greeting",
+    "Suspicious link: sbi-yono-kyc.xyz",
+    "Pressure plus a link"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "HDFC Bank: Your account KYC has expired. To avoid suspension complete re-KYC within 24 hrs at hdfc-rekyc.online",
+   "verdict": "danger",
+   "flags": [
+    "Rushes you",
+    "KYC, PAN or Aadhaar “update”",
+    "Suspicious link: hdfc-rekyc.online",
+    "Pressure plus a link"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "Dear user your electricity and bank account will be linked to new Aadhaar rules. Call 9876501234 for verification.",
+   "verdict": "clear",
+   "flags": [
+    "Generic greeting"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "This is Rohit from ICICI Bank fraud team. A transaction of Rs 49,999 is being processed from your card. To cancel, please tell me the OTP you just received.",
+   "verdict": "danger",
+   "flags": [
+    "Asks for an OTP, PIN, CVV or password"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "Your reward points worth Rs 7,450 expire tonight. Redeem now: bit.ly/rwd-pts-claim",
+   "verdict": "danger",
+   "flags": [
+    "Rushes you",
+    "Prize, lottery, refund or cashback bait",
+    "Suspicious link: bit.ly",
+    "Pressure plus a link"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "Income Tax Department: you are eligible for a refund of Rs 15,490. Submit your account details at incometax-refund.site to receive it.",
+   "verdict": "danger",
+   "flags": [
+    "Prize, lottery, refund or cashback bait",
+    "Suspicious link: incometax-refund.site"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bank and KYC",
+   "text": "Hello sir I am calling from your bank, your debit card is being upgraded. Please share the 16 digit number and CVV for verification.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "scam",
+   "type": "Family and boss impersonation",
+   "text": "Hi Papa, this is my new number. Phone broke. Please send ₹20,000 urgently, will explain later.",
+   "verdict": "danger",
+   "flags": [
+    "“New number” or lost phone, asking for money",
+    "Rushes you",
+    "Asks you to pay a fee or send money"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Family and boss impersonation",
+   "text": "Mummy I am in trouble, can't talk now. Please send 15000 to this UPI id rahul.k22@ybl, I will return tomorrow. Don't tell papa.",
+   "verdict": "caution",
+   "flags": [
+    "Asks you to pay a fee or send money"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Family and boss impersonation",
+   "text": "Hi, this is Anil Sharma (MD). I'm in a meeting and can't take calls. I need you to buy 5 Amazon gift cards of Rs 10,000 each for a client. Keep this confidential.",
+   "verdict": "caution",
+   "flags": [
+    "Asks you to keep it secret"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Family and boss impersonation",
+   "text": "Priya, please process a payment of Rs 4,80,000 to Sharma Traders before 3 pm today. I'll approve it later. Very urgent, I'm travelling.",
+   "verdict": "caution",
+   "flags": [
+    "Rushes you"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Family and boss impersonation",
+   "text": "Bhaiya mera phone kho gaya, ye mera naya number hai. Thoda paisa bhejo jaldi, hospital mein hoon.",
+   "verdict": "caution",
+   "flags": [
+    "Rushes you"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Family and boss impersonation",
+   "text": "Uncle namaste, I am Sunil's friend. He had an accident and is in hospital. Doctors need Rs 25,000 deposit immediately. Please send on GPay 9812345670.",
+   "verdict": "caution",
+   "flags": [
+    "Rushes you"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Congratulations! You are shortlisted for online exam at Infosys. Pay ₹1,500 exam fee to confirm your slot.",
+   "verdict": "danger",
+   "flags": [
+    "Asks you to pay for a job, exam, interview or training",
+    "“Selected” without a real interview"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Part-time job! Earn ₹3,000 daily rating hotels on Google. Small registration fee only. Join Telegram @earn_daily_job",
+   "verdict": "danger",
+   "flags": [
+    "Work-from-home or task job offer",
+    "Asks you to pay a fee or send money",
+    "A job that asks you for money",
+    "Paid “like and review” task job",
+    "Asks you to pay for a job, exam, interview or training",
+    "Sounds too good to be true"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Hi, I'm Neha from an HR agency. We have a work from home job: like YouTube videos and earn 50 per like. Interested? Reply YES.",
+   "verdict": "danger",
+   "flags": [
+    "Work-from-home or task job offer",
+    "Paid “like and review” task job"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Dear candidate, you have been selected for the post of Data Entry Operator at Amazon. Salary 28,000/month. Pay Rs 2,500 for laptop and ID card before joining.",
+   "verdict": "danger",
+   "flags": [
+    "Asks you to pay for a job, exam, interview or training",
+    "“Selected” without a real interview"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Railway recruitment 2026: direct joining without exam in TC post. Contact agent Mr. Verma, processing charges Rs 50,000 only.",
+   "verdict": "caution",
+   "flags": [
+    "Asks you to pay a fee or send money",
+    "Asks for an exam fee"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Your offer letter from TCS is ready. To release it, deposit the refundable security amount of ₹9,999 to the HR account.",
+   "verdict": "danger",
+   "flags": [
+    "Asks you to pay for a job, exam, interview or training"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Jobs and exams",
+   "text": "Earn 5000-8000 per day from home. Simple prepaid tasks. First task free, guaranteed profit. WhatsApp 9123400011.",
+   "verdict": "danger",
+   "flags": [
+    "Guaranteed or fast investment returns",
+    "Guaranteed profits through a group or app"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Police and digital arrest",
+   "text": "This is Mumbai Cyber Crime. Your Aadhaar is linked to a money laundering case. You are under digital arrest. Stay on the video call and do not tell anyone.",
+   "verdict": "danger",
+   "flags": [
+    "“Digital arrest” or police/CBI threat",
+    "Asks you to keep it secret"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Police and digital arrest",
+   "text": "FedEx: your parcel to Taiwan was seized by customs. It contained drugs and 5 passports. Press 1 to talk to the officer.",
+   "verdict": "danger",
+   "flags": [
+    "Parcel or courier trouble",
+    "Fake courier “police” threat"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Police and digital arrest",
+   "text": "CBI notice: an arrest warrant has been issued in your name. To avoid arrest, deposit the security amount in the RBI verification account today.",
+   "verdict": "danger",
+   "flags": [
+    "“Digital arrest” or police/CBI threat"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Police and digital arrest",
+   "text": "Sir your son has been caught by police in a rape case. Send 50,000 now on this number or he will be taken to jail. Don't call anyone.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "scam",
+   "type": "Police and digital arrest",
+   "text": "TRAI: your mobile number will be disconnected in 2 hours due to illegal activity. Press 9 to speak to the officer.",
+   "verdict": "caution",
+   "flags": [
+    "Threatens to block, cut off or penalise you"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "UPI, QR and refunds",
+   "text": "Scan this QR to receive ₹4,999 cashback from PhonePe. Offer valid today only.",
+   "verdict": "danger",
+   "flags": [
+    "Tells you to scan a QR code to receive money",
+    "Rushes you",
+    "Prize, lottery, refund or cashback bait"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "UPI, QR and refunds",
+   "text": "Sorry, I sent ₹5,000 to your account by mistake. Please return it to my UPI, it was my mother's hospital money.",
+   "verdict": "danger",
+   "flags": [
+    "“Sent by mistake”, asks you to return money"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "UPI, QR and refunds",
+   "text": "I'm an army officer posted at the border, want to buy your sofa on OLX. I'll send a payment request, just approve it to receive the money.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "scam",
+   "type": "UPI, QR and refunds",
+   "text": "Your Flipkart refund of Rs 1,299 is stuck. Install AnyDesk and share the code so our team can process it.",
+   "verdict": "danger",
+   "flags": [
+    "Asks for an OTP, PIN, CVV or password",
+    "Asks you to install a screen-sharing app",
+    "Prize, lottery, refund or cashback bait"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "UPI, QR and refunds",
+   "text": "Paytm customer care: to get your failed recharge amount back, enter your UPI PIN on the request we sent.",
+   "verdict": "danger",
+   "flags": [
+    "Asks for an OTP, PIN, CVV or password"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Prizes and investments",
+   "text": "KBC lottery: your number won Rs 25 lakh. To claim, pay the processing fee of Rs 12,500 to the manager.",
+   "verdict": "danger",
+   "flags": [
+    "Prize, lottery, refund or cashback bait",
+    "Asks you to pay a fee or send money",
+    "A prize you have to pay for"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Prizes and investments",
+   "text": "Join our VIP stock tips group. Guaranteed 20% monthly return. 300+ members already doubled their money. Link: t.me/vip_tips_india",
+   "verdict": "danger",
+   "flags": [
+    "Guaranteed or fast investment returns",
+    "Guaranteed profits through a group or app"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Prizes and investments",
+   "text": "Hello dear, I am Jessica from Singapore. I trade crypto with my uncle's secret signals. I can teach you, you will earn very much.",
+   "verdict": "caution",
+   "flags": [
+    "Guaranteed or fast investment returns"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Prizes and investments",
+   "text": "Congratulations! You have won an iPhone 17 in the Amazon lucky draw. Pay only ₹499 delivery charge to receive it: amzn-luckydraw.top",
+   "verdict": "danger",
+   "flags": [
+    "Prize, lottery, refund or cashback bait",
+    "Asks you to pay a fee or send money",
+    "Suspicious link: amzn-luckydraw.top",
+    "A prize you have to pay for"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Prizes and investments",
+   "text": "IPO allotment guaranteed through our institutional account. Invest via our app and get 3x listing gains.",
+   "verdict": "danger",
+   "flags": [
+    "Guaranteed or fast investment returns",
+    "Guaranteed profits through a group or app"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Dear consumer your electricity power will be disconnected tonight at 9:30 pm because your previous month bill was not updated. Please call electricity officer 9876543210 immediately.",
+   "verdict": "danger",
+   "flags": [
+    "Threatens to block, cut off or penalise you",
+    "Rushes you",
+    "Electricity or gas disconnection threat",
+    "Power cut threat asking you to call someone"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "India Post: your package could not be delivered due to incomplete address. Update within 12 hours: indiapost-redeliver.cfd",
+   "verdict": "danger",
+   "flags": [
+    "Rushes you",
+    "Parcel or courier trouble",
+    "Suspicious link: indiapost-redeliver.cfd",
+    "Pressure plus a link"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Your traffic challan of Rs 2,000 is pending. Pay now to avoid court case: echallan-pay.vip",
+   "verdict": "danger",
+   "flags": [
+    "“Digital arrest” or police/CBI threat",
+    "Asks you to pay a fee or send money",
+    "Suspicious link: echallan-pay.vip"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Your gas connection will be cut off today. Update KYC by calling Indane officer on 7012345678.",
+   "verdict": "danger",
+   "flags": [
+    "Threatens to block, cut off or penalise you",
+    "KYC, PAN or Aadhaar “update”",
+    "Electricity or gas disconnection threat",
+    "Power cut threat asking you to call someone"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Netflix: your payment failed and your membership is on hold. Update your card details here: netflix-billing-help.com",
+   "verdict": "danger",
+   "flags": [
+    "Suspicious link: netflix-billing-help.com"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Hi, is this Rahul? We met at the wedding last month. I got your number from a friend.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Your WhatsApp account will be banned for violating terms. Verify your account by sending the 6 digit code we sent you.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Video call recording of you has been made. Pay Rs 30,000 or I will send it to all your contacts and family.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Your loan of ₹5,00,000 is pre-approved at 0% interest. No CIBIL check. Pay ₹1,999 registration fee to get it in 10 minutes.",
+   "verdict": "danger",
+   "flags": [
+    "Asks you to pay a fee or send money",
+    "A loan that asks for money first"
+   ]
+  },
+  {
+   "label": "scam",
+   "type": "Bills, parcels and others",
+   "text": "Free laptop scheme for students 2026 by the government. Register before the last date: pm-laptop-yojana.online",
+   "verdict": "danger",
+   "flags": [
+    "Rushes you",
+    "Suspicious link: pm-laptop-yojana.online",
+    "Pressure plus a link"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "482913 is your OTP for login to SBI YONO. Valid for 5 minutes. Do not share it with anyone. -SBI",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Rs 2,500.00 debited from A/c XX4321 on 11-10-26 to VPA priya.nair@okaxis. Not you? Call 18001234 to report. -HDFC Bank",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Dear Customer, never share your OTP, PIN or CVV with anyone. Bank staff will never ask for them. -ICICI Bank",
+   "verdict": "clear",
+   "flags": [
+    "Generic greeting"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Your periodic KYC update is due. Please visit your nearest branch with your Aadhaar and PAN, or update it in the official mobile app. -Canara Bank",
+   "verdict": "caution",
+   "flags": [
+    "KYC, PAN or Aadhaar “update”"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Rs 1,200 received in your account from RAMESH KUMAR via UPI. Available balance Rs 18,340. -Axis Bank",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Your credit card statement is ready. Total due Rs 8,420, due date 25 Oct. Pay through the app or netbanking.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Your SIP of Rs 2,000 in Parag Parikh Flexi Cap Fund has been processed. Units will be allotted in 2 working days.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bank and payments",
+   "text": "Cashback of Rs 25 credited to your Paytm wallet for your electricity bill payment.",
+   "verdict": "caution",
+   "flags": [
+    "Prize, lottery, refund or cashback bait"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Delivery and shopping",
+   "text": "Your Amazon order #408-1234567 has been shipped and will arrive on Tuesday. Track it at amazon.in/your-orders",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Delivery and shopping",
+   "text": "Your Swiggy order is on the way. Ravi is your delivery partner and will reach in 12 minutes.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Delivery and shopping",
+   "text": "Your parcel from Flipkart is out for delivery today. Please keep the OTP ready to share with the delivery agent at your door.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Delivery and shopping",
+   "text": "Blue Dart: shipment 1234567890 delivered at 2:15 pm. Received by: security guard.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Delivery and shopping",
+   "text": "IRCTC: PNR 4512345678, train 12952, coach B2 berth 34 confirmed. Happy journey!",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Delivery and shopping",
+   "text": "Your Jio recharge of Rs 349 is successful. Validity till 10 Nov 2026.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bills and services",
+   "text": "Your electricity bill for September is Rs 1,840, due on 20 Oct. Pay at the official board website or any UPI app. Ignore if already paid.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bills and services",
+   "text": "Scheduled maintenance: power supply in Sector 15 will be off on Sunday from 10 am to 2 pm. -PSPCL",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bills and services",
+   "text": "Reminder: your car insurance expires on 30 October. Renew on our website or call your advisor.",
+   "verdict": "caution",
+   "flags": [
+    "Rushes you"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Bills and services",
+   "text": "Your appointment with Dr. Mehta is confirmed for Monday 11:30 am at Apollo Clinic, Jalandhar.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Bills and services",
+   "text": "Your Aadhaar was used for authentication at 10:42 am today. If this wasn't you, contact UIDAI on 1947.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Jobs and exams",
+   "text": "Hi Umesh, thanks for applying to the Frontend Developer role at Zoho. Can you do a video interview on Thursday at 4 pm? Reply with a time that suits you.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Jobs and exams",
+   "text": "SSC CGL 2026 admit cards are available on the official website ssc.gov.in. Download yours before the exam date.",
+   "verdict": "caution",
+   "flags": [
+    "Asks for an exam fee"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Jobs and exams",
+   "text": "Your application to Infosys has moved to the next round. Please check your candidate portal on infosys.com for the assessment link.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Jobs and exams",
+   "text": "Reminder: the last date to fill the university exam form is 15 October. The fee can be paid on the university portal.",
+   "verdict": "caution",
+   "flags": [
+    "Rushes you"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Beta, did you reach home? Call me when you're free.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Bro, dinner was 2,400 total. Your share is 800, send on GPay whenever.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Can you send me the photos from the wedding? Mom wants them for the album.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Team, the client meeting has moved to 3 pm. Please update the slides before then.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Papa, school fees are due this week. I've put the receipt on the fridge, can you pay it at the office on Monday?",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Urgent: the server is down, please call me as soon as you see this. -Arjun",
+   "verdict": "caution",
+   "flags": [
+    "Rushes you"
+   ]
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Happy birthday! Have a wonderful year ahead. Party at our place on Saturday?",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "The plumber is coming at 5. Please keep 500 rupees ready for him.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Don't forget to lock the door and switch off the geyser before you leave.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "I've transferred the rent for October. Let me know when you get it.",
+   "verdict": "clear",
+   "flags": []
+  },
+  {
+   "label": "genuine",
+   "type": "Family, friends and work",
+   "text": "Your society maintenance of Rs 1,500 for October is due. Please pay to the society account or in the office. -RWA Secretary",
+   "verdict": "clear",
+   "flags": []
+  }
+ ]
+}

@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 const { auditPage } = require('./audit.cjs');
 const [BASE, OUT] = process.argv.slice(2);
-const PAGES = ['copyright.html', 'index.html', 'join.html?c=ABCD2345&by=Umesh&n=Sharma%20Family&t=family', 'join.html?c=ABCD2345&by=Umesh&n=Nirmaan&t=org&d=nirmaan.in', 'demo.html', 'pricing.html', 'contact.html', 'privacy.html', 'terms.html', 'refunds.html', 'shipping.html', '404.html'];
+const PAGES = ['copyright.html', 'index.html', 'join.html?c=ABCD2345&by=Umesh&n=Sharma%20Family&t=family', 'join.html?c=ABCD2345&by=Umesh&n=Nirmaan&t=org&d=nirmaan.in', 'demo.html', 'pricing.html', 'contact.html', 'privacy.html', 'terms.html', 'refunds.html', 'shipping.html', '404.html', 'how-it-works.html', 'guides/', 'guides/fake-job-and-exam-offers.html', 'guides/digital-arrest-scam.html', 'guides/check-a-upi-qr-code.html', 'guides/lost-money-to-a-scam.html'];
 (async () => {
   const b = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const report = {};
@@ -23,7 +23,7 @@ const PAGES = ['copyright.html', 'index.html', 'join.html?c=ABCD2345&by=Umesh&n=
       for (let y = 0; y < h; y += vh * 0.8) { await p.evaluate((yy) => window.scrollTo(0, yy), y); await p.waitForTimeout(120); }
       await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(400);
       const a = await auditPage(p);
-      const name = `${tag}-${path.split('?')[0].replace('.html', '')}${path.includes('d=') ? '-org' : ''}`;
+      const name = `${tag}-${(path.split('?')[0].replace('.html', '').replace(/\/$/, '/index') || 'index').replace(/\//g, '-')}${path.includes('d=') ? '-org' : ''}`;
       await p.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
       report[name] = { errors: errs, ...a };
       console.log(name, errs.length + a.issues.length ? `${errs.length} errors, ${a.issues.length} issues` : 'ok', '| fonts:', a.fonts.join(', '));

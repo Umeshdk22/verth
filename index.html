@@ -24,7 +24,7 @@
 <meta name="twitter:image" content="https://verth.in/assets/og.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Verth","url":"https://verth.in/","applicationCategory":"SecurityApplication","operatingSystem":"Android, iOS, Web","description":"Checks scam messages, fake job offers, links, phone numbers and UPI QR codes, and confirms money requests with the real person on their own phone.","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"INR"},{"@type":"Offer","name":"Personal","price":"149","priceCurrency":"INR"},{"@type":"Offer","name":"Family","price":"199","priceCurrency":"INR"},{"@type":"Offer","name":"Team","price":"299","priceCurrency":"INR"}]}</script>
 <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="modulepreload" href="assets/app.js?v=e06f6aea44">
+<link rel="modulepreload" href="assets/app.js?v=cd166b2fa5">
 <link rel="prefetch" href="app.html">
 <link rel="stylesheet" href="assets/fonts.css?v=9f9a884557">
 <link rel="stylesheet" href="assets/verth.css?v=04d3cd6ad8">
@@ -260,6 +260,24 @@ footer.foot .sig{font-family:var(--hand);font-size:22px;color:#C9B6FF;margin-top
 }
 @media (prefers-reduced-motion:reduce){.slide{transition:none}.show-nav button.on i{animation:none;width:100%}}
 
+.trust-row a.trust-link{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:18px;background:#F7F5FF;border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.trust-row a.trust-link:hover{border-color:var(--accent)}
+.trust-row a.trust-link span{color:var(--accent)}
+.lc-how{color:#fff;font-weight:650;white-space:nowrap}
+.proof-sec{padding-top:0}
+.proof-card{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:var(--shadow)}
+.proof-card h2{margin:10px 0 12px;font-size:clamp(26px,3.4vw,36px)}
+.proof-card p{color:var(--muted);line-height:1.6}
+.proof-line{margin-top:14px!important;color:var(--ink)!important;font-weight:650;background:#F7F5FF;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.proof-list{display:grid;gap:10px}
+.proof-list a,.g-grid a{display:flex;flex-direction:column;gap:3px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:#fff}
+.proof-list a:hover,.g-grid a:hover{border-color:var(--accent)}
+.proof-list span,.g-grid span{color:var(--muted);font-size:14.5px}
+.g-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:26px}
+.g-grid a{padding:18px;box-shadow:var(--shadow)}
+.g-grid b{font-size:17px;line-height:1.3}
+@media (max-width:900px){.proof-card{grid-template-columns:1fr;padding:24px}.g-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.g-grid{grid-template-columns:1fr}}
 .trust{padding:56px 0 0}
 .trust-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .trust-row div{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:18px;background:#F7F5FF;border:1px solid var(--line)}
@@ -378,13 +396,15 @@ h1[tabindex="-1"]:focus{outline:none}
         <a href="#demo">Demo</a>
         <a href="#plans">Plans</a>
         <a href="#live">Live</a>
+        <a href="how-it-works.html">How it works</a>
+        <a href="guides/">Guides</a>
         <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Play background music" title="Play background music"><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/></svg><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="sr" id="sound-label">Music off</span></button>
         <span class="acct" id="acct-out"><a class="btn line" href="app.html?mode=login">Log in</a>
         <a class="btn white" href="app.html?mode=signup">Create account</a></span>
         <a class="open-me" id="acct-in" href="app.html" hidden><span class="om-av" id="me-av">V</span><span class="om-txt"><small>Welcome back</small><b id="me-first">Open my Verth</b></span><span class="om-go" aria-hidden="true">→</span></a>
       </nav>
     </header>
-    <nav class="mnav" aria-label="Sections"><a href="#tools">Scam check</a><a href="#live">Live numbers</a><a href="#teams">Organisations</a><a href="#demo">Demo</a><a href="#plans">Plans</a><a href="contact.html">Contact</a></nav>
+    <nav class="mnav" aria-label="Sections"><a href="#tools">Scam check</a><a href="#live">Live numbers</a><a href="#teams">Organisations</a><a href="#demo">Demo</a><a href="#plans">Plans</a><a href="how-it-works.html">How it works</a><a href="guides/">Guides</a><a href="contact.html">Contact</a></nav>
     <audio id="theme" src="assets/verth-theme.mp3" loop preload="none"></audio>
 
     <form class="checkbar" id="quick" role="search" aria-label="Check a message">
@@ -443,7 +463,7 @@ h1[tabindex="-1"]:focus{outline:none}
     <div><b>No passwords</b><span>Log in with Google or a one-time email code</span></div>
     <div><b>Checked on your phone</b><span>Messages and screenshots are never uploaded</span></div>
     <div><b>Payments by Razorpay</b><span>UPI and cards are handled by Razorpay. Verth never sees your card or UPI PIN</span></div>
-    <div><b>Open for review</b><span>Source code and security notes on GitHub</span></div>
+    <a class="trust-link" href="how-it-works.html"><b>Tested in the open</b><span>Method, real test results and mistakes, plus the source code →</span></a>
   </div>
 </section>
 
@@ -451,12 +471,31 @@ h1[tabindex="-1"]:focus{outline:none}
   <div class="wrap">
     <div class="live-card">
       <div class="lc-text"><span class="lc-badge"><i></i>Live</span>
-        <h2 id="live-title">Scams caught by Verth</h2>
-        <p>Every time someone checks a message, link or number and Verth finds a scam, this count goes up. Real numbers from Verth’s scam database, updated every minute. Only a number per day is kept, never what was checked.</p>
-        <div class="lc-stats"><div><b id="live-total">–</b><span>scams found in the last 14 days</span></div><div><b id="live-today">–</b><span>found today</span></div></div>
+        <h2 id="live-title">Scam warnings from Verth</h2>
+        <p>Every time someone checks a message, link or number and Verth rates it high risk, this count goes up. These are real counts of Verth’s own warnings, not confirmed scams, updated every minute. Only a number per day is kept, never what was checked. <a class="lc-how" href="how-it-works.html">How Verth decides</a></p>
+        <div class="lc-stats"><div><b id="live-total">–</b><span>high-risk checks in the last 14 days</span></div><div><b id="live-today">–</b><span>today</span></div></div>
         <a class="btn white" href="app.html?mode=signup">Check something free</a>
       </div>
       <div class="lc-chart" id="live-chart" aria-live="polite"><p class="lc-wait">Loading live numbers…</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec proof-sec" id="proof" aria-labelledby="proof-title">
+  <div class="wrap">
+    <div class="proof-card">
+      <div>
+        <span class="kick">Proof, not promises</span>
+        <h2 id="proof-title">We test Verth and publish the mistakes</h2>
+        <p>We ran Verth’s scam check on real-world style scam messages and genuine ones, and published every result, including the scams it missed. Here’s the short version:</p>
+        <p class="proof-line"><!--PROOF-->30 of 45 test scams rated High risk, 7 missed, and 0 of 34 genuine messages wrongly rated High risk<!--/PROOF-->.</p>
+      </div>
+      <div class="proof-list">
+        <a href="how-it-works.html#h-check"><b>How a check works</b><span>Written rules that run on your phone, with every reason shown</span></a>
+        <a href="how-it-works.html#h-test"><b>Test results</b><span>The numbers, the misses and the false alarms</span></a>
+        <a href="how-it-works.html#h-data"><b>What leaves your phone</b><span>And what never does</span></a>
+        <a href="how-it-works.html#h-limits"><b>What Verth can’t guarantee</b><span>The honest limits</span></a>
+      </div>
     </div>
   </div>
 </section>
@@ -648,6 +687,20 @@ h1[tabindex="-1"]:focus{outline:none}
 </section>
 
 <div class="wrap">
+<section class="sec" id="guides" aria-labelledby="guides-title">
+  <div class="wrap">
+    <div class="center"><span class="kick">Safety guides</span>
+    <h2 id="guides-title">Learn the tricks before they reach you</h2>
+    <p class="lead">Short, plain-language guides to the scams that cost people in India the most money.</p></div>
+    <div class="g-grid">
+      <a href="guides/fake-job-and-exam-offers.html"><b>How to spot a fake job or exam offer</b><span>Exam fees, joining kits and paid task jobs</span></a>
+      <a href="guides/digital-arrest-scam.html"><b>How to spot a “digital arrest” scam</b><span>Fake police and CBI on a video call</span></a>
+      <a href="guides/check-a-upi-qr-code.html"><b>How to check a suspicious UPI QR code</b><span>“Scan to receive money” is always a trick</span></a>
+      <a href="guides/lost-money-to-a-scam.html"><b>Lost money to a scam?</b><span>What to do in the first hour</span></a>
+    </div>
+  </div>
+</section>
+
   <section class="final">
     <h2>Check before you trust.</h2>
     <p>Free to start. Two minutes to set up. Made in India.</p>
@@ -659,14 +712,14 @@ h1[tabindex="-1"]:focus{outline:none}
   <div class="wrap">
     <div><a class="brand" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Verth</span></a><p class="sig">made in India by Umesh</p><p class="small" style="margin-top:14px">© 2026 Verth · <a href="mailto:umeshdk22@gmail.com">umeshdk22@gmail.com</a><br>Lost money to a scam? Call <b>1930</b> or visit <a href="https://cybercrime.gov.in" rel="noopener" target="_blank">cybercrime.gov.in</a></p></div>
     <div class="cols">
-      <div><b>Product</b><a href="#tools">Scam check</a><a href="#teams">For organisations</a><a href="demo.html">Clickable demo</a><a href="app.html">Sign in</a></div>
+      <div><b>Product</b><a href="#tools">Scam check</a><a href="how-it-works.html">How Verth works</a><a href="guides/">Safety guides</a><a href="#teams">For organisations</a><a href="demo.html">Clickable demo</a><a href="app.html">Sign in</a></div>
       <div><b>Company</b><a href="pricing.html">Pricing</a><a href="contact.html">Contact</a><a href="https://github.com/Umeshdk22/verth">Source code</a></div>
       <div><b>Legal</b><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="copyright.html">Copyright</a><a href="refunds.html">Cancellation &amp; refunds</a><a href="shipping.html">Shipping</a></div>
     </div>
   </div>
 </footer>
 <script src="assets/site.js?v=f4ebdbea4d"></script>
-<script type="module" src="assets/live.js?v=c3e9a16892"></script>
+<script type="module" src="assets/live.js?v=452496d8ad"></script>
 <script type="module" src="assets/helper.js?v=6814649656"></script>
 </body>
 </html>

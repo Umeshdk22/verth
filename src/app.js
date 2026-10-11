@@ -1042,13 +1042,13 @@ function assessment(r, flags, flagged) {
     [!k.has('secret'), k.has('secret') ? 'Asks for an OTP, PIN or control' : 'No OTP or PIN request'],
     [!k.has('link') && !badLinks, k.has('link') || badLinks ? 'Suspicious link or address' : r.kind === 'phone' ? 'No suspicious number pattern' : 'No suspicious links'],
     [!k.has('pressure'), k.has('pressure') ? 'Pressure or threats' : 'No pressure or threats'],
-    [!k.has('money') && flagged < 2, flagged >= 2 ? 'Known scam in Verth’s database' : k.has('money') ? 'Money or fee bait' : 'No money bait'],
+    [!k.has('money') && flagged < 2, flagged >= 2 ? 'Rated high risk in earlier checks' : k.has('money') ? 'Money or fee bait' : 'No money bait'],
   ];
 }
 // What Verth looked at, with a status for each, like a scanner's report.
 function elements(r, flags, flagged) {
   const out = [flags.length ? [flags.some((f) => f.level >= 3) ? 'bad' : 'warn', 'Warning-sign check', `${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} found.`] : ['clean', 'Warning-sign check', 'None of the patterns real scams use.']];
-  out.push(flagged ? ['bad', 'Verth scam database', `Found to be a scam in ${flagged} earlier ${flagged === 1 ? 'check' : 'checks'}.`] : ['clean', 'Verth scam database', 'No scam record for this yet.']);
+  out.push(flagged ? ['bad', 'Verth scam database', `Rated high risk in ${flagged} earlier ${flagged === 1 ? 'check' : 'checks'}. A strong warning, not proof.`] : ['clean', 'Verth scam database', 'No earlier high-risk checks of this.']);
   const links = r.kind === 'link' ? [r] : r.links || [];
   if (links.length) {
     const bad = links.filter((l) => l.verdict === 'danger').length, warn = links.filter((l) => l.verdict === 'caution').length;
@@ -1082,7 +1082,7 @@ function scanResultCard(r) {
   const qr = r.qr;
   // A possible risk (warning signs) is kept apart from a confirmed scam (already in Verth's scam database).
   const label = crowd ? ['known', 'Known scam'] : r.verdict === 'danger' ? ['likely', 'Likely scam'] : r.verdict === 'caution' ? ['possible', 'Possible risk'] : ['none', 'No warning signs found'];
-  const summary = crowd ? `This ${what} is already in Verth’s scam database: earlier checks found it to be a scam ${flagged} times.`
+  const summary = crowd ? `This ${what} is already in Verth’s scam database: earlier checks rated it high risk ${flagged} times.`
     : r.verdict === 'danger' ? `Verth found ${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} that scammers use. Treat it as a scam.`
       : r.verdict === 'caution' ? `Verth found ${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'}. It may be genuine, but check before you act.`
         : 'Verth didn’t find any of the warning signs it knows. That doesn’t prove it’s safe.';
@@ -1105,7 +1105,7 @@ function scanResultCard(r) {
       <section class="rv-panel"><h3>${ICON.shield}Security elements</h3><ul class="rv-elems">${elements(r, flags, flagged).map(([st, t, d]) => `<li class="el-${st}"><i>${st === 'clean' ? ICON.ok : st === 'warn' ? ICON.wait : ICON.bad}</i><div><b>${t}</b><span>${d}</span></div><em>${st === 'clean' ? 'Clean' : st === 'warn' ? 'Check' : 'Found'}</em></li>`).join('')}</ul></section>
       <section class="rv-panel"><h3>${ICON.shield}Technical details</h3><dl class="rv-tech">${techDetails(r).map(([k, v, pill]) => `<div><dt>${k}</dt><dd>${pill ? `<span class="pill ${pill}">${esc(v)}</span>` : esc(v)}</dd></div>`).join('')}</dl></section>
     </div>
-    ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Verth found it to be a scam in ${flagged} earlier checks. Don’t pay, share an OTP or click anything.</div>` : ''}
+    ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Earlier checks rated it high risk ${flagged} times. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
     ${flags.length ? `<div class="rv-sec"><h3>Why it looks suspicious</h3><ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
     ${r.good.length ? `<div class="rv-sec"><h3>Good signs</h3><ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></div>` : ''}

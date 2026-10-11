@@ -15,7 +15,7 @@ async function load() {
     document.getElementById('live-total').textContent = String(j.total ?? 0);
     document.getElementById('live-today').textContent = String(days.at(-1)?.n ?? 0);
     const labels = days.map((d) => fmt(d.day));
-    box.innerHTML = `<h3>Scams found each day</h3>${areaChart({ labels, series: [{ name: 'scams found', values: days.map((d) => d.n), color: '#16A34A' }], height: 190, title: 'Scams Verth found each day in the last 14 days' })}<p class="lc-note">Updated ${new Date(j.updated || Date.now()).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} India time</p>`;
+    box.innerHTML = `<h3>High-risk checks each day</h3>${areaChart({ labels, series: [{ name: 'high-risk checks', values: days.map((d) => d.n), color: '#16A34A' }], height: 190, title: 'Checks Verth rated high risk each day, last 14 days' })}<p class="lc-note">Updated ${new Date(j.updated || Date.now()).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} India time</p>`;
   } catch {
     if (!box.querySelector('.chart')) box.innerHTML = '<p class="lc-wait">Live numbers aren’t available right now. Try again in a minute.</p>';
   }
