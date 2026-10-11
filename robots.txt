@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /umesh-bhardwaj-resume.pdf
+Disallow: /assets/resume-page.png
 
 Sitemap: https://verth.in/sitemap.xml
