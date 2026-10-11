@@ -1,0 +1,207 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1350px;overflow:hidden;background:#0B1535}
+  body{font-family:'Inter','Hind',system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  #st{position:relative;width:1080px;height:1350px;overflow:hidden;background:#0B1535}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform}
+  #o1{width:620px;height:620px;background:#4F2DD8;left:-240px;top:-180px}
+  #o2{width:520px;height:520px;background:#0E7C6B;right:-220px;top:640px;opacity:.32}
+  #o3{width:460px;height:460px;background:#7C3AED;left:300px;top:1050px;opacity:.28}
+  .dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1.4px,transparent 1.5px);background-size:34px 34px;mask-image:linear-gradient(180deg,#000,transparent 70%)}
+  .scene{position:absolute;inset:0;opacity:0;will-change:opacity,transform}
+  .brandmark{position:absolute;left:64px;top:52px;display:flex;align-items:center;gap:14px;font-size:34px;font-weight:750;letter-spacing:-.03em;opacity:0;z-index:20}
+  .brandmark img{width:50px;height:50px;border-radius:14px}
+  .url-chip{position:absolute;right:64px;top:60px;font-size:24px;font-weight:650;color:#C9D1EA;opacity:0;z-index:20}
+  .kicker{display:inline-flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#FFD36E}
+  .kicker i{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#FFD36E;color:#0B1535;font-style:normal;font-size:22px;letter-spacing:0}
+  .h{font-size:72px;line-height:1.04;font-weight:800;letter-spacing:-.035em;margin-top:18px}
+  .h em{font-style:normal;color:#FFD36E}
+  .sub{font-size:31px;line-height:1.38;color:#C9D1EA;margin-top:18px;font-weight:450}
+  .txt{position:absolute;left:64px;right:64px;top:150px}
+  /* phone */
+  .phone{position:absolute;width:470px;height:1018px;border-radius:66px;background:#05091C;padding:16px;box-shadow:0 60px 120px -30px rgba(0,0,0,.75),0 0 0 2px rgba(255,255,255,.1) inset;left:305px;top:560px}
+  .screen{position:relative;width:438px;height:986px;border-radius:52px;overflow:hidden;background:#F4F6FB}
+  .screen img{position:absolute;left:0;top:0;width:438px;height:auto;opacity:0;will-change:opacity,transform}
+  .notch{position:absolute;left:50%;top:22px;width:120px;height:34px;margin-left:-60px;border-radius:20px;background:#05091C;z-index:5}
+  .tap{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;z-index:6;opacity:0;background:rgba(124,92,255,.28);border:3px solid rgba(124,92,255,.95)}
+  .tap::after{content:"";position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(40,10,120,.6)}
+  /* laptop */
+  .laptop{position:absolute;left:50%;top:600px;width:1000px;margin-left:-500px}
+  .lap-screen{position:relative;border-radius:22px 22px 0 0;background:#05091C;padding:16px 16px 18px;box-shadow:0 50px 100px -30px rgba(0,0,0,.75),0 0 0 2px rgba(255,255,255,.1) inset}
+  .lap-view{position:relative;width:968px;height:605px;border-radius:8px;overflow:hidden;background:#F4F6FB}
+  .lap-view img{position:absolute;left:0;top:0;width:968px;height:auto;will-change:transform}
+  .lap-base{height:26px;margin:0 -50px;border-radius:0 0 22px 22px;background:linear-gradient(#C8CEDD,#9AA3B8)}
+  .lap-base::after{content:"";display:block;width:160px;height:9px;margin:0 auto;border-radius:0 0 10px 10px;background:#7F889D}
+  /* hook bubbles */
+  .bubbles{position:absolute;left:64px;right:64px;top:250px;display:flex;flex-direction:column;gap:26px}
+  .bub{align-self:flex-start;max-width:820px;background:#fff;color:#0F172A;border-radius:30px 30px 30px 10px;padding:22px 30px 24px;box-shadow:0 24px 50px -24px rgba(0,0,0,.6);opacity:0}
+  .bub small{display:block;font-size:22px;font-weight:650;color:#64748B;margin-bottom:6px}
+  .bub b{font-size:40px;line-height:1.22;font-weight:700;letter-spacing:-.02em}
+  .bub:nth-child(2){align-self:flex-end;border-radius:30px 30px 10px 30px}
+  .bub .warn{display:inline-block;margin-top:12px;font-size:21px;font-weight:700;color:#B42332;background:#FDECEE;padding:5px 14px;border-radius:999px}
+  .big-q{position:absolute;left:64px;right:64px;top:1000px;text-align:center;font-size:104px;font-weight:850;letter-spacing:-.045em;line-height:1;opacity:0}
+  .big-q span{color:#FFD36E}
+  /* brand */
+  .logo-big{position:absolute;left:50%;top:330px;width:230px;height:230px;margin-left:-115px;border-radius:62px;box-shadow:0 40px 90px -20px rgba(107,61,240,.9)}
+  .brand-name{position:absolute;left:0;right:0;top:610px;text-align:center;font-size:140px;font-weight:850;letter-spacing:-.05em}
+  .brand-tag{position:absolute;left:0;right:0;top:790px;text-align:center;font-size:52px;font-weight:750;color:#FFD36E;letter-spacing:-.025em}
+  .brand-sub{position:absolute;left:120px;right:120px;top:880px;text-align:center;font-size:32px;line-height:1.4;color:#C9D1EA}
+  /* languages */
+  .langs{position:absolute;left:64px;right:64px;top:600px;display:flex;flex-wrap:wrap;gap:18px;justify-content:center}
+  .langs span{font-size:38px;font-weight:700;padding:14px 28px;border-radius:999px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.16);opacity:0}
+  .langs span.hl{background:#FFD36E;color:#0B1535;border-color:#FFD36E}
+  /* privacy */
+  .lock{position:absolute;left:50%;top:520px;width:180px;height:180px;margin-left:-90px;border-radius:50%;background:#12A66B;display:grid;place-items:center;box-shadow:0 30px 80px -20px rgba(18,166,107,.8)}
+  .lock svg{width:86px;height:86px}
+  .plist{position:absolute;left:150px;right:150px;top:770px;display:flex;flex-direction:column;gap:22px}
+  .plist div{display:flex;align-items:center;gap:22px;font-size:38px;font-weight:650;opacity:0}
+  .plist i{flex:none;width:52px;height:52px;border-radius:50%;background:rgba(18,166,107,.22);display:grid;place-items:center;color:#4ADE9B;font-style:normal;font-size:30px;font-weight:800}
+  /* cta */
+  .cta-logo{position:absolute;left:50%;top:250px;width:170px;height:170px;margin-left:-85px;border-radius:46px}
+  .cta-h{position:absolute;left:60px;right:60px;top:480px;text-align:center;font-size:96px;font-weight:850;letter-spacing:-.045em;line-height:1.02}
+  .cta-h span{color:#FFD36E}
+  .cta-url{position:absolute;left:50%;top:760px;transform:translateX(-50%);font-size:64px;font-weight:800;color:#0B1535;background:#fff;padding:22px 56px;border-radius:999px;letter-spacing:-.03em;white-space:nowrap}
+  .cta-sub{position:absolute;left:0;right:0;top:940px;text-align:center;font-size:36px;font-weight:650;color:#C9D1EA}
+  .cta-sub b{color:#fff}
+  .cta-made{position:absolute;left:0;right:0;top:1180px;text-align:center;font-size:26px;color:#8E9AC0}
+  .bar{position:absolute;left:64px;right:64px;bottom:40px;height:6px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden;z-index:20;opacity:0}
+  .bar i{display:block;height:100%;width:0;background:#FFD36E;border-radius:9px}
+</style></head>
+<body><div id="st">
+  <div class="orb" id="o1"></div><div class="orb" id="o2"></div><div class="orb" id="o3"></div><div class="dots"></div>
+  <div class="brandmark" id="bm"><img src="../assets/icon-192.png" alt="">Verth</div>
+  <div class="url-chip" id="uc">verth.in</div>
+
+  <section class="scene" id="s-hook">
+    <div class="bubbles">
+      <div class="bub" id="b1"><small>SMS · Unknown sender</small><b>“Your bank account will be blocked today. Update KYC now.”</b></div>
+      <div class="bub" id="b2"><small>WhatsApp · New number</small><b>“Papa, it’s me. I need ₹20,000 urgently.”</b></div>
+      <div class="bub" id="b3"><small>Email · “HR Team”</small><b>“You’re hired! Pay ₹1,500 to confirm your slot.”</b></div>
+    </div>
+    <div class="big-q" id="bq">Is it really <span>them?</span></div>
+  </section>
+
+  <section class="scene" id="s-brand">
+    <img class="logo-big" id="lg" src="../assets/icon-512.png" alt="">
+    <div class="brand-name" id="bn">Verth</div>
+    <div class="brand-tag" id="bt">Check before you pay.</div>
+    <div class="brand-sub" id="bs">India’s anti-scam app for families and teams.</div>
+  </section>
+
+  <section class="scene" id="s-scan">
+    <div class="txt"><span class="kicker"><i>1</i>Scam check</span><div class="h">Paste it. See the <em>risk</em> in seconds.</div><div class="sub">Messages, links, numbers, job offers and screenshots.</div></div>
+    <div class="phone" id="p-scan"><div class="screen"><div class="notch"></div><img data-src="scan-filled"><img data-src="scan-result"><div class="tap"></div></div></div>
+  </section>
+
+  <section class="scene" id="s-verify">
+    <div class="txt"><span class="kicker"><i>2</i>Verify</span><div class="h">“Send money”? Ask the <em>real</em> person.</div><div class="sub">Verth asks them on their own phone. Only act on a green yes.</div></div>
+    <div class="phone" id="p-verify"><div class="screen"><div class="notch"></div><img data-src="verify-incoming"><img data-src="verify-denied"><div class="tap"></div></div></div>
+  </section>
+
+  <section class="scene" id="s-dash">
+    <div class="txt"><span class="kicker"><i>3</i>Live dashboard</span><div class="h">Your safety, <em>at a glance.</em></div><div class="sub">Scam checks, verifications and phone safety, live.</div></div>
+    <div class="laptop" id="lap"><div class="lap-screen"><div class="lap-view"><img data-src="wide-home"></div></div><div class="lap-base"></div></div>
+  </section>
+
+  <section class="scene" id="s-guard">
+    <div class="txt"><span class="kicker"><i>4</i>Phone safety</span><div class="h">A 1-minute <em>check-up</em> every day.</div><div class="sub">Plus App X-ray and an AI Phone Doctor.</div></div>
+    <div class="phone" id="p-guard"><div class="screen"><div class="notch"></div><img data-src="guard-full"></div></div>
+  </section>
+
+  <section class="scene" id="s-lang">
+    <div class="txt" style="text-align:center"><span class="kicker">Made in India · for everyone</span><div class="h">Your language. <em>Your family.</em></div><div class="sub">How-to videos in English, हिन्दी and 40 more languages.</div></div>
+    <div class="langs" id="langs"></div>
+  </section>
+
+  <section class="scene" id="s-privacy">
+    <div class="txt" style="text-align:center"><span class="kicker">Private by design</span><div class="h">Your messages stay <em>yours.</em></div></div>
+    <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+    <div class="plist" id="plist"><div><i>✓</i>Checked on your phone</div><div><i>✓</i>Never uploaded or saved</div><div><i>✓</i>No password to steal</div></div>
+  </section>
+
+  <section class="scene" id="s-cta">
+    <img class="cta-logo" src="../assets/icon-512.png" alt="">
+    <div class="cta-h" id="ch">Check before<br>you <span>pay.</span></div>
+    <div class="cta-url" id="cu">verth.in</div>
+    <div class="cta-sub" id="cs"><b>7 days free</b> · No card needed</div>
+    <div class="cta-made">For families and organisations · Made in India</div>
+  </section>
+  <div class="bar"><i id="bar"></i></div>
+</div>
+<script>
+// Video-making tool: runs only on the maker's own computer, never on the live website.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) { document.documentElement.innerHTML = ''; throw new Error('local tool'); }
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const out = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3));
+const back = (x) => { if (x <= 0) return 0; if (x >= 1) return 1; const c = 1.5; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const $ = (id) => document.getElementById(id);
+// Scene times (seconds). Each scene fades in over 0.5s and out over 0.45s.
+const SC = [['hook', 0, 6.2], ['brand', 6.2, 9.8], ['scan', 9.8, 17.2], ['verify', 17.2, 23.8], ['dash', 23.8, 29.4], ['guard', 29.4, 34.2], ['lang', 34.2, 38.6], ['privacy', 38.6, 42.4], ['cta', 42.4, 48]];
+const TOTAL = 48;
+const LANGS = ['English', 'हिन्दी', 'Deutsch', 'Français', 'Español', 'Português', 'العربية', '日本語', '中文', 'বাংলা', 'Русский', 'Türkçe', 'Bahasa', 'Italiano', '한국어', 'Kiswahili'];
+let TAPS = {};
+window.setup = async (taps) => {
+  TAPS = taps || {};
+  $('langs').innerHTML = LANGS.map((l, i) => `<span class="${i < 2 ? 'hl' : ''}">${l}</span>`).join('');
+  const imgs = [...document.querySelectorAll('img[data-src]')];
+  for (const im of imgs) im.src = `_frames/${im.dataset.src}.png`;
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+};
+function sceneAlpha(t, a, b) { return Math.min(ease((t - a) / 0.5), 1 - ease((t - (b - 0.45)) / 0.45)); }
+// A finger tap at the button that changes the screen (coordinates from the app test, in 390-wide phone pixels).
+function tap(el, name, t, at) {
+  const tp = el.querySelector('.tap'), k = 438 / 390, c = TAPS[name];
+  const q = (t - at) / 0.9;
+  if (!c || q < 0 || q > 1) { tp.style.opacity = 0; return; }
+  tp.style.left = c.x * k + 'px'; tp.style.top = c.y * k + 'px';
+  const press = q < 0.4 ? ease(q / 0.4) : 1 - ease((q - 0.6) / 0.4);
+  tp.style.opacity = press; tp.style.transform = `scale(${1.2 - 0.25 * press})`;
+}
+function phoneShots(el, t, a, switchAt, pans) {
+  const [i1, i2] = el.querySelectorAll('img');
+  const x = ease((t - switchAt) / 0.45);
+  i1.style.opacity = 1 - x; if (i2) i2.style.opacity = x;
+  const lt = t - a;
+  i1.style.transform = `translateY(${-(pans[0] || 0) * out(lt / (switchAt - a))}px)`;
+  if (i2) i2.style.transform = `translateY(${-(pans[1] || 0) * ease((t - switchAt - 0.6) / 3.2)}px)`;
+}
+window.render = (t) => {
+  // background drift
+  $('o1').style.transform = `translate(${Math.sin(t / 5) * 60}px,${Math.cos(t / 6) * 40}px)`;
+  $('o2').style.transform = `translate(${Math.cos(t / 6) * 70}px,${Math.sin(t / 5) * 40}px)`;
+  $('o3').style.transform = `translate(${Math.sin(t / 7) * 80}px,${Math.cos(t / 4) * 30}px)`;
+  for (const [id, a, b] of SC) {
+    const el = $('s-' + id), al = Math.max(0, sceneAlpha(t, a, b));
+    el.style.opacity = al; el.style.visibility = al > 0 ? 'visible' : 'hidden';
+    const lt = t - a;
+    // text block rises in
+    const tx = el.querySelector('.txt');
+    if (tx) { const p = out(lt / 0.8); tx.style.transform = `translateY(${(1 - p) * 40}px)`; }
+    if (id === 'hook') {
+      ['b1', 'b2', 'b3'].forEach((b, i) => { const p = back((lt - 0.35 - i * 1.15) / 0.55); const d = ease((lt - 4.0) / 0.5); $(b).style.opacity = Math.min(1, Math.max(0, p)) * (1 - d * 0.75); $(b).style.transform = `translateY(${(1 - Math.min(1, p)) * 40}px) scale(${0.92 + 0.08 * Math.min(1, p) - d * 0.06})`; });
+      const q = back((lt - 4.0) / 0.7); $('bq').style.opacity = Math.min(1, Math.max(0, q)); $('bq').style.transform = `scale(${0.85 + 0.15 * Math.min(1, q)})`;
+    }
+    if (id === 'brand') {
+      const p = back(lt / 0.8); $('lg').style.transform = `scale(${0.4 + 0.6 * p}) rotate(${(1 - Math.min(1, p)) * -12}deg)`;
+      [['bn', 0.35], ['bt', 0.75], ['bs', 1.1]].forEach(([e, d]) => { const q = out((lt - d) / 0.6); $(e).style.opacity = q; $(e).style.transform = `translateY(${(1 - q) * 30}px)`; });
+    }
+    if (id === 'scan') { const ph = $('p-scan'); ph.style.transform = `translateY(${(1 - out(lt / 0.9)) * 160}px)`; phoneShots(ph, t, a + 0.4, a + 3.4, [0, 260]); tap(ph, 'scan-filled', t, a + 2.3); }
+    if (id === 'verify') { const ph = $('p-verify'); ph.style.transform = `translateY(${(1 - out(lt / 0.9)) * 160}px)`; phoneShots(ph, t, a + 0.4, a + 3.3, [0, 0]); tap(ph, 'verify-incoming', t, a + 2.3); }
+    if (id === 'guard') { const ph = $('p-guard'); ph.style.transform = `translateY(${(1 - out(lt / 0.9)) * 160}px)`; phoneShots(ph, t, a + 0.4, b + 5, [260]); }
+    if (id === 'dash') { const p = out(lt / 0.9); $('lap').style.transform = `translateY(${(1 - p) * 140}px) scale(${0.94 + 0.06 * p})`; const im = $('lap').querySelector('img'); im.style.transform = `translateY(${-ease((lt - 1.4) / 3.4) * 150}px)`; }
+    if (id === 'lang') document.querySelectorAll('#langs span').forEach((s, i) => { const q = back((lt - 0.5 - i * 0.12) / 0.45); s.style.opacity = Math.min(1, Math.max(0, q)); s.style.transform = `scale(${0.6 + 0.4 * Math.min(1, q)})`; });
+    if (id === 'privacy') { const l = el.querySelector('.lock'), p = back((lt - 0.2) / 0.6); l.style.transform = `scale(${Math.max(0, Math.min(1.05, p))})`; document.querySelectorAll('#plist div').forEach((d, i) => { const q = out((lt - 0.9 - i * 0.4) / 0.5); d.style.opacity = q; d.style.transform = `translateX(${(1 - q) * -40}px)`; }); }
+    if (id === 'cta') { const p = back(lt / 0.7); el.querySelector('.cta-logo').style.transform = `scale(${Math.max(0, Math.min(1.05, p))})`; [['ch', 0.3], ['cu', 0.7], ['cs', 1.1]].forEach(([e, d]) => { const q = out((lt - d) / 0.6); $(e).style.opacity = q; $(e).style.transform = `${e === 'cu' ? 'translateX(-50%) ' : ''}translateY(${(1 - q) * 30}px)`; }); }
+  }
+  // the small logo and URL stay in the corner during the product scenes
+  const mid = Math.min(ease((t - 9.9) / 0.5), 1 - ease((t - 42.2) / 0.4));
+  $('bm').style.opacity = mid; $('uc').style.opacity = mid;
+  document.querySelector('.bar').style.opacity = mid;
+  $('bar').style.width = `${Math.max(0, Math.min(1, (t - 9.8) / (42.4 - 9.8))) * 100}%`;
+};
+window.TOTAL = TOTAL;
+</script></body></html>

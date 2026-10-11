@@ -12,6 +12,8 @@ const SLOW = process.env.CI ? 3 : 1;
   const ctx = await b.newContext(VS ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 } : { viewport: { width: 400, height: 860 } });
   // The first page shows the "Welcome to Verth" greeting; the rest skip it (once per visit, like a person's tab).
   await ctx.addInitScript(() => { if (!window.name.includes('greet')) { try { sessionStorage.setItem('verth-splash', '1'); } catch (e) {} } });
+  // Frames for English videos: start with English video cards (a choice the person can change).
+  if (process.env.VS_LANG) await ctx.addInitScript((l) => { try { if (!localStorage.getItem('verth-vlang')) localStorage.setItem('verth-vlang', l); } catch (e) {} }, process.env.VS_LANG);
   const A = await ctx.newPage(), B = await ctx.newPage();
   for (const [n, p] of [['A', A], ['B', B]]) {
     p.on('pageerror', (e) => errors.push(n + ' pageerror: ' + e.message));
