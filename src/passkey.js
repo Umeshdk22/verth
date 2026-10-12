@@ -4,6 +4,10 @@ const toB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace
 const fromB64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
 
 export const passkeySupported = () => typeof window !== 'undefined' && !!window.PublicKeyCredential && !!navigator.credentials?.create;
+// Does this phone or computer have its own fingerprint, face or screen-lock check? (Not just a USB key.)
+export async function deviceUnlockAvailable() {
+  try { return !!(await window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable?.()); } catch { return false; }
+}
 
 // Friendly messages for what the browser says when someone cancels or something's missing.
 export function passkeyError(e) {
@@ -22,7 +26,10 @@ export async function registerPasskey(call, label) {
       challenge: fromB64(o.challenge), rp: o.rp,
       user: { id: fromB64(o.user.id), name: o.user.name, displayName: o.user.displayName },
       pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-      authenticatorSelection: { residentKey: 'required', requireResidentKey: true, userVerification: 'required' },
+      // 'platform' + the client-device hint: go straight to this phone's own fingerprint / face check,
+      // instead of offering another phone or a security key.
+      authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'required', requireResidentKey: true, userVerification: 'required' },
+      hints: ['client-device'],
       excludeCredentials: (o.exclude || []).map((id) => ({ type: 'public-key', id: fromB64(id) })),
       attestation: 'none', timeout: 60000,
     },
@@ -38,7 +45,7 @@ export async function registerPasskey(call, label) {
 // Returns a sign-in token for the account that owns the passkey the person picks.
 export async function loginWithPasskey(call) {
   const o = await call('/passkey/login-options', {});
-  const cred = await navigator.credentials.get({ publicKey: { challenge: fromB64(o.challenge), rpId: o.rpId, userVerification: 'required', timeout: 60000 } });
+  const cred = await navigator.credentials.get({ publicKey: { challenge: fromB64(o.challenge), rpId: o.rpId, userVerification: 'required', hints: ['client-device'], timeout: 60000 } });
   const r = cred.response;
   const { token } = await call('/passkey/login', {
     id: toB64(cred.rawId), clientDataJSON: toB64(r.clientDataJSON), authenticatorData: toB64(r.authenticatorData),

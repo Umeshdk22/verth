@@ -107,8 +107,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await p.fill('#n-phone', phone); await p.check('#n-agree');
     await p.click('button:has-text("Create my account")');
     await p.getByRole('heading', { name: 'Lock Verth to your phone' }).waitFor({ timeout: 5000 * SLOW });
-    await p.click('button:has-text("Turn on fingerprint / face")');
-    await p.click('text=Continue without it (less secure)', { timeout: 8000 * SLOW });
+    await p.click('button:has-text("Skip for now")');
     await p.getByRole('heading', { name: /Welcome to Verth, / }).waitFor({ timeout: 5000 * SLOW });
     await p.locator('.welcome-card button', { hasText: /Maybe later|Let’s get started/ }).click();
   };
@@ -176,12 +175,14 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.fill('#m-code', '000000');
     await A.getByText('That code isn’t right').waitFor({ timeout: 3000 * SLOW });
     await A.fill('#m-code', '246810');
-    // Then lock the account to this phone with fingerprint / face. Skipping only appears after a try.
+    // Then lock the account to this phone with fingerprint / face: both ways explained, Skip always there.
     await A.getByRole('heading', { name: 'Lock Verth to your phone' }).waitFor({ timeout: 5000 * SLOW });
+    await A.locator('.bio-ways', { hasText: 'Fingerprint' }).filter({ hasText: 'Face' }).waitFor();
+    await A.getByText('It may call this a').waitFor();
     await shot(A, '00c-A-lock');
-    if (await A.getByText('Continue without it').count()) throw new Error('skip should only appear after trying');
-    await A.click('button:has-text("Turn on fingerprint / face")');
-    await A.click('text=Continue without it (less secure)', { timeout: 8000 * SLOW });
+    await A.click('button:has-text("Turn on fingerprint / face")'); // no fingerprint reader in the test browser
+    await A.locator('#l-err').filter({ hasText: /\S/ }).waitFor({ timeout: 8000 * SLOW });
+    await A.click('button:has-text("Skip for now")');
     await A.getByRole('heading', { name: /Welcome to Verth, Rajesh/ }).waitFor({ timeout: 5000 * SLOW });
     await A.getByText('Mobile number verified').first().waitFor();
     await shot(A, '00b-A-welcome');

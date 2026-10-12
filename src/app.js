@@ -11,7 +11,7 @@ import {
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { makeServerAI } from './ai-client.js';
 import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY } from './config.js';
-import { passkeySupported, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
+import { passkeySupported, deviceUnlockAvailable, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
 import { COUNTRIES, countryBy, fullPhone } from './countries.js';
@@ -250,6 +250,7 @@ const ICON = {
   bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>',
+  face: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2"/><path d="M9 10v1M15 10v1M12 10v3h-1M9.5 16a3.5 3.5 0 005 0"/></svg>',
   finger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 7.5A7 7 0 0119 12v1.5"/><path d="M5 11.5c0-.9.2-1.8.5-2.6M12 8.2a3.8 3.8 0 013.8 3.8v2.3c0 2.2.6 4.2 1.6 5.7"/><path d="M8.2 12a3.8 3.8 0 01.6-2M8.2 14c0 2.8.9 5.2 2.4 7"/><path d="M12 12v2.3c0 2.7.8 5 2.2 6.7"/><path d="M5.3 15.5c.2 1.4.6 2.8 1.2 4"/></svg>',
   mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>',
   google: '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 01-2.2 3.3v2.7h3.5c2.1-1.9 3.3-4.7 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.2-2.7l-3.5-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.2v2.8A11 11 0 0012 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 010-4.2V7.1H2.2a11 11 0 000 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.1-3.1A11 11 0 002.2 7.1l3.6 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>',
@@ -305,7 +306,11 @@ function readPerson(f, p) {
   return { gender, dob, country, phone };
 }
 const smsStep = () => S.smsOn && (S.profile?.phone || S.signupInfo?.phone || '+91').startsWith('+91');
-const STEP_NAMES = () => ['Your details', 'Verify email', ...(smsStep() ? ['Verify mobile'] : []), ...(passkeySupported() ? ['Fingerprint'] : []), 'You’re in'];
+// Fingerprint / face step: only on devices with their own fingerprint, face or screen-lock check.
+let DEVICE_UNLOCK = null;
+deviceUnlockAvailable().then((v) => { DEVICE_UNLOCK = v; });
+const lockStepReady = () => passkeySupported() && (EMU || DEVICE_UNLOCK !== false);
+const STEP_NAMES = () => ['Your details', 'Verify email', ...(smsStep() ? ['Verify mobile'] : []), ...(lockStepReady() ? ['Fingerprint'] : []), 'You’re in'];
 const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => { const skip = i + 1 < n && t === 'Fingerprint' && !store.get('verth-pk'); return `<li class="${skip ? 'skip' : i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"${skip ? ' title="Skipped. You can turn it on later."' : ''}><span>${skip ? '–' : i + 1 < n ? '✓' : i + 1}</span>${t}</li>`; }).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
@@ -2342,7 +2347,8 @@ document.addEventListener('input', (e) => {
 });
 const isPhone = () => /Android|iPhone|iPad/i.test(navigator.userAgent);
 const VIEWABLE = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
-const readKey = (pid) => `verth-read:${S.circleId}:${pid}`;
+// Per person: two accounts on one phone each keep their own "read up to here".
+const readKey = (pid) => `verth-read:${S.circleId}:${S.user?.uid}:${pid}`;
 const lastRead = (pid) => +(store.get(readKey(pid)) || 0);
 const fmtBytes = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const rupees = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
@@ -2891,7 +2897,7 @@ function authFrame(html) {
 const appLockOn = () => store.get('verth-applock') !== 'off' && !!store.get('verth-pk') && passkeySupported();
 const isUnlocked = (uid) => { try { return sessionStorage.getItem('verth-unlocked') === uid; } catch { return true; } };
 function markUnlocked(uid) { try { sessionStorage.setItem('verth-unlocked', uid); } catch {} }
-function relock() { try { sessionStorage.removeItem('verth-unlocked'); } catch {} }
+function relock() { S.lockAutoTried = false; try { sessionStorage.removeItem('verth-unlocked'); } catch {} }
 const tokenUid = (t) => { try { return JSON.parse(atob(String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).uid || ''; } catch { return ''; } };
 
 function renderAppLock(note = '') {
@@ -2915,6 +2921,24 @@ function renderAppLock(note = '') {
     <div class="links"><button class="link" data-act="signout">Not you? Sign out</button></div>
   </div></div>`);
   S.screen = 'applock';
+  // Ask for the fingerprint / face straight away, once per visit. If the browser wants a tap first,
+  // or the person cancels, the button is still there and nothing is shown as an error.
+  if (pk && !S.lockEmail && !S.lockAutoTried && !EMU && document.visibilityState === 'visible') {
+    S.lockAutoTried = true;
+    setTimeout(() => { if (S.screen === 'applock' && !S.lockEmail) unlockWithPasskey(null, true); }, 350);
+  }
+}
+async function unlockWithPasskey(el, auto) {
+  if (el) el.disabled = true;
+  if (!auto) setErr('l-err', '');
+  try {
+    const token = await loginWithPasskey(otpApi);
+    if (tokenUid(token) && tokenUid(token) !== S.user.uid) throw Object.assign(new Error('That fingerprint belongs to a different Verth account.'), { otp: true });
+    unlockDone();
+  } catch (e) {
+    if (el) el.disabled = false;
+    if (!auto || e?.otp) setErr('l-err', e?.otp ? e.message : passkeyError(e));
+  }
 }
 function unlockDone() {
   markUnlocked(S.user.uid); S.lockEmail = false; S.screen = '';
@@ -2922,14 +2946,7 @@ function unlockDone() {
   afterSignIn(S.circleId || undefined).catch((e) => errorScreen(friendlyError(e)));
 }
 Object.assign(actions, {
-  'unlock-pk': async (el) => {
-    el.disabled = true; setErr('l-err', '');
-    try {
-      const token = await loginWithPasskey(otpApi);
-      if (tokenUid(token) && tokenUid(token) !== S.user.uid) throw Object.assign(new Error('That fingerprint belongs to a different Verth account.'), { otp: true });
-      unlockDone();
-    } catch (e) { el.disabled = false; setErr('l-err', e?.otp ? e.message : passkeyError(e)); }
-  },
+  'unlock-pk': (el) => unlockWithPasskey(el, false),
   'unlock-email': () => { S.lockEmail = true; renderAppLock(); },
   'unlock-back': () => { S.lockEmail = false; renderAppLock(); },
   'applock-toggle': async (el) => {
@@ -3071,7 +3088,7 @@ Object.assign(actions, {
 // Free, and stronger than SMS: email proves the inbox, the fingerprint / face proves the person
 // holding this phone. It can't be read out to a scammer or used from another phone.
 function afterPhone() {
-  if (passkeySupported() && !store.get('verth-pk')) { S.pkTried = 0; return renderLockStep(); }
+  if (lockStepReady() && !store.get('verth-pk')) { S.pkTried = 0; return renderLockStep(); }
   return renderWelcome();
 }
 function renderLockStep(err = '') {
@@ -3081,16 +3098,17 @@ function renderLockStep(err = '') {
     ${STEPS3(n)}
     <div class="lock-hero">${ICON.finger}</div>
     <h1>Lock Verth to your phone</h1>
-    <p class="muted">Use your fingerprint or face to protect your account. Even if someone gets your email, they can’t open your Verth without <b>you</b> and <b>this phone</b>.</p>
-    <ul class="w-ticks small-ticks">
-      <li>${ICON.ok}<span>Your fingerprint or face never leaves your phone. Verth only gets a secure key.</span></li>
-      <li>${ICON.ok}<span>Next time, log in with one touch. No codes to type.</span></li>
-      <li>${ICON.ok}<span>Stronger than SMS codes: nobody can trick you into reading it out.</span></li>
-    </ul>
+    <p class="muted">Next time, Verth opens with just your fingerprint or face. Even if someone gets your email, they can’t open your Verth without <b>you</b> and <b>this phone</b>.</p>
+    <div class="bio-ways">
+      <div>${ICON.finger}<b>Fingerprint</b><span>Touch your phone’s fingerprint sensor</span></div>
+      <div>${ICON.face}<b>Face</b><span>Look at your phone, like when you unlock it</span></div>
+    </div>
+    <p class="muted small">Verth uses the one you already use to unlock this phone. Your phone checks it itself: your fingerprint or face is never sent to Verth or stored by us.</p>
+    <div class="note bio-note">When you tap the button, your phone shows its own screen. It may call this a <b>“passkey”</b>: that’s simply the name for fingerprint / face login. Tap <b>Continue</b> (or <b>Create</b>), then use your fingerprint or face.</div>
     <p class="err" id="l-err" role="alert">${esc(err)}</p>
     <button class="btn primary big" data-act="lock-on">${ICON.finger}Turn on fingerprint / face</button>
-    ${S.pkTried ? '<div class="links"><button class="link" data-act="lock-skip">Continue without it (less secure)</button></div>' : ''}
-    <p class="muted small">Your phone will ask for your fingerprint, face or screen lock. If it asks you to set a screen lock first, do that, then try again.</p>
+    <button class="btn ghost big" data-act="lock-skip">Skip for now</button>
+    <p class="muted small">You can turn it on later in your profile. If your phone asks you to set a screen lock first, do that, then try again.</p>
   </div></div>`);
   S.screen = 'lock';
 }
