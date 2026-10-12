@@ -9,8 +9,11 @@ const TOKEN = process.env.TTS_TOKEN, ONLY = (process.env.ONLY || 'all').split(',
 const REDO = process.env.REDO === '1';
 const VOICE = { en: process.env.VOICE_EN || 'Kore', hi: process.env.VOICE_HI || 'Kore' };
 // Hindi style words get read out loud, so Hindi lines go in plain.
-const STYLE = { en: 'Say in a warm, friendly, clear voice, at a natural pace: ', hi: '' };
-const scripts = JSON.parse(readFileSync('video/scripts.json', 'utf8'));
+const STYLE = { en: process.env.STYLE_EN === 'none' ? '' : process.env.STYLE_EN || 'Say in a warm, friendly, clear voice, at a natural pace: ', hi: '' };
+// How some words should sound, e.g. SAY="Verth=Vurth": only what's spoken changes, not the subtitles.
+const SAY = Object.fromEntries(String(process.env.SAY || '').split(',').filter((p) => p.includes('=')).map((p) => p.split('=').map((x) => x.trim())));
+const say = (t) => Object.entries(SAY).reduce((s, [a, b]) => s.replace(new RegExp(`\\b${a}\\b`, 'g'), b), t);
+const scripts = JSON.parse(readFileSync(process.env.SCRIPTS || 'video/scripts.json', 'utf8'));
 mkdirSync('video/voice', { recursive: true });
 const report = existsSync('video/voice/report.json') ? JSON.parse(readFileSync('video/voice/report.json', 'utf8')) : {};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -81,7 +84,7 @@ for (const [id, v] of Object.entries(scripts)) {
   for (const [li, lang] of ['en', 'hi'].entries()) {
     if (quota) break;
     if (!ONLY.includes('all') && !ONLY.includes(id) && !ONLY.includes(lang) && !ONLY.includes(`${id}-${lang}`)) continue;
-    const lines = v.lines.map((p) => p[li]), keys = lines.map((_, n) => `${id}-${lang}-${n + 1}`);
+    const lines = v.lines.map((p) => say(p[li])), keys = lines.map((_, n) => `${id}-${lang}-${n + 1}`);
     const missing = keys.filter((k, n) => REDO || !existsSync(`video/voice/${k}.wav`) || report[k]?.line !== lines[n]);
     if (missing.length < lines.length) continue; // only brand-new videos are recorded whole; fixes go line by line
     const r = await tts((lang === 'en' ? STYLE.en : '') + lines.join('\n\n'), lang);
@@ -108,7 +111,7 @@ for (const [id, v] of Object.entries(scripts)) {
   for (const [li, lang] of ['en', 'hi'].entries()) {
     if (!ONLY.includes('all') && !ONLY.includes(id) && !ONLY.includes(lang) && !ONLY.includes(`${id}-${lang}`)) continue;
     for (const [n, pair] of v.lines.entries()) {
-      const key = `${id}-${lang}-${n + 1}`, file = `video/voice/${key}.wav`, line = pair[li];
+      const key = `${id}-${lang}-${n + 1}`, file = `video/voice/${key}.wav`, line = say(pair[li]);
       if (quota) break;
       if (existsSync(file) && report[key]?.ok && report[key]?.line === line) continue;
       let done = false;
