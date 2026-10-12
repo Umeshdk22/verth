@@ -813,7 +813,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.locator('#xray-result', { hasText: 'Act now' }).waitFor({ timeout: 90000 * SLOW });
     for (const t of ['AnyDesk', 'Fake rewards app']) await A.locator('#xray-result li', { hasText: t }).waitFor();
     if (await A.locator('#xray-result li', { hasText: 'Opinion' }).count()) throw new Error('Google Opinion Rewards is a real app');
-    await A.locator('#xray-result').scrollIntoViewIfNeeded(); await shot(A, '21b-A-xray');
+    await A.locator('#xray-result').waitFor({ timeout: 5000 * SLOW }); await A.waitForTimeout(250); await A.locator('#xray-result').scrollIntoViewIfNeeded().catch(() => {}); // only for the screenshot; the page may redraw await shot(A, '21b-A-xray');
     // AI Phone Doctor: a symptom chip asks the Verth server in doctor mode.
     let doctorBody = null;
     await A.route(PAY + '/ai', async (r) => {
@@ -830,13 +830,13 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.locator('#doctor .doc-a >> nth=1').locator('li').first().waitFor({ timeout: 8000 * SLOW });
     if (doctorBody.messages.length !== 3) throw new Error('follow-up should include the earlier answer');
     await A.unroute(PAY + '/ai');
-    await A.locator('#doctor').scrollIntoViewIfNeeded(); await shot(A, '21c-A-doctor');
+    await A.locator('#doctor').waitFor({ timeout: 5000 * SLOW }); await A.waitForTimeout(250); await A.locator('#doctor').scrollIntoViewIfNeeded().catch(() => {}); // only for the screenshot; the page may redraw await shot(A, '21c-A-doctor');
     // Circle board: A shares a score, and (on Team) sees the board.
     await A.click('button:has-text("Share my score")');
     await A.locator('.g-board li', { hasText: '(you)' }).waitFor({ timeout: 5000 * SLOW });
     const shared = await A.evaluate(() => Object.entries(JSON.parse(localStorage.getItem('fakefs'))).filter(([k]) => /\/safety\//.test(k)).map(([, v]) => v));
     if (shared.length !== 1 || shared[0].score !== 1 || Object.keys(shared[0]).sort().join() !== 'at,day,score,streak') throw new Error('only the score should be shared: ' + JSON.stringify(shared));
-    await A.locator('.g-board').scrollIntoViewIfNeeded(); await shot(A, '21d-A-board');
+    await A.locator('.g-board').waitFor({ timeout: 5000 * SLOW }); await A.waitForTimeout(250); await A.locator('.g-board').scrollIntoViewIfNeeded().catch(() => {}); // only for the screenshot; the page may redraw await shot(A, '21d-A-board');
     await A.click('nav >> text=Home');
     await A.locator('.guard-card', { hasText: '9 items left in today’s check-up' }).waitFor();
   });
