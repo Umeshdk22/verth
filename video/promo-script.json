@@ -1,0 +1,134 @@
+{
+ "promo": {
+  "title": [
+   "Verth",
+   ""
+  ],
+  "lines": [
+   [
+    "Every day, someone in India loses money to a message that looked real.",
+    ""
+   ],
+   [
+    "A bank asking you to update your KYC. A son asking for money from a new number. A job that wants a small fee first.",
+    ""
+   ],
+   [
+    "Verth helps you check, before you pay.",
+    ""
+   ],
+   [
+    "Paste any message, link, phone number or screenshot, and Verth shows you the warning signs in seconds.",
+    ""
+   ],
+   [
+    "If someone asks for money in the name of your family, or your boss, Verth asks the real person, on their own phone.",
+    ""
+   ],
+   [
+    "Your dashboard shows your checks, and your family's safety, at a glance.",
+    ""
+   ],
+   [
+    "And a one-minute daily check-up keeps your phone safe from common tricks.",
+    ""
+   ],
+   [
+    "Your messages are checked on your own device. Nothing is uploaded.",
+    ""
+   ],
+   [
+    "Verth. Check before you pay. Try it free at verth dot in.",
+    ""
+   ]
+  ]
+ },
+ "promofix": {
+  "title": [
+   "Verth",
+   ""
+  ],
+  "lines": [
+   [
+    "Verth helps you check, before you pay.",
+    ""
+   ],
+   [
+    "Paste any message, link, phone number or screenshot, and Verth shows you the warning signs in seconds.",
+    ""
+   ],
+   [
+    "Verth. Check before you pay. Try it free at verth dot in.",
+    ""
+   ]
+  ]
+ },
+ "org": {
+  "title": [
+   "Verth for your organisation",
+   ""
+  ],
+  "lines": [
+   [
+    "Running a business? Make a private group for your office. You approve every person who joins, and you can lock it to your company email.",
+    ""
+   ],
+   [
+    "Inside the group, anyone can chat privately, one to one. Messages and files are locked to your two phones. Not even the admin can read them.",
+    ""
+   ],
+   [
+    "Need to send money? Pay safely uses the UPI ID the person saved in Verth, never one sent in a message. You pay from your own UPI app, and both of you get a receipt.",
+    ""
+   ]
+  ]
+ },
+ "wa": {
+  "title": [
+   "Verth for offices and families",
+   "ऑफ़िस और परिवार के लिए Verth"
+  ],
+  "lines": [
+   [
+    "Today, scammers pretend to be your boss, a vendor or a family member, and ask for money.",
+    "आजकल ठग आपके बॉस, किसी वेंडर या परिवार वाले बनकर पैसे माँगते हैं।"
+   ],
+   [
+    "Verth keeps your office and your family safe.",
+    "Verth आपके ऑफ़िस और परिवार को सुरक्षित रखता है।"
+   ],
+   [
+    "Create a private group for your office. You approve every person who joins, and you can lock it to your company email.",
+    "अपने ऑफ़िस के लिए एक प्राइवेट ग्रुप बनाइए। कौन जुड़ेगा, यह आप तय करते हैं, और आप इसे सिर्फ़ कंपनी ईमेल वालों तक सीमित कर सकते हैं।"
+   ],
+   [
+    "If a message asks for money in your boss's name, Verth asks the real person, on their own phone, before anyone pays.",
+    "अगर कोई मैसेज आपके बॉस के नाम पर पैसे माँगे, तो पैसे भेजने से पहले Verth असली व्यक्ति से, उन्हीं के फ़ोन पर पूछता है।"
+   ],
+   [
+    "Talk privately, one to one. Messages and files are locked to your two phones. Not even the admin can read them.",
+    "आपस में प्राइवेट बात कीजिए। मैसेज और फ़ाइलें सिर्फ़ आप दोनों के फ़ोन पर खुलती हैं। एडमिन भी इन्हें नहीं पढ़ सकता।"
+   ],
+   [
+    "Need to pay a colleague? Pay safely opens your own UPI app, with the UPI ID they saved in Verth, never one sent in a message.",
+    "किसी साथी को पैसे भेजने हैं? Pay safely आपका अपना UPI ऐप खोलता है, उसी UPI ID के साथ जो उन्होंने Verth में सेव की है, मैसेज में भेजी गई ID नहीं।"
+   ],
+   [
+    "You both get a clear receipt to download and share. And if a payment fails, Verth tells you how your bank returns the money.",
+    "आप दोनों को एक साफ़ रसीद मिलती है, जिसे डाउनलोड और शेयर कर सकते हैं। और अगर पेमेंट फ़ेल हो जाए, तो Verth बताता है कि बैंक आपका पैसा कैसे लौटाता है।"
+   ],
+   [
+    "And for everyone: paste any message, link, number or screenshot, and Verth shows the warning signs in seconds.",
+    "और सबके लिए: कोई भी मैसेज, लिंक, नंबर या स्क्रीनशॉट डालिए, और Verth कुछ ही सेकंड में खतरे के संकेत दिखा देता है।"
+   ],
+   [
+    "Verth even reads UPI QR codes. Remember: to receive money, you never scan a QR code or enter your PIN.",
+    "Verth UPI QR कोड भी पढ़ लेता है। याद रखिए: पैसे लेने के लिए कभी QR स्कैन नहीं करना पड़ता, और न ही PIN डालना पड़ता है।"
+   ],
+   [
+    "Verth. Check before you pay. Free to start at verth dot in.",
+    "Verth. पैसे भेजने से पहले जाँचिए। मुफ़्त शुरू कीजिए, verth डॉट इन पर।"
+   ]
+  ]
+ }
+}
