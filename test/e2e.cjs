@@ -106,8 +106,10 @@ const SLOW = process.env.CI ? 3 : 1;
     await p.selectOption('#n-gender', 'female'); await p.fill('#n-dob', '1992-03-08');
     await p.fill('#n-phone', phone); await p.check('#n-agree');
     await p.click('button:has-text("Create my account")');
-    await p.getByRole('heading', { name: 'Lock Verth to your phone' }).waitFor({ timeout: 5000 * SLOW });
-    await p.click('button:has-text("Skip for now")');
+    // The fingerprint step shows unless this browser already has fingerprint login turned on.
+    const lockH = p.getByRole('heading', { name: 'Lock Verth to your phone' }), welcomeH = p.getByRole('heading', { name: /Welcome to Verth, / });
+    await lockH.or(welcomeH).first().waitFor({ timeout: 5000 * SLOW });
+    if (await lockH.isVisible()) await p.click('button:has-text("Skip for now")');
     await p.getByRole('heading', { name: /Welcome to Verth, / }).waitFor({ timeout: 5000 * SLOW });
     await p.locator('.welcome-card button', { hasText: /Maybe later|Let’s get started/ }).click();
   };
@@ -337,6 +339,11 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('.pay-sheet >> text=Close');
     // Receipts: the payer marks it paid (with the UPI reference), the receiver confirms it arrived.
     await A.getByText('Did your ₹2,500 payment to Priya go through?').waitFor({ timeout: 5000 * SLOW });
+    // Still pending: told not to pay twice; the refund rule is one tap away.
+    await A.click('.pay-ask >> text=Still pending');
+    await A.getByText('Don’t pay again').first().waitFor({ timeout: 3000 * SLOW });
+    await A.click('.pay-ask .refund-tip summary');
+    await A.locator('.pay-ask .refund-tip', { hasText: 'at the latest by the next day' }).waitFor();
     await A.fill('#pc-utr', '427512345678'); await A.click('.pay-ask >> text=Yes, paid');
     await A.locator('.sys-pill', { hasText: 'You marked ₹2,500 as paid · UPI ref 427512345678' }).waitFor({ timeout: 5000 * SLOW });
     await B.locator('.sys-pill', { hasText: 'Rajesh marked ₹2,500 as paid' }).waitFor({ timeout: 6000 * SLOW });
@@ -345,6 +352,11 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.click('.msg.me .pay-card >> text=View receipt');
     await A.locator('.rc-card .rc-state', { hasText: 'Received' }).waitFor();
     await A.locator('.rc-card', { hasText: 'UPI ref 427512345678' }).waitFor();
+    // The receipt downloads as a picture.
+    const [dl] = await Promise.all([A.waitForEvent('download', { timeout: 8000 * SLOW }), A.click('[data-rc="download"]')]);
+    if (!/^Verth-receipt-VR-[A-Z0-9]+\.png$/.test(dl.suggestedFilename())) throw new Error('bad receipt file name ' + dl.suggestedFilename());
+    await dl.saveAs(`${OUT}/receipt-paid.png`);
+    if (require('node:fs').statSync(`${OUT}/receipt-paid.png`).size < 20000) throw new Error('receipt picture too small');
     await shot(A, '04d-A-receipt'); await vs(A, 'chat-receipt');
     await A.click('[data-rc="close"]');
     // Payment history across chats, decrypted on the phone.
@@ -354,6 +366,26 @@ const SLOW = process.env.CI ? 3 : 1;
     await A.locator('.ph-tot', { hasText: '₹2,500' }).waitFor();
     await shot(A, '04e-A-history'); await vs(A, 'chat-history', null, '.ph-list');
     await A.click('.chat-row:has-text("Priya Nair")');
+    // A payment that fails: the payer is told the money comes back automatically, and the receipt says so.
+    await A.click('.chat-head >> text=Pay');
+    await A.fill('#p-amt', '500'); await A.fill('#p-note', 'Test fail');
+    await A.click('button:has-text("Pay with my UPI app")');
+    await A.locator('.qr-box svg').waitFor({ timeout: 5000 * SLOW });
+    await A.click('.pay-sheet >> text=Close');
+    await A.getByText('Did your ₹500 payment to Priya go through?').waitFor({ timeout: 5000 * SLOW });
+    await A.click('.pay-ask >> text=No, it failed');
+    await A.locator('.sys-pill', { hasText: 'You said the ₹500 payment didn’t go through' }).waitFor({ timeout: 5000 * SLOW });
+    const failCard = A.locator('.msg.me .pay-card', { hasText: '₹500' });
+    await failCard.locator('.refund-tip[open]', { hasText: 'at the latest by the next day' }).waitFor({ timeout: 5000 * SLOW });
+    await B.locator('.sys-pill', { hasText: 'Rajesh said the ₹500 payment didn’t go through' }).waitFor({ timeout: 6000 * SLOW });
+    await shot(A, '04f-A-failed');
+    await failCard.locator('text=View receipt').click();
+    await A.locator('.rc-card .rc-state', { hasText: 'Not completed' }).waitFor();
+    await A.locator('.rc-card .rc-refund', { hasText: '₹100 for every extra day' }).waitFor();
+    await shot(A, '04g-A-failed-receipt');
+    const [dl2] = await Promise.all([A.waitForEvent('download', { timeout: 8000 * SLOW }), A.click('[data-rc="download"]')]);
+    await dl2.saveAs(`${OUT}/receipt-failed.png`);
+    await A.click('[data-rc="close"]');
     await A.evaluate(() => { const S = window.__verth.S; S.daily.chat.count = 12; });
     await A.click('.chat-head .back'); await A.click('.chat-row:has-text("Priya Nair")');
     await A.getByText('You’ve used today’s 12 free messages.').waitFor({ timeout: 5000 * SLOW });
@@ -820,7 +852,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await D.reload();
     await D.locator('.splash .sp-title').waitFor({ state: 'visible', timeout: 3000 * SLOW });
     await shot(D, '20-splash');
-    await D.locator('.splash').waitFor({ state: 'detached', timeout: 4000 * SLOW });
+    await D.locator('.splash').waitFor({ state: 'detached', timeout: 2500 * SLOW }); // returning people: a quick hello, not a wait
     await D.reload();
     if (await D.locator('.splash').isVisible()) throw new Error('greeting should show only once per visit');
     await D.close();
@@ -865,6 +897,45 @@ const SLOW = process.env.CI ? 3 : 1;
       }
     }
     await A.setViewportSize({ width: 400, height: 860 }); await go(A, 'home');
+  });
+  await step('Someone already in a family circle joins the office from the invite link, then switches circles', async () => {
+    const C = await ctx.newPage(); extra.push(['G', C]);
+    C.on('pageerror', (e) => errors.push('G pageerror: ' + e.message));
+    await C.goto(URL);
+    await googleSignup(C, 'gurpreet@family.in', 'Gurpreet Kaur', '9876012345');
+    await C.click('text=Skip the tour'); await C.click('text=My family');
+    await C.fill('#c-name', 'Kaur Family'); await C.fill('#c-title', 'Mother');
+    await C.click('button[type=submit]');
+    await C.getByRole('heading', { name: 'Invite people' }).waitFor({ timeout: 5000 * SLOW });
+    // The invite page (join.html) shows who invited them, the circle and the code, and its button opens Verth with the code.
+    const link = await A.evaluate(() => window.__verth.inviteLink());
+    const inv = new globalThis.URL(link), now = inv.searchParams.get('c');
+    await C.goto(URL.replace('app.html?emu', 'join.html') + inv.search);
+    await C.getByText('Rajesh invited you').first().waitFor({ timeout: 5000 * SLOW });
+    await C.locator('#j-title', { hasText: 'Nirmaan Infra' }).waitFor();
+    if ((await C.locator('#t-code').textContent()).replace('-', '') !== now) throw new Error('invite page shows the wrong code');
+    const href = await C.locator('#j-join').getAttribute('href');
+    if (!href.startsWith('app.html?') || !href.endsWith('invite=' + now)) throw new Error('invite page button goes to ' + href);
+    await shot(C, '20-C-invite-page');
+    await C.goto(URL + '&invite=' + now);
+    await C.locator('#j-code').waitFor({ timeout: 8000 * SLOW });
+    if ((await C.locator('#j-code').inputValue()).replace(/[^A-Z0-9]/gi, '').toUpperCase() !== now) throw new Error('code not filled in for a signed-in person');
+    await C.fill('#j-title', 'Site engineer'); await C.click('button[type=submit]');
+    await C.getByText(/Waiting for (approval|.*approve)/).first().waitFor({ timeout: 6000 * SLOW });
+    await A.click('nav >> text=Circle');
+    await A.locator('.attention li', { hasText: 'Gurpreet Kaur' }).locator('button:has-text("Approve")').click({ timeout: 6000 * SLOW });
+    await C.getByText('You’ve been approved to join Nirmaan Infra').waitFor({ timeout: 8000 * SLOW });
+    // Now in two circles: the name at the top becomes a switcher.
+    await C.locator('#circle-switch').waitFor({ timeout: 8000 * SLOW });
+    const opts = await C.locator('#circle-switch option').allTextContents();
+    if (!opts.includes('Kaur Family') || !opts.includes('Nirmaan Infra')) throw new Error('circle switcher shows ' + opts);
+    await C.selectOption('#circle-switch', { label: 'Nirmaan Infra' });
+    await C.locator('.circle-pick .tag', { hasText: 'Organisation' }).waitFor({ timeout: 6000 * SLOW });
+    await C.click('nav >> text=Chat');
+    await C.locator('.chat-row', { hasText: 'Rajesh Mehta' }).waitFor({ timeout: 6000 * SLOW });
+    await shot(C, '21-C-two-circles');
+    await C.selectOption('#circle-switch', { label: 'Kaur Family' });
+    await C.locator('.circle-pick .tag', { hasText: 'Family' }).waitFor({ timeout: 6000 * SLOW });
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');

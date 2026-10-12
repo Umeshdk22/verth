@@ -259,6 +259,7 @@ const ICON = {
   ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>',
   face: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2"/><path d="M9 10v1M15 10v1M12 10v3h-1M9.5 16a3.5 3.5 0 005 0"/></svg>',
   finger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 7.5A7 7 0 0119 12v1.5"/><path d="M5 11.5c0-.9.2-1.8.5-2.6M12 8.2a3.8 3.8 0 013.8 3.8v2.3c0 2.2.6 4.2 1.6 5.7"/><path d="M8.2 12a3.8 3.8 0 01.6-2M8.2 14c0 2.8.9 5.2 2.4 7"/><path d="M12 12v2.3c0 2.7.8 5 2.2 6.7"/><path d="M5.3 15.5c.2 1.4.6 2.8 1.2 4"/></svg>',
@@ -321,7 +322,10 @@ let DEVICE_UNLOCK = null;
 deviceUnlockAvailable().then((v) => { DEVICE_UNLOCK = v; });
 const lockStepReady = () => passkeySupported() && (EMU || DEVICE_UNLOCK !== false);
 const STEP_NAMES = () => ['Your details', 'Verify email', ...(smsStep() ? ['Verify mobile'] : []), ...(lockStepReady() ? ['Fingerprint'] : []), 'You’re in'];
-const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => { const skip = i + 1 < n && t === 'Fingerprint' && !store.get('verth-pk'); return `<li class="${skip ? 'skip' : i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"${skip ? ' title="Skipped. You can turn it on later."' : ''}><span>${skip ? '–' : i + 1 < n ? '✓' : i + 1}</span>${t}</li>`; }).join('')}</ol>`;
+// Fingerprint / face login on this device, for the person signed in now (two accounts can share a phone).
+// Older versions stored 1 instead of the account; that still counts.
+const pkOn = () => { const v = store.get('verth-pk'); return !!v && (v === 1 || v === '1' || !S.user || v === S.user.uid); };
+const STEPS3 = (n) => `<ol class="steps3${STEP_NAMES().length > 3 ? ' four' : ''}" aria-label="${n > STEP_NAMES().length ? 'All steps done' : `Step ${n} of ${STEP_NAMES().length}`}">${STEP_NAMES().map((t, i) => { const skip = i + 1 < n && t === 'Fingerprint' && !pkOn(); return `<li class="${skip ? 'skip' : i + 1 < n ? 'done' : i + 1 === n ? 'now' : ''}"${skip ? ' title="Skipped. You can turn it on later."' : ''}><span>${skip ? '–' : i + 1 < n ? '✓' : i + 1}</span>${t}</li>`; }).join('')}</ol>`;
 function renderAuth(note = '') {
   const signup = S.authMode === 'signup';
   const pk = passkeySupported();
@@ -485,7 +489,7 @@ function renderCompleteProfile() {
 // A special welcome for someone who has just joined.
 function renderWelcome() {
   const first = esc(String(S.profile?.name || '').split(/\s+/)[0] || 'friend');
-  const pk = passkeySupported() && !store.get('verth-pk');
+  const pk = passkeySupported() && !pkOn();
   paint(`<div class="welcome">
     <div class="confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.35}s;--c:${['#FFB224', '#6B3DF0', '#14A897', '#EF5A5A', '#FFD3A1'][i % 5]}"></i>`).join('')}</div>
     <div class="shell narrow">
@@ -495,7 +499,7 @@ function renderWelcome() {
         <span class="eyebrow">Your account is ready</span>
         <h1>Welcome to Verth, ${first}! 🎉</h1>
         <p class="lead">You’ve just made yourself a lot harder to scam. I’m really glad you’re here.</p>
-        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li>${phoneOk() ? `<li>${ICON.ok}<span>Mobile number verified</span></li>` : ''}${store.get('verth-pk') ? `<li>${ICON.ok}<span>Locked to your fingerprint / face</span></li>` : ''}<li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
+        <ul class="w-ticks"><li>${ICON.ok}<span>Email verified</span></li>${phoneOk() ? `<li>${ICON.ok}<span>Mobile number verified</span></li>` : ''}${pkOn() ? `<li>${ICON.ok}<span>Locked to your fingerprint / face</span></li>` : ''}<li>${ICON.ok}<span>Account secured, no password to steal</span></li><li>${ICON.ok}<span>Scam check ready to use</span></li></ul>
         <div class="w-note">
           <p>I built Verth after I paid ₹1,500 for a job exam at a company that didn’t exist. I never want that to happen to you or your family. Before you pay, share an OTP or trust an “urgent” message, check it here first.</p>
           <p class="sig">— Umesh, founder of Verth</p>
@@ -1886,12 +1890,12 @@ const actions = {
   'welcome-go': () => { S.screen = ''; afterSignIn(); },
   'welcome-pk': async (el) => {
     el.disabled = true; setErr('w-err', '');
-    try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', 1); toast('Fingerprint / face login is on for this device.', 'ok'); afterSignIn(); }
+    try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', S.user?.uid || 1); toast('Fingerprint / face login is on for this device.', 'ok'); afterSignIn(); }
     catch (e) { el.disabled = false; setErr('w-err', passkeyError(e)); }
   },
   'pk-add': async (el) => {
     el.disabled = true;
-    try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', 1); toast('Fingerprint / face login is on for this device.', 'ok'); S.passkeys = null; rerender(); }
+    try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', S.user?.uid || 1); toast('Fingerprint / face login is on for this device.', 'ok'); S.passkeys = null; rerender(); }
     catch (e) { el.disabled = false; toast(passkeyError(e)); }
   },
   'pk-remove': async (el) => {
@@ -2371,9 +2375,17 @@ async function keyFor(uid) {
   const o = member(uid);
   if (!S.keys || !o?.device?.dh || !thisDeviceActive()) return null;
   const [a] = pairOf(S.user.uid, uid);
-  const k = await chatKey(S.keys, o.device.dh, S.circleId, ...pairOf(S.user.uid, uid));
-  const kf = a === S.user.uid ? chatKeyId(S.keys.pub.dh, o.device.dh) : chatKeyId(o.device.dh, S.keys.pub.dh);
-  return { k, kf };
+  // Worked out once per conversation and device pair, then remembered for this visit (faster chat).
+  const ck = [S.circleId, S.user.uid, uid, JSON.stringify(S.keys.pub.dh), JSON.stringify(o.device.dh)].join('|');
+  S.chatKeys ||= new Map();
+  if (!S.chatKeys.has(ck)) {
+    S.chatKeys.set(ck, (async () => {
+      const k = await chatKey(S.keys, o.device.dh, S.circleId, ...pairOf(S.user.uid, uid));
+      const kf = a === S.user.uid ? chatKeyId(S.keys.pub.dh, o.device.dh) : chatKeyId(o.device.dh, S.keys.pub.dh);
+      return { k, kf };
+    })().catch((e) => { S.chatKeys.delete(ck); throw e; }));
+  }
+  return S.chatKeys.get(ck);
 }
 
 // Daily allowance (free plan): counted in the same write as the message.
@@ -2495,6 +2507,7 @@ function bubble(m, other) {
   } else if (m.kind === 'p') {
     const st = payStatus(m.id), first = esc(other.name.split(' ')[0]);
     const chips = `${st.paid ? `<span class="pc-chip ok">✓ Paid${st.paid.utr ? ` · ref ${esc(st.paid.utr)}` : ''}</span>` : ''}${st.received ? '<span class="pc-chip ok">✓ Received</span>' : ''}${st.failed && !st.paid ? '<span class="pc-chip bad">Didn’t go through</span>' : ''}`;
+    const tip = st.failed && !st.paid && !st.received ? refundTip(mine) : '';
     const acts = mine
       ? (!st.paid && !st.failed ? `<button class="btn small dark" data-act="pay-mark" data-id="${esc(m.id)}" data-v="paid">Mark as paid</button><button class="link small" data-act="pay-mark" data-id="${esc(m.id)}" data-v="failed">It didn’t go through</button>` : '')
       : (!st.received ? `<button class="btn small dark" data-act="pay-mark" data-id="${esc(m.id)}" data-v="received">I received it</button>` : '');
@@ -2502,7 +2515,7 @@ function bubble(m, other) {
       <b class="amt">${rupees(p.amount)}</b>${p.note ? `<span class="pay-note">${esc(p.note)}</span>` : ''}
       <span class="small">To ${esc(p.upi)}</span>
       ${chips ? `<span class="pc-chips">${chips}</span>` : `<span class="small muted">${mine ? 'Opened in your UPI app. Check your bank app, then mark it as paid.' : 'Check your bank app, then confirm you received it.'}</span>`}
-      <span class="pc-acts">${acts}<button class="link small" data-act="receipt" data-id="${esc(m.id)}">View receipt</button></span></div><time>${t}</time></div>`;
+      ${tip}<span class="pc-acts">${acts}<button class="link small" data-act="receipt" data-id="${esc(m.id)}">View receipt</button></span></div><time>${t}</time></div>`;
   } else if (m.kind === 'f') {
     const img = VIEWABLE.includes(p.type), shown = S.fileUrls?.get(m.id);
     body = `${img && shown ? `<img class="att" src="${shown}" alt="${esc(p.name)}" draggable="false">` : ''}
@@ -2558,7 +2571,9 @@ function chatRoom(o) {
     </div>
     ${pay}
     ${S.payAwait && S.payAwait.uid === o.uid && !S.payOpen && S.plain.get(S.payAwait.id) && !payStatus(S.payAwait.id).paid && !payStatus(S.payAwait.id).failed ? `<div class="pay-ask"><b>Did your ${rupees(S.plain.get(S.payAwait.id).amount)} payment to ${esc(first)} go through?</b>
-      <form data-form="pay-confirm" class="row gap" novalidate><input id="pc-utr" maxlength="22" inputmode="numeric" placeholder="UPI ref no. (optional)" autocomplete="off"><button class="btn small ok" type="submit">Yes, paid</button><button type="button" class="btn small ghost" data-act="pay-mark" data-id="${esc(S.payAwait.id)}" data-v="failed">No</button></form></div>` : ''}
+      <form data-form="pay-confirm" class="row gap" novalidate><input id="pc-utr" maxlength="22" inputmode="numeric" placeholder="UPI ref no. (optional)" autocomplete="off"><button class="btn small ok" type="submit">Yes, paid</button><button type="button" class="btn small ghost" data-act="pay-stuck">Still pending</button><button type="button" class="btn small ghost" data-act="pay-mark" data-id="${esc(S.payAwait.id)}" data-v="failed">No, it failed</button></form>
+      ${S.payStuck === S.payAwait.id ? `<div class="pay-stuck"><b>Pending payments usually finish on their own within a few minutes.</b> Check your UPI app’s history. <b>Don’t pay again</b> until it shows Success or Failed. Then come back and tap “Yes, paid” or “No, it failed”.</div>` : ''}
+      ${refundTip()}</div>` : ''}
     ${!ready ? `<p class="warn">${thisDeviceActive() ? `${esc(first)} needs to open Verth once before you can chat.` : 'Chat works on the device Verth is set up on.'}</p>`
       : left <= 0 ? upsell('chat')
       : `<form data-form="chat" class="composer" novalidate>
@@ -2766,8 +2781,11 @@ async function confirmPay(id, status, utr = '') {
   if (!p) return;
   await sendChat({ kind: 'c', payload: { ref: id, status, amount: p.amount, ...(utr ? { utr } : {}) } });
   if (S.payAwait?.id === id) S.payAwait = null;
-  toast(status === 'paid' ? 'Marked as paid. The receipt is updated for both of you.' : status === 'received' ? 'Thanks! The receipt now shows it was received.' : 'Noted. Nothing was marked as paid.', status === 'failed' ? '' : 'ok');
+  toast(status === 'paid' ? 'Marked as paid. The receipt is updated for both of you.' : status === 'received' ? 'Thanks! The receipt now shows it was received.' : 'Noted. If money left your account, your bank returns it automatically. See the note on the payment.', status === 'failed' ? '' : 'ok');
 }
+// What happens to money when a UPI payment fails or gets stuck (RBI's rules for failed UPI transfers).
+const REFUND_NOTE = '<b>Money left your account but the payment failed or is stuck?</b> Don’t pay again yet. Your bank must return it to your account automatically, at the latest by the next day (RBI rule for failed UPI payments). If it’s late, the bank owes you ₹100 for every extra day. Not back by then? Raise a complaint in your UPI app (Help → payment issue) or call your bank.';
+const refundTip = (open = false) => `<details class="refund-tip"${open ? ' open' : ''}><summary>Money taken but the payment failed?</summary><p>${REFUND_NOTE}</p></details>`;
 const receiptNo = (id) => 'VR-' + String(id).replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase();
 function receiptHtml(r) {
   const fmtD = (t) => new Date(tsMs(t)).toLocaleString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -2784,6 +2802,7 @@ function receiptHtml(r) {
       ${st.received ? `<div><dt>Receipt confirmed</dt><dd>${fmtD(st.received.at)} by ${esc(r.toName)}</dd></div>` : ''}
       <div><dt>Circle</dt><dd>${esc(r.circle)}</dd></div>
     </dl>
+    ${st.failed && !st.paid && !st.received ? `<p class="rc-refund">${REFUND_NOTE}</p>` : ''}
     <p class="rc-foot">${ICON.lock} Paid through the payer’s own UPI app; Verth never holds or moves money. This receipt is end-to-end encrypted and only ${esc(r.fromName.split(' ')[0])} and ${esc(r.toName.split(' ')[0])} can see it.</p>
   </div>`;
 }
@@ -2791,9 +2810,100 @@ function openReceipt(r) {
   closeReceipt();
   const m = document.createElement('div');
   m.className = 'rc-modal'; m.id = 'rc-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', 'Payment receipt');
-  m.innerHTML = `<div class="rc-sheet">${receiptHtml(r)}<div class="rc-btns"><button class="btn primary" data-rc="print">Save as PDF / Print</button><button class="btn ghost" data-rc="close">Close</button></div></div>`;
-  m.addEventListener('click', (e) => { const b = e.target.closest('[data-rc]'); if (b?.dataset.rc === 'print') window.print(); else if (b?.dataset.rc === 'close' || e.target === m) closeReceipt(); });
+  const canShare = !!navigator.canShare && (() => { try { return navigator.canShare({ files: [new File([''], 'r.png', { type: 'image/png' })] }); } catch { return false; } })();
+  m.innerHTML = `<div class="rc-sheet">${receiptHtml(r)}<div class="rc-btns">
+    <button class="btn primary" data-rc="download">${ICON.download}Download receipt</button>
+    ${canShare ? `<button class="btn ghost" data-rc="share">${ICON.share}Share</button>` : ''}</div>
+    <div class="rc-btns"><button class="btn ghost" data-rc="print">Save as PDF</button><button class="btn ghost" data-rc="close">Close</button></div></div>`;
+  m.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-rc]'), act = b?.dataset.rc;
+    if (act === 'print') window.print();
+    else if (act === 'close' || e.target === m) closeReceipt();
+    else if (act === 'download' || act === 'share') {
+      b.disabled = true;
+      try {
+        const blob = await receiptPng(r), name = `Verth-receipt-${receiptNo(r.id)}.png`;
+        if (act === 'share') {
+          try { await navigator.share({ files: [new File([blob], name, { type: 'image/png' })], title: 'Verth payment receipt' }); } catch (err) { if (err?.name !== 'AbortError') throw err; }
+        } else {
+          const url = URL.createObjectURL(blob), a = Object.assign(document.createElement('a'), { href: url, download: name });
+          document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+          toast('Receipt saved to your downloads.', 'ok');
+        }
+      } catch { toast('Couldn’t make the picture. Use “Save as PDF” instead.', 'bad'); }
+      b.disabled = false;
+    }
+  });
   document.body.appendChild(m); document.body.classList.add('rc-open');
+}
+async function receiptPng(r) {
+  await document.fonts?.ready;
+  const W = 1080, P = 72, st = r.status;
+  const state = st.received ? ['Received', '#0B7A55', '#E3F5EC'] : st.paid ? ['Paid', '#0B7A55', '#E3F5EC'] : st.failed ? ['Not completed', '#B42335', '#FDECEE'] : ['Awaiting confirmation', '#9A5A00', '#FFF1D6'];
+  const fmtD = (t) => new Date(tsMs(t)).toLocaleString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const rows = [['To UPI ID', r.upi], ['Date and time', fmtD(r.at)], ['Receipt no.', receiptNo(r.id)]];
+  if (st.paid) rows.push(['Marked paid', fmtD(st.paid.at)]);
+  if (st.paid?.utr) rows.push(['UPI reference', st.paid.utr]);
+  if (st.received) rows.push(['Receipt confirmed', `${fmtD(st.received.at)} by ${r.toName}`]);
+  rows.push(['Circle', r.circle]);
+  const failed = st.failed && !st.paid && !st.received;
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  const F = (w, size) => `${w} ${size}px Inter, "Hind", system-ui, sans-serif`;
+  const wrap = (text, font, max) => { g.font = font; const out = []; let line = ''; for (const w of String(text).split(/\s+/)) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > max && line) { out.push(line); line = w; } else line = t; } if (line) out.push(line); return out; };
+  const noteLines = r.note ? wrap(r.note, F(600, 34), W - 2 * P) : [];
+  const footLines = wrap(`Paid through the payer’s own UPI app; Verth never holds or moves money. Only ${r.fromName.split(' ')[0]} and ${r.toName.split(' ')[0]} can see this receipt.`, F(500, 26), W - 2 * P - 40);
+  const refundLines = failed ? wrap(REFUND_NOTE.replace(/<[^>]+>/g, ''), F(500, 27), W - 2 * P - 48) : [];
+  const H = 190 + 330 + noteLines.length * 46 + 230 + rows.length * 86 + (failed ? refundLines.length * 38 + 70 : 0) + footLines.length * 36 + 150;
+  c.width = W; c.height = H;
+  g.fillStyle = '#F3F1FA'; g.fillRect(0, 0, W, H);
+  const card = (x, y, w, h, rad) => { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, rad); else g.rect(x, y, w, h); };
+  g.save(); card(24, 24, W - 48, H - 48, 40); g.clip();
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  // header
+  const hg = g.createLinearGradient(0, 0, W, 190); hg.addColorStop(0, '#1B0D4A'); hg.addColorStop(.6, '#3B1BA8'); hg.addColorStop(1, '#5B2FE0');
+  g.fillStyle = hg; g.fillRect(0, 0, W, 190);
+  g.fillStyle = '#fff'; g.font = F(800, 52); g.textBaseline = 'middle'; g.fillText('✓ Verth', P, 107);
+  g.fillStyle = '#FFE29A'; g.font = F(800, 26); g.textAlign = 'right'; g.fillText('PAYMENT RECEIPT', W - P, 107); g.textAlign = 'left';
+  // amount block
+  let y = 190; const ag = g.createLinearGradient(0, y, 0, y + 330); ag.addColorStop(0, '#FFF6DA'); ag.addColorStop(1, '#fff');
+  g.fillStyle = ag; g.fillRect(0, y, W, 330 + noteLines.length * 46);
+  g.font = F(800, 26); const pw = g.measureText(state[0].toUpperCase()).width + 56;
+  g.fillStyle = state[2]; card((W - pw) / 2, y + 48, pw, 52, 26); g.fill();
+  g.fillStyle = state[1]; g.textAlign = 'center'; g.fillText(state[0].toUpperCase(), W / 2, y + 75);
+  g.fillStyle = '#16132B'; g.font = F(800, 120); g.fillText(rupees(r.amount), W / 2, y + 205);
+  g.fillStyle = '#5F5A78'; noteLines.forEach((l, i) => { g.font = F(600, 34); g.fillText(l, W / 2, y + 290 + i * 46); });
+  y += 330 + noteLines.length * 46;
+  g.setLineDash([10, 10]); g.strokeStyle = '#E4DFF4'; g.lineWidth = 3; g.beginPath(); g.moveTo(P, y); g.lineTo(W - P, y); g.stroke(); g.setLineDash([]);
+  // from → to
+  const person = (cx, name, label) => {
+    g.fillStyle = '#EDE7FF'; g.beginPath(); g.arc(cx, y + 80, 44, 0, 7); g.fill();
+    g.fillStyle = '#6B3DF0'; g.font = F(800, 32); g.fillText(initials(name), cx, y + 82);
+    g.fillStyle = '#16132B'; g.font = F(700, 32); g.fillText(name.length > 22 ? name.slice(0, 21) + '…' : name, cx, y + 160);
+    g.fillStyle = '#5F5A78'; g.font = F(500, 24); g.fillText(label, cx, y + 196);
+  };
+  person(W * 0.27, r.fromName, 'Paid by'); person(W * 0.73, r.toName, 'Paid to');
+  g.fillStyle = '#6B3DF0'; g.font = F(700, 48); g.fillText('→', W / 2, y + 82);
+  y += 230; g.textAlign = 'left';
+  // detail rows
+  for (const [k, v] of rows) {
+    g.strokeStyle = '#ECE8F6'; g.lineWidth = 2; g.beginPath(); g.moveTo(P, y); g.lineTo(W - P, y); g.stroke();
+    g.fillStyle = '#5F5A78'; g.font = F(500, 28); g.fillText(k, P, y + 43);
+    g.fillStyle = '#16132B'; g.font = F(700, 28); g.textAlign = 'right';
+    let val = String(v); while (g.measureText(val).width > W - 2 * P - 300 && val.length > 4) val = val.slice(0, -2) + '…';
+    g.fillText(val, W - P, y + 43); g.textAlign = 'left'; y += 86;
+  }
+  if (failed) {
+    const h = refundLines.length * 38 + 40;
+    g.fillStyle = '#FDECEE'; card(P, y + 10, W - 2 * P, h, 20); g.fill();
+    g.fillStyle = '#7A1220'; refundLines.forEach((l, i) => { g.font = F(i === 0 ? 700 : 500, 27); g.fillText(l, P + 24, y + 48 + i * 38); });
+    y += h + 30;
+  }
+  // footer
+  g.fillStyle = '#F4F1FD'; g.fillRect(0, y + 20, W, H - y);
+  g.fillStyle = '#5F5A78'; footLines.forEach((l, i) => { g.font = F(500, 26); g.fillText(l, P, y + 70 + i * 36); });
+  g.fillStyle = '#6B3DF0'; g.font = F(700, 28); g.fillText('verth.in', P, y + 90 + footLines.length * 36);
+  g.restore();
+  return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('png'))), 'image/png'));
 }
 function closeReceipt() { document.getElementById('rc-modal')?.remove(); document.body.classList.remove('rc-open'); }
 function receiptFrom(m, p, msgs, plain, otherUid) {
@@ -2839,6 +2949,7 @@ Object.assign(actions, {
     if (m && p && !p.locked && !p.bad) openReceipt(receiptFrom(m, p, S.msgs, S.plain, S.chatWith));
   },
   'pay-history': () => loadPayHistory(),
+  'pay-stuck': () => { S.payStuck = S.payAwait?.id; renderMain(); },
   'hist-receipt': (el) => { const r = S.payHist?.items?.[+el.dataset.i]; if (r) openReceipt(r); },
 });
 Object.assign(forms, {
@@ -2906,7 +3017,7 @@ function authFrame(html) {
 // Like a banking app: each new visit, and after 5 minutes in the background, Verth asks the person
 // to unlock it. The fingerprint check is verified by the Verth server (passkey); without one, an
 // email code does the same job. It can be switched off in the profile.
-const appLockOn = () => store.get('verth-applock') !== 'off' && !!store.get('verth-pk') && passkeySupported();
+const appLockOn = () => store.get('verth-applock') !== 'off' && pkOn() && passkeySupported();
 const isUnlocked = (uid) => { try { return sessionStorage.getItem('verth-unlocked') === uid; } catch { return true; } };
 function markUnlocked(uid) { try { sessionStorage.setItem('verth-unlocked', uid); } catch {} }
 function relock() { S.lockAutoTried = false; try { sessionStorage.removeItem('verth-unlocked'); } catch {} }
@@ -2915,7 +3026,7 @@ const tokenUid = (t) => { try { return JSON.parse(atob(String(t).split('.')[1].r
 function renderAppLock(note = '') {
   const u = S.user, last = store.get('verth-me') || store.get('verth-last') || {};
   const first = String(last.name || u?.displayName || '').trim().split(/\s+/)[0];
-  const pk = passkeySupported() && !!store.get('verth-pk');
+  const pk = passkeySupported() && pkOn();
   paint(`<div class="shell narrow">${brand}
   <div class="panel auth applock">
     <div class="lock-hero">${pk ? ICON.finger : ICON.lock}</div>
@@ -2963,10 +3074,10 @@ Object.assign(actions, {
   'unlock-back': () => { S.lockEmail = false; renderAppLock(); },
   'applock-toggle': async (el) => {
     const wasOn = appLockOn();
-    if (!wasOn && !(store.get('verth-pk') && passkeySupported())) {
+    if (!wasOn && !(pkOn() && passkeySupported())) {
       if (!passkeySupported()) return toast('App lock needs fingerprint or face unlock, which this browser doesn’t support.');
       el.disabled = true;
-      try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', 1); S.passkeys = null; }
+      try { await registerPasskey(payApi, deviceLabel()); store.set('verth-pk', S.user?.uid || 1); S.passkeys = null; }
       catch (e) { el.disabled = false; return toast(passkeyError(e)); }
     }
     const on = !wasOn; store.set('verth-applock', on ? null : 'off'); if (on) markUnlocked(S.user.uid); toast(on ? 'App lock is on. Verth will ask for your fingerprint or face each time it opens.' : 'App lock is off on this device.', 'ok'); rerender(); },
@@ -3041,7 +3152,7 @@ function viewProfile() {
       <div class="pf-marks">
         <span>✓ Email verified</span>
         ${phoneOk() ? '<span>✓ Mobile verified</span>' : p.phone ? `<span class="dim">${esc(fmtPhone(p.phone))}</span>` : ''}
-        ${store.get('verth-pk') ? '<span>✓ Fingerprint login</span>' : ''}
+        ${pkOn() ? '<span>✓ Fingerprint login</span>' : ''}
         <span>${c.flag} ${esc(c.name)}</span>
         ${since ? `<span>Member since ${since}</span>` : ''}
       </div>
@@ -3100,7 +3211,7 @@ Object.assign(actions, {
 // Free, and stronger than SMS: email proves the inbox, the fingerprint / face proves the person
 // holding this phone. It can't be read out to a scammer or used from another phone.
 function afterPhone() {
-  if (lockStepReady() && !store.get('verth-pk')) { S.pkTried = 0; return renderLockStep(); }
+  if (lockStepReady() && !pkOn()) { S.pkTried = 0; return renderLockStep(); }
   return renderWelcome();
 }
 function renderLockStep(err = '') {
@@ -3129,7 +3240,7 @@ Object.assign(actions, {
     el.disabled = true;
     try {
       await registerPasskey(payApi, deviceLabel());
-      store.set('verth-pk', 1);
+      store.set('verth-pk', S.user?.uid || 1);
       toast('Your account is now locked to your fingerprint / face.', 'ok');
       renderWelcome();
     } catch (e) { S.pkTried = (S.pkTried || 0) + 1; renderLockStep(passkeyError(e)); }

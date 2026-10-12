@@ -16,7 +16,9 @@ if (window.top !== window.self) { document.documentElement.style.display = 'none
     }
     var done = function () { el.classList.add('sp-out'); setTimeout(function () { el.remove(); }, 450); };
     el.addEventListener('click', done);
-    setTimeout(done, 3500);
+    // First visit ever: a proper hello. After that, a quick welcome back so Verth opens fast.
+    var seen = false; try { seen = !!localStorage.getItem('verth-splash-seen'); localStorage.setItem('verth-splash-seen', '1'); } catch (e) {}
+    setTimeout(done, seen || name ? 1200 : 2500);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

@@ -776,6 +776,15 @@ body.away .chat-away svg{width:40px;height:40px;color:var(--accent)}
 .rc-foot{display:flex;gap:8px;margin:0;padding:12px 20px 18px;font-size:12px;color:var(--muted);background:var(--surface-2)}
 .rc-foot svg{width:16px;height:16px;flex:none;color:var(--ok)}
 .rc-btns{display:flex;gap:10px}.rc-btns .btn{flex:1}
+.rc-btns .btn svg{width:18px;height:18px;margin-right:6px;flex:none}
+.rc-refund{margin:4px 20px 12px;padding:12px 14px;border-radius:14px;background:#FDECEE;border:1px solid #F4C3CA;color:#7A1220;font-size:13px;line-height:1.5}
+.refund-tip{margin-top:8px;font-size:13px}
+.refund-tip summary{cursor:pointer;font-weight:650;color:var(--bad);list-style:none}
+.refund-tip summary::-webkit-details-marker{display:none}
+.refund-tip summary::before{content:"⚠️ "}
+.refund-tip p{margin:6px 0 0;padding:10px 12px;border-radius:12px;background:#FDECEE;color:#7A1220;line-height:1.5}
+.pay-card .refund-tip summary{color:inherit}
+.pay-stuck{margin-top:8px;padding:10px 12px;border-radius:12px;background:#FFF7E8;border:1px solid #F3D9A4;font-size:13.5px;line-height:1.5}
 .rc-btns .btn.ghost{background:#fff}
 @media print{
   body.rc-open>*:not(#rc-modal){display:none!important}
