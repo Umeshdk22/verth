@@ -1801,9 +1801,12 @@ async function afterSignIn(preferId) {
   const ids = Object.keys(S.circles);
   const inv = pendingInvite();
   if (inv) {
-    let cid = '';
-    try { const d = await getDoc(doc(db, 'invites', inv)); cid = d.exists() ? d.data().circleId : ''; } catch {}
+    let cid = '', found = false;
+    try { const d = await getDoc(doc(db, 'invites', inv)); found = d.exists(); cid = found ? d.data().circleId : ''; } catch {}
+    // Already in that circle, or an old link whose code was changed while they already have a
+    // circle: just open Verth (an old WhatsApp invite tapped again shouldn't block anyone).
     if (cid && (S.profile.circles || []).includes(cid)) clearInvite();
+    else if (!found && ids.length) { clearInvite(); setTimeout(() => toast('That invite code has changed or expired. Ask the admin for the new one if you want to join another circle.'), 600); }
     else { renderSetup('join', inv); return; }
   }
   const wantScan = takeShared();

@@ -526,6 +526,29 @@ test('daily allowance: 12 messages and 3 payments on the free plan, unlimited on
   await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'circles/c1'), { plan: 'team' }));
   await assertSucceeds(updateDoc(doc(db('priya'), `users/priya/daily/chat-${DAY()}`), { count: 13, at: serverTimestamp(), via: 'c1' }));
 });
+test('Personal plan: unlimited chat and payments for that person, and the free limits return when it ends', async () => {
+  const meter = (key, count) => updateDoc(doc(db('priya'), `users/priya/daily/${key}-${DAY()}`), { count, at: serverTimestamp() });
+  await env.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), `users/priya/daily/chat-${DAY()}`), { count: 12, at: Timestamp.now() });
+    await setDoc(doc(c.firestore(), `users/priya/daily/pay-${DAY()}`), { count: 3, at: Timestamp.now() });
+  });
+  await assertFails(meter('chat', 13));
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/priya'), { plan: 'personal' }));
+  await assertSucceeds(meter('chat', 13));
+  await assertSucceeds(meter('pay', 4));
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/priya'), { plan: 'free' }));
+  await assertFails(meter('chat', 14));
+});
+test('Family circle: members get unlimited chat and payments while the plan is active, not after', async () => {
+  const meter = (key, count, via) => updateDoc(doc(db('priya'), `users/priya/daily/${key}-${DAY()}`), { count, at: serverTimestamp(), via });
+  await env.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), `users/priya/daily/pay-${DAY()}`), { count: 3, at: Timestamp.now() });
+    await updateDoc(doc(c.firestore(), 'circles/c1'), { plan: 'family' });
+  });
+  await assertSucceeds(meter('pay', 4, 'c1'));
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'circles/c1'), { plan: 'free' }));
+  await assertFails(meter('pay', 5, 'c1'));
+});
 test('UPI ID: only you can set yours, it must look like a UPI ID, and the change time is recorded', async () => {
   await assertFails(updateDoc(doc(db('rajesh'), 'circles/c1/members/priya'), { upi: 'scammer@ybl', upiAt: serverTimestamp() }));
   await assertFails(updateDoc(doc(db('priya'), 'circles/c1/members/priya'), { upi: 'not a upi', upiAt: serverTimestamp() }));

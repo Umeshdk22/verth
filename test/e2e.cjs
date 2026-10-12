@@ -699,6 +699,33 @@ const SLOW = process.env.CI ? 3 : 1;
     if (seen[1][0] !== '/verify' || seen[1][1].razorpay_subscription_id !== 'sub_T1') throw new Error('checkout result not sent for verification');
     if ((await A.evaluate(() => window.__rzpOpts.key)) !== 'rzp_test_1') throw new Error('checkout opened with the wrong key');
     await shot(A, '15-A-team-plan');
+    // After paying, the Team plan really lifts every limit: for the admin who paid, and for members.
+    for (const t of ['Unlimited checks.', 'Unlimited scam checks.', 'Unlimited photo and screenshot checks.', 'people, no limit.']) await A.getByText(t, { exact: false }).first().waitFor({ timeout: 4000 * SLOW });
+    await A.click('nav >> text=Scan'); await A.locator('.pill.ok', { hasText: 'Unlimited' }).first().waitFor({ timeout: 4000 * SLOW });
+    for (let i = 0; i < 3; i++) { // more than the free 2 a day
+      await A.click('.kinds >> text=Link'); await A.fill('#s-link', `https://example-${i}.in/`); await A.click('button:has-text("Check it")');
+      await A.locator('#scan-result').waitFor({ timeout: 5000 * SLOW });
+      if (await A.getByText('You’ve used today’s free checks').count()) throw new Error('Team plan still hit the daily scam-check limit');
+    }
+    await A.click('nav >> text=Chat'); await A.click('.chat-row:has-text("Priya Nair")');
+    await A.evaluate(() => { const S = window.__verth.S; S.daily = { chat: { day: S.daily?.chat?.day || '', count: 50 }, pay: { day: '', count: 50 } }; });
+    await A.click('.chat-head .back'); await A.click('.chat-row:has-text("Priya Nair")');
+    await A.locator('.composer').waitFor({ timeout: 4000 * SLOW });
+    if (await A.locator('.quota, .upsell').count()) throw new Error('Team plan still shows a chat limit');
+    await A.click('.chat-head .back');
+    await A.click('nav >> text=Home'); await A.evaluate(() => document.querySelector('[data-act="guard-open"]')?.click());
+    await A.locator('.pill.ok', { hasText: 'Unlimited' }).first().waitFor({ timeout: 5000 * SLOW }); // App X-ray and Phone Doctor
+    await A.evaluate(() => document.querySelector('[data-act="tab"][data-tab="log"]')?.click());
+    await A.getByRole('button', { name: 'Export CSV' }).waitFor({ timeout: 4000 * SLOW });
+    // Priya, an ordinary member whose own trial has ended, gets the same through the circle.
+    await poke(B); await B.reload();
+    await B.getByText('That invite code has changed or expired').waitFor({ timeout: 5000 * SLOW }); // B's tab still has the first (now old) invite link
+    await B.click('nav >> text=Scan'); await B.locator('.pill.ok', { hasText: 'Unlimited' }).first().waitFor({ timeout: 6000 * SLOW });
+    await B.click('nav >> text=Chat'); await B.click('.chat-row:has-text("Rajesh Mehta")');
+    await B.locator('.composer').waitFor({ timeout: 4000 * SLOW });
+    if (await B.locator('.quota, .upsell').count()) throw new Error('a member of a Team circle still sees a chat limit');
+    await B.click('.chat-head .back'); await B.click('nav >> text=Home');
+    await A.click('nav >> text=Plan');
     await A.click('text=Cancel subscription');
     await A.click('text=Yes, stop renewing');
     await A.getByText('Renewal cancelled', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
@@ -936,6 +963,57 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(C, '21-C-two-circles');
     await C.selectOption('#circle-switch', { label: 'Kaur Family' });
     await C.locator('.circle-pick .tag', { hasText: 'Family' }).waitFor({ timeout: 6000 * SLOW });
+  });
+  await step('Personal (₹149) and Family (₹199) plans: bought, then everything they promise works', async () => {
+    const G = extra.find(([n]) => n === 'G')[1];
+    await endTrial(G);
+    const gUid = await G.evaluate(() => window.__verth.S.user.uid), gCid = await G.evaluate(() => Object.values(window.__verth.S.circles).find((c) => c.name === 'Kaur Family').id);
+    await G.route('https://checkout.razorpay.com/v1/checkout.js', (r) => r.fulfill({ contentType: 'text/javascript', body:
+      'window.Razorpay=function(o){this.open=function(){setTimeout(function(){o.handler({razorpay_payment_id:"pay_2",razorpay_subscription_id:o.subscription_id,razorpay_signature:"s"})},80)}};' }));
+    let plan = '';
+    await G.route(PAY + '/**', async (r) => {
+      if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH });
+      const path = new (require('node:url').URL)(r.request().url()).pathname, body = JSON.parse(r.request().postData() || '{}');
+      if (path === '/passkey/list') return r.fulfill({ headers: corsH, json: { keys: [] } });
+      if (path.startsWith('/phone/') || path.startsWith('/otp/')) return r.fallback();
+      if (path === '/subscribe') { plan = body.plan; return r.fulfill({ headers: corsH, json: { subscriptionId: 'sub_' + plan, keyId: 'rzp_test_1', description: 'Verth ' + plan, quantity: 1 } }); }
+      if (path === '/verify') {
+        const end = Date.now() + 30 * 86400000;
+        await G.evaluate(([plan, uid, cid, end]) => {
+          const db = JSON.parse(localStorage.getItem('fakefs')), billing = { product: plan, subscriptionId: 'sub_' + plan, status: 'active', payerUid: uid, currentEnd: { __ts: end }, cancelAtEnd: false };
+          if (plan === 'personal') Object.assign(db['users/' + uid], { plan: 'personal', billing });
+          else Object.assign(db['circles/' + cid], { plan, seats: 10, billing });
+          localStorage.setItem('fakefs', JSON.stringify(db)); new BroadcastChannel('fakefire').postMessage('x');
+        }, [plan, gUid, gCid, end]);
+        return r.fulfill({ headers: corsH, json: { paid: true, status: 'active', product: plan } });
+      }
+      return r.fulfill({ status: 404, headers: corsH, json: { error: 'no' } });
+    });
+    await G.goto(URL + '&payapi=' + encodeURIComponent(PAY));
+    await G.locator('#circle-switch').waitFor({ timeout: 8000 * SLOW });
+    await G.selectOption('#circle-switch', { label: 'Kaur Family' });
+    await G.locator('.circle-pick .tag', { hasText: 'Family' }).waitFor({ timeout: 6000 * SLOW });
+    // Free first: the daily scam-check limit applies.
+    await G.click('nav >> text=Scan'); await G.getByText('free checks left today', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
+    // Personal plan: unlimited for this person.
+    await G.click('nav >> text=Plan');
+    await G.click('.plan:has(h3:text-is("Personal")) >> button:has-text("Subscribe")');
+    await G.getByText('Payment received. Personal is now active.').waitFor({ timeout: 8000 * SLOW });
+    await G.locator('.plan.current h3', { hasText: 'Personal' }).waitFor({ timeout: 5000 * SLOW });
+    await G.click('nav >> text=Scan'); await G.locator('.pill.ok', { hasText: 'Unlimited' }).first().waitFor({ timeout: 5000 * SLOW });
+    for (let i = 0; i < 3; i++) {
+      await G.click('.kinds >> text=Link'); await G.fill('#s-link', `https://shop-${i}.in/`); await G.click('button:has-text("Check it")');
+      await G.locator('#scan-result').waitFor({ timeout: 5000 * SLOW });
+      if (await G.getByText('You’ve used today’s free checks').count()) throw new Error('Personal plan still hit the daily limit');
+    }
+    // Family plan for the whole family circle: 10 people, unlimited checks for everyone.
+    await G.click('nav >> text=Plan');
+    await G.click('.plan:has(h3:text-is("Family")) >> button:has-text("Subscribe")');
+    await G.getByText('Payment received. Family is now active.').waitFor({ timeout: 8000 * SLOW });
+    await G.locator('.plan.current h3', { hasText: 'Family' }).waitFor({ timeout: 6000 * SLOW });
+    await G.getByText('Unlimited checks.', { exact: false }).first().waitFor();
+    await G.getByText('of 10 places used', { exact: false }).first().waitFor();
+    await shot(G, '22-G-family-plan');
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');
