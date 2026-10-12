@@ -130,5 +130,33 @@
     "Verth. पैसे भेजने से पहले जाँचिए। मुफ़्त शुरू कीजिए, verth डॉट इन पर।"
    ]
   ]
+ },
+ "wafix": {
+  "title": [
+   "Verth fixes",
+   "वर्थ"
+  ],
+  "lines": [
+   [
+    "Verth keeps your office and your family safe.",
+    "वर्थ आपके ऑफ़िस और परिवार को सुरक्षित रखता है।"
+   ],
+   [
+    "Need to pay a colleague? Pay safely opens your own UPI app, with the UPI ID they saved in Verth, never one sent in a message.",
+    "किसी साथी को पैसे भेजने हैं? Pay safely आपका अपना UPI ऐप खोलता है, उसी UPI ID के साथ जो उन्होंने वर्थ में सेव की है, मैसेज में भेजी गई ID नहीं।"
+   ],
+   [
+    "And for everyone: paste any message, link, number or screenshot, and Verth shows the warning signs in seconds.",
+    "और सबके लिए: कोई भी मैसेज, लिंक, नंबर या स्क्रीनशॉट डालिए, और वर्थ कुछ ही सेकंड में खतरे के संकेत दिखा देता है।"
+   ],
+   [
+    "Verth even reads UPI QR codes. Remember: to receive money, you never scan a QR code or enter your PIN.",
+    "वर्थ UPI QR कोड भी पढ़ लेता है। याद रखिए: पैसे लेने के लिए कभी QR स्कैन नहीं करना पड़ता, और न ही PIN डालना पड़ता है।"
+   ],
+   [
+    "Verth. Check before you pay. Free to start at verth dot in.",
+    "वर्थ. पैसे भेजने से पहले जाँचिए। मुफ़्त शुरू कीजिए, वर्थ डॉट इन पर।"
+   ]
+  ]
  }
 }

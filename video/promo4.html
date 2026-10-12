@@ -1,0 +1,164 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#0A0F2C}
+  body{font-family:'Inter','Hind',system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  #st{position:relative;width:1920px;height:1080px;overflow:hidden;background:linear-gradient(160deg,#0B1236 0%,#111347 45%,#1A1250 100%)}
+  /* soft moving light behind everything */
+  .glow{position:absolute;border-radius:50%;pointer-events:none}
+  #g1{width:900px;height:900px;background:radial-gradient(circle,rgba(110,76,255,.55),rgba(110,76,255,0) 70%)}
+  #g2{width:800px;height:800px;background:radial-gradient(circle,rgba(18,166,160,.38),rgba(18,166,160,0) 70%)}
+  #g3{width:700px;height:700px;background:radial-gradient(circle,rgba(232,163,61,.22),rgba(232,163,61,0) 70%)}
+  .layer{position:absolute;inset:0;opacity:0;will-change:transform,opacity,filter}
+  /* title cards */
+  .card{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 220px;gap:28px}
+  .card h1{font-size:78px;line-height:1.12;font-weight:800;letter-spacing:-.035em}
+  .hl{background:linear-gradient(90deg,#B9A6FF,#7FE3D4);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .items{display:flex;flex-direction:column;gap:22px;align-items:center}
+  .items div{font-size:46px;font-weight:600;color:#C7CDEA;opacity:0;letter-spacing:-.02em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:18px 34px;border-radius:22px 22px 22px 6px}
+  .items div b{color:#fff}
+  .logo-wrap{position:relative;width:150px;height:150px;border-radius:40px;overflow:hidden;box-shadow:0 20px 60px -10px rgba(110,76,255,.7)}
+  .logo-wrap img{width:100%;height:100%;display:block}
+  .shine{position:absolute;top:-20%;left:-80%;width:50%;height:140%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));transform:skewX(-18deg)}
+  .name{font-size:104px;font-weight:850;letter-spacing:-.045em;line-height:1}
+  .tag{font-size:48px;font-weight:650;letter-spacing:-.02em}
+  .url{font-size:46px;font-weight:750;color:#0B1236;background:#fff;padding:14px 46px;border-radius:999px;margin-top:4px}
+  .small{font-size:28px;color:#AAB2D5}
+  /* screens */
+  .chap{position:absolute;left:50%;top:22px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;font-size:26px;font-weight:650;color:#E6E8F7;letter-spacing:-.01em}
+  .chap i{font-style:normal;font-size:20px;font-weight:700;color:#0B1236;background:linear-gradient(90deg,#B9A6FF,#7FE3D4);border-radius:999px;padding:4px 12px}
+  .shot{position:absolute;left:280px;top:76px;width:1360px;height:836px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.14),0 40px 100px -20px rgba(0,0,0,.65),0 0 120px -30px rgba(110,76,255,.55)}
+  .shot .bar{height:36px;background:#EEF1F6;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #E2E6EF}
+  .shot .bar i{width:12px;height:12px;border-radius:50%;background:#D5DAE5}
+  .shot .bar span{margin-left:18px;font-size:16px;color:#64748B;background:#fff;border:1px solid #E2E6EF;border-radius:8px;padding:3px 14px}
+  .view{position:relative;width:1360px;height:800px;overflow:hidden}
+  .view img{position:absolute;left:0;top:0;width:1360px;height:auto;opacity:0;transform-origin:50% 30%}
+  .cursor{position:absolute;width:34px;height:34px;opacity:0;z-index:6;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+  .ring{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid rgba(110,76,255,.9);opacity:0;z-index:5}
+  /* privacy */
+  .pv{display:flex;flex-direction:column;align-items:center;gap:32px}
+  .pv-ic{width:120px;height:120px;border-radius:34px;background:rgba(18,166,107,.16);border:1px solid rgba(127,227,180,.35);display:grid;place-items:center}
+  .pv-ic svg{width:62px;height:62px}
+  /* finish: vignette and grain, like a gentle film look */
+  #vig{position:absolute;inset:0;pointer-events:none;z-index:20;background:radial-gradient(ellipse 75% 70% at 50% 48%,rgba(0,0,0,0) 55%,rgba(3,5,20,.55) 100%)}
+  #grain{position:absolute;inset:-64px;pointer-events:none;z-index:21;opacity:.06;mix-blend-mode:overlay}
+  .sub{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:max-content;max-width:1780px;text-align:center;font-size:32px;line-height:1.3;font-weight:600;color:#fff;background:rgba(8,10,32,.78);border:1px solid rgba(255,255,255,.12);padding:12px 28px 14px;border-radius:14px;opacity:0;z-index:22;letter-spacing:-.01em}
+  body.hi{font-family:'Hind','Inter',system-ui,sans-serif}
+  body.hi .card h1{font-size:70px;line-height:1.25}
+  body.hi .sub{font-family:'Hind','Inter',sans-serif;font-size:34px;line-height:1.35}
+  body.hi .chap{font-family:'Hind','Inter',sans-serif;font-size:28px}
+</style></head>
+<body><div id="st">
+  <div class="glow" id="g1"></div><div class="glow" id="g2"></div><div class="glow" id="g3"></div>
+  <div id="scenes"></div>
+  <svg class="cursor" id="cur" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6 4.2 8.1-3 1.5-4.2-8.2L4 19z" fill="#fff" stroke="#0F172A" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  <div class="ring" id="ring"></div>
+  <div id="vig"></div><div id="grain"></div>
+  <div class="sub" id="sub"></div>
+</div>
+<script>
+// Video-making tool: runs only on the maker's own computer, never on the live website.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) { document.documentElement.innerHTML = ''; throw new Error('local tool'); }
+const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const easeOut = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3));
+const $ = (id) => document.getElementById(id);
+let scenes = [];
+const LOGO = '<div class="logo-wrap"><img src="../assets/icon-512.png" alt=""><div class="shine"></div></div>';
+// Each scene: { kind: 'card', html } or { kind: 'screen', chap: [n, label], imgs: [...] }
+function buildScenes(list) {
+  const box = document.getElementById('scenes');
+  box.innerHTML = list.map((sc) => sc.kind === 'card'
+    ? `<section class="layer card" data-kind="card">${sc.html.replace('{LOGO}', LOGO)}</section>`
+    : `<section class="layer" data-kind="screen"><div class="chap"><i>${sc.chap[0]}</i>${sc.chap[1]}</div><div class="shot"><div class="bar"><i></i><i></i><i></i><span>verth.in/app.html</span></div><div class="view">${sc.imgs.map((x) => `<img data-src="${x}">`).join('')}</div></div></section>`).join('');
+  scenes = [...box.querySelectorAll('.layer')];
+}
+// Film grain: one noise tile, moved a little every frame.
+{ const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), d = g.createImageData(256, 256);
+  let r = 12345; const rnd = () => ((r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for (let i = 0; i < d.data.length; i += 4) { const v = rnd() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0); $('grain').style.backgroundImage = `url(${c.toDataURL()})`; }
+
+let P; // { lines: [{ text, start, end }], total, taps: { name: {x, y} } }
+window.setup = async (plan) => {
+  P = plan; buildScenes(plan.scenes); CLICKS = plan.clicks || {}; SUBS_OFF = plan.subsOff || [];
+  if (plan.lang === 'hi') document.body.classList.add('hi');
+  for (const im of document.querySelectorAll('img[data-src]')) im.src = `_promo/${im.dataset.src}.png`;
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+};
+// Scene i belongs to spoken line i. Scenes change halfway between two lines, over 0.9 s.
+const TR = 0.45;
+const cut = (i) => (P.lines[i + 1].start + P.lines[i].end) / 2;
+function look(kind, p, dir, otherKind) {
+  // p: 0 = fully shown, 1 = fully gone; dir: -1 leaving, +1 arriving
+  if (kind === 'card') {
+    const s = dir < 0 ? 1 - 0.06 * p : 1 + 0.08 * p;
+    return { o: 1 - p, tf: `scale(${s})`, blur: 14 * p };
+  }
+  if (otherKind === 'screen') { // screen to screen: a soft push sideways
+    const x = dir < 0 ? -260 * p : 260 * p;
+    return { o: 1 - p, tf: `translateX(${x}px) scale(${1 - 0.04 * p})`, blur: 8 * p };
+  }
+  // card to screen (or back): the window rises in, slightly tilted, and settles
+  return { o: 1 - p, tf: `perspective(1600px) translateY(${dir > 0 ? 120 * p : 60 * p}px) rotateX(${dir > 0 ? 10 * p : -6 * p}deg) scale(${1 - 0.06 * p})`, blur: 10 * p };
+}
+const K = 1360 / 1440, OX = 280, OY = 76 + 36;
+function cursorTo(name, t, t0, t1, from, sceneTf) {
+  const c = P.taps[name]; if (!c) return false;
+  const x1 = OX + c.x * K, y1 = OY + c.y * K, [x0, y0] = from;
+  const p = ease((t - t0) / (t1 - t0));
+  const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p;
+  const cur = $('cur'); cur.style.opacity = 1; cur.style.left = x - 4 + 'px'; cur.style.top = y - 2 + 'px';
+  const r = (t - t1) / 0.5, ring = $('ring');
+  ring.style.left = x1 + 'px'; ring.style.top = y1 + 'px';
+  ring.style.opacity = r > 0 && r < 1 ? 1 - r : 0; ring.style.transform = `scale(${0.5 + r})`;
+  return true;
+}
+// Which screens get a click, and where the pointer starts (in video pixels).
+let CLICKS = {}, SUBS_OFF = [];
+window.render = (t) => {
+  const L = P.lines, n = scenes.length;
+  // background light drifts slowly
+  $('g1').style.transform = `translate(${-200 + 260 * Math.sin(t * 0.11)}px, ${-260 + 160 * Math.cos(t * 0.09)}px)`;
+  $('g2').style.transform = `translate(${1250 + 200 * Math.cos(t * 0.08)}px, ${420 + 180 * Math.sin(t * 0.12)}px)`;
+  $('g3').style.transform = `translate(${700 + 300 * Math.sin(t * 0.07 + 2)}px, ${700 + 120 * Math.cos(t * 0.1)}px)`;
+  const gx = Math.floor((t * 30 * 37) % 64), gy = Math.floor((t * 30 * 53) % 64);
+  $('grain').style.transform = `translate(${gx}px, ${gy}px)`;
+  let cur = false;
+  for (let i = 0; i < n; i++) {
+    const el = scenes[i], kind = el.dataset.kind;
+    const a = i === 0 ? -1 : cut(i - 1), b = i === n - 1 ? 1e9 : cut(i);
+    let st = null;
+    if (t < a - TR || t > b + TR) { el.style.opacity = 0; el.style.visibility = 'hidden'; continue; }
+    if (i === 0 && t < 0.9) st = look(kind, 1 - easeOut(t / 0.9), 1, null);
+    else if (t < a + TR) st = look(kind, 1 - ease((t - (a - TR)) / (2 * TR)), 1, scenes[i - 1].dataset.kind);
+    else if (t > b - TR) st = look(kind, ease((t - (b - TR)) / (2 * TR)), -1, scenes[i + 1].dataset.kind);
+    else st = { o: 1, tf: 'none', blur: 0 };
+    el.style.visibility = 'visible'; el.style.opacity = st.o; el.style.transform = st.tf; el.style.filter = st.blur > 0.2 ? `blur(${st.blur.toFixed(1)}px)` : 'none';
+    // inside a screen: slow zoom, and the second screenshot after the click
+    if (kind === 'screen') {
+      const imgs = el.querySelectorAll('img'), lt = (t - a) / (b - a), ck = CLICKS[i];
+      const swap = ck ? L[i].start + (L[i].end - L[i].start) * ck[1] + 0.35 : L[i].start + (L[i].end - L[i].start) * 0.5;
+      imgs.forEach((im, k) => {
+        const on = imgs.length === 1 ? 1 : k === 0 ? 1 - ease((t - swap) / 0.4) : ease((t - swap) / 0.4);
+        im.style.opacity = on; im.style.transform = `scale(${1 + 0.035 * ease(lt)})`;
+      });
+      if (ck && t > a + TR && t < swap + 0.45) {
+        const click = swap - 0.35;
+        cur = cursorTo(ck[0], t, a + TR + 0.2, click, ck[2]) || cur;
+      }
+    }
+    // title cards: messages appear one by one, the logo gets a light sweep
+    el.querySelectorAll('.items div').forEach((d, k) => { const p = easeOut((t - L[i].start - 0.6 - k * ((L[i].end - L[i].start) / 3.4)) / 0.5); d.style.opacity = p; d.style.transform = `translateY(${(1 - p) * 22}px)`; });
+    el.querySelectorAll('.shine').forEach((s) => { const p = (t - L[i].start - 0.2) / 1.1; s.style.left = (-80 + 230 * Math.min(Math.max(p, 0), 1)) + '%'; });
+  }
+  if (!cur) { $('cur').style.opacity = 0; $('ring').style.opacity = 0; }
+  // subtitle for the line being spoken (title cards already show their words)
+  const s = $('sub'); let on = -1;
+  for (let i = 0; i < L.length; i++) if (t >= L[i].start - 0.15 && t <= L[i].end + 0.35) on = i;
+  if (on >= 0 && !SUBS_OFF.includes(on)) { s.textContent = L[on].text; s.style.opacity = Math.min(ease((t - L[on].start + 0.15) / 0.2), 1 - ease((t - L[on].end - 0.15) / 0.2)); }
+  else s.style.opacity = 0;
+};
+</script></body></html>
