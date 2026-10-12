@@ -55,6 +55,16 @@ const clearInvite = () => { try { sessionStorage.removeItem('verth-invite'); } c
 // Tests can point payments at a stand-in server (local emulator builds only).
 // (the address is fixed: a link can never point Verth at another server)
 const PAY_API = EMU ? (params.has('payapi') ? 'https://pay.test.workers.dev' : '') : PAYMENTS.api;
+// Opened from the Verth Android app (Google Play)? Google Play's rules don't allow selling plans
+// through Razorpay inside an app, so the app shows plans but no buy buttons. It's remembered only
+// for this app session, so verth.in in the normal browser is unaffected.
+const IN_ANDROID = (() => {
+  try {
+    if (params.get('src') === 'android' || document.referrer.startsWith('android-app://in.verth.app')) sessionStorage.setItem('verth-android', '1');
+    return sessionStorage.getItem('verth-android') === '1';
+  } catch { return document.referrer.startsWith('android-app://in.verth.app'); }
+})();
+const NOT_IN_APP = '<span class="muted small">Paid plans can’t be bought in the Android app.</span>';
 const NEW_DEVICE_WARN_MS = 7 * 24 * 3600 * 1000;
 const CHANNELS = ['WhatsApp', 'Phone call', 'Video call', 'SMS', 'Email', 'In person', 'Other'];
 
@@ -1170,10 +1180,10 @@ function viewScan() {
   const limitCard = img
     ? `<section class="card attention"><h2>You’ve used your ${lim} free photo checks</h2>
       <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹149 a month. You can still type or paste the message and check it free.</p>
-      <div class="row gap"><button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button><button class="btn ghost" data-act="scan-kind" data-kind="message">Type the message instead</button></div></section>`
+      <div class="row gap">${IN_ANDROID ? '' : `<button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button>`}<button class="btn ghost" data-act="scan-kind" data-kind="message">Type the message instead</button></div></section>`
     : `<section class="card attention"><h2>You’ve used today’s free checks</h2>
       <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
-      <button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button></section>`;
+      ${IN_ANDROID ? '' : `<button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button>`}</section>`;
   const banner = S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : S.prefill.from === 'chat' ? 'From a private chat.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : '';
   return `${banner}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
       <p class="muted">What do you want to check? Tap one.</p>
@@ -1385,7 +1395,7 @@ function renderScanOnly() {
   const tab = S.soloTab || 'home';
   const interest = S.profile?.upgradeInterest?.plan;
   const personal = S.profile?.plan === 'personal' ? billingCard(S.profile.billing, 'user') : `<section class="card"><h2>Unlimited scam and photo checks</h2><p class="muted">Personal plan, ₹149 a month.${PAY_API ? ' Pay with UPI or card through Razorpay. Cancel any time.' : ' Paid plans open with online payment soon; you won’t be charged now.'}</p>
-        ${PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`;
+        ${IN_ANDROID ? NOT_IN_APP : PAY_API ? payButton('personal', 'Get Personal · ₹149 / month') : interest === 'personal' ? '<span class="pill wait">We’ll notify you</span>' : '<button class="btn primary" data-act="upgrade" data-plan="personal">Notify me when it opens</button>'}</section>`;
   const pending = S.pending.length ? `<div class="banner"><span>Waiting for approval to join ${S.pending.map((p) => esc(p.name)).join(', ')}.</span></div>` : '';
   const views = {
     home: () => `${inTrial() ? videoCard('intro') : ''}${heroBanner(esc, { name: S.profile?.name || S.user.displayName, scanOnly: true })}${pending}${dashboard()}
@@ -1444,7 +1454,7 @@ function billingCard(b, target) {
       ? `<div class="warn">Stop renewing? You keep the plan until ${esc(when || 'the end of this month')}, then it goes back to Free.</div><div class="row gap"><button class="btn bad grow" data-act="cancel-sub" data-target="${target}" ${S.payBusy ? 'disabled' : ''}>Yes, stop renewing</button><button class="btn ghost grow" data-act="cancel-sub-no">Keep it</button></div>`
       : `<button class="btn ghost" data-act="cancel-sub-ask" data-target="${target}">Cancel subscription</button>`) : ''}</section>`;
 }
-const payButton = (id, label) => `<button class="btn primary" data-act="upgrade" data-plan="${id}" ${S.payBusy ? 'disabled' : ''}>${S.payBusy === id ? '<span class="spin" aria-hidden="true"></span> Opening Razorpay…' : esc(label)}</button>`;
+const payButton = (id, label) => IN_ANDROID ? NOT_IN_APP : `<button class="btn primary" data-act="upgrade" data-plan="${id}" ${S.payBusy ? 'disabled' : ''}>${S.payBusy === id ? '<span class="spin" aria-hidden="true"></span> Opening Razorpay…' : esc(label)}</button>`;
 
 function viewPlan() {
   const personal = S.profile?.plan === 'personal', cp = S.circle.plan || 'free', used = monthChecks();
@@ -1453,6 +1463,7 @@ function viewPlan() {
   const action = (id) => {
     if (id === 'free') return '';
     if (id === 'personal' ? personal : cp === id) return '<span class="pill ok">Current plan</span>';
+    if (IN_ANDROID) return '';
     if (!live) return interest === id ? '<span class="pill wait">We’ll notify you</span>' : `<button class="btn primary" data-act="upgrade" data-plan="${id}">Choose ${PLANS[id].name}</button>`;
     if (id === 'personal') return circlePaid() ? '<span class="muted small">Already included in your circle’s plan.</span>' : payButton('personal', 'Subscribe');
     if (circlePaid()) return '';
@@ -1475,7 +1486,7 @@ function viewPlan() {
       ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Family phone-safety board: see everyone’s daily score', 'Unlimited App X-ray and AI Phone Doctor for everyone', 'Unlimited private chat and Pay safely', 'Log export'])}
       ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Staff phone-safety board', 'Admin controls: company email lock, staff list, two-admin approval', 'Faster email support: reply within 1 working day', 'Everything in every plan'])}
     </div>
-    <p class="muted small">${live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
+    <p class="muted small">${IN_ANDROID ? 'Paid plans can’t be bought in the Android app. If you already have a plan, it works here too: just log in with the same account.' : live ? 'Pay monthly with UPI Autopay or a card, through Razorpay. Verth never sees your card or UPI PIN. Cancel any time and keep the plan until the end of the month you paid for. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="refunds.html" target="_blank" rel="noopener">Refunds</a>' : 'Paid plans open with online payment shortly. Choose one to be notified first; you won’t be charged now.'}</p>
     <section class="card"><div class="split"><h2>Your account</h2><button class="btn small" data-act="profile-open">Open profile</button></div><p class="muted small">Your photo, history, fingerprint login, sign out and account settings are in your profile.</p></section>`;
 }
 
@@ -2060,6 +2071,7 @@ const actions = {
     catch (e) { toast(friendlyError(e), 'bad'); }
   },
   upgrade: async (el) => {
+    if (IN_ANDROID) return toast('Paid plans can’t be bought in the Android app.');
     if (PAY_API) {
       if (S.payBusy) return;
       return startCheckout(el.dataset.plan);
@@ -3041,7 +3053,7 @@ function viewProfile() {
       <div><b>${guardScore()}<small>/10</small></b><span>Phone safety today</span></div>
       <div><b>${mineChecks.length}</b><span>Verify checks</span></div>
     </section>
-    ${k === 'free' || k === 'trial' ? `<section class="pf-up"><div><b>${k === 'trial' ? 'Enjoying everything unlimited?' : 'Get the full Verth'}</b><span>Unlimited checks, chat and payments, and a ${BADGE_IC.personal} badge on your profile.</span></div><button class="btn gold" data-act="${S.circle ? 'tab' : 'trial-plans'}" data-tab="plan">See plans</button></section>` : ''}
+    ${(k === 'free' || k === 'trial') && !IN_ANDROID ? `<section class="pf-up"><div><b>${k === 'trial' ? 'Enjoying everything unlimited?' : 'Get the full Verth'}</b><span>Unlimited checks, chat and payments, and a ${BADGE_IC.personal} badge on your profile.</span></div><button class="btn gold" data-act="${S.circle ? 'tab' : 'trial-plans'}" data-tab="plan">See plans</button></section>` : ''}
     <section class="card"><div class="split"><h2>Scam check history</h2>${hist.length ? '<button class="link small" data-act="hist-clear">Clear</button>' : ''}</div>
       <p class="muted small">${ICON.lock} Kept only on this phone. Verth’s servers never see what you check.</p>
       ${hist.length ? `<ul class="list sh-list">${hist.slice(0, 30).map((x) => `<li><span class="sh-k">${kindName[x.k] || 'Check'}</span><span class="grow"><b>${esc(x.l || '—')}</b><span class="muted small">${ago(x.at)}</span></span><span class="pill ${vName[x.v]?.[0] || 'wait'}">${vName[x.v]?.[1] || ''}</span></li>`).join('')}</ul>` : '<p class="muted">No checks yet. Anything you check in Scam check appears here.</p>'}

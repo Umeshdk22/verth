@@ -4,3 +4,7 @@ node_modules/
 test-output/
 video/_frames
 video/out/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties

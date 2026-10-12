@@ -1,0 +1,39 @@
+// The Verth Android app: a Trusted Web Activity that opens https://verth.in/app.html full screen
+// in Chrome, with Verth's own icon and splash screen. Built and signed by .github/workflows/android.yml.
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'in.verth.app'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'in.verth.app'
+        minSdk 21
+        targetSdk 36
+        versionCode Integer.parseInt((project.findProperty('versionCode') ?: '1').toString())
+        versionName (project.findProperty('versionName') ?: '1.0.0').toString()
+    }
+    signingConfigs {
+        upload {
+            storeFile file(System.getenv('VERTH_KEYSTORE') ?: 'missing.p12')
+            storePassword System.getenv('VERTH_KEY_PASSWORD')
+            keyAlias 'upload'
+            keyPassword System.getenv('VERTH_KEY_PASSWORD')
+            storeType 'pkcs12'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            signingConfig signingConfigs.upload
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
