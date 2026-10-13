@@ -526,6 +526,23 @@ const SLOW = process.env.CI ? 3 : 1;
     await vs(B, 'scan-result', null, '#scan-result h2');
     await vs(B, 'scan-flags', null, '.flags');
   });
+  await step('Warn your family: WhatsApp message and picture, links unclickable, nothing private', async () => {
+    const box = B.locator('#rv-share');
+    await box.waitFor({ timeout: 4000 * SLOW });
+    const href = await B.locator('#rv-wa').getAttribute('href');
+    if (!href.startsWith('https://wa.me/?text=')) throw new Error('WhatsApp link wrong: ' + href.slice(0, 40));
+    const text = decodeURIComponent(href.split('?text=')[1]);
+    for (const want of ['Scam alert', 'sbi-yono-kyc[.]xyz', '[link]', 'Warning signs', 'https://verth.in']) if (!text.includes(want)) throw new Error('share text missing ' + want + '\n' + text);
+    if (/sbi-yono-kyc\.xyz|http:\/\/sbi/.test(text)) throw new Error('scam link left clickable in share text');
+    if (text.length > 1500) throw new Error('share text too long');
+    require('node:fs').writeFileSync(OUT + '/11-share-text.txt', text);
+    const [dl] = await Promise.all([B.waitForEvent('download', { timeout: 8000 * SLOW }), B.click('[data-act="rv-share-img"]')]);
+    const file = OUT + '/11-share-picture.png'; await dl.saveAs(file);
+    const png = require('node:fs').readFileSync(file);
+    if (png.readUInt32BE(16) !== 1080 || png.readUInt32BE(20) < 1350) throw new Error('picture size wrong');
+    await B.getByText('Picture saved', { exact: false }).waitFor({ timeout: 4000 * SLOW });
+    await box.screenshot({ path: OUT + '/11-share-box.png' });
+  });
   await step('Scam check: Verth saves the scam by itself, no report button, never the content', async () => {
     await B.getByText('found to be a scam in 1 check').waitFor({ timeout: 5000 * SLOW }); // recorded automatically
     if (await B.locator('button:has-text("as a scam")').count()) throw new Error('manual report button still shown');
@@ -706,6 +723,7 @@ const SLOW = process.env.CI ? 3 : 1;
       await A.click('.kinds >> text=Link'); await A.fill('#s-link', `https://example-${i}.in/`); await A.click('button:has-text("Check it")');
       await A.locator('#scan-result').waitFor({ timeout: 5000 * SLOW });
       if (await A.getByText('You’ve used today’s free checks').count()) throw new Error('Team plan still hit the daily scam-check limit');
+      if (await A.locator('#rv-share').count()) throw new Error('clean result offered a scam-alert share');
     }
     await A.click('nav >> text=Chat'); await A.click('.chat-row:has-text("Priya Nair")');
     await A.evaluate(() => { const S = window.__verth.S; S.daily = { chat: { day: S.daily?.chat?.day || '', count: 50 }, pay: { day: '', count: 50 } }; });

@@ -23,6 +23,7 @@ import { QUOTES, ALERTS } from './showcase.js';
 import { heroBanner, quoteCarousel, quickTiles, alertShow, stepsShow, rulesGrid, helplineBand, signOff, pageHead, rotate } from './showcase.js';
 import { secondsLeft } from './totp.js';
 import { check, checkImage, fingerprint, ADVICE, JOB_ADVICE, COMPANIES, detectKind } from './scamcheck.js';
+import { shareable, shareInfo, shareText } from './share.js';
 import {
   deviceKeys, samePub, codeFor, checkCode, answerPayload, signAnswer, verifyAnswer, deviceLabel,
   chatKey, chatKeyId, sealBytes, openBytes, sealJson, openJson,
@@ -1091,6 +1092,71 @@ function techDetails(r) {
   rows.push(['Checked on', 'This device', 'ok']);
   return rows;
 }
+function shareBlock(r, flagged) {
+  if (!shareable(r, flagged)) return '';
+  return `<div class="rv-share" id="rv-share"><div class="rv-share-t"><b>${ICON.share}Warn your family and friends</b>
+    <span>Scammers send the same ${shareInfo(r, flagged).what} to many people. One tap tells your family what to watch out for.</span></div>
+    <div class="rv-share-btns"><a class="btn wa" id="rv-wa" href="https://wa.me/?text=${encodeURIComponent(shareText(r, flagged))}" target="_blank" rel="noopener noreferrer">Warn on WhatsApp</a>
+    <button type="button" class="btn ghost" data-act="rv-share-img">${ICON.download}Share as picture</button></div>
+    <p class="small muted">You’ll see the message before it’s sent. Links are made unclickable, and OTPs, account and card numbers are hidden.</p></div>`;
+}
+async function warningPng(r, flagged) {
+  await document.fonts?.ready;
+  const s = shareInfo(r, flagged), W = 1080, P = 80;
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  const F = (w, size) => `${w} ${size}px Inter, "Hind", system-ui, sans-serif`;
+  const wrap = (text, font, max) => { g.font = font; const out = []; let line = ''; for (const w of String(text).split(/\s+/)) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > max && line) { out.push(line); line = w; } else line = t; } if (line) out.push(line); return out; };
+  const items = [...(s.number ? [`Number: ${s.number}`] : []), ...s.signs, ...s.links.filter((l) => !s.signs.some((t) => t.includes(l))).map((l) => (r.kind === 'link' ? `Link: ${l}` : `Risky link: ${l}`))].slice(0, 5);
+  const lines = items.map((t) => wrap(t, F(600, 36), W - 2 * P - 70));
+  const tip = wrap(s.number ? 'If this number calls or messages you, don’t pay, share an OTP or install any app.' : 'If you get the same, don’t click any link, share an OTP or pay.', F(600, 34), W - 2 * P - 56);
+  const H = Math.max(1350, 560 + lines.reduce((a, l) => a + l.length * 48 + 34, 0) + tip.length * 46 + 380);
+  c.width = W; c.height = H;
+  const tone = s.high ? ['#DC3545', '#FDECEE', '#B42332'] : ['#D98A00', '#FFF4DE', '#8A4B00'];
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#1A1240'); bg.addColorStop(1, '#3A1E5C');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const box = (x, y, w, h, rad) => { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, rad); else g.rect(x, y, w, h); };
+  g.textBaseline = 'middle';
+  g.fillStyle = '#fff'; g.font = F(800, 48); g.fillText('✓ Verth', P, 110);
+  g.font = F(800, 28); const badge = s.high ? 'SCAM ALERT' : 'BE CAREFUL', bw = g.measureText(badge).width + 60;
+  g.fillStyle = tone[0]; box(W - P - bw, 84, bw, 54, 27); g.fill(); g.fillStyle = '#fff'; g.textAlign = 'center'; g.fillText(badge, W - P - bw / 2, 112); g.textAlign = 'left';
+  let y = 230;
+  for (const l of wrap(s.high ? `This ${s.what} looks like a scam` : `This ${s.what} has warning signs`, F(800, 72), W - 2 * P)) { g.fillStyle = '#fff'; g.font = F(800, 72); g.fillText(l, P, y); y += 86; }
+  g.fillStyle = '#D9D2F0'; g.font = F(500, 34); g.fillText('Checked on Verth. Warning signs found:', P, y + 6); y += 70;
+  const cardTop = y, cardH = lines.reduce((a, l) => a + l.length * 48 + 34, 0) + 40;
+  g.fillStyle = '#fff'; box(P - 16, cardTop, W - 2 * P + 32, cardH, 30); g.fill();
+  y += 40;
+  for (const l of lines) {
+    g.fillStyle = tone[0]; g.beginPath(); g.arc(P + 22, y + 10, 12, 0, 7); g.fill();
+    g.fillStyle = '#16132B'; l.forEach((t, i) => { g.font = F(600, 36); g.fillText(t, P + 60, y + 10 + i * 48); });
+    y += l.length * 48 + 34;
+  }
+  y = cardTop + cardH + 40;
+  const th = tip.length * 46 + 44;
+  g.fillStyle = tone[1]; box(P - 16, y, W - 2 * P + 32, th, 26); g.fill();
+  g.fillStyle = tone[2]; tip.forEach((t, i) => { g.font = F(700, 34); g.fillText(t, P + 12, y + 44 + i * 46); });
+  g.fillStyle = '#fff'; g.font = F(800, 46); g.fillText('Check before you pay', P, H - 170);
+  g.fillStyle = '#FFC896'; g.font = F(800, 52); g.fillText('verth.in', P, H - 100);
+  g.fillStyle = '#B9B0D8'; g.font = F(500, 26); g.textAlign = 'right'; g.fillText('Free scam check · Made in India', W - P, H - 100); g.textAlign = 'left';
+  return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('png'))), 'image/png'));
+}
+async function shareWarningImage(btn) {
+  const r = S.scanResult; if (!r) return;
+  btn.disabled = true;
+  try {
+    const flagged = S.flags?.[r.fp] || 0, blob = await warningPng(r, flagged), name = 'Verth-scam-alert.png';
+    const file = new File([blob], name, { type: 'image/png' });
+    let shared = false;
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], text: 'Check any message free before you pay: https://verth.in' }); shared = true; } catch (err) { if (err?.name === 'AbortError') shared = true; else throw err; }
+    }
+    if (!shared) {
+      const url = URL.createObjectURL(blob), a = Object.assign(document.createElement('a'), { href: url, download: name });
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast('Picture saved. Share it on WhatsApp or your Status.', 'ok');
+    }
+  } catch { toast('Couldn’t make the picture. Use “Warn on WhatsApp” instead.', 'bad'); }
+  btn.disabled = false;
+}
 function scanResultCard(r) {
   const [cls, head] = VERDICT[r.verdict], sorted = [...r.flags].sort((a, b) => b.level - a.level);
   // With no red flags, the small notes the checker adds (like "ordinary mobile number") are tips, not warning signs.
@@ -1132,6 +1198,7 @@ function scanResultCard(r) {
     ${tips.length ? `<div class="rv-sec"><h3>Good to know</h3><ul class="flags">${tips.map((f) => `<li class="lv1"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
     ${r.good.length ? `<div class="rv-sec"><h3>Good signs</h3><ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></div>` : ''}
     ${r.links?.length ? `<div class="rv-sec found" id="rv-links"><h3>Links checked</h3>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
+    ${shareBlock(r, flagged)}
     <div class="community">${flagged ? `<span class="cm-stats"><b>🛡️ In Verth’s scam database: found to be a scam in ${flagged} ${flagged === 1 ? 'check' : 'checks'}</b></span>` : `<span>🛡️ Checked against Verth’s scam database: no scam record for this ${what} yet.</span>`}
       ${r.verdict === 'danger' ? '<span class="small muted">Verth saved this to its scam database by itself, so everyone who checks it next is warned. Only a scrambled fingerprint is kept, never the content.</span>' : '<span class="small muted">Verth adds anything it finds to be a scam to the database automatically. Nobody can mark a number or link as a scam by hand.</span>'}</div>
     ${r.kind === 'image' ? `<div class="rv-sec found"><h3>What Verth found in your picture</h3>
@@ -1862,6 +1929,7 @@ const busy = (form, on) => {
 };
 
 const actions = {
+  'rv-share-img': (el) => shareWarningImage(el),
   'rv-go': (el) => document.getElementById(el.dataset.to)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
   reload: () => location.reload(),
   'otp-change': () => { S.otpEmail = ''; renderAuth(); },
@@ -2140,6 +2208,7 @@ const forms = {
       return setErr('scan-err', friendlyError(e));
     }
     const r = check(S.scanKind, text, f.querySelector('#s-company')?.value || '');
+    r.input = text; // kept on this phone only, for the "Warn your family" message
     S.prefill = null;
     r.fp = r.normalized ? await fingerprint(r.kind, r.normalized) : null;
     logScan(r, text);

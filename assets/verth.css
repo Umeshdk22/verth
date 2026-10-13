@@ -1378,3 +1378,13 @@ video::cue{font-family:"Inter","Hind",system-ui,sans-serif;font-size:1.05em;font
 }
 .chart.vc-bars .vc-x span{transform:translateX(-50%)!important}
 .sec-hd.plain h2{text-align:left;align-self:stretch;flex:none;min-width:0}
+/* Warn your family: share a found scam on WhatsApp or as a picture */
+.rv-share{margin:18px 0;padding:18px;border-radius:18px;background:linear-gradient(135deg,#F1FBF5,#EEF6FF);border:1px solid #CFEBDB;display:flex;flex-direction:column;gap:12px}
+.rv-share-t{display:flex;flex-direction:column;gap:4px}
+.rv-share-t b{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink)}
+.rv-share-t b svg{width:18px;height:18px;color:#178F49}
+.rv-share-t span{font-size:14px;color:var(--muted)}
+.rv-share-btns{display:flex;flex-wrap:wrap;gap:10px}
+.rv-share-btns .btn{flex:1 1 180px;justify-content:center;gap:8px}
+.rv-share-btns svg{width:18px;height:18px}
+.rv-share p{margin:0}
