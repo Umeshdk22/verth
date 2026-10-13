@@ -1,0 +1,493 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<script src="../node_modules/qrcode-generator/qrcode.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+body{font-family:'Inter','Hind',system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+body.hi{font-family:'Hind','Inter',system-ui,sans-serif;letter-spacing:0}
+#st{position:relative;width:1080px;height:1920px;overflow:hidden}
+#bg{position:absolute;inset:0;overflow:hidden}
+#scenes{position:absolute;inset:0}
+section{position:absolute;inset:0;opacity:0;visibility:hidden;will-change:transform,opacity,filter}
+.a{position:absolute;opacity:0;will-change:transform,opacity}
+svg.ic{width:1em;height:1em;display:inline-block;vertical-align:-.12em}
+/* safe area: Shorts covers the top ~220px and bottom ~380px with its own buttons */
+#chip{position:absolute;left:50%;top:236px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:12px;font-size:28px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:12px 26px;border-radius:999px;white-space:nowrap}
+body.hi #chip{letter-spacing:0;font-size:32px;text-transform:none}
+#chip i{width:14px;height:14px;border-radius:50%;background:currentColor;display:inline-block}
+#cap{position:absolute;left:60px;right:60px;top:1300px;z-index:40;text-align:center;font-size:54px;line-height:1.22;font-weight:800;letter-spacing:-.025em;opacity:0}
+body.hi #cap{font-size:56px;line-height:1.35;font-weight:700;letter-spacing:0}
+#cap span{opacity:.38;transition:none}
+#cap span.on{opacity:1}
+#wm{position:absolute;right:46px;top:1222px;z-index:31;font-size:28px;font-weight:800;opacity:.7;letter-spacing:-.01em}
+.logo{width:150px;height:150px;border-radius:40px;overflow:hidden;box-shadow:0 24px 60px -12px rgba(0,0,0,.5)}
+.logo img{width:100%;height:100%;display:block}
+/* ---------- shared parts ---------- */
+.phone{position:absolute;width:600px;height:900px;border-radius:64px;background:#0B0B12;padding:18px;box-shadow:0 50px 120px -30px rgba(0,0,0,.65),0 0 0 2px rgba(255,255,255,.08)}
+.phone .scr{position:relative;width:100%;height:100%;border-radius:48px;overflow:hidden;background:#F2F4F7;color:#111}
+.phone .notch{position:absolute;left:50%;top:14px;width:150px;height:34px;margin-left:-75px;border-radius:20px;background:#0B0B12;z-index:5}
+.chat-h{display:flex;align-items:center;gap:18px;padding:70px 28px 22px;background:#fff;border-bottom:1px solid #E5E7EB}
+.chat-h .av{width:76px;height:76px;border-radius:50%;overflow:hidden;background:#CBD5E1;flex:none}
+.chat-h b{display:block;font-size:32px;color:#111;letter-spacing:-.02em}
+.chat-h small{display:block;font-size:22px;font-weight:700;margin-top:2px}
+.bub{position:absolute;left:26px;max-width:470px;background:#fff;color:#111;font-size:31px;line-height:1.3;font-weight:500;padding:20px 24px;border-radius:8px 28px 28px 28px;box-shadow:0 4px 14px -6px rgba(0,0,0,.25)}
+.bub small{display:block;font-size:20px;color:#6B7280;margin-top:8px;text-align:right}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:14px;font-weight:800;border-radius:999px}
+.card{position:absolute;border-radius:36px;background:#fff;color:#111;box-shadow:0 30px 80px -30px rgba(0,0,0,.55)}
+.stamp{position:absolute;font-weight:900;text-transform:uppercase;letter-spacing:.04em;border:10px solid currentColor;border-radius:24px;padding:10px 34px;transform-origin:50% 50%}
+body.hi .stamp{text-transform:none;letter-spacing:0}
+.conf{position:absolute;width:18px;height:28px;border-radius:4px;opacity:0}
+.cta{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;text-align:center;padding:0 80px 380px}
+.cta h2{font-size:84px;line-height:1.05;font-weight:900;letter-spacing:-.04em}
+body.hi .cta h2{font-size:84px;line-height:1.2;letter-spacing:0}
+.cta .url{font-size:66px;font-weight:900;padding:18px 60px;border-radius:999px;letter-spacing:-.02em}
+.cta .fine{font-size:32px;font-weight:600;opacity:.85}
+.cta .a{position:relative}
+/* ---------- theme: office (fake boss) ---------- */
+.t-boss #bg{background:linear-gradient(170deg,#0A1A33 0%,#0D3550 55%,#0E5560 100%)}
+.t-boss .grid{position:absolute;inset:-200px;background-image:linear-gradient(rgba(255,255,255,.05) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.05) 2px,transparent 2px);background-size:90px 90px}
+.t-boss .orb{position:absolute;border-radius:50%;filter:blur(2px)}
+.t-boss #chip{background:rgba(255,255,255,.1);color:#5EEAD4;border:2px solid rgba(94,234,212,.4)}
+.t-boss #cap{color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.6)}
+.t-boss #cap span.k{color:#5EEAD4}
+.t-boss .cta .url{background:#5EEAD4;color:#06222A}
+/* ---------- theme: home (papa) ---------- */
+.t-papa #bg{background:linear-gradient(180deg,#FFC58A 0%,#F59A8B 38%,#C7608E 70%,#5C3A8C 100%)}
+.t-papa .sun{position:absolute;left:640px;top:380px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,#FFF4C9 0%,#FFD98A 45%,rgba(255,200,120,0) 70%)}
+.t-papa .win{position:absolute;left:70px;top:330px;width:940px;height:1040px;border:16px solid rgba(70,30,60,.35);border-radius:40px 40px 10px 10px}
+.t-papa .win:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:16px;margin-left:-8px;background:rgba(70,30,60,.35)}
+.t-papa .bok{position:absolute;border-radius:50%;background:rgba(255,255,255,.22)}
+.t-papa #chip{background:rgba(255,255,255,.85);color:#7A2E5A}
+.t-papa #cap{color:#fff;text-shadow:0 3px 18px rgba(80,20,60,.7)}
+.t-papa #cap span.k{color:#FFE29A}
+.t-papa .serif{font-family:'Rozha One','Hind',serif;font-weight:400;letter-spacing:0}
+.t-papa .cta .url{background:#fff;color:#7A2E5A}
+.t-papa .cta h2,.t-papa .dark{color:#4A1838;text-shadow:0 2px 20px rgba(255,235,210,.6)}
+.t-papa .cta .fine{color:#4A1838}
+.wbub{position:absolute;left:90px;right:90px;background:#FFFDF8;color:#3A1F2E;border-radius:10px 44px 44px 44px;padding:30px 36px;font-size:44px;line-height:1.28;font-weight:600;box-shadow:0 30px 70px -30px rgba(70,20,50,.6)}
+body.hi .wbub{font-size:46px;line-height:1.4}
+.wbub small{display:block;font-size:24px;font-weight:700;color:#B4557F;margin-bottom:10px;letter-spacing:.02em}
+/* ---------- theme: pop (QR) ---------- */
+.t-qr #bg{background:#FFD400}
+.t-qr .dots{position:absolute;inset:0;background-image:radial-gradient(rgba(0,0,0,.13) 22%,transparent 24%);background-size:34px 34px}
+.t-qr .ray{position:absolute;left:540px;top:820px;width:2600px;height:2600px;margin:-1300px 0 0 -1300px;background:repeating-conic-gradient(rgba(255,255,255,.28) 0 10deg,transparent 10deg 20deg);border-radius:50%}
+.t-qr #chip{background:#111;color:#FFD400;border:4px solid #111}
+.t-qr #cap{color:#111;font-weight:900}
+.t-qr #cap span.k{color:#E5005B}
+.t-qr #wm{color:#111}
+.pop{border:7px solid #111;box-shadow:14px 14px 0 #111}
+.t-qr .cta{color:#111}
+.t-qr .cta .url{background:#111;color:#FFD400}
+.burst{position:absolute;display:grid;place-items:center;text-align:center;color:#111;font-weight:900;clip-path:polygon(50% 0%,61% 12%,76% 4%,79% 20%,95% 18%,90% 34%,100% 45%,90% 56%,98% 71%,82% 74%,80% 92%,65% 85%,52% 100%,40% 86%,24% 95%,21% 78%,4% 76%,10% 60%,0% 47%,10% 35%,3% 19%,20% 20%,23% 4%,38% 13%)}
+/* ---------- theme: thriller (digital arrest) ---------- */
+.t-arrest #bg{background:radial-gradient(ellipse 120% 80% at 50% 40%,#1A0B12 0%,#07070C 70%)}
+.t-arrest .siren{position:absolute;top:-300px;width:900px;height:900px;border-radius:50%;filter:blur(40px)}
+.t-arrest .scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 2px,transparent 2px 6px);z-index:25;pointer-events:none}
+.t-arrest #chip{background:#E11D2E;color:#fff}
+.t-arrest #cap{color:#fff;text-shadow:0 0 30px rgba(0,0,0,.9)}
+.t-arrest #cap span.k{color:#FF5A6A}
+.t-arrest .mono{font-family:'IBM Plex Mono',monospace}
+.t-arrest .cta .url{background:#fff;color:#0B0B12}
+.vcall{position:absolute;left:110px;top:360px;width:860px;height:820px;border-radius:40px;overflow:hidden;background:linear-gradient(180deg,#1E2A3A,#0E141F);box-shadow:0 0 0 3px rgba(255,255,255,.12),0 40px 120px -20px rgba(0,0,0,.8)}
+.glitch{position:relative;font-weight:900;letter-spacing:-.03em}
+</style></head>
+<body><div id="st">
+  <div id="bg"></div>
+  <div id="scenes"></div>
+  <div id="chip"><i></i><span id="chipT"></span></div>
+  <div id="wm">verth.in</div>
+  <div id="cap"></div>
+</div>
+<script>
+// Video-making tool: runs only on the maker's own computer, never on the live website.
+if (!['localhost', '127.0.0.1'].includes(location.hostname)) { document.documentElement.innerHTML = ''; throw new Error('local tool'); }
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const ease = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const easeOut = (x) => { x = clamp(x); return 1 - Math.pow(1 - x, 3); };
+const back = (x) => { x = clamp(x); const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+let HI = false;
+const T = (en, hi) => (HI ? hi : en);
+
+// ---------- icons ----------
+const I = {
+  check: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  cross: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  flag: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h2v18H5zM8 4h10l-2.5 4L18 12H8z"/></svg>',
+  warn: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg>',
+  phone: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>',
+  hang: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1a1 1 0 0 1-.56.9 11.5 11.5 0 0 0-2.66 1.85 1 1 0 0 1-1.41 0L.29 13.08a1 1 0 0 1 0-1.41A16.9 16.9 0 0 1 12 7c4.57 0 8.71 1.81 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.49a1 1 0 0 1-1.41 0 11.3 11.3 0 0 0-2.67-1.85 1 1 0 0 1-.56-.9v-3.1A15 15 0 0 0 12 9z"/></svg>',
+  shield: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1.2 15.6-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7z"/></svg>',
+  share: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7c0 .2 0 .4.1.6L8.4 11a3 3 0 1 0 0 4l6.7 3.4c-.1.2-.1.4-.1.6a3 3 0 1 0 3-3z"/></svg>',
+  hand: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M21 7a1.5 1.5 0 0 0-3 0v5h-1V3.5a1.5 1.5 0 0 0-3 0V11h-1V2.5a1.5 1.5 0 0 0-3 0V11H9V4.5a1.5 1.5 0 0 0-3 0v10.3l-2.3-2.3a1.6 1.6 0 0 0-2.3 2.2L7 21.3c.9 1 2.2 1.7 3.6 1.7H16a5 5 0 0 0 5-5z"/></svg>',
+  heart: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35 10.55 20C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z"/></svg>',
+  lock: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0z"/></svg>',
+  rupee: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 9h12M13 21 6 13h3a5 5 0 0 0 0-10"/></svg>',
+  cam: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>',
+  arrowR: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>',
+};
+// ---------- people (simple flat illustrations) ----------
+function person(o = {}) {
+  const { skin = '#E2A77E', hair = '#2A1A12', style = 'short', shirt = '#2F6FED', mouth = 'smile', glasses = false, mustache = false, bindi = false, grey = false, collar = '#fff' } = o;
+  const h = grey ? '#BFC3C9' : hair;
+  const backHair = style === 'long' ? `<rect x="46" y="38" width="108" height="130" rx="52" fill="${h}"/>` : style === 'bun' ? `<circle cx="100" cy="30" r="24" fill="${h}"/>` : style === 'pony' ? `<path d="M140 60 C175 70 172 125 150 150 C158 120 150 95 138 82Z" fill="${h}"/>` : '';
+  const front = style === 'short' ? `<path d="M52 84 C50 42 78 30 100 30 C126 30 152 42 148 84 C142 62 122 54 100 56 C80 56 60 64 52 84Z" fill="${h}"/>`
+    : style === 'bald' ? `<path d="M52 92 C52 78 56 70 62 66 C60 80 58 86 56 96Z M148 92 C148 78 144 70 138 66 C140 80 142 86 144 96Z" fill="${h}"/>`
+      : `<path d="M50 90 C46 44 78 30 100 30 C126 30 156 44 150 90 C142 66 128 54 100 54 C76 56 60 66 50 90Z" fill="${h}"/>`;
+  const m = mouth === 'smile' ? '<path d="M85 108 Q100 120 115 108" stroke="#5B2A1A" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    : mouth === 'worry' ? '<path d="M87 114 Q100 106 113 114" stroke="#5B2A1A" stroke-width="4" fill="none" stroke-linecap="round"/>'
+      : mouth === 'o' ? '<ellipse cx="100" cy="112" rx="7" ry="9" fill="#5B2A1A"/>' : '<path d="M88 111 H112" stroke="#5B2A1A" stroke-width="4" stroke-linecap="round"/>';
+  const brows = mouth === 'worry' ? '<path d="M76 74 L90 79 M124 74 L110 79" stroke="#3A2418" stroke-width="4" stroke-linecap="round"/>' : '<path d="M76 77 Q83 73 90 77 M110 77 Q117 73 124 77" stroke="#3A2418" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  return `<svg viewBox="0 0 200 230" width="100%" height="100%">${backHair}
+    <path d="M18 230 C18 170 56 146 100 146 C144 146 182 170 182 230Z" fill="${shirt}"/>
+    <path d="M78 146 L100 172 L122 146Z" fill="${collar}"/>
+    <rect x="86" y="118" width="28" height="34" rx="10" fill="${skin}" style="filter:brightness(.9)"/>
+    <ellipse cx="100" cy="86" rx="50" ry="54" fill="${skin}"/>
+    <ellipse cx="50" cy="92" rx="8" ry="11" fill="${skin}"/><ellipse cx="150" cy="92" rx="8" ry="11" fill="${skin}"/>
+    ${front}${brows}
+    <circle cx="83" cy="90" r="5" fill="#2A1A12"/><circle cx="117" cy="90" r="5" fill="#2A1A12"/>
+    ${glasses ? '<circle cx="83" cy="90" r="14" fill="none" stroke="#2A1A12" stroke-width="3.5"/><circle cx="117" cy="90" r="14" fill="none" stroke="#2A1A12" stroke-width="3.5"/><path d="M97 90 H103" stroke="#2A1A12" stroke-width="3.5"/>' : ''}
+    ${mustache ? `<path d="M80 104 Q90 96 100 102 Q110 96 120 104 Q110 106 100 105 Q90 106 80 104Z" fill="${h}"/>` : ''}
+    ${bindi ? '<circle cx="100" cy="68" r="4.5" fill="#D6213A"/>' : ''}
+    <ellipse cx="72" cy="104" rx="8" ry="5" fill="#F08A8A" opacity=".35"/><ellipse cx="128" cy="104" rx="8" ry="5" fill="#F08A8A" opacity=".35"/>
+    ${m}</svg>`;
+}
+// The "officer" on the fake video call: a faceless figure in shadow.
+const OFFICER = `<svg viewBox="0 0 400 460" width="100%" height="100%"><defs><linearGradient id="og" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B4A63"/><stop offset="1" stop-color="#161D2B"/></linearGradient></defs>
+  <path d="M30 460 C30 340 110 300 200 300 C290 300 370 340 370 460Z" fill="url(#og)"/>
+  <path d="M170 300 L200 350 L230 300Z" fill="#0E1420"/>
+  <rect x="172" y="236" width="56" height="70" rx="18" fill="#1E2738"/>
+  <ellipse cx="200" cy="190" rx="78" ry="88" fill="#1E2738"/>
+  <path d="M112 150 C120 90 280 90 288 150 Z" fill="#0E1420"/><rect x="104" y="146" width="192" height="22" rx="8" fill="#0E1420"/>
+  <circle cx="200" cy="122" r="12" fill="#C9A227" opacity=".85"/>
+  <rect x="96" y="356" width="60" height="14" rx="4" fill="#C9A227" opacity=".6"/><rect x="244" y="356" width="60" height="14" rx="4" fill="#C9A227" opacity=".6"/>
+</svg>`;
+const qrSvg = (text, size, dark = '#111', light = '#fff') => {
+  const q = qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(), c = size / (n + 8); let r = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) r += `<rect x="${(x + 4) * c}" y="${(y + 4) * c}" width="${c + .4}" height="${c + .4}"/>`;
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${light}"/><g fill="${dark}">${r}</g></svg>`;
+};
+const LOGO = '<div class="logo"><img src="../assets/icon-512.png" alt=""></div>';
+const conf = (n, colors, x0, y0, spread, seed = 1) => {
+  let r = seed * 9973; const rnd = () => ((r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  return Array.from({ length: n }, () => `<div class="conf" data-vx="${(rnd() - .5) * spread}" data-vy="${-500 - rnd() * 900}" data-rot="${(rnd() - .5) * 1440}" data-x="${x0}" data-y="${y0}" style="background:${colors[Math.floor(rnd() * colors.length)]}"></div>`).join('');
+};
+
+// ---------- the four stories ----------
+// Each section is shown for lines [from..to]. Elements with class "a" appear at data-at:
+// "n" = start of line n, "n+0.5" = 0.5 s after it, "n@0.6" = 60% of the way through line n.
+// data-fx: up (default), pop, left, right, stamp, fade, drop, zoom.  data-sfx: a sound at that moment.
+const VIDEOS = {
+  sboss: () => ({
+    theme: 'boss', chip: T('Fake boss scam', 'नकली बॉस स्कैम'),
+    keys: T(['new number', 'meeting', 'urgent', 'off', 'three signs', 'real', 'never', 'saved', 'real person', 'verth.in'], ['नया नंबर', 'मीटिंग', 'अर्जेंट', 'गड़बड़', 'तीन निशान', 'असली', 'कोई', 'बच', 'असली व्यक्ति', 'वर्थ']),
+    bg: `<div class="grid" id="grid"></div><div class="orb" id="o1" style="width:520px;height:520px;background:radial-gradient(circle,rgba(45,212,191,.35),rgba(45,212,191,0) 70%)"></div><div class="orb" id="o2" style="width:620px;height:620px;background:radial-gradient(circle,rgba(99,102,241,.35),rgba(99,102,241,0) 70%)"></div>`,
+    sections: [
+      { from: 0, to: 2, html: `
+        <div class="a" data-at="0+0.1" data-fx="left" style="left:70px;top:330px;width:250px;height:290px">${person({ style: 'long', hair: '#1E120C', shirt: '#0EA5A4', bindi: true })}</div>
+        <div class="a" data-at="0+0.3" data-fx="left" style="left:80px;top:630px;font-size:34px;font-weight:800">Neha<br><span style="font-size:26px;font-weight:600;opacity:.75">${T('Accountant', 'अकाउंटेंट')}</span></div>
+        <div class="phone a" data-at="0+0.6" data-fx="up" data-sfx="buzz" style="left:400px;top:330px;width:600px;height:880px"><div class="notch"></div><div class="scr">
+          <div class="chat-h"><div class="av">${person({ style: 'bald', grey: true, shirt: '#1E3A8A', mustache: true, glasses: true })}</div><div><b>${T('Sharma Sir', 'शर्मा सर')}</b><small style="color:#DC2626">${T('New number', 'नया नंबर')} · +91 79••• ••213</small></div></div>
+          <div class="bub a" data-at="1+0.2" data-fx="pop" data-sfx="ping" style="top:230px">${T('Hi Neha. I’m in a meeting, can’t talk right now.', 'हाय नेहा। मीटिंग में हूँ, अभी बात नहीं कर सकता।')}<small>5:02 PM</small></div>
+          <div class="bub a" data-at="2+0.1" data-fx="pop" data-sfx="ping" style="top:420px">${T('Pay this vendor <b>₹48,000</b> right now. Very urgent!', 'इस वेंडर को अभी <b>₹48,000</b> भेज दो। बहुत अर्जेंट है!')}<small>5:02 PM</small></div>
+          <div class="bub a" data-at="2@0.6" data-fx="pop" data-sfx="ping" style="top:610px;font-family:'IBM Plex Mono',monospace;font-size:26px">UPI: fastpay.vendor@upi<small>5:03 PM</small></div>
+        </div></div>` },
+      { from: 3, to: 3, html: `
+        <div class="a" data-at="3" data-fx="zoom" style="left:390px;top:360px;width:300px;height:345px">${person({ style: 'long', hair: '#1E120C', shirt: '#0EA5A4', bindi: true, mouth: 'worry' })}</div>
+        <div class="a" data-at="3@0.45" data-fx="pop" style="left:700px;top:330px;width:120px;height:120px;border-radius:50%;background:#FBBF24;color:#1F2937;font-size:86px;font-weight:900;display:grid;place-items:center">?</div>
+        <div class="a btn" data-at="3+0.2" data-fx="up" style="left:190px;top:800px;width:700px;height:150px;background:#22C55E;color:#fff;font-size:56px">${I.rupee} ${T('Pay ₹48,000', '₹48,000 भेजें')}</div>
+        <div class="a" data-at="3+0.4" data-fx="fade" id="finger" style="left:640px;top:900px;font-size:120px;color:#FDE68A">${I.hand}</div>
+        <div class="stamp a" data-at="3@0.62" data-fx="stamp" data-sfx="stamp" style="left:250px;top:1030px;color:#EF4444;font-size:96px;transform:rotate(-8deg)">${T('Wait!', 'रुको!')}</div>` },
+      { from: 4, to: 4, html: `
+        <div class="a" data-at="4" data-fx="up" style="left:70px;right:70px;top:340px;text-align:center;font-size:62px;font-weight:900;line-height:1.1">${T('3 signs of a <span style="color:#F87171">fake boss</span>', 'नकली बॉस के <span style="color:#F87171">3 निशान</span>')}</div>
+        ${[[T('New number', 'नया नंबर'), '4@0.12'], [T('“Can’t talk”', '“बात नहीं कर सकता”'), '4@0.24'], [T('Urgent money', 'तुरंत पैसे'), '4@0.38']].map(([t, at], k) => `
+        <div class="card a" data-at="${at}" data-fx="right" data-sfx="pop" style="left:110px;right:110px;top:${560 + k * 210}px;height:170px;display:flex;align-items:center;gap:30px;padding:0 44px;font-size:52px;font-weight:800">
+          <span style="width:96px;height:96px;border-radius:28px;background:#FEE2E2;color:#DC2626;display:grid;place-items:center;font-size:54px">${I.flag}</span>${t}</div>`).join('')}` },
+      { from: 5, to: 5, html: `
+        <div class="a" data-at="5" data-fx="up" style="left:0;right:0;top:330px;display:flex;justify-content:center;align-items:center;gap:22px;font-size:46px;font-weight:800">${LOGO.replace('class="logo"', 'class="logo" style="width:90px;height:90px;border-radius:26px"')}${T('Ask the real person', 'असली व्यक्ति से पूछें')}</div>
+        <div class="a" data-at="5+0.3" data-fx="left" style="left:70px;top:520px;width:300px;text-align:center"><div style="width:240px;height:276px;margin:0 auto">${person({ style: 'long', hair: '#1E120C', shirt: '#0EA5A4', bindi: true })}</div><div style="font-size:36px;font-weight:800;margin-top:10px">Neha</div></div>
+        <div class="a" data-at="5+0.3" data-fx="right" style="left:710px;top:520px;width:300px;text-align:center"><div style="width:240px;height:276px;margin:0 auto">${person({ style: 'bald', grey: true, shirt: '#1E3A8A', mustache: true, glasses: true })}</div><div style="font-size:36px;font-weight:800;margin-top:10px">${T('Real Sharma Sir', 'असली शर्मा सर')}</div><div style="font-size:26px;opacity:.75">${T('his own phone', 'उनका अपना फ़ोन')}</div></div>
+        <div class="a" data-at="5@0.35" data-fx="fade" id="trail" style="left:360px;top:640px;width:360px;height:40px"><svg width="360" height="40"><path d="M10 20 H350" stroke="#5EEAD4" stroke-width="8" stroke-dasharray="4 22" stroke-linecap="round"/></svg></div>
+        <div class="a" data-at="5@0.35" data-fx="fade" id="packet" data-sfx="whoosh" style="left:360px;top:610px;width:100px;height:100px;border-radius:30px;background:#5EEAD4;color:#06222A;display:grid;place-items:center;font-size:58px;font-weight:900">?</div>
+        <div class="card a" data-at="5@0.55" data-fx="up" style="left:110px;right:110px;top:950px;padding:34px 40px;font-size:40px;font-weight:700;line-height:1.3">${T('“Did you ask me to pay <b>₹48,000</b> to fastpay.vendor?”', '“क्या आपने <b>₹48,000</b> भेजने को कहा है?”')}</div>` },
+      { from: 6, to: 6, html: `
+        <div class="phone a" data-at="6" data-fx="up" data-sfx="buzz" style="left:240px;top:330px;width:600px;height:880px"><div class="notch"></div><div class="scr" style="background:#F6F4FF">
+          <div style="padding:90px 36px 0;display:flex;align-items:center;gap:16px;font-size:30px;font-weight:800;color:#4C1D95">${LOGO.replace('class="logo"', 'class="logo" style="width:64px;height:64px;border-radius:18px;box-shadow:none"')}Verth</div>
+          <div style="margin:40px 36px 0;font-size:36px;font-weight:800;line-height:1.25">${T('Neha is asking:', 'नेहा पूछ रही हैं:')}</div>
+          <div style="margin:18px 36px 0;font-size:34px;line-height:1.3;color:#374151">${T('Did you ask her to pay ₹48,000 to fastpay.vendor?', 'क्या आपने ₹48,000 भेजने को कहा है?')}</div>
+          <div style="position:absolute;left:36px;right:36px;top:520px;display:flex;flex-direction:column;gap:22px">
+            <div class="btn" style="height:110px;background:#E5E7EB;color:#111;font-size:38px">${I.check} ${T('Yes, it’s me', 'हाँ, मैंने कहा')}</div>
+            <div class="btn" id="nobtn" style="height:110px;background:#DC2626;color:#fff;font-size:38px">${I.cross} ${T('No, not me', 'नहीं, मैंने नहीं')}</div>
+          </div></div></div>
+        <div class="a" data-at="6@0.35" data-fx="fade" id="tap" style="left:620px;top:1000px;font-size:110px;color:#FDE68A">${I.hand}</div>
+        <div class="card a" data-at="6@0.55" data-fx="pop" data-sfx="stamp" style="left:80px;right:80px;top:560px;padding:40px;text-align:center;background:#DC2626;color:#fff;font-size:62px;font-weight:900;line-height:1.15">${I.cross}<br>${T('“I never sent this.”', '“मैंने नहीं भेजा।”')}</div>` },
+      { from: 7, to: 7, html: `
+        ${conf(60, ['#5EEAD4', '#FBBF24', '#F472B6', '#60A5FA', '#fff'], 540, 900, 1400, 3)}
+        <div class="a" data-at="7" data-fx="zoom" data-sfx="ding" style="left:0;right:0;top:560px;text-align:center;font-size:190px;font-weight:900;letter-spacing:-.05em;color:#fff">₹48,000</div>
+        <div class="stamp a" data-at="7+0.35" data-fx="stamp" style="left:300px;top:820px;color:#22C55E;font-size:110px;transform:rotate(-6deg)">${T('Saved', 'बच गए')}</div>` },
+      { from: 8, to: 8, cta: true },
+    ],
+  }),
+
+  spapa: () => ({
+    theme: 'papa', chip: T('Family money scam', 'परिवार के नाम पर ठगी'),
+    keys: T(['buzzes', 'new number', 'twenty thousand', 'son', 'wait', 'High risk', 'old number', 'old number', 'verth.in'], ['मैसेज', 'नया नंबर', 'बीस हज़ार', 'बेटे', 'रुको', 'हाई रिस्क', 'पुराने नंबर', 'पुराने नंबर', 'वर्थ']),
+    bg: `<div class="sun" id="sun"></div><div class="win"></div>${Array.from({ length: 9 }, (_, i) => `<div class="bok" data-i="${i}" style="width:${60 + (i * 37) % 120}px;height:${60 + (i * 37) % 120}px"></div>`).join('')}`,
+    sections: [
+      { from: 0, to: 0, html: `
+        <div class="a" data-at="0" data-fx="up" style="left:220px;top:420px;width:640px;height:736px">${person({ style: 'short', grey: true, shirt: '#8B2C4B', collar: '#F5D0C5', mustache: true, glasses: true })}</div>
+        <div class="a" data-at="0+0.3" data-fx="up" id="cup" style="left:690px;top:930px;width:200px;height:220px"><svg viewBox="0 0 200 220" width="200" height="220"><path id="steam1" d="M70 60 C60 40 80 30 70 10" stroke="#fff" stroke-width="6" fill="none" opacity=".7" stroke-linecap="round"/><path id="steam2" d="M110 60 C100 40 120 30 110 10" stroke="#fff" stroke-width="6" fill="none" opacity=".7" stroke-linecap="round"/><path d="M30 80 H160 L150 190 C148 205 138 212 124 212 H66 C52 212 42 205 40 190Z" fill="#FFF7EA"/><path d="M160 100 C200 100 200 160 156 160" stroke="#FFF7EA" stroke-width="14" fill="none"/><path d="M40 112 H152" stroke="#C7608E" stroke-width="8"/></svg></div>
+        <div class="a" data-at="0@0.6" data-fx="pop" data-sfx="buzz" id="buzz" style="left:120px;top:880px;width:170px;height:280px;border-radius:30px;background:#2B1530;border:6px solid #FFE29A;display:grid;place-items:center;color:#FFE29A;font-size:90px">${I.phone}</div>` },
+      { from: 1, to: 3, html: `
+        <div class="a" data-at="1" data-fx="up" style="left:90px;top:340px;display:flex;align-items:center;gap:20px;font-size:34px;font-weight:700;color:#3A1F2E;background:rgba(255,255,255,.75);padding:16px 26px;border-radius:999px">${I.phone} ${T('Unknown number', 'अनजान नंबर')} · +91 98••• ••417</div>
+        <div class="wbub a" data-at="1+0.2" data-fx="pop" data-sfx="ping" style="top:470px"><small>${T('NEW MESSAGE', 'नया मैसेज')}</small>${T('Papa, it’s me. My phone broke. This is my new number.', 'पापा, मैं हूँ। मेरा फ़ोन टूट गया। ये मेरा नया नंबर है।')}</div>
+        <div class="wbub a" data-at="2+0.1" data-fx="pop" data-sfx="ping" style="top:800px">${T('I need <b>₹20,000</b> urgently. Please don’t call. I’ll explain later.', 'मुझे अभी <b>₹20,000</b> चाहिए। प्लीज़ कॉल मत करना। बाद में बताता हूँ।')}</div>
+        <div class="a" data-at="3" data-fx="up" style="left:120px;top:1110px;width:180px;height:207px">${person({ style: 'short', grey: true, shirt: '#8B2C4B', collar: '#F5D0C5', mustache: true, glasses: true, mouth: 'worry' })}</div>
+        <div class="a" data-at="3+0.3" data-fx="pop" style="left:300px;top:1130px;color:#fff;font-size:44px;font-weight:700" ><span class="serif" style="font-size:56px">${T('“My son needs help…”', '“बेटे को मदद चाहिए…”')}</span></div>
+        <div class="a" data-at="3@0.5" data-fx="pop" data-sfx="pop" style="left:820px;top:1080px;font-size:110px;color:#FF5C8A">${I.heart}</div>` },
+      { from: 4, to: 4, html: `
+        <div class="a" data-at="4" data-fx="right" style="left:520px;top:520px;width:480px;height:552px">${person({ style: 'pony', hair: '#241510', shirt: '#F59E0B', collar: '#FFF7ED', bindi: true })}</div>
+        <div class="a" data-at="4" data-fx="left" style="left:60px;top:650px;width:360px;height:414px">${person({ style: 'short', grey: true, shirt: '#8B2C4B', collar: '#F5D0C5', mustache: true, glasses: true, mouth: 'o' })}</div>
+        <div class="wbub a" data-at="4+0.4" data-fx="pop" data-sfx="pop" style="top:340px;left:200px;right:70px;border-radius:44px 44px 10px 44px;font-size:58px;text-align:center"><span class="serif">${T('“Papa, wait! Let’s check it first.”', '“पापा, रुको! पहले चेक करते हैं।”')}</span></div>` },
+      { from: 5, to: 5, html: `
+        <div class="card a" data-at="5" data-fx="up" style="left:90px;right:90px;top:340px;padding:0;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:16px;padding:26px 34px;background:#F6F4FF;font-size:32px;font-weight:800;color:#4C1D95">${LOGO.replace('class="logo"', 'class="logo" style="width:60px;height:60px;border-radius:16px;box-shadow:none"')}${T('Verth scam check', 'वर्थ स्कैम चेक')}</div>
+          <div style="padding:30px 34px 10px;font-size:30px;color:#6B7280;line-height:1.3">“${T('Papa, it’s me… my new number… need ₹20,000 urgently. Please don’t call.', 'पापा, मैं हूँ… नया नंबर… अभी ₹20,000 चाहिए। कॉल मत करना।')}”</div>
+          <div class="a" data-at="5+0.5" data-fx="pop" data-sfx="stamp" style="position:relative;margin:20px 34px;padding:26px 30px;border-radius:24px;background:#FDECEE;color:#B42332;font-size:52px;font-weight:900;display:flex;align-items:center;gap:20px">${I.warn} ${T('High risk', 'हाई रिस्क')}</div>
+          ${[[T('“New number” asking for money', '“नया नंबर”, और पैसों की माँग'), '5@0.45'], [T('Rushes you', 'जल्दबाज़ी करवा रहा है'), '5@0.7']].map(([t, at]) => `<div class="a" data-at="${at}" data-fx="right" style="position:relative;margin:0 34px 18px;padding:22px 26px;border-radius:20px;background:#FFF7ED;border-left:10px solid #DC3545;font-size:38px;font-weight:700;display:flex;gap:16px;align-items:center"><span style="color:#DC3545">${I.flag}</span>${t}</div>`).join('')}
+          <div style="height:16px"></div></div>` },
+      { from: 6, to: 6, html: `
+        <div class="a" data-at="6" data-fx="up" style="left:0;right:0;top:350px;text-align:center"><div style="display:inline-flex;align-items:center;gap:16px;font-size:38px;font-weight:800;background:rgba(255,255,255,.85);color:#3A1F2E;padding:16px 30px;border-radius:999px">${I.phone} ${T('Calling Rahul · old number', 'राहुल को कॉल · पुराना नंबर')}</div></div>
+        <div class="a" data-at="6+0.2" data-fx="zoom" data-sfx="ring" id="ringer" style="left:340px;top:480px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.25)"><div style="position:absolute;inset:40px;border-radius:50%;overflow:hidden;background:#FDE7C8">${person({ style: 'short', hair: '#1B110C', shirt: '#2563EB' })}</div></div>
+        <div class="wbub a" data-at="6@0.55" data-fx="pop" data-sfx="pop" style="top:940px;text-align:center"><small>${T('RAHUL', 'राहुल')}</small>${T('“Papa? I’m in class! I didn’t send anything.”', '“पापा? मैं क्लास में हूँ! मैंने कुछ नहीं भेजा।”')}</div>` },
+      { from: 7, to: 7, html: `
+        <div class="a dark" data-at="7" data-fx="up" style="left:80px;right:80px;top:360px;text-align:center;font-size:76px;line-height:1.12"><span class="serif">${T('Scammers copy how your family talks.', 'ठग आपके परिवार की तरह बात करते हैं।')}</span></div>
+        <div class="card a" data-at="7@0.45" data-fx="pop" data-sfx="pop" style="left:90px;right:90px;top:760px;padding:44px 40px;display:flex;align-items:center;gap:32px;font-size:54px;font-weight:800;line-height:1.15;color:#3A1F2E"><span style="flex:none;width:130px;height:130px;border-radius:40px;background:#DCFCE7;color:#15803D;display:grid;place-items:center;font-size:70px">${I.phone}</span><span>${T('Call the <u>old</u> number before you pay', 'पैसे भेजने से पहले <u>पुराने</u> नंबर पर कॉल करें')}</span></div>` },
+      { from: 8, to: 8, cta: true },
+    ],
+  }),
+
+  sqr: () => ({
+    theme: 'qr', chip: T('QR code scam', 'QR कोड स्कैम'),
+    keys: T(['Congratulations', 'ten minutes', 'PIN', 'Stop', 'out', 'never', 'stranger', 'trick', 'verth.in'], ['बधाई', 'दस मिनट', 'PIN', 'रुकिए', 'जाते', 'ना', 'अनजान', 'धोखा', 'वर्थ']),
+    bg: `<div class="ray" id="ray"></div><div class="dots"></div>`,
+    sections: [
+      { from: 0, to: 0, html: `
+        ${conf(70, ['#E5005B', '#2D6BFF', '#111', '#fff', '#00C2A8'], 540, 820, 1500, 5)}
+        <div class="burst a" data-at="0" data-fx="zoom" data-sfx="tada" style="left:70px;top:380px;width:940px;height:860px;background:#fff">
+          <div style="padding:120px;transform:rotate(-4deg)"><div style="font-size:66px;line-height:1;font-weight:900;color:#E5005B">${T('CONGRATULATIONS!', 'बधाई हो!')}</div>
+          <div style="font-size:170px;line-height:1.05;font-weight:900;margin-top:16px;letter-spacing:-.04em">₹4,999</div>
+          <div style="font-size:60px;font-weight:900">${T('CASHBACK', 'कैशबैक')}</div></div></div>` },
+      { from: 1, to: 1, html: `
+        <div class="pop a" data-at="1" data-fx="drop" data-sfx="whoosh" style="left:190px;top:350px;width:700px;padding:40px;border-radius:40px;background:#fff;transform:rotate(-3deg)">
+          <div style="font-size:52px;font-weight:900;color:#111;text-align:center;margin-bottom:24px">${T('SCAN TO RECEIVE ₹4,999', '₹4,999 पाने के लिए स्कैन करें')}</div>
+          <div style="display:grid;place-items:center">${qrSvg('https://verth.in', 560)}</div></div>
+        <div class="pop a" data-at="1@0.55" data-fx="pop" data-sfx="tick" style="left:300px;top:1170px;padding:16px 40px;border-radius:999px;background:#E5005B;color:#fff;font-size:54px;font-weight:900"><span>${T('Ends in', 'बचे')} </span><span class="mono" id="timer" style="font-family:'IBM Plex Mono',monospace">09:59</span></div>` },
+      { from: 2, to: 3, html: `
+        <div class="phone a pop" data-at="2" data-fx="right" style="left:240px;top:330px;width:600px;height:880px;border-color:#111"><div class="notch"></div><div class="scr" style="background:#fff">
+          <div style="padding:90px 40px 0;font-size:30px;font-weight:700;color:#6B7280">${T('Paying', 'भुगतान')}</div>
+          <div style="padding:6px 40px 0;font-size:34px;font-weight:800;font-family:'IBM Plex Mono',monospace">cashback.reward@upi</div>
+          <div style="padding:30px 40px 0;font-size:120px;font-weight:900;letter-spacing:-.04em">₹4,999</div>
+          <div style="margin:40px 40px 0;padding:28px;border-radius:24px;background:#F3F4F6;text-align:center;font-size:34px;font-weight:800">${T('ENTER UPI PIN', 'UPI PIN डालें')}</div>
+          <div style="display:flex;justify-content:center;gap:26px;margin-top:40px">${[0, 1, 2, 3, 4, 5].map((k) => `<span class="pin" data-k="${k}" style="width:44px;height:44px;border-radius:50%;border:5px solid #111"></span>`).join('')}</div>
+        </div></div>
+        <div class="a" data-at="3" data-fx="stamp" data-sfx="stamp" style="left:250px;top:400px;width:580px;height:580px;display:grid;place-items:center;color:#fff;background:#E11D2E;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);font-size:150px;font-weight:900;letter-spacing:-.02em;border:0">${T('STOP', 'रुकिए')}</div>` },
+      { from: 4, to: 4, html: `
+        <div class="a" data-at="4" data-fx="up" style="left:60px;right:60px;top:340px;text-align:center;font-size:66px;font-weight:900;color:#111;line-height:1.08">${T('THE ONE RULE', 'एक नियम')}</div>
+        <div class="pop a" data-at="4+0.3" data-fx="left" style="left:80px;top:500px;width:400px;height:300px;border-radius:36px;background:#fff;display:grid;place-items:center;text-align:center;color:#111;font-size:60px;font-weight:900;line-height:1.1">${T('SCAN<br>+ PIN', 'स्कैन<br>+ PIN')}</div>
+        <div class="a" data-at="4@0.35" data-fx="fade" style="left:500px;top:600px;font-size:110px;color:#111">${I.arrowR}</div>
+        <div class="pop a" data-at="4@0.4" data-fx="right" data-sfx="whoosh" style="left:620px;top:500px;width:380px;height:300px;border-radius:36px;background:#E5005B;display:grid;place-items:center;text-align:center;color:#fff;font-size:56px;font-weight:900;line-height:1.1">${T('MONEY<br>GOES OUT', 'पैसे<br>जाते हैं')}</div>
+        ${[0, 1, 2, 3, 4].map((k) => `<div class="a fly" data-at="4@0.45" data-fx="fade" data-k="${k}" style="left:780px;top:860px;font-size:80px;font-weight:900;color:#111">₹</div>`).join('')}
+        <div class="pop a" data-at="4@0.72" data-fx="pop" data-sfx="stamp" style="left:140px;top:1020px;padding:26px 44px;border-radius:30px;background:#111;color:#FFD400;font-size:58px;font-weight:900;transform:rotate(-2deg)">${T('NEVER COMES IN', 'कभी आते नहीं')}</div>` },
+      { from: 5, to: 5, html: `
+        <div class="a" data-at="5" data-fx="up" style="left:60px;right:60px;top:340px;text-align:center;font-size:72px;font-weight:900;color:#111;line-height:1.05">${T('TO RECEIVE MONEY', 'पैसे पाने के लिए')}</div>
+        ${[[T('No scanning', 'कोई स्कैन नहीं'), '5@0.3'], [T('No PIN', 'कोई PIN नहीं'), '5@0.6']].map(([t, at], k) => `
+        <div class="pop a" data-at="${at}" data-fx="pop" data-sfx="pop" style="left:120px;right:120px;top:${540 + k * 290}px;height:230px;border-radius:40px;background:#fff;display:flex;align-items:center;gap:36px;padding:0 50px;color:#111;font-size:72px;font-weight:900">
+          <span style="width:140px;height:140px;border-radius:50%;background:#00C2A8;color:#fff;display:grid;place-items:center;font-size:84px">${I.check}</span>${t}</div>`).join('')}` },
+      { from: 6, to: 6, html: `
+        <div class="card pop a" data-at="6" data-fx="up" style="left:80px;right:80px;top:340px;padding:0;overflow:hidden;border-radius:40px">
+          <div style="display:flex;align-items:center;gap:16px;padding:26px 34px;background:#F6F4FF;font-size:32px;font-weight:800;color:#4C1D95">${LOGO.replace('class="logo"', 'class="logo" style="width:60px;height:60px;border-radius:16px;box-shadow:none"')}${T('Verth photo check', 'वर्थ फ़ोटो चेक')}</div>
+          <div style="display:flex;gap:28px;padding:30px 34px;align-items:center"><div style="flex:none;border:4px solid #111;border-radius:16px;overflow:hidden">${qrSvg('https://verth.in', 220)}</div>
+            <div style="font-size:34px;font-weight:700;line-height:1.35;color:#374151">${T('This QR <b>pays</b><br><b style="font-size:58px;color:#111">₹4,999</b><br>to cashback.reward@upi', 'ये QR <b>पैसे भेजता है</b><br><b style="font-size:58px;color:#111">₹4,999</b><br>cashback.reward@upi को')}</div></div>
+          <div class="a" data-at="6@0.6" data-fx="pop" data-sfx="stamp" style="position:relative;margin:0 34px 34px;padding:26px 30px;border-radius:24px;background:#FDECEE;color:#B42332;font-size:46px;font-weight:900;display:flex;align-items:center;gap:18px">${I.warn} ${T('A stranger, not a cashback', 'कोई अनजान, कैशबैक नहीं')}</div></div>` },
+      { from: 7, to: 7, html: `
+        <div class="a" data-at="7" data-fx="stamp" data-sfx="stamp" style="left:90px;right:90px;top:420px;padding:50px 30px;border:14px solid #E5005B;border-radius:40px;text-align:center;color:#E5005B;font-size:96px;line-height:1.02;font-weight:900;background:#fff;transform:rotate(-4deg)">${T('“SCAN TO RECEIVE”<br>= SCAM', '“स्कैन करके पैसे पाओ”<br>= धोखा')}</div>
+        <div class="pop a" data-at="7@0.5" data-fx="up" data-sfx="pop" style="left:240px;top:960px;padding:24px 46px;border-radius:999px;background:#2D6BFF;color:#fff;font-size:54px;font-weight:900;display:flex;gap:18px;align-items:center">${I.share} ${T('Share this', 'शेयर करें')}</div>` },
+      { from: 8, to: 8, cta: true },
+    ],
+  }),
+
+  sarrest: () => ({
+    theme: 'arrest', chip: T('“Digital arrest” scam', '“डिजिटल अरेस्ट” स्कैम'),
+    keys: T(['video call', 'digital arrest', 'Transfer', 'crores', 'no such thing', 'never', 'nineteen thirty', 'parents', 'verth.in'], ['वीडियो कॉल', 'डिजिटल अरेस्ट', 'ट्रांसफ़र', 'करोड़ों', 'कोई चीज़', 'कभी', 'उन्नीस सौ तीस', 'माता-पिता', 'वर्थ']),
+    bg: `<div class="siren" id="sr" style="left:-300px;background:radial-gradient(circle,rgba(225,29,46,.7),rgba(225,29,46,0) 65%)"></div><div class="siren" id="sb" style="right:-300px;background:radial-gradient(circle,rgba(37,99,235,.65),rgba(37,99,235,0) 65%)"></div><div class="scan"></div>`,
+    sections: [
+      { from: 0, to: 3, html: `
+        <div class="vcall a" data-at="0" data-fx="zoom" data-sfx="ring" id="vcall">
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.04) 0 40%,transparent 40%),repeating-linear-gradient(90deg,#1B2433 0 120px,#202B3D 120px 240px)"></div>
+          <div style="position:absolute;left:160px;top:150px;width:540px;height:620px">${OFFICER}</div>
+          <div style="position:absolute;left:30px;top:28px;display:flex;align-items:center;gap:14px;font-size:30px;font-weight:700"><span id="rec" style="width:22px;height:22px;border-radius:50%;background:#E11D2E"></span><span class="mono">REC</span></div>
+          <div style="position:absolute;right:30px;top:24px;font-size:30px" class="mono" id="calltime">00:00</div>
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:26px 30px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent);font-size:32px;font-weight:700;display:flex;align-items:center;gap:14px">${I.cam} ${T('Video call · “Officer”', 'वीडियो कॉल · “अफ़सर”')}</div>
+        </div>
+        <div class="a glitch" data-at="1+0.2" data-fx="stamp" data-sfx="alarm" id="gl" style="left:0;right:0;top:1000px;text-align:center;font-size:118px;line-height:1;color:#fff">${T('DIGITAL ARREST', 'डिजिटल अरेस्ट')}</div>
+        ${[[T('Don’t tell anyone', 'किसी को मत बताओ'), '2+0.1'], [T('Stay on camera', 'कैमरे के सामने रहो'), '2@0.35'], [T('Transfer your savings', 'पैसे ट्रांसफ़र करो'), '2@0.65']].map(([t, at], k) => `
+        <div class="a" data-at="${at}" data-fx="left" data-sfx="pop" data-until="3" style="left:${80 + k * 30}px;top:${430 + k * 150}px;padding:24px 34px;border-radius:20px;background:rgba(225,29,46,.92);font-size:48px;font-weight:800;display:flex;gap:18px;align-items:center;box-shadow:0 20px 50px -10px rgba(0,0,0,.7)">${I.warn} ${t}</div>`).join('')}
+        <div class="a" data-at="3" data-fx="fade" style="left:0;right:0;top:360px;bottom:740px;background:rgba(5,5,10,.82)"></div>
+        <div class="a" data-at="3+0.1" data-fx="up" style="left:0;right:0;top:500px;text-align:center"><div class="mono" id="lost" style="font-size:118px;font-weight:600;color:#FF5A6A">₹0</div><div style="font-size:48px;font-weight:800;margin-top:16px;opacity:.9">${T('lost by frightened people', 'डरे हुए लोगों ने गँवाए')}</div></div>` },
+      { from: 4, to: 4, html: `
+        <div class="a" data-at="4" data-fx="fade" id="flash" style="left:0;right:0;top:0;bottom:0;background:#fff"></div>
+        <div class="a" data-at="4+0.15" data-fx="up" style="left:0;right:0;top:380px;text-align:center;font-size:56px;font-weight:900;letter-spacing:.2em;color:#22C55E">${T('THE TRUTH', 'सच')}</div>
+        <div class="a" data-at="4+0.35" data-fx="zoom" style="left:240px;top:520px;width:600px;height:460px;border-radius:30px;overflow:hidden;background:#1B2433"><div style="position:absolute;left:150px;top:60px;width:300px;height:400px;opacity:.6">${OFFICER}</div></div>
+        <div class="a" data-at="4@0.45" data-fx="stamp" data-sfx="stamp" style="left:240px;top:520px;width:600px;height:460px;display:grid;place-items:center;color:#22C55E;font-size:360px">${I.cross}</div>
+        <div class="a" data-at="4@0.5" data-fx="up" style="left:60px;right:60px;top:1040px;text-align:center;font-size:66px;font-weight:900;line-height:1.1">${T('There is <span style="color:#22C55E">no</span> “digital arrest”', '“डिजिटल अरेस्ट” <span style="color:#22C55E">होता ही नहीं</span>')}</div>` },
+      { from: 5, to: 5, html: `
+        <div class="a" data-at="5" data-fx="up" style="left:70px;right:70px;top:360px;text-align:center;font-size:60px;font-weight:900;line-height:1.1">${T('Real police <span style="color:#22C55E">never</span>…', 'असली पुलिस <span style="color:#22C55E">कभी नहीं</span>…')}</div>
+        ${[[T('arrest you on a video call', 'वीडियो कॉल पर गिरफ़्तार करती'), '5@0.2'], [T('ask you to transfer money', 'पैसे ट्रांसफ़र करने को कहती'), '5@0.6']].map(([t, at], k) => `
+        <div class="a" data-at="${at}" data-fx="right" data-sfx="pop" style="left:90px;right:90px;top:${560 + k * 270}px;padding:40px 40px;border-radius:32px;background:#0F1A14;border:3px solid #22C55E;display:flex;gap:30px;align-items:center;font-size:52px;font-weight:800;line-height:1.15"><span style="flex:none;color:#22C55E;font-size:90px">${I.shield}</span>${t}</div>`).join('')}` },
+      { from: 6, to: 6, html: `
+        ${[[I.hang, T('Hang up', 'फ़ोन काटिए'), '#E11D2E', '6+0.1'], [I.cross, T('Don’t pay', 'पैसे मत भेजिए'), '#E11D2E', '6@0.25']].map(([ic, t, c, at], k) => `
+        <div class="a" data-at="${at}" data-fx="left" data-sfx="pop" style="left:110px;right:110px;top:${360 + k * 190}px;height:160px;border-radius:30px;background:rgba(255,255,255,.08);display:flex;align-items:center;gap:30px;padding:0 40px;font-size:56px;font-weight:800"><span style="width:100px;height:100px;border-radius:50%;background:${c};display:grid;place-items:center;font-size:56px">${ic}</span>${t}</div>`).join('')}
+        <div class="a" data-at="6@0.5" data-fx="zoom" data-sfx="ding" style="left:110px;right:110px;top:760px;padding:40px;border-radius:40px;background:#22C55E;color:#04210F;text-align:center">
+          <div style="font-size:44px;font-weight:800">${T('Call the cyber crime helpline', 'साइबर क्राइम हेल्पलाइन')}</div>
+          <div style="font-size:200px;font-weight:900;line-height:1;letter-spacing:-.04em;display:flex;align-items:center;justify-content:center;gap:24px"><span style="font-size:130px">${I.phone}</span>1930</div>
+          <div style="font-size:36px;font-weight:700">${T('or cybercrime.gov.in', 'या cybercrime.gov.in')}</div></div>` },
+      { from: 7, to: 7, html: `
+        <div class="a" data-at="7" data-fx="up" style="left:110px;top:430px;width:400px;height:460px">${person({ style: 'short', grey: true, shirt: '#334155', mustache: true, glasses: true })}</div>
+        <div class="a" data-at="7+0.2" data-fx="up" style="left:540px;top:430px;width:400px;height:460px">${person({ style: 'bun', grey: true, shirt: '#9D174D', collar: '#FCE7F3', bindi: true, glasses: true })}</div>
+        <div class="a" data-at="7@0.4" data-fx="pop" data-sfx="pop" style="left:440px;top:380px;font-size:150px;color:#FF5A6A">${I.heart}</div>
+        <div class="a" data-at="7@0.45" data-fx="up" style="left:60px;right:60px;top:960px;text-align:center;font-size:64px;font-weight:900;line-height:1.12">${T('Tell your parents <span style="color:#FF5A6A">today</span>', 'आज ही <span style="color:#FF5A6A">माता-पिता</span> को बताइए')}</div>` },
+      { from: 8, to: 8, cta: true },
+    ],
+  }),
+};
+
+// ---------- engine ----------
+let P, V, secs = [];
+const LS = (n) => P.lines[Math.min(n, P.lines.length - 1)].start;
+function atTime(spec) {
+  const m = String(spec).match(/^(\d+)(?:([+@])([\d.]+))?$/); if (!m) return 0;
+  const n = +m[1], L = P.lines[n];
+  return m[2] === '@' ? L.start + (L.end - L.start) * +m[3] : L.start + (m[2] ? +m[3] : 0);
+}
+function ctaHtml() {
+  return `<div class="cta">
+    <div class="a" data-at="8" data-fx="zoom" data-sfx="whoosh">${LOGO}</div>
+    <h2 class="a ${V.theme === 'papa' ? 'serif' : ''}" data-at="8+0.25" data-fx="up">${T('Check before you pay.', 'पैसे भेजने से पहले चेक करें।')}</h2>
+    <div class="url a" data-at="8@0.5" data-fx="pop" data-sfx="ding">verth.in</div>
+    <div class="fine a" data-at="8@0.6" data-fx="up">${T('Free · Made in India · Follow for more scam stories', 'मुफ़्त · मेड इन इंडिया · ऐसी और कहानियों के लिए फ़ॉलो करें')}</div></div>`;
+}
+window.setup = async (plan) => {
+  P = plan; HI = plan.lang === 'hi'; if (HI) document.body.classList.add('hi');
+  V = VIDEOS[plan.id]();
+  $('st').className = 't-' + V.theme;
+  $('bg').innerHTML = V.bg; $('chipT').innerHTML = V.chip;
+  $('scenes').innerHTML = V.sections.map((s) => `<section data-from="${s.from}" data-to="${s.to}">${s.cta ? ctaHtml() : s.html}</section>`).join('');
+  secs = [...document.querySelectorAll('section')];
+  for (const el of document.querySelectorAll('[data-at]')) el._t = atTime(el.dataset.at);
+  for (const el of document.querySelectorAll('section .a')) el._base = el.style.transform || '';
+  for (const el of document.querySelectorAll('[data-until]')) el._u = LS(+el.dataset.until) - 0.3;
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+};
+// Sound effects, for the maker script to mix in: when each element with a sound appears.
+window.sfx = () => [...document.querySelectorAll('[data-sfx]')].map((el) => ({ t: +el._t.toFixed(3), kind: el.dataset.sfx }));
+window.turn = () => LS({ boss: 5, papa: 4, qr: 4, arrest: 4 }[V.theme]); // where the story turns from worry to relief
+const SEC_TR = 0.4;
+function secLook(theme, p, dir) { // p 0 shown → 1 gone; dir +1 arriving, -1 leaving
+  if (theme === 'boss') return { o: 1 - p, tf: `translateY(${dir * 140 * p}px)`, f: '' };
+  if (theme === 'papa') return { o: 1 - p, tf: `scale(${1 + (dir > 0 ? 0.06 : -0.04) * p})`, f: p > .02 ? `blur(${(16 * p).toFixed(1)}px)` : '' };
+  if (theme === 'qr') return { o: 1 - p, tf: `translateX(${dir * 700 * p}px) rotate(${dir * 8 * p}deg)`, f: '' };
+  const j = p > 0.05 && p < 0.95 ? Math.sin(p * 40) * 26 * (1 - p) : 0; // arrest: glitch jolt
+  return { o: 1 - p, tf: `translateX(${j}px) skewX(${j * 0.3}deg)`, f: p > .05 ? `contrast(${1 + p}) hue-rotate(${p * 90}deg)` : '' };
+}
+function fx(el, p, kind) {
+  const q = easeOut(p), b = back(p);
+  switch (kind) {
+    case 'pop': return [q, `scale(${0.6 + 0.4 * b})`];
+    case 'left': return [q, `translateX(${-160 * (1 - q)}px)`];
+    case 'right': return [q, `translateX(${160 * (1 - q)}px)`];
+    case 'fade': return [q, ''];
+    case 'zoom': return [q, `scale(${0.85 + 0.15 * q})`];
+    case 'drop': return [q, `translateY(${-300 * (1 - b)}px)`];
+    case 'stamp': { const s = p < 1 ? 2.4 - 1.4 * easeOut(p) : 1; return [clamp(p * 3), `scale(${s})`]; }
+    default: return [q, `translateY(${50 * (1 - q)}px)`];
+  }
+}
+window.render = (t) => {
+  const L = P.lines, last = L.length - 1;
+  // background motion per theme
+  if (V.theme === 'boss') {
+    $('grid').style.transform = `translate(${(t * 12) % 90}px, ${(t * 8) % 90}px)`;
+    $('o1').style.transform = `translate(${-120 + 160 * Math.sin(t * .2)}px, ${300 + 120 * Math.cos(t * .17)}px)`;
+    $('o2').style.transform = `translate(${600 + 120 * Math.cos(t * .15)}px, ${1100 + 160 * Math.sin(t * .13)}px)`;
+  } else if (V.theme === 'papa') {
+    $('sun').style.transform = `translateY(${Math.sin(t * .3) * 14}px) scale(${1 + .03 * Math.sin(t * .5)})`;
+    document.querySelectorAll('.bok').forEach((b, i) => { b.style.transform = `translate(${(i * 131) % 1000 + 40 * Math.sin(t * .3 + i)}px, ${1900 - ((t * (18 + i * 4) + i * 260) % 2100)}px)`; });
+    const s1 = $('steam1'), s2 = $('steam2'); if (s1) { s1.style.transform = `translateY(${-((t * 30) % 20)}px)`; s1.style.opacity = .4 + .3 * Math.sin(t * 3); s2.style.opacity = .4 + .3 * Math.cos(t * 3); }
+  } else if (V.theme === 'qr') {
+    $('ray').style.transform = `rotate(${t * 8}deg)`;
+  } else {
+    const k = (t * 1.6) % 2, a = k < 1 ? Math.sin(k * Math.PI) : 0, b2 = k >= 1 ? Math.sin((k - 1) * Math.PI) : 0;
+    const calm = clamp((t - window.turn()) / 1.5);
+    $('sr').style.opacity = (0.25 + 0.75 * a) * (1 - calm * .8); $('sb').style.opacity = (0.25 + 0.75 * b2) * (1 - calm * .8);
+  }
+  // sections
+  for (const s of secs) {
+    const a = +s.dataset.from, b = +s.dataset.to;
+    const tin = a === 0 ? -1 : LS(a) - SEC_TR, tout = b >= last ? 1e9 : LS(b + 1) - SEC_TR;
+    if (t < tin - SEC_TR || t > tout + SEC_TR) { s.style.visibility = 'hidden'; s.style.opacity = 0; continue; }
+    let st;
+    if (t < tin + SEC_TR && a !== 0) st = secLook(V.theme, 1 - ease((t - (tin - SEC_TR)) / (2 * SEC_TR)), 1);
+    else if (t > tout - SEC_TR) st = secLook(V.theme, ease((t - (tout - SEC_TR)) / (2 * SEC_TR)), -1);
+    else st = { o: 1, tf: '', f: '' };
+    s.style.visibility = 'visible'; s.style.opacity = st.o; s.style.transform = st.tf; s.style.filter = st.f;
+    // slow push-in while a section is on screen
+    const life = clamp((t - Math.max(tin, 0)) / Math.max(1, tout - Math.max(tin, 0)));
+    s.style.transform += ` scale(${1 + 0.025 * life})`;
+  }
+  // elements
+  for (const el of document.querySelectorAll('section .a')) {
+    const p = (t - el._t) / (el.dataset.fx === 'stamp' ? 0.32 : 0.5);
+    let [o, tf] = p <= 0 ? [0, ''] : fx(el, Math.min(p, 1), el.dataset.fx || 'up');
+    if (el._u !== undefined && t > el._u) o *= 1 - ease((t - el._u) / 0.3);
+    el.style.opacity = o; el.style.transform = `${tf} ${el._base}`; // keep the element's own tilt
+  }
+  // confetti
+  document.querySelectorAll('.conf').forEach((c) => {
+    const sec = c.closest('section'), t0 = LS(+sec.dataset.from) + 0.05, u = t - t0;
+    if (u < 0 || u > 3.2) { c.style.opacity = 0; return; }
+    const x = +c.dataset.x + +c.dataset.vx * u, y = +c.dataset.y + +c.dataset.vy * u + 900 * u * u;
+    c.style.opacity = 1 - clamp((u - 2.4) / .8); c.style.transform = `translate(${x}px, ${y}px) rotate(${+c.dataset.rot * u}deg)`;
+  });
+  // story details
+  const tm = $('timer'); if (tm) { const left = Math.max(0, 599 - Math.floor((t - LS(1)) * 1)); tm.textContent = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`; }
+  document.querySelectorAll('.pin').forEach((d) => { const on = t > LS(2) + (L[2].end - L[2].start) * (0.45 + d.dataset.k * 0.1) && d.dataset.k < 4; d.style.background = on ? '#111' : 'transparent'; });
+  const ct = $('calltime'); if (ct) { const s = Math.max(0, Math.floor(t - 0.3)); ct.textContent = `00:${String(s).padStart(2, '0')}`; }
+  const rec = $('rec'); if (rec) rec.style.opacity = Math.floor(t * 2) % 2 ? 1 : .2;
+  const lost = $('lost'); if (lost) { const p = easeOut((t - LS(3) - 0.2) / 2.2); const v = Math.round(p * 12000000); lost.textContent = '₹' + v.toLocaleString('en-IN'); }
+  const gl = $('gl'); if (gl) { const j = Math.floor(t * 18) % 7 === 0 ? 8 : 2; gl.style.textShadow = `${j}px 0 #E11D2E, ${-j}px 0 #2563EB`; }
+  const fl = $('flash'); if (fl) { fl.style.opacity = t > LS(4) ? Math.max(0, 1 - (t - LS(4)) / 0.45) : 0; }
+  const fg = $('finger'); if (fg && t > fg._t) { const u = clamp((t - fg._t) / 1.2); fg.style.transform = `translate(${-60 * ease(u)}px, ${-40 * ease(u)}px)`; }
+  const tp = $('tap'); if (tp && t > tp._t) { const u = clamp((t - tp._t) / 0.6); tp.style.transform = `translate(${-20 * u}px, ${-30 * u}px)`; const nb = $('nobtn'); if (nb) nb.style.transform = u >= 1 ? 'scale(.96)' : ''; }
+  const pk = $('packet'); if (pk && t > pk._t) { const u = ease((t - pk._t) / 1.4); pk.style.left = (330 + 300 * u) + 'px'; pk.style.opacity = u < .95 ? 1 : 1 - (u - .95) * 20; }
+  const bz = $('buzz'); if (bz && t > bz._t) bz.style.transform += ` rotate(${Math.sin(t * 60) * 6 * (Math.floor(t * 2) % 2)}deg)`;
+  const rg = $('ringer'); if (rg && t > rg._t) rg.style.boxShadow = `0 0 0 ${20 + 30 * ((t * 1.5) % 1)}px rgba(255,255,255,${.35 * (1 - (t * 1.5) % 1)})`;
+  document.querySelectorAll('.fly').forEach((f) => { const u = (t - f._t - f.dataset.k * 0.18) % 1.6 / 1.6; if (t < f._t) return; f.style.opacity = u < 0 ? 0 : 1 - u; f.style.transform = `translate(${160 * u}px, ${-120 * u + 40 * Math.sin(u * 6 + +f.dataset.k)}px)`; });
+  // captions: the spoken line, words lighting up as they're said
+  const cap = $('cap'); let on = -1;
+  for (let i = 0; i < L.length; i++) if (t >= L[i].start - 0.12 && t <= L[i].end + 0.3) on = i;
+  if (on >= 0 && on < last) {
+    const ln = L[on];
+    if (cap._n !== on) { cap._n = on; cap.innerHTML = ln.text.split(/\s+/).map((w) => `<span${(V.keys[on] && w.toLowerCase().includes(V.keys[on].toLowerCase().split(' ')[0])) ? ' class="k"' : ''}>${w}</span>`).join(' '); cap._w = [...cap.children]; }
+    const frac = (t - ln.start) / Math.max(.1, ln.end - ln.start), n = cap._w.length;
+    // words light up by their share of the letters, so long words take longer
+    const lens = cap._w.map((w) => w.textContent.length + 1), tot = lens.reduce((x, y) => x + y, 0); let acc = 0;
+    cap._w.forEach((w, k) => { acc += lens[k]; w.classList.toggle('on', acc / tot <= frac + 0.08 || k === 0); });
+    cap.style.opacity = Math.min(ease((t - ln.start + 0.12) / 0.15), 1 - ease((t - ln.end - 0.15) / 0.15));
+  } else cap.style.opacity = 0;
+};
+</script></body></html>
