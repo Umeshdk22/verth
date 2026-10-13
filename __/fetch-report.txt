@@ -1,6 +1,0 @@
-/__/auth/handler -> 200 462
-/__/auth/handler.js -> 200 280750
-/__/auth/experiments.js -> 200 831
-/__/auth/iframe -> 200 439
-/__/auth/iframe.js -> 200 289777
-/__/firebase/init.json -> 404 21265
