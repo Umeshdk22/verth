@@ -1,11 +1,8 @@
 name: Fetch Google sign-in helper
-# Run by hand to refresh the files (or when this file changes on the fix/google-signin branch). Downloads Firebase's sign-in helper pages so
+# Run by hand to refresh the files. Downloads Firebase's sign-in helper pages so
 # verth.in can serve them itself (phones block the cross-site version, so Google sign-in hangs).
 on:
   workflow_dispatch:
-  push:
-    branches: [fix/google-signin]
-    paths: [.github/workflows/auth-helper.yml]
 permissions:
   contents: write
 jobs:
@@ -16,14 +13,13 @@ jobs:
       - name: Download
         run: |
           B=https://verth-ece65.firebaseapp.com
-          mkdir -p __/auth __/firebase
-          get() { code=$(curl -sSL -w '%{http_code}' -o "$2" "$B$1"); echo "$1 -> $code $(wc -c < "$2")" | tee -a __/fetch-report.txt; [ "$code" = 200 ] || rm -f "$2"; }
+          mkdir -p __/auth
+          get() { code=$(curl -sSL -w '%{http_code}' -o "$2" "$B$1"); echo "$1 -> $code $(wc -c < "$2")"; [ "$code" = 200 ] || rm -f "$2"; }
           get /__/auth/handler __/auth/handler.html
           get /__/auth/handler.js __/auth/handler.js
           get /__/auth/experiments.js __/auth/experiments.js
           get /__/auth/iframe __/auth/iframe.html
           get /__/auth/iframe.js __/auth/iframe.js
-          get /__/firebase/init.json __/firebase/init.json
           ls -la __/auth __/firebase
           git add __
           git -c user.name=verth-bot -c user.email=verth-bot@users.noreply.github.com commit -m "Google sign-in helper pages, served from verth.in" || echo "no change"
