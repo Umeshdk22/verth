@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-6d26e3d9d2';
-const SHELL = ['app.html', './', 'assets/verth.css?v=22c9daa1a2', 'assets/fonts.css?v=9f9a884557', 'assets/app.js?v=e22d26ce72', 'assets/helper.js?v=6814649656', 'assets/site.js?v=f4ebdbea4d', 'assets/splash.js?v=ac6ee4088b', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-007eac31c4';
+const SHELL = ['app.html', './', 'assets/verth.css?v=22c9daa1a2', 'assets/fonts.css?v=9f9a884557', 'assets/app.js?v=6aa43539ec', 'assets/helper.js?v=6814649656', 'assets/site.js?v=f4ebdbea4d', 'assets/splash.js?v=ac6ee4088b', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   // 'reload' skips the browser's own short-term cache, so the saved copies are really the new ones.
@@ -38,7 +38,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method === 'POST' && new URL(req.url).searchParams.has('share-target')) { e.respondWith(receiveShare(req)); return; }
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin || req.headers.has('range')) return;
-  if (url.pathname.includes('/assets/videos/')) return;
+  if (url.pathname.includes('/assets/videos/') || url.pathname.startsWith('/__/')) return; // sign-in helper: always live
   if (url.pathname.includes('/assets/')) {
     if (url.searchParams.has('v')) e.respondWith(caches.match(req).then((hit) => hit || fromNetwork(req)));
     else e.respondWith(fromNetwork(req).catch(() => caches.match(req)));

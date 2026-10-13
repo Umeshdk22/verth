@@ -2,7 +2,9 @@
 // the Firestore security rules in firestore.rules are what protect the data.
 export const firebaseConfig = {
   apiKey: 'AIzaSyCqS-lrEdRU5H0Vu8DCSQFfNhn38JxM7iA',
-  authDomain: 'verth-ece65.firebaseapp.com',
+  // verth.in serves Google sign-in's helper pages itself (__/auth/): phones block the cross-site
+  // firebaseapp.com version, which left "Sign up with Google" doing nothing after picking an account.
+  authDomain: 'verth.in',
   projectId: 'verth-ece65',
   storageBucket: 'verth-ece65.firebasestorage.app',
   messagingSenderId: '747557317741',

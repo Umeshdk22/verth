@@ -96,10 +96,18 @@ const SLOW = process.env.CI ? 3 : 1;
   await ctx.route('**/upi/name', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH })
     : r.fulfill({ headers: corsH, json: JSON.parse(r.request().postData() || '{}').vpa === 'priya.nair@okaxis' ? { valid: true, name: 'PRIYA NAIR' } : { valid: false } })));
   // New people sign up with Google, then finish their profile and see the welcome screen.
-  const googleSignup = async (p, email, name, phone) => {
+  // popup: '' (Google window works), or an error code the Google window gives on some phones.
+  const googleSignup = async (p, email, name, phone, popup = '') => {
     if (p !== A) await p.route('**/passkey/**', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH }) : r.fulfill({ headers: corsH, json: {} })));
     await p.evaluate(([e, n]) => { window.__googleEmail = e; window.__googleName = n; }, [email, name]);
     await p.click('.auth-tabs >> text=Create account');
+    if (popup) {
+      // Closing the Google window without finishing says what to do (it used to do nothing at all).
+      await p.evaluate(() => { window.__popupError = 'auth/popup-closed-by-user'; });
+      await p.click('text=Sign up with Google');
+      await p.getByText('Google sign-in didn’t finish', { exact: false }).waitFor({ timeout: 4000 * SLOW });
+      await p.evaluate((c) => { window.__popupError = c; }, popup); // then: the phone can't open the window, so Verth goes to Google in the same tab
+    }
     await p.click('text=Sign up with Google');
     await p.getByRole('heading', { name: 'Almost done' }).waitFor({ timeout: 5000 * SLOW });
     if ((await p.locator('#n-name').inputValue()) !== name) throw new Error('name not prefilled from Google');
@@ -582,7 +590,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.click('text=Continue with Google');
     await C.getByText('There’s no Verth account for that Google account yet').waitFor({ timeout: 5000 * SLOW });
     if (await C.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('fakeauth') || '{}')).includes('kamla@family.in'))) throw new Error('the stray Google account was not removed');
-    await googleSignup(C, 'kamla@family.in', 'Kamla Devi', '9988776655');
+    await googleSignup(C, 'kamla@family.in', 'Kamla Devi', '9988776655', 'auth/popup-blocked');
     await endTrial(C);
     await C.click('text=Skip the tour');
     await C.click('text=Just check something suspicious');

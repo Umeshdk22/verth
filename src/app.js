@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, deleteUser,
+  getAuth, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, updateProfile, deleteUser,
   connectAuthEmulator,
 } from 'firebase/auth';
 import {
@@ -2002,10 +2002,16 @@ const actions = {
       if (auth.currentUser) await signOut(auth); // never mix with an older session on this device
       await signInWithPopup(auth, gp);
     } catch (e) {
-      S.authFlow = '';
       const c = e?.code || '';
-      if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' || c === 'auth/user-cancelled') return;
-      setErr('a-err', c === 'auth/popup-blocked' ? 'Your browser blocked the Google window. Allow pop-ups for this site and tap Continue with Google again.' : friendlyError(e));
+      // Phones and browsers that can't open the Google window: go to Google in this tab and come back.
+      if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment' || c === 'auth/web-storage-unsupported') {
+        try { sessionStorage.setItem('verth-google-redirect', S.authFlow); } catch {}
+        try { await signInWithRedirect(auth, gp); return; } catch (e2) { S.authFlow = ''; return setErr('a-err', friendlyError(e2)); }
+      }
+      S.authFlow = '';
+      // Closed without finishing: say what to do instead of silently doing nothing.
+      if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' || c === 'auth/user-cancelled') return setErr('a-err', 'Google sign-in didn’t finish. Tap the Google button again, or use your email instead.');
+      setErr('a-err', friendlyError(e));
     }
   },
   // Paid users choose whether signing out also stops their subscription.
@@ -3577,6 +3583,14 @@ else {
   // instead of waiting for Firebase to check.
   let hint = '';
   try { hint = localStorage.getItem('verth-signed-in') || ''; } catch {}
+  // Coming back from Google after a full-page sign-in (used when the Google window can't open).
+  let back = '';
+  try { back = sessionStorage.getItem('verth-google-redirect') || ''; sessionStorage.removeItem('verth-google-redirect'); } catch {}
+  if (back) {
+    S.authFlow = back; S.authMode = back === 'google-signup' ? 'signup' : 'login';
+    getRedirectResult(auth).then((res) => { if (!res) { S.authFlow = ''; if (!auth.currentUser) renderAuth('Google sign-in didn’t finish. Tap the Google button again, or use your email instead.'); } })
+      .catch((e) => { S.authFlow = ''; renderAuth(friendlyError(e)); });
+  }
   if (!hint) route();
   onAuthStateChanged(auth, (u) => {
     try { if (u) localStorage.setItem('verth-signed-in', '1'); else localStorage.removeItem('verth-signed-in'); } catch {}

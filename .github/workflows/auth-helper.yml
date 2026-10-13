@@ -1,7 +1,8 @@
 name: Fetch Google sign-in helper
-# Runs when pushed to the fix/google-signin branch. Downloads Firebase's sign-in helper pages so
+# Run by hand to refresh the files (or when this file changes on the fix/google-signin branch). Downloads Firebase's sign-in helper pages so
 # verth.in can serve them itself (phones block the cross-site version, so Google sign-in hangs).
 on:
+  workflow_dispatch:
   push:
     branches: [fix/google-signin]
     paths: [.github/workflows/auth-helper.yml]

@@ -145,8 +145,17 @@ export async function sendEmailVerification() { window.__lastVerificationSent = 
 export async function sendPasswordResetEmail() {}
 export class GoogleAuthProvider { setCustomParameters(p) { window.__googleParams = p; } }
 export async function signInWithPopup() {
+  if (window.__popupError) { const c = window.__popupError; window.__popupError = ''; throw err(c); }
   const email = window.__googleEmail || 'google.user@gmail.com', u = users();
   if (!u[email]) { u[email] = { uid: 'g_' + autoId().slice(0, 10), email, pass: '', name: window.__googleName || 'Google User', verified: true }; saveUsers(u); }
+  setCurrent(email); return { user: auth.currentUser };
+}
+// Full-page Google sign-in: "goes to Google" (a reload) and comes back signed in.
+export async function signInWithRedirect() { sessionStorage.setItem('fake-redirect', window.__googleEmail || 'google.user@gmail.com'); sessionStorage.setItem('fake-redirect-name', window.__googleName || 'Google User'); setTimeout(() => location.reload(), 50); return new Promise(() => {}); }
+export async function getRedirectResult() {
+  const email = sessionStorage.getItem('fake-redirect'); if (!email) return null;
+  const name = sessionStorage.getItem('fake-redirect-name'); sessionStorage.removeItem('fake-redirect'); sessionStorage.removeItem('fake-redirect-name');
+  const u = users(); if (!u[email]) { u[email] = { uid: 'g_' + autoId().slice(0, 10), email, pass: '', name, verified: true }; saveUsers(u); }
   setCurrent(email); return { user: auth.currentUser };
 }
 export async function signOut() { setCurrent(null); }
