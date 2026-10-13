@@ -55,7 +55,7 @@ try {
     writeFileSync(`${TMP}/events.json`, JSON.stringify(events));
     execFileSync('python3', ['video/shorts_music.py', 'sfx', `${TMP}/events.json`, String(total), fx]);
     ff(['-i', voice, '-i', music, '-i', fx, '-filter_complex',
-      `[0]aformat=channel_layouts=stereo,asplit=2[v][key];[1]volume=0.22,afade=t=out:st=${(total - 1.8).toFixed(2)}:d=1.8[m];[m][key]sidechaincompress=threshold=0.03:ratio=4:attack=40:release=700[md];[2]volume=0.55[s];[v][md][s]amix=inputs=3:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=9`,
+      `[0]aformat=channel_layouts=stereo,asplit=2[v][key];[1]volume=0.22,afade=t=out:st=${(total - 1.8).toFixed(2)}:d=1.8[m];[m][key]sidechaincompress=threshold=0.03:ratio=4:attack=40:release=700[md];[2]volume=0.55[s];[v][md][s]amix=inputs=3:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=9,alimiter=limit=0.84:level=false`,
       '-ar', '48000', '-c:a', 'aac', '-b:a', '160k', '-t', String(total), mix]);
     const silent = `${TMP}/video.mp4`;
     const enc = spawn('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',

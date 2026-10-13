@@ -1,0 +1,27 @@
+name: Check Shorts voices
+# Runs when this file changes on the shorts branch: transcribes the Shorts voice-overs with Whisper
+# and saves voice-check.json on the "voice-check" branch.
+on:
+  push:
+    branches: [shorts]
+    paths: [.github/workflows/voice-check.yml, tools/verify_voices.py]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the voices
+        run: git fetch origin voices && mkdir -p voice && git --work-tree=voice checkout FETCH_HEAD -- video/voice && git reset -q
+      - name: Install Whisper
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && pip install -q openai-whisper
+      - name: Transcribe
+        run: python tools/verify_voices.py
+      - name: Save
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          O=$(mktemp -d); cp voice-check.json $O/; cd $O && git init -q -b voice-check && git add . \
+            && git -c user.name=verth-bot -c user.email=verth-bot@users.noreply.github.com commit -qm "Voice check" \
+            && git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" voice-check
