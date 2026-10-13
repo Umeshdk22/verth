@@ -1066,12 +1066,12 @@ function assessment(r, flags, flagged) {
 }
 // What Verth looked at, with a status for each, like a scanner's report.
 function elements(r, flags, flagged) {
-  const out = [flags.length ? [flags.some((f) => f.level >= 3) ? 'bad' : 'warn', 'Warning-sign check', `${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} found.`] : ['clean', 'Warning-sign check', 'None of the patterns real scams use.']];
+  const out = [flags.length ? [flags.some((f) => f.level >= 3) ? 'bad' : 'warn', 'Warning-sign check', `${flags.length} warning ${flags.length === 1 ? 'sign' : 'signs'} found.`, 'rv-why'] : ['clean', 'Warning-sign check', 'None of the patterns real scams use.']];
   out.push(flagged ? ['bad', 'Verth scam database', `Rated high risk in ${flagged} earlier ${flagged === 1 ? 'check' : 'checks'}. A strong warning, not proof.`] : ['clean', 'Verth scam database', 'No earlier high-risk checks of this.']);
   const links = r.kind === 'link' ? [r] : r.links || [];
   if (links.length) {
     const bad = links.filter((l) => l.verdict === 'danger').length, warn = links.filter((l) => l.verdict === 'caution').length;
-    out.push([bad ? 'bad' : warn ? 'warn' : 'clean', 'Link check', bad ? `${bad} risky ${bad === 1 ? 'link' : 'links'}.` : warn ? 'A link needs care.' : `${links.length === 1 ? 'The link looks' : 'The links look'} normal.`]);
+    out.push([bad ? 'bad' : warn ? 'warn' : 'clean', 'Link check', bad ? `${bad} risky ${bad === 1 ? 'link' : 'links'}.` : warn ? 'A link needs care.' : `${links.length === 1 ? 'The link looks' : 'The links look'} normal.`, bad || warn ? (r.kind === 'link' ? 'rv-why' : 'rv-links') : '']);
   }
   if (r.kind === 'phone') out.push([r.verdict === 'clear' ? 'clean' : r.verdict === 'danger' ? 'bad' : 'warn', 'Number check', r.type ? `Looks like a ${String(r.type).replace(/-/g, ' ')} number.` : 'Checked the number’s pattern.']);
   if (r.kind === 'image') out.push([r.qr?.type === 'upi' ? 'warn' : 'clean', 'QR code check', r.qr ? (r.qr.type === 'upi' ? 'A payment QR: scanning it sends money.' : 'QR code read.') : 'No QR code in the picture.']);
@@ -1092,7 +1092,9 @@ function techDetails(r) {
   return rows;
 }
 function scanResultCard(r) {
-  const [cls, head] = VERDICT[r.verdict], flags = [...r.flags].sort((a, b) => b.level - a.level);
+  const [cls, head] = VERDICT[r.verdict], sorted = [...r.flags].sort((a, b) => b.level - a.level);
+  // With no red flags, the small notes the checker adds (like "ordinary mobile number") are tips, not warning signs.
+  const flags = r.verdict === 'clear' ? [] : sorted, tips = r.verdict === 'clear' ? sorted : [];
   // Only Verth's own checks add to the scam database (no report button that people could misuse).
   // Several different people's checks finding a scam outweighs a clean result now.
   const flagged = S.flags?.[r.fp] || 0, crowd = flagged >= 2;
@@ -1121,14 +1123,15 @@ function scanResultCard(r) {
     <p class="rv-summary">${summary}</p>
     <div class="rv-chips"><span><b>${flags.length}</b> warning ${flags.length === 1 ? 'sign' : 'signs'}</span>${r.links?.length ? `<span><b>${r.links.length}</b> ${r.links.length === 1 ? 'link' : 'links'} checked${linksBad ? `, ${linksBad} suspicious` : ''}</span>` : ''}<span>${flagged ? `<b>${flagged}</b> earlier scam ${flagged === 1 ? 'record' : 'records'}` : 'No scam record yet'}</span></div>
     <div class="rv-grid">
-      <section class="rv-panel"><h3>${ICON.shield}Security elements</h3><ul class="rv-elems">${elements(r, flags, flagged).map(([st, t, d]) => `<li class="el-${st}"><i>${st === 'clean' ? ICON.ok : st === 'warn' ? ICON.wait : ICON.bad}</i><div><b>${t}</b><span>${d}</span></div><em>${st === 'clean' ? 'Clean' : st === 'warn' ? 'Check' : 'Found'}</em></li>`).join('')}</ul></section>
+      <section class="rv-panel"><h3>${ICON.shield}Security elements</h3><ul class="rv-elems">${elements(r, flags, flagged).map(([st, t, d, to]) => `<li class="el-${st}"><i>${st === 'clean' ? ICON.ok : st === 'warn' ? ICON.wait : ICON.bad}</i><div><b>${t}</b><span>${d}</span></div>${to ? `<button type="button" class="el-go" data-act="rv-go" data-to="${to}">See why ›</button>` : `<em>${st === 'clean' ? 'Clean' : st === 'warn' ? 'Check' : 'Found'}</em>`}</li>`).join('')}</ul></section>
       <section class="rv-panel"><h3>${ICON.shield}Technical details</h3><dl class="rv-tech">${techDetails(r).map(([k, v, pill]) => `<div><dt>${k}</dt><dd>${pill ? `<span class="pill ${pill}">${esc(v)}</span>` : esc(v)}</dd></div>`).join('')}</dl></section>
     </div>
     ${crowd && r.verdict !== 'danger' ? `<div class="crowd-warn">⚠️ <b>Verth’s scam database knows this ${what}.</b> Earlier checks rated it high risk ${flagged} times. Don’t pay, share an OTP or click anything.</div>` : ''}
     ${r.kind === 'phone' && r.normalized ? `<p class="mono">${esc(r.normalized)}</p>` : r.kind === 'link' && r.host ? `<p class="mono">${esc(r.host)}</p>` : ''}
-    ${flags.length ? `<div class="rv-sec"><h3>Why it looks suspicious</h3><ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
+    ${flags.length ? `<div class="rv-sec" id="rv-why"><h3>Why it looks suspicious</h3><ul class="flags">${flags.map((f) => `<li class="lv${f.level}"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
+    ${tips.length ? `<div class="rv-sec"><h3>Good to know</h3><ul class="flags">${tips.map((f) => `<li class="lv1"><b>${esc(f.title)}</b><span>${esc(f.why)}</span></li>`).join('')}</ul></div>` : ''}
     ${r.good.length ? `<div class="rv-sec"><h3>Good signs</h3><ul class="goods">${r.good.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></div>` : ''}
-    ${r.links?.length ? `<div class="rv-sec found"><h3>Links checked</h3>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
+    ${r.links?.length ? `<div class="rv-sec found" id="rv-links"><h3>Links checked</h3>${r.links.map((l) => `<div class="split small"><span class="mono">${esc(l.host || l.normalized)}</span><span class="pill ${VERDICT[l.verdict][0]}">${l.verdict === 'danger' ? 'High risk' : l.verdict === 'caution' ? 'Careful' : 'No flags'}</span></div>`).join('')}</div>` : ''}
     <div class="community">${flagged ? `<span class="cm-stats"><b>🛡️ In Verth’s scam database: found to be a scam in ${flagged} ${flagged === 1 ? 'check' : 'checks'}</b></span>` : `<span>🛡️ Checked against Verth’s scam database: no scam record for this ${what} yet.</span>`}
       ${r.verdict === 'danger' ? '<span class="small muted">Verth saved this to its scam database by itself, so everyone who checks it next is warned. Only a scrambled fingerprint is kept, never the content.</span>' : '<span class="small muted">Verth adds anything it finds to be a scam to the database automatically. Nobody can mark a number or link as a scam by hand.</span>'}</div>
     ${r.kind === 'image' ? `<div class="rv-sec found"><h3>What Verth found in your picture</h3>
@@ -1859,6 +1862,7 @@ const busy = (form, on) => {
 };
 
 const actions = {
+  'rv-go': (el) => document.getElementById(el.dataset.to)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
   reload: () => location.reload(),
   'otp-change': () => { S.otpEmail = ''; renderAuth(); },
   'invite-contacts': async () => {

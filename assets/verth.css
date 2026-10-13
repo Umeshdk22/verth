@@ -1354,6 +1354,10 @@ video::cue{font-family:"Inter","Hind",system-ui,sans-serif;font-size:1.05em;font
 .rv-elems .el-clean{background:#EFFAF4}.rv-elems .el-clean>i{background:#12A66B}.rv-elems .el-clean em{background:#D7F3E3;color:#0A7B53}
 .rv-elems .el-warn{background:#FFF7E8}.rv-elems .el-warn>i{background:#E8A33D}.rv-elems .el-warn em{background:#FDEBC8;color:#8A4B00}
 .rv-elems .el-bad{background:#FDF0F1}.rv-elems .el-bad>i{background:#DC3545}.rv-elems .el-bad em{background:#F9D6DA;color:#B42332}
+.rv-elems .el-go{flex:none;font:inherit;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;border:0;cursor:pointer;background:#FDEBC8;color:#8A4B00}
+.rv-elems .el-bad .el-go{background:#F9D6DA;color:#B42332}
+.rv-elems .el-go:hover{filter:brightness(.95)}.rv-elems .el-go:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#rv-why,#rv-links{scroll-margin-top:80px}
 .rv-tech{margin:0;display:flex;flex-direction:column}
 .rv-tech>div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #EEF1F6;font-size:14px}
 .rv-tech>div:last-child{border-bottom:0}
