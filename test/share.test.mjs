@@ -45,3 +45,12 @@ test('share text stays short enough for a WhatsApp link', () => {
   const { text } = run('message', 'URGENT '.repeat(200) + ' your KYC expired http://a-b.xyz pay now OTP');
   assert.ok(encodeURIComponent(text).length < 4000);
 });
+test('UPI IDs in the message are hidden', () => {
+  const t = safeExcerpt('Approve the collect request from priya.nair@okaxis or 9876543210@ybl to get your refund');
+  assert.ok(!t.includes('priya.nair') && !t.includes('9876543210'), t);
+  assert.match(t, /\[UPI ID\]/);
+});
+test('Hindi messages keep their words', () => {
+  const t = safeExcerpt('आपका बैंक खाता आज बंद हो जाएगा। KYC अपडेट करें: http://sbi-kyc.xyz OTP 123456');
+  assert.match(t, /आपका बैंक खाता/); assert.ok(!t.includes('123456') && !t.includes('sbi-kyc.xyz'));
+});

@@ -1108,7 +1108,7 @@ async function warningPng(r, flagged) {
   const wrap = (text, font, max) => { g.font = font; const out = []; let line = ''; for (const w of String(text).split(/\s+/)) { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > max && line) { out.push(line); line = w; } else line = t; } if (line) out.push(line); return out; };
   const items = [...(s.number ? [`Number: ${s.number}`] : []), ...s.signs, ...s.links.filter((l) => !s.signs.some((t) => t.includes(l))).map((l) => (r.kind === 'link' ? `Link: ${l}` : `Risky link: ${l}`))].slice(0, 5);
   const lines = items.map((t) => wrap(t, F(600, 36), W - 2 * P - 70));
-  const tip = wrap(s.number ? 'If this number calls or messages you, don’t pay, share an OTP or install any app.' : 'If you get the same, don’t click any link, share an OTP or pay.', F(600, 34), W - 2 * P - 56);
+  const tip = wrap(s.tip, F(600, 34), W - 2 * P - 56);
   const H = Math.max(1350, 560 + lines.reduce((a, l) => a + l.length * 48 + 34, 0) + tip.length * 46 + 380);
   c.width = W; c.height = H;
   const tone = s.high ? ['#DC3545', '#FDECEE', '#B42332'] : ['#D98A00', '#FFF4DE', '#8A4B00'];
@@ -1147,7 +1147,8 @@ async function shareWarningImage(btn) {
     const file = new File([blob], name, { type: 'image/png' });
     let shared = false;
     if (navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], text: 'Check any message free before you pay: https://verth.in' }); shared = true; } catch (err) { if (err?.name === 'AbortError') shared = true; else throw err; }
+      // Cancelled: fine. Any other refusal (some phones block sharing files): save the picture instead.
+      try { await navigator.share({ files: [file], text: 'Check any message free before you pay: https://verth.in' }); shared = true; } catch (err) { if (err?.name === 'AbortError') shared = true; }
     }
     if (!shared) {
       const url = URL.createObjectURL(blob), a = Object.assign(document.createElement('a'), { href: url, download: name });

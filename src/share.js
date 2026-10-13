@@ -11,8 +11,9 @@ export const defang = (s) => String(s || '').replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]
 // A short piece of the message so family recognise it, with links, email addresses and any number of
 // 4 or more digits (OTPs, account, card and phone numbers) hidden.
 export function safeExcerpt(text, max = 160) {
-  let t = String(text || '').replace(/\s+/g, ' ').trim()
+  let t = String(text || '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim() // no stray WhatsApp bold/italic
     .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, '[email]')
+    .replace(/[\w.-]+@[a-z]{2,}\b/gi, '[UPI ID]')
     .replace(/(?:https?:\/\/|www\.)\S+/gi, '[link]')
     .replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?:\/\S*)?/gi, (m) => (/\.(com|in|net|org|co|xyz|top|info|online|site|shop|club|live|app|link|ly|me|io|gov|bank|cc|ru|cn|tk|ml|ga|cf|gq|buzz|icu|vip|work|click|today|support|pro|biz|store|cloud|us|uk)\b/i.test(m) ? '[link]' : m))
     .replace(/\d(?:[\d\s-]*\d)?/g, (m, at, all) => (m.replace(/\D/g, '').length >= 4 && !/(₹|\brs\.?|\binr)\s*$/i.test(all.slice(Math.max(0, at - 5), at)) ? '••••' : m));
@@ -27,7 +28,9 @@ export function shareInfo(r, flagged) {
   if (crowd) signs.unshift(`Rated high risk in ${flagged} earlier Verth checks`);
   const bad = r.kind === 'link' ? [r.host || r.normalized].filter(Boolean) : (r.links || []).filter((l) => l.verdict !== 'clear').map((l) => l.host || l.normalized);
   const excerpt = r.kind === 'link' || r.kind === 'phone' ? '' : safeExcerpt(r.kind === 'image' ? r.text : r.input);
-  return { high, what, signs: [...new Set(signs)].slice(0, 4), links: [...new Set(bad)].slice(0, 3).map(defang), number: r.kind === 'phone' ? r.normalized : '', excerpt };
+  const tip = r.kind === 'phone' ? 'If this number calls or messages you, don’t pay, share an OTP or install any app.'
+    : r.qr ? 'If you get the same, don’t scan the QR code, click any link, share an OTP or pay.' : 'If you get the same, don’t click any link, share an OTP or pay.';
+  return { high, what, tip, signs: [...new Set(signs)].slice(0, 4), links: [...new Set(bad)].slice(0, 3).map(defang), number: r.kind === 'phone' ? r.normalized : '', excerpt };
 }
 export function shareText(r, flagged) {
   const s = shareInfo(r, flagged), L = [];
@@ -38,7 +41,7 @@ export function shareText(r, flagged) {
   L.push('', '*Warning signs:*', ...s.signs.map((t) => `• ${t}`));
   const extra = s.links.filter((l) => !s.signs.some((t) => t.includes(l)));
   if (extra.length && r.kind !== 'link') L.push(`• Risky link: ${extra.join(', ')}`);
-  L.push('', s.number ? 'If this number calls or messages you, don’t pay, share an OTP or install any app.' : 'If you get the same, don’t click any link, share an OTP or pay.');
+  L.push('', s.tip);
   L.push('', 'Check any message free before you pay: https://verth.in');
   return L.join('\n');
 }

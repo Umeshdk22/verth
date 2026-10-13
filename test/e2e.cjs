@@ -648,6 +648,11 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 60000 * SLOW });
     await C.getByText('Suspicious link: sbi-yono-kyc.xyz', { exact: false }).first().waitFor();
     await C.getByText('What Verth found in your picture').waitFor();
+    { // a scam found in a screenshot can be shared too, from the words Verth read in it
+      const t = decodeURIComponent((await C.locator('#rv-wa').getAttribute('href')).split('?text=')[1]);
+      if (!/Scam alert/.test(t) || !t.includes('sbi-yono-kyc[.]xyz') || /sbi-yono-kyc\.xyz/.test(t)) throw new Error('photo share text wrong\n' + t);
+      require('node:fs').writeFileSync(OUT + '/14-share-photo.txt', t);
+    }
     await shot(C, '14a-C-photo-sms');
     await C.click('text=Check something else');
     await C.click('.kinds >> text=Photo or screenshot');
@@ -655,6 +660,9 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.click('button:has-text("Check it")');
     await C.getByText('A QR code you’re told will give you money').waitFor({ timeout: 60000 * SLOW });
     await C.getByText('A UPI QR code that pays ₹4,999', { exact: false }).waitFor();
+    { const t = decodeURIComponent((await C.locator('#rv-wa').getAttribute('href')).split('?text=')[1]);
+      if (!/QR/.test(t)) throw new Error('QR share text has no QR warning\n' + t);
+      require('node:fs').writeFileSync(OUT + '/14-share-qr.txt', t); }
     await shot(C, '14b-C-photo-qr');
     if (VS) { await C.locator('#scan-result').first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70)).catch(() => {}); await vs(C, 'slide-photo', null, null); }
     for (let i = 3; i <= 5; i++) {
