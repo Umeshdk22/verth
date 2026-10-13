@@ -70,9 +70,9 @@ export function splitPoints(pcm, rate, lines) {
 
 let calls = 0, quota = false;
 const isQuota = (e) => /\b429\b/.test(String(e || '')) && /quota/i.test(String(e || ''));
-async function tts(text, lang) {
+async function tts(text, lang, voice = VOICE[lang]) {
   if (calls++) await sleep(21000);
-  const out = await post({ text, voice: VOICE[lang] }).catch((e) => ({ error: String(e) }));
+  const out = await post({ text, voice }).catch((e) => ({ error: String(e) }));
   if (!out.audio) { if (isQuota(out.error)) quota = true; return { error: out.error }; }
   const bytes = Buffer.from(out.audio, 'base64'), rate = Number((out.mime || '').match(/rate=(\d+)/)?.[1] || 24000);
   return { file: bytes.subarray(0, 4).toString() === 'RIFF' ? bytes : wav(bytes, rate), model: out.model };
@@ -87,7 +87,8 @@ for (const [id, v] of Object.entries(scripts)) {
     const lines = v.lines.map((p) => say(p[li])), keys = lines.map((_, n) => `${id}-${lang}-${n + 1}`);
     const missing = keys.filter((k, n) => REDO || !existsSync(`video/voice/${k}.wav`) || report[k]?.line !== lines[n]);
     if (missing.length < lines.length) continue; // only brand-new videos are recorded whole; fixes go line by line
-    const r = await tts((lang === 'en' ? STYLE.en : '') + lines.join('\n\n'), lang);
+    const vc = v.voice?.[lang] || VOICE[lang], st = lang === 'en' ? (v.style ?? STYLE.en) : '';
+    const r = await tts(st + lines.join('\n\n'), lang, vc);
     if (!r.file) { console.log(`::warning::${id}-${lang} whole: ${r.error}`); continue; }
     writeFileSync(`video/voice/${id}-${lang}.wav`, r.file);
     const { rate, pcm } = pcmOf(r.file), cuts = splitPoints(pcm, rate, lines);
@@ -97,7 +98,7 @@ for (const [id, v] of Object.entries(scripts)) {
       const seg = wav(pcm.subarray(Math.round(edges[n] * rate) * 2, Math.round(edges[n + 1] * rate) * 2), rate);
       const h = await heard(seg, lang), score = h ? match(lines[n], h) : null, more = h ? extra(lines[n], h) : 0;
       const good = score == null || (score >= 0.85 && Math.abs(more) <= 2); // strict: a cut in the wrong pause is rejected
-      report[keys[n]] = { ok: good, line: lines[n], heard: h, score, model: r.model, voice: VOICE[lang], from: 'whole' };
+      report[keys[n]] = { ok: good, line: lines[n], heard: h, score, model: r.model, voice: vc, from: 'whole' };
       if (good) writeFileSync(`video/voice/${keys[n]}.wav`, seg);
       else console.log(`::warning::${keys[n]} (split) heard "${h.slice(0, 100)}" (${Math.round((score || 0) * 100)}%)`);
     }
@@ -117,13 +118,13 @@ for (const [id, v] of Object.entries(scripts)) {
       let done = false;
       for (let attempt = 1; attempt <= 4 && !done; attempt++) {
         if (quota) break;
-        const style = attempt >= 3 ? '' : STYLE[lang]; // if the style words get read out, drop them
-        const out = await tts(style + line, lang);
+        const style = attempt >= 3 ? '' : lang === 'en' ? (v.style ?? STYLE.en) : ''; // if the style words get read out, drop them
+        const out = await tts(style + line, lang, v.voice?.[lang] || VOICE[lang]);
         if (!out.file) { console.log(`::warning::${key} attempt ${attempt}: ${String(out.error).slice(0, 160)}`); report[key] = { ok: false, line, error: out.error }; continue; }
         const file1 = out.file, h = await heard(file1, lang);
         const score = h ? match(line, h) : null, more = h ? extra(line, h) : 0;
         const good = score == null || (score >= 0.6 && more <= 4);
-        report[key] = { ok: good, line, heard: h, score, model: out.model, voice: VOICE[lang], style: !!style };
+        report[key] = { ok: good, line, heard: h, score, model: out.model, voice: v.voice?.[lang] || VOICE[lang], style: !!style };
         if (good) { writeFileSync(file, file1); done = true; console.log(`${key} ok (${score == null ? 'not checked' : Math.round(score * 100) + '%'})`); }
         else console.log(`::warning::${key} attempt ${attempt}: heard "${h.slice(0, 120)}" (${Math.round(score * 100)}%, ${more} extra words)`);
       }
