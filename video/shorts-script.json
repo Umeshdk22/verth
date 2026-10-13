@@ -1,62 +1,182 @@
 {
  "sboss": {
-  "voice": { "en": "Charon", "hi": "Charon" },
+  "voice": {
+   "en": "Charon",
+   "hi": "Charon"
+  },
   "style": "Tell this like a short, gripping true story, in a calm, warm Indian English voice, at a natural pace: ",
   "lines": [
-   ["Friday evening. Neha gets a message from her boss, Mr. Sharma.", "शुक्रवार की शाम। नेहा को उसके बॉस, शर्मा जी का मैसेज आता है।"],
-   ["It's from a new number. He says he's in a meeting and can't talk.", "नया नंबर है। लिखा है, मीटिंग में हूँ, बात नहीं कर सकता।"],
-   ["Pay this vendor forty-eight thousand rupees, right now. It's urgent.", "इस वेंडर को अभी अड़तालीस हज़ार रुपये भेज दो। बहुत अर्जेंट है।"],
-   ["Neha is about to pay. But something feels off.", "नेहा पैसे भेजने ही वाली थी। पर कुछ गड़बड़ लगा।"],
-   ["A new number. Can't talk. Urgent money. These are the three signs of a fake boss scam.", "नया नंबर। बात नहीं कर सकते। और तुरंत पैसे। यही हैं नकली बॉस वाले स्कैम के तीन निशान।"],
-   ["Her office uses Verth, so she asks the real Mr. Sharma there. The question goes to his own phone.", "उसका ऑफ़िस वर्थ इस्तेमाल करता है। तो उसने वर्थ पर असली शर्मा जी से पूछा। सवाल सीधे उनके अपने फ़ोन पर गया।"],
-   ["His answer comes back in seconds. I never sent this.", "कुछ ही सेकंड में जवाब आया। मैंने ऐसा कोई मैसेज नहीं भेजा।"],
-   ["Forty-eight thousand rupees, saved.", "अड़तालीस हज़ार रुपये बच गए।"],
-   ["Before you pay anyone, check with the real person. Try Verth free, at verth dot in.", "किसी को भी पैसे भेजने से पहले, असली व्यक्ति से पूछिए। वर्थ मुफ़्त में आज़माइए, वर्थ डॉट इन पर।"]
+   [
+    "Friday evening. Neha gets a message from her boss, Mr. Sharma.",
+    "शुक्रवार की शाम। नेहा को उसके बॉस, शर्मा जी का मैसेज आता है।"
+   ],
+   [
+    "It's from a new number. He says he's in a meeting and can't talk.",
+    "नया नंबर है। लिखा है, मीटिंग में हूँ, बात नहीं कर सकता।"
+   ],
+   [
+    "Pay this vendor forty-eight thousand rupees, right now. It's urgent.",
+    "इस वेंडर को अभी अड़तालीस हज़ार रुपये भेज दो। बहुत अर्जेंट है।"
+   ],
+   [
+    "Neha is about to pay. But something feels off.",
+    "नेहा पैसे भेजने ही वाली थी। पर कुछ गड़बड़ लगा।"
+   ],
+   [
+    "A new number. Can't talk. Urgent money. These are the three signs of a fake boss scam.",
+    "नया नंबर। बात नहीं कर सकते। और तुरंत पैसे। यही हैं नकली बॉस वाले स्कैम के तीन निशान।"
+   ],
+   [
+    "Her office uses Verth, so she asks the real Mr. Sharma there. The question goes to his own phone.",
+    "उसका ऑफ़िस वर्थ इस्तेमाल करता है। तो उसने वर्थ पर असली शर्मा जी से पूछा। सवाल सीधे उनके अपने फ़ोन पर गया।"
+   ],
+   [
+    "His answer comes back in seconds. I never sent this.",
+    "कुछ ही सेकंड में जवाब आया। मैंने ऐसा कोई मैसेज नहीं भेजा।"
+   ],
+   [
+    "Forty-eight thousand rupees, saved.",
+    "अड़तालीस हज़ार रुपये बच गए।"
+   ],
+   [
+    "Before you pay anyone, check with the real person. Try Verth free, at verth dot in.",
+    "किसी को भी पैसे भेजने से पहले, असली व्यक्ति से पूछिए। वर्थ मुफ़्त में आज़माइए, वर्थ डॉट इन पर।"
+   ]
   ]
  },
  "spapa": {
-  "voice": { "en": "Aoede", "hi": "Aoede" },
+  "voice": {
+   "en": "Aoede",
+   "hi": "Aoede"
+  },
   "style": "Tell this like a warm, emotional family story, in a gentle Indian English voice, at a natural pace: ",
   "lines": [
-   ["Ramesh ji is having his evening tea, when his phone buzzes.", "रमेश जी शाम की चाय पी रहे थे, तभी फ़ोन पर मैसेज आया।"],
-   ["Papa, it's me. My phone broke. This is my new number.", "पापा, मैं हूँ। मेरा फ़ोन टूट गया। ये मेरा नया नंबर है।"],
-   ["I need twenty thousand rupees, urgently. Please don't call. I'll explain later.", "मुझे अभी बीस हज़ार रुपये चाहिए। प्लीज़ कॉल मत करना। बाद में बताता हूँ।"],
-   ["It sounds just like his son. Any father would want to help.", "बिल्कुल बेटे जैसा लगा। कोई भी पिता मदद करना चाहेगा।"],
-   ["But his daughter says, Papa, wait. Let's check it first.", "पर बेटी ने कहा, पापा रुको। पहले चेक करते हैं।"],
-   ["She pastes the message into Verth. High risk. A new number, asking for money, in a hurry.", "उसने मैसेज वर्थ में डाला। हाई रिस्क। नया नंबर, पैसों की माँग, और जल्दबाज़ी।"],
-   ["Then they call the son on his old number. He's fine, sitting in his college class.", "फिर उन्होंने बेटे को पुराने नंबर पर कॉल किया। वो बिल्कुल ठीक था, कॉलेज की क्लास में बैठा था।"],
-   ["Scammers copy how your family talks. Always call the old number before you pay.", "ठग आपके परिवार की तरह बात करना सीख लेते हैं। पैसे भेजने से पहले, हमेशा पुराने नंबर पर कॉल कीजिए।"],
-   ["Check any message free, at verth dot in.", "कोई भी मैसेज मुफ़्त में चेक कीजिए, वर्थ डॉट इन पर।"]
+   [
+    "Ramesh ji is having his evening tea, when his phone buzzes.",
+    "रमेश जी शाम की चाय पी रहे थे, तभी फ़ोन पर मैसेज आया।"
+   ],
+   [
+    "Papa, it's me. My phone broke. This is my new number.",
+    "पापा, मैं हूँ। मेरा फ़ोन टूट गया। ये मेरा नया नंबर है।"
+   ],
+   [
+    "I need twenty thousand rupees, urgently. Please don't call. I'll explain later.",
+    "मुझे अभी बीस हज़ार रुपये चाहिए। प्लीज़ कॉल मत करना। बाद में बताता हूँ।"
+   ],
+   [
+    "It sounds just like his son. Any father would want to help.",
+    "बिल्कुल बेटे जैसा लगा। कोई भी पिता मदद करना चाहेगा।"
+   ],
+   [
+    "But his daughter says, Papa, wait. Let's check it first.",
+    "पर बेटी ने कहा, पापा रुको। पहले चेक करते हैं।"
+   ],
+   [
+    "She pastes the message into Verth. High risk. A new number, asking for money, in a hurry.",
+    "उसने मैसेज वर्थ में डाला। हाई रिस्क। नया नंबर, पैसों की माँग, और जल्दबाज़ी।"
+   ],
+   [
+    "Then they call the son on his old number. He's fine, sitting in his college class.",
+    "फिर उन्होंने बेटे को पुराने नंबर पर कॉल किया। वो बिल्कुल ठीक था, कॉलेज की क्लास में बैठा था।"
+   ],
+   [
+    "Scammers copy how your family talks. Always call the old number before you pay.",
+    "ठग आपके परिवार की तरह बात करना सीख लेते हैं। पैसे भेजने से पहले, हमेशा पुराने नंबर पर कॉल कीजिए।"
+   ],
+   [
+    "Check any message free, at verth dot in.",
+    "कोई भी मैसेज मुफ़्त में चेक कीजिए, वर्थ डॉट इन पर।"
+   ]
   ]
  },
  "sqr": {
-  "voice": { "en": "Puck", "hi": "Puck" },
+  "voice": {
+   "en": "Puck",
+   "hi": "Puck"
+  },
   "style": "Say this in an energetic, punchy, friendly Indian English voice, like a fun explainer: ",
   "lines": [
-   ["Congratulations! You've won four thousand, nine hundred and ninety-nine rupees cashback!", "बधाई हो! आपने चार हज़ार नौ सौ निन्यानवे रुपये का कैशबैक जीता है!"],
-   ["Just scan this QR code to receive the money. Offer valid for ten minutes.", "पैसे पाने के लिए बस ये QR कोड स्कैन कीजिए। ऑफ़र सिर्फ़ दस मिनट के लिए।"],
-   ["Priya opens her UPI app, scans it, and is about to enter her PIN.", "प्रिया ने UPI ऐप खोला, QR स्कैन किया, और PIN डालने ही वाली थी।"],
-   ["Stop! Here's one rule that beats every QR scam.", "रुकिए! एक नियम याद रखिए, जो हर QR स्कैम से बचाएगा।"],
-   ["Scanning a QR code and entering your PIN always sends money out. It never brings money in.", "QR स्कैन करके PIN डालने से पैसे हमेशा जाते हैं। कभी आते नहीं।"],
-   ["To receive money, you never need to scan anything, and you never need your PIN.", "पैसे पाने के लिए ना कुछ स्कैन करना पड़ता है, ना PIN डालना।"],
-   ["Not sure? Give the screenshot to Verth. It reads the QR and tells you plainly, this pays a stranger.", "शक हो तो स्क्रीनशॉट वर्थ में डालिए। वो QR पढ़कर साफ़ बताएगा, ये पैसे किसी अनजान को भेजेगा।"],
-   ["Scan to receive is always a trick. Share this with someone who uses UPI.", "स्कैन करके पैसे पाओ, ये हमेशा धोखा है। UPI चलाने वाले हर किसी को ये बताइए।"],
-   ["Check any QR code free, at verth dot in.", "कोई भी QR कोड मुफ़्त में चेक कीजिए, वर्थ डॉट इन पर।"]
+   [
+    "Congratulations! You've won four thousand, nine hundred and ninety-nine rupees cashback!",
+    "बधाई हो! आपने चार हज़ार नौ सौ निन्यानवे रुपये का कैशबैक जीता है!"
+   ],
+   [
+    "Just scan this QR code to receive the money. Offer valid for ten minutes.",
+    "पैसे पाने के लिए बस ये QR कोड स्कैन कीजिए। ऑफ़र सिर्फ़ दस मिनट के लिए।"
+   ],
+   [
+    "Priya opens her UPI app, scans it, and is about to enter her PIN.",
+    "प्रिया ने UPI ऐप खोला, QR स्कैन किया, और PIN डालने ही वाली थी।"
+   ],
+   [
+    "Stop! Here's one rule that beats every QR scam.",
+    "रुकिए! एक नियम याद रखिए, जो हर QR स्कैम से बचाएगा।"
+   ],
+   [
+    "Scanning a QR code and entering your PIN always sends money out. It never brings money in.",
+    "QR स्कैन करके PIN डालने से पैसे हमेशा जाते हैं। कभी आते नहीं।"
+   ],
+   [
+    "To receive money, you never need to scan anything, and you never need your PIN.",
+    "पैसे पाने के लिए ना कुछ स्कैन करना पड़ता है, ना PIN डालना।"
+   ],
+   [
+    "Not sure? Give the screenshot to Verth. It reads the QR and tells you plainly, this pays a stranger.",
+    "शक हो तो स्क्रीनशॉट वर्थ में डालिए। वो QR पढ़कर साफ़ बताएगा, ये पैसे किसी अनजान को भेजेगा।"
+   ],
+   [
+    "Scan to receive is always a trick. Share this with someone who uses UPI.",
+    "स्कैन करके पैसे पाओ, ये हमेशा धोखा है। UPI चलाने वाले हर किसी को ये बताइए।"
+   ],
+   [
+    "Check any QR code free, at verth dot in.",
+    "कोई भी QR कोड मुफ़्त में चेक कीजिए, वर्थ डॉट इन पर।"
+   ]
   ]
  },
  "sarrest": {
-  "voice": { "en": "Orus", "hi": "Orus" },
+  "voice": {
+   "en": "Orus",
+   "hi": "Orus"
+  },
   "style": "Tell this like a tense, serious thriller narration, in a deep, steady Indian English voice, at a natural pace: ",
   "lines": [
-   ["A video call. A man in a police uniform. Behind him, what looks like a police station.", "एक वीडियो कॉल। पुलिस की वर्दी में एक आदमी। पीछे जैसे कोई पुलिस स्टेशन।"],
-   ["Your Aadhaar was used for money laundering. You are under digital arrest.", "आपके आधार से मनी लॉन्ड्रिंग हुई है। आप डिजिटल अरेस्ट में हैं।"],
-   ["Don't tell anyone. Stay on camera. Transfer your savings for verification.", "किसी को मत बताइए। कैमरे के सामने रहिए। जाँच के लिए अपने पैसे ट्रांसफ़र कीजिए।"],
-   ["Frightened people have lost lakhs like this. Some, even crores.", "डरे हुए लोगों ने ऐसे लाखों रुपये गँवाए हैं। कुछ ने तो करोड़ों।"],
-   ["Here's the truth. There is no such thing as a digital arrest.", "सच ये है। डिजिटल अरेस्ट जैसी कोई चीज़ होती ही नहीं।"],
-   ["Real police never arrest anyone on a video call, and never ask you to transfer money.", "असली पुलिस कभी वीडियो कॉल पर गिरफ़्तार नहीं करती, और कभी पैसे ट्रांसफ़र करने को नहीं कहती।"],
-   ["If you get this call, hang up. Don't pay. Call nineteen thirty, the cyber crime helpline.", "ऐसी कॉल आए तो फ़ोन काटिए। पैसे मत भेजिए। साइबर क्राइम हेल्पलाइन, उन्नीस सौ तीस पर कॉल कीजिए।"],
-   ["And tell your parents today. Scammers target them the most.", "और आज ही अपने माता-पिता को बताइए। ठग सबसे ज़्यादा उन्हीं को निशाना बनाते हैं।"],
-   ["Learn to spot every scam, free, at verth dot in.", "हर तरह का स्कैम पहचानना सीखिए, मुफ़्त में, वर्थ डॉट इन पर।"]
+   [
+    "A video call. A man in a police uniform. Behind him, something that looks like a police station.",
+    "एक वीडियो कॉल। पुलिस की वर्दी में एक आदमी। पीछे जैसे कोई पुलिस स्टेशन।"
+   ],
+   [
+    "Your Aadhaar was used for money laundering. You are under digital arrest.",
+    "आपके आधार से मनी लॉन्ड्रिंग हुई है। आप डिजिटल अरेस्ट में हैं।"
+   ],
+   [
+    "Don't tell anyone. Stay on camera. Transfer your savings for verification.",
+    "किसी को मत बताइए। कैमरे के सामने रहिए। जाँच के लिए अपने पैसे ट्रांसफ़र कीजिए।"
+   ],
+   [
+    "Frightened people have lost lakhs like this. Some, even crores.",
+    "डरे हुए लोगों ने ऐसे लाखों रुपये गँवाए हैं। कुछ ने तो करोड़ों।"
+   ],
+   [
+    "Here's the truth. There is no such thing as a digital arrest.",
+    "सच ये है। डिजिटल अरेस्ट जैसी कोई चीज़ होती ही नहीं।"
+   ],
+   [
+    "Real police never arrest anyone on a video call, and never ask you to transfer money.",
+    "असली पुलिस कभी वीडियो कॉल पर गिरफ़्तार नहीं करती, और कभी पैसे ट्रांसफ़र करने को नहीं कहती।"
+   ],
+   [
+    "If you get this call, hang up. Don't pay. Call nineteen thirty, the cyber crime helpline.",
+    "ऐसी कॉल आए तो फ़ोन काटिए। पैसे मत भेजिए। साइबर क्राइम हेल्पलाइन, उन्नीस सौ तीस पर कॉल कीजिए।"
+   ],
+   [
+    "And tell your parents today. Scammers target them the most.",
+    "और आज ही अपने माता-पिता को बताइए। ठग सबसे ज़्यादा उन्हीं को निशाना बनाते हैं।"
+   ],
+   [
+    "Learn to spot every scam, free, at verth dot in.",
+    "हर तरह का स्कैम पहचानना सीखिए, मुफ़्त में, वर्थ डॉट इन पर।"
+   ]
   ]
  }
 }
