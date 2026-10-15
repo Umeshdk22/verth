@@ -504,7 +504,7 @@ const VIDEOS = {
       <svg style="position:absolute;left:700px;top:420px" width="120" height="110"><path class="stm" d="M30 100 C15 70 45 60 30 20" stroke="#fff" stroke-width="8" fill="none" opacity=".8" stroke-linecap="round"/><path class="stm" d="M80 100 C65 70 95 60 80 20" stroke="#fff" stroke-width="8" fill="none" opacity=".8" stroke-linecap="round"/></svg>${inner}</div></div>`;
     return {
       theme: 'real', turnAt: 5, chip: T('A story that happens every day', 'हर दिन होने वाली कहानी'),
-      speakers: { n: '', s: T('💬 “Amazon HR”', '💬 “अमेज़न HR”'), m: T('Maa', 'माँ'), a: T('Aman', 'अमन') },
+      speakers: { n: '', s: T('💬 “XYZ Company HR”', '💬 “XYZ कंपनी HR”'), m: T('Maa', 'माँ'), a: T('Aman', 'अमन') },
       keys: T(['buzzes', 'selected', 'Today only', 'kitchen', 'never', 'High risk', 'pay', 'real', 'saved', 'verth.in', 'subscribe'], ['फ़ोन', 'सिलेक्शन', 'आज', 'माँ', 'कभी', 'हाई', 'पैसे', 'असली', 'बच', 'वर्थ', 'सब्सक्राइब']),
       bg: '',
       sections: [
@@ -516,7 +516,7 @@ const VIDEOS = {
           <div class="a hook" data-at="0+0.2" data-fx="pop" data-sfx="pop">${T('Would YOU have paid? 👀', 'क्या आप पैसे भर देते? 👀')}</div>` },
         { from: 1, to: 2, html: `<div class="scene"><div class="bed"><div class="win">${stars}</div></div></div>
           <div class="phone a" data-at="1" data-fx="up" data-sfx="buzz" style="left:60px;top:330px;width:620px;height:880px"><div class="notch"></div><div class="scr">
-            <div class="chat-h"><div class="av" style="background:#FF9900;display:grid;place-items:center;font-size:40px;font-weight:900;color:#111">a</div><div><b>${T('Amazon HR · Neha', 'Amazon HR · नेहा')}</b><small style="color:#6B7280">hr.amazon.jobs@gmail.com</small></div></div>
+            <div class="chat-h"><div class="av" style="background:#3B82F6;display:grid;place-items:center;font-size:40px;font-weight:900;color:#fff">X</div><div><b>${T('XYZ Company HR · Neha', 'XYZ कंपनी HR · नेहा')}</b><small style="color:#6B7280">hr.xyzcompany.jobs@gmail.com</small></div></div>
             <div class="bub a" data-at="1+0.3" data-fx="pop" data-sfx="ping" style="top:220px;max-width:540px"><div style="font-size:24px;font-weight:800;color:#16A34A;letter-spacing:.05em">${T('🎉 OFFER LETTER', '🎉 ऑफ़र लेटर')}</div>${T('Selected: <b>Work from home</b><br>Salary: <b>₹35,000/month</b>', 'सिलेक्ट: <b>वर्क फ्रॉम होम</b><br>सैलरी: <b>₹35,000/महीना</b>')}<small>9:41 PM</small></div>
             <div class="bub a" data-at="2+0.2" data-fx="pop" data-sfx="ping" style="top:500px;max-width:540px;background:#FFF1F1">${T('Pay refundable registration fee <b>₹2,999</b>. <b style="color:#DC2626">Today only ⏰</b>', 'रिफ़ंडेबल रजिस्ट्रेशन फ़ीस <b>₹2,999</b> भरें। <b style="color:#DC2626">सिर्फ़ आज ⏰</b>')}<small>9:42 PM</small></div>
           </div></div>
@@ -527,7 +527,7 @@ const VIDEOS = {
         { from: 3, to: 4, html: kitchen(`
           <div data-talk="m" style="position:absolute;left:560px;top:250px;width:380px;height:437px">${MAA()}</div>
           <div id="amanRun" data-talk="a" style="position:absolute;left:60px;top:290px;width:340px;height:391px">${AMAN('o')}</div>`) + `
-          <div class="a sbub r" data-at="3+0.4" data-fx="pop" style="left:60px;top:330px;max-width:520px;font-size:44px">${T('“Maa! I got a job at Amazon!” 🎉', '“माँ! अमेज़न में नौकरी लग गई!” 🎉')}</div>
+          <div class="a sbub r" data-at="3+0.4" data-fx="pop" style="left:60px;top:330px;max-width:520px;font-size:44px">${T('“Maa! I got the job!” 🎉', '“माँ! मेरी नौकरी लग गई!” 🎉')}</div>
           <div class="a sbub l" data-at="4+0.1" data-fx="pop" data-sfx="pop" data-until="5" style="left:330px;right:60px;top:1000px;max-width:none;z-index:3">${T('“Beta, a real company <b>never</b> asks you to pay for a job. Let’s check on Verth first.”', '“बेटा, असली कंपनी नौकरी के लिए <b>कभी</b> पैसे नहीं माँगती। पहले वर्थ पर चेक करते हैं।”')}</div>` },
         { from: 5, to: 7, html: `
           <div class="phone a" data-at="5" data-fx="up" style="left:150px;top:310px;width:780px;height:910px"><div class="notch"></div><div class="scr" style="background:#F6F4FF">
@@ -535,9 +535,8 @@ const VIDEOS = {
             <div class="a" data-at="5@0.55" data-fx="pop" data-sfx="stamp" style="position:relative;margin:22px 34px 0;padding:22px 26px;border-radius:22px;background:#FDECEE;color:#B42332;font-size:50px;font-weight:900;display:flex;gap:16px;align-items:center">${I.warn} ${T('High risk', 'हाई रिस्क')}</div>
             ${[[T('Asks you to pay for a job', 'नौकरी के लिए पैसे माँगता है'), '6+0.05'], [T('Recruiter uses a free Gmail address', 'रिक्रूटर का ईमेल फ़्री जीमेल वाला'), '6@0.33'], [T('“Selected” without a real interview', 'बिना इंटरव्यू के “सिलेक्ट”'), '6@0.68']].map(([t, at]) => `<div class="a" data-at="${at}" data-fx="right" data-sfx="pop" style="position:relative;margin:14px 34px 0;padding:18px 22px;border-radius:18px;background:#FFF7ED;border-left:10px solid #DC3545;font-size:34px;font-weight:700;display:flex;gap:14px;align-items:center;color:#111"><span style="color:#DC3545">${I.flag}</span>${t}</div>`).join('')}
             <div class="a" data-at="7" data-fx="up" data-sfx="ding" style="position:relative;margin:18px 34px 0;padding:22px 24px;border-radius:20px;background:#ECFDF5;border:2px solid #34D399;color:#065F46">
-              <div style="font-size:30px;font-weight:800">${T('Amazon: the only real email addresses', 'अमेज़न: सिर्फ़ ये असली ईमेल पते')}</div>
-              <div style="font-size:30px;font-family:'IBM Plex Mono',monospace;margin-top:8px;color:#064E3B">@amazon.com · @amazon.in · @amazon.jobs</div>
-              <div style="font-size:28px;margin-top:8px">${T('Apply only on <b>amazon.jobs</b>', 'सिर्फ़ <b>amazon.jobs</b> पर अप्लाई करें')}</div></div>
+              <div style="font-size:32px;font-weight:800">${T('Check the company yourself', 'कंपनी खुद चेक करें')}</div>
+              <div style="font-size:28px;margin-top:8px;line-height:1.35">${T('Real recruiters email from the company’s own website, <b>never Gmail</b>. Find the official careers page and apply only there.', 'असली रिक्रूटर कंपनी की अपनी वेबसाइट वाले ईमेल से लिखते हैं, <b>जीमेल से नहीं</b>। ऑफ़िशियल करियर पेज खुद ढूँढें और वहीं अप्लाई करें।')}</div></div>
           </div></div>` },
         { from: 8, to: 8, html: kitchen(`${conf(50, ['#FFD54A', '#34D399', '#60A5FA', '#F472B6', '#fff'], 540, 500, 1300, 7)}
           <div data-talk="m" style="position:absolute;left:520px;top:250px;width:380px;height:437px">${MAA()}</div>
