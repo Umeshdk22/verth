@@ -1,0 +1,90 @@
+{
+ "srealn": {
+  "voice": {
+   "en": "Aoede",
+   "hi": "Aoede"
+  },
+  "lines": [
+   [
+    "Sunday evening. Ramesh ji is watching TV with his family, when his phone rings.",
+    "रविवार की शाम। रमेश जी परिवार के साथ टीवी देख रहे थे, तभी फ़ोन बजा।"
+   ],
+   [
+    "Ramesh ji trusts him. He pays five thousand rupees, and happily waits for fifty thousand.",
+    "रमेश जी ने भरोसा किया। पाँच हज़ार भेज दिए, और खुशी-खुशी पचास हज़ार का इंतज़ार करने लगे।"
+   ],
+   [
+    "Next morning, over tea, he tells his friend Gupta ji everything.",
+    "अगली सुबह, चाय पर, उन्होंने अपने दोस्त गुप्ता जी को सब बताया।"
+   ],
+   [
+    "He types the number into Verth. Known scam. Many earlier checks rated it high risk.",
+    "उन्होंने नंबर वर्थ में डाला। जाना-माना स्कैम। पहले भी कई लोगों ने इसे हाई रिस्क पाया है।"
+   ]
+  ]
+ },
+ "sreals": {
+  "voice": {
+   "en": "Puck",
+   "hi": "Puck"
+  },
+  "lines": [
+   [
+    "Ramesh bhai, it's me, Suresh! I'm calling from my new Dubai number.",
+    "रमेश भाई, मैं सुरेश! दुबई वाले नए नंबर से बोल रहा हूँ।"
+   ],
+   [
+    "I'm sending fifty thousand rupees for Pinky's birthday. Just pay the five thousand rupee bank charge from your side. I'll return it.",
+    "पिंकी के जन्मदिन के लिए पचास हज़ार भेज रहा हूँ। बस बैंक का पाँच हज़ार चार्ज आप भर दो। मैं लौटा दूँगा।"
+   ]
+  ]
+ },
+ "srealf": {
+  "voice": {
+   "en": "Orus",
+   "hi": "Orus"
+  },
+  "lines": [
+   [
+    "Wait. Someone is sending you money, but you have to pay first? Check that number on Verth.",
+    "रुको। कोई पैसे भेज रहा है, और पहले आपको भरने पड़े? ये नंबर वर्थ पर चेक करो।"
+   ],
+   [
+    "Now ask the real Suresh, on Verth. The question goes to his own phone.",
+    "अब वर्थ पर असली सुरेश से पूछो। सवाल सीधे उसके अपने फ़ोन पर जाएगा।"
+   ],
+   [
+    "Call nineteen thirty right now, and tell your bank. The sooner, the better.",
+    "अभी उन्नीस सौ तीस पर कॉल करो, और बैंक को बताओ। जितनी जल्दी, उतना अच्छा।"
+   ]
+  ]
+ },
+ "srealm": {
+  "voice": {
+   "en": "Fenrir",
+   "hi": "Fenrir"
+  },
+  "lines": [
+   [
+    "Ramesh bhai, I never called you. I never asked for any money!",
+    "रमेश भाई, मैंने तो आपको कोई फ़ोन नहीं किया। कोई पैसे नहीं माँगे!"
+   ]
+  ]
+ },
+ "srealr": {
+  "voice": {
+   "en": "Charon",
+   "hi": "Charon"
+  },
+  "lines": [
+   [
+    "Don't make my mistake. Before you pay anyone, check on Verth. The link is in the description.",
+    "मेरी गलती मत दोहराइए। किसी को भी पैसे भेजने से पहले, वर्थ पर चेक कीजिए। लिंक डिस्क्रिप्शन में है।"
+   ],
+   [
+    "And subscribe, for more stories like this.",
+    "और ऐसी और कहानियों के लिए, चैनल सब्सक्राइब कीजिए।"
+   ]
+  ]
+ }
+}
