@@ -95,7 +95,7 @@ for (const [id, v] of Object.entries(scripts)) {
     const r = await tts(st + lines.join('\n\n'), lang, vc);
     if (!r.file) { console.log(`::warning::${id}-${lang} whole: ${r.error}`); continue; }
     writeFileSync(`video/voice/${id}-${lang}.wav`, r.file);
-    const { rate, pcm } = pcmOf(r.file), cuts = splitPoints(pcm, rate, lines);
+    const { rate, pcm } = pcmOf(r.file), cuts = lines.length === 1 ? [] : splitPoints(pcm, rate, lines); // one line: nothing to split
     if (!cuts) { console.log(`::warning::${id}-${lang}: couldn't find the pauses between lines`); continue; }
     const edges = [0, ...cuts, pcm.length / 2 / rate];
     for (let n = 0; n < lines.length; n++) {
