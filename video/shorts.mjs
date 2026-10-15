@@ -13,7 +13,10 @@ const FPS = 30, TMP = OUT.replace(/\.mp4$/, '') + '-tmp'; mkdirSync(TMP, { recur
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args]);
 const dur = (f) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 const li = LANG === 'hi' ? 1 : 0;
-const script = JSON.parse(readFileSync('video/shorts-script.json', 'utf8'))[ID].lines.map((l) => l[li]);
+const raw = JSON.parse(readFileSync('video/shorts-script.json', 'utf8'))[ID].lines;
+const script = raw.map((l) => l[li]);
+// Stories with several voices: each speaker's lines were recorded as "<id><speaker>-<lang>-<n>".
+const seen = {}, fileOf = raw.map((l, n) => (l[2] ? `${ID}${l[2]}-${LANG}-${(seen[l[2]] = (seen[l[2]] || 0) + 1)}` : `${ID}-${LANG}-${n + 1}`));
 
 // A breath before each line; a little longer where the story turns.
 const GAP = [0.5, 0.45, 0.35, 0.5, 0.45, 0.5, 0.45, 0.5, 0.55];
@@ -21,10 +24,10 @@ const lines = []; let cursor = 0;
 script.forEach((text, n) => {
   const clean = `${TMP}/v${n + 1}.wav`;
   if (VOICE === 'fake') ff(['-f', 'lavfi', '-i', `anullsrc=r=48000:cl=mono`, '-t', String(Math.max(1.6, text.length / (LANG === 'hi' ? 15 : 16))), clean]);
-  else ff(['-i', `${VOICE}/${ID}-${LANG}-${n + 1}.wav`, '-af', 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse,highpass=f=70,aresample=48000', '-ac', '1', clean]);
+  else ff(['-i', `${VOICE}/${fileOf[n]}.wav`, '-af', 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse,highpass=f=70,aresample=48000', '-ac', '1', clean]);
   cursor += GAP[n] ?? 0.45;
   const d = dur(clean);
-  lines.push({ text: text.replace(/verth dot in|वर्थ डॉट इन/i, 'verth.in'), file: clean, start: +cursor.toFixed(3), end: +(cursor + d).toFixed(3) });
+  lines.push({ spk: raw[n][2] || '', text: text.replace(/verth dot in|वर्थ डॉट इन/i, 'verth.in'), file: clean, start: +cursor.toFixed(3), end: +(cursor + d).toFixed(3) });
   cursor += d;
 });
 const total = +(cursor + 2.2).toFixed(2);
@@ -38,7 +41,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
   const errs = []; page.on('pageerror', (e) => errs.push(e.message));
   await page.goto(`http://127.0.0.1:${port}/video/shorts.html`);
-  await page.evaluate((p) => window.setup(p), { id: ID, lang: LANG, lines: lines.map(({ text, start, end }) => ({ text, start, end })), total });
+  await page.evaluate((p) => window.setup(p), { id: ID, lang: LANG, lines: lines.map(({ text, start, end, spk }) => ({ text, start, end, spk })), total });
   if (errs.length) throw new Error(errs.join('\n'));
   const events = await page.evaluate(() => window.sfx()), turn = await page.evaluate(() => window.turn());
   if (process.env.STILLS) {
@@ -50,7 +53,7 @@ try {
     // Audio: voice, music (ducked under the voice) and sound effects.
     const voice = `${TMP}/voice.wav`, music = `${TMP}/music.wav`, fx = `${TMP}/sfx.wav`, mix = `${TMP}/mix.m4a`;
     ff([...lines.flatMap((l) => ['-i', l.file]), '-filter_complex', `${lines.map((l, i) => `[${i}]adelay=${Math.round(l.start * 1000)}:all=1[a${i}]`).join(';')};${lines.map((_, i) => `[a${i}]`).join('')}amix=inputs=${lines.length}:normalize=0,apad=whole_dur=${total}`, '-ar', '48000', '-ac', '1', voice]);
-    const mood = { sboss: 'boss', spapa: 'papa', sqr: 'qr', sarrest: 'arrest' }[ID];
+    const mood = { sboss: 'boss', spapa: 'papa', sqr: 'qr', sarrest: 'arrest', sreal: 'papa' }[ID];
     execFileSync('python3', ['video/shorts_music.py', 'music', mood, String(total), String(turn), music]);
     writeFileSync(`${TMP}/events.json`, JSON.stringify(events));
     execFileSync('python3', ['video/shorts_music.py', 'sfx', `${TMP}/events.json`, String(total), fx]);

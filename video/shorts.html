@@ -61,6 +61,56 @@ body.hi .subx h2{line-height:1.25;letter-spacing:0}
 .t-qr .subx{color:#111}
 .t-papa .subx h2{color:#4A1838;text-shadow:0 2px 20px rgba(255,235,210,.6)}
 .t-papa .subx .note{color:#4A1838}
+
+/* ---------- theme: real-life story (illustrated, warm and natural) ---------- */
+.t-real #bg{background:#1B1420}
+.t-real #chip{background:rgba(255,255,255,.9);color:#5B2A1A}
+.t-real #cap{color:#fff;text-shadow:0 3px 18px rgba(0,0,0,.75)}
+.t-real #cap span.k{color:#FFD27A}
+.t-real .cta .url{background:#fff;color:#5B2A1A}
+#spk{position:absolute;left:50%;top:1222px;transform:translateX(-50%);z-index:41;font-size:30px;font-weight:800;padding:8px 22px;border-radius:999px;opacity:0;white-space:nowrap}
+.scene{position:absolute;left:0;right:0;top:300px;height:920px}
+/* backgrounds fill the whole screen, not just the picture band */
+.room,.stall,.dubai{background:none!important;z-index:0}
+.room:before,.stall:before,.dubai:before{content:'';position:absolute;left:0;right:0;top:-300px;bottom:-700px;z-index:-1}
+.room:before{background:linear-gradient(180deg,#E7B98A 0%,#F3C99A 20%,#E9B07F 42%,#8A5A3C 42.1%,#6E452D 100%)}
+.stall:before{background:linear-gradient(180deg,#8FD0F2 0%,#CDEBF7 39.6%,#E7D2A8 39.7%,#D2B582 100%)}
+.dubai:before{background:linear-gradient(180deg,#F7E7CE 0%,#F1D7B0 44.4%,#C9A57A 44.5%,#B18C63 100%)}
+.dark{inset:0}
+#capshade{position:absolute;left:0;right:0;top:1120px;bottom:0;z-index:39;background:linear-gradient(180deg,rgba(15,10,15,0),rgba(15,10,15,.72) 35%,rgba(15,10,15,.85));display:none}
+.t-real #capshade{display:block}
+.room{position:absolute;inset:0;background:linear-gradient(180deg,#F3C99A 0%,#E9B07F 55%,#8A5A3C 55.2%,#6E452D 100%)}
+.room .win{position:absolute;left:600px;top:70px;width:360px;height:330px;border-radius:14px;border:14px solid #7A4E33;background:linear-gradient(180deg,#2B3A6B 0%,#B65E7A 70%,#F2A36B 100%);overflow:hidden}
+.room .win:after{content:'';position:absolute;left:50%;top:0;bottom:0;width:12px;margin-left:-6px;background:#7A4E33}
+.room .moon{position:absolute;left:220px;top:50px;width:56px;height:56px;border-radius:50%;background:#FFF3D1;box-shadow:0 0 40px #FFF3D1}
+.room .frame{position:absolute;left:120px;top:110px;width:190px;height:140px;border:10px solid #7A4E33;background:#D9A06E;border-radius:6px}
+.room .lamp{position:absolute;left:40px;top:230px;width:150px;height:420px}
+.room .lampglow{position:absolute;left:-150px;top:120px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,140,.55),rgba(255,214,140,0) 65%)}
+.room .tvglow{position:absolute;left:0;top:0;width:100%;height:100%;background:radial-gradient(ellipse 60% 70% at 50% 120%,rgba(110,160,255,.35),rgba(110,160,255,0) 70%);mix-blend-mode:screen}
+.sofa{position:absolute;left:120px;top:520px;width:840px;height:300px}
+.sofa .back{position:absolute;left:0;right:0;top:0;height:200px;background:#8E3B46;border-radius:60px 60px 20px 20px;box-shadow:inset 0 -20px 0 rgba(0,0,0,.12)}
+.sofa .seat{position:absolute;left:-30px;right:-30px;top:170px;height:110px;background:#A44A55;border-radius:40px}
+.table{position:absolute;left:330px;top:810px;width:420px;height:70px;background:#5A3824;border-radius:16px}
+.ph{position:absolute;width:70px;height:120px;border-radius:14px;background:#111;border:4px solid #333}
+.ring{position:absolute;border:5px solid rgba(255,255,255,.8);border-radius:50%}
+.stall{position:absolute;inset:0;background:linear-gradient(180deg,#9ED8F5 0%,#CDEBF7 50%,#E7D2A8 50.2%,#D2B582 100%)}
+.stall .sun{position:absolute;left:800px;top:60px;width:150px;height:150px;border-radius:50%;background:#FFE58A;box-shadow:0 0 80px #FFE58A}
+.stall .hut{position:absolute;left:60px;top:170px;width:520px;height:420px;background:#C8743C;border-radius:16px}
+.stall .roof{position:absolute;left:30px;top:120px;width:580px;height:90px;background:repeating-linear-gradient(90deg,#E8483B 0 60px,#fff 60px 120px);border-radius:14px}
+.stall .counter{position:absolute;left:60px;top:470px;width:520px;height:120px;background:#8A4B23;border-radius:10px}
+.stall .kettle{position:absolute;left:150px;top:390px;width:110px;height:90px;background:#B8BEC6;border-radius:30px 30px 20px 20px}
+.bench{position:absolute;left:120px;top:780px;width:840px;height:40px;background:#6B4423;border-radius:10px}
+.dark{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#2A1E2E,#0C0A10 75%)}
+.screens{position:absolute;display:flex;gap:16px}
+.screens i{display:block;width:150px;height:100px;border-radius:10px;background:linear-gradient(180deg,#1E3A5F,#0E1A2B);box-shadow:0 0 30px rgba(80,160,255,.35)}
+.dubai{position:absolute;inset:0;background:linear-gradient(180deg,#F7E7CE 0%,#F1D7B0 60%,#C9A57A 60.2%,#B18C63 100%)}
+.dubai .sky{position:absolute;left:560px;top:80px;width:420px;height:420px;border:14px solid #fff;border-radius:16px;background:linear-gradient(180deg,#7EC8F0,#CDEBF7);overflow:hidden}
+.dubai .sky i{position:absolute;bottom:0;background:#6B88A8;border-radius:6px 6px 0 0}
+.tag{position:absolute;padding:10px 22px;border-radius:999px;font-size:30px;font-weight:800;background:rgba(0,0,0,.65);color:#fff}
+.sbub{position:absolute;max-width:680px;background:#fff;color:#1F1A17;font-size:40px;line-height:1.28;font-weight:650;padding:24px 30px;border-radius:34px;box-shadow:0 24px 60px -24px rgba(0,0,0,.6)}
+body.hi .sbub{font-size:42px;line-height:1.4}
+.sbub.l{border-bottom-left-radius:8px}.sbub.r{border-bottom-right-radius:8px}
+.sbub.scam{background:#FFF1F1}
 /* ---------- theme: office (fake boss) ---------- */
 .t-boss #bg{background:linear-gradient(170deg,#0A1A33 0%,#0D3550 55%,#0E5560 100%)}
 .t-boss .grid{position:absolute;inset:-200px;background-image:linear-gradient(rgba(255,255,255,.05) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.05) 2px,transparent 2px);background-size:90px 90px}
@@ -114,6 +164,8 @@ body.hi .wbub{font-size:46px;line-height:1.4}
   <div id="scenes"></div>
   <div id="chip"><i></i><span id="chipT"></span></div>
   <div id="wm">verth.in</div>
+  <div id="capshade"></div>
+  <div id="spk"></div>
   <div id="cap"></div>
 </div>
 <script>
@@ -164,12 +216,12 @@ function person(o = {}) {
     <ellipse cx="100" cy="86" rx="50" ry="54" fill="${skin}"/>
     <ellipse cx="50" cy="92" rx="8" ry="11" fill="${skin}"/><ellipse cx="150" cy="92" rx="8" ry="11" fill="${skin}"/>
     ${front}${brows}
-    <circle cx="83" cy="90" r="5" fill="#2A1A12"/><circle cx="117" cy="90" r="5" fill="#2A1A12"/>
+    <g class="eye" style="transform-box:fill-box;transform-origin:center"><circle cx="83" cy="90" r="5.5" fill="#2A1A12"/><circle cx="117" cy="90" r="5.5" fill="#2A1A12"/><circle cx="85" cy="88" r="1.6" fill="#fff"/><circle cx="119" cy="88" r="1.6" fill="#fff"/></g>
     ${glasses ? '<circle cx="83" cy="90" r="14" fill="none" stroke="#2A1A12" stroke-width="3.5"/><circle cx="117" cy="90" r="14" fill="none" stroke="#2A1A12" stroke-width="3.5"/><path d="M97 90 H103" stroke="#2A1A12" stroke-width="3.5"/>' : ''}
     ${mustache ? `<path d="M80 104 Q90 96 100 102 Q110 96 120 104 Q110 106 100 105 Q90 106 80 104Z" fill="${h}"/>` : ''}
     ${bindi ? '<circle cx="100" cy="68" r="4.5" fill="#D6213A"/>' : ''}
     <ellipse cx="72" cy="104" rx="8" ry="5" fill="#F08A8A" opacity=".35"/><ellipse cx="128" cy="104" rx="8" ry="5" fill="#F08A8A" opacity=".35"/>
-    ${m}</svg>`;
+    <g class="mc">${m}</g><g class="mo" style="display:none"><path d="M86 106 Q100 104 114 106 Q112 124 100 125 Q88 124 86 106Z" fill="#5B2A1A"/><path d="M90 117 Q100 113 110 117 Q106 123 100 123 Q94 123 90 117Z" fill="#E86A6A"/></g></svg>`;
 }
 // The "officer" on the fake video call: a faceless figure in shadow.
 const OFFICER = `<svg viewBox="0 0 400 460" width="100%" height="100%"><defs><linearGradient id="og" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B4A63"/><stop offset="1" stop-color="#161D2B"/></linearGradient></defs>
@@ -181,6 +233,7 @@ const OFFICER = `<svg viewBox="0 0 400 460" width="100%" height="100%"><defs><li
   <circle cx="200" cy="122" r="12" fill="#C9A227" opacity=".85"/>
   <rect x="96" y="356" width="60" height="14" rx="4" fill="#C9A227" opacity=".6"/><rect x="244" y="356" width="60" height="14" rx="4" fill="#C9A227" opacity=".6"/>
 </svg>`;
+const CALLER = `<svg viewBox="0 0 300 300" width="100%" height="100%"><path d="M40 300 C40 220 90 190 150 190 C210 190 260 220 260 300Z" fill="#0A0A0F"/><ellipse cx="150" cy="120" rx="58" ry="66" fill="#0A0A0F"/><path d="M88 120 C88 60 212 60 212 120" stroke="#222" stroke-width="12" fill="none"/><rect x="78" y="110" width="22" height="40" rx="8" fill="#222"/><rect x="200" y="110" width="22" height="40" rx="8" fill="#222"/><path d="M212 140 Q222 175 175 182" stroke="#222" stroke-width="6" fill="none"/><circle cx="172" cy="182" r="7" fill="#E11D2E"/></svg>`;
 const qrSvg = (text, size, dark = '#111', light = '#fff') => {
   const q = qrcode(0, 'M'); q.addData(text); q.make();
   const n = q.getModuleCount(), c = size / (n + 8); let r = '';
@@ -339,6 +392,86 @@ const VIDEOS = {
     ],
   }),
 
+
+  sreal: () => {
+    const RAMESH = (m = 'smile') => person({ style: 'short', grey: true, shirt: '#2F5D8A', collar: '#DCE8F5', mustache: true, glasses: true, mouth: m });
+    const SUNITA = person({ style: 'bun', hair: '#2A1A12', shirt: '#C2185B', collar: '#F8BBD0', bindi: true });
+    const PINKY = person({ style: 'pony', hair: '#241510', shirt: '#F59E0B', collar: '#FFF7ED', skin: '#E8B48C' });
+    const GUPTA = person({ style: 'bald', hair: '#3A2A20', shirt: '#4D7C0F', collar: '#ECFCCB', mustache: true, skin: '#D69A6E' });
+    const SURESH = person({ style: 'short', hair: '#1B110C', shirt: '#0F766E', collar: '#CCFBF1', skin: '#DDA27A' });
+    const ph = (x, y, rot = 0) => `<div class="ph" style="left:${x}px;top:${y}px;transform:rotate(${rot}deg)"></div>`;
+    return {
+      theme: 'real', chip: T('A story that happens every day', 'हर दिन होने वाली कहानी'),
+      speakers: { n: '', s: T('📞 Caller', '📞 कॉल करने वाला'), f: T('Gupta ji', 'गुप्ता जी'), m: T('The real Suresh', 'असली सुरेश'), r: T('Ramesh ji', 'रमेश जी') },
+      keys: T(['rings', 'Suresh', 'bank charge', 'trusts', 'friend', 'pay first', 'Known scam', 'real', 'never', 'nineteen thirty', 'Verth', 'subscribe'], ['फ़ोन', 'सुरेश', 'चार्ज', 'भरोसा', 'दोस्त', 'पहले', 'स्कैम', 'असली', 'नहीं', 'उन्नीस', 'वर्थ', 'सब्सक्राइब']),
+      bg: '',
+      sections: [
+        { from: 0, to: 0, html: `<div class="scene"><div class="room"><div class="win"><div class="moon"></div></div><div class="frame"></div>
+          <div class="lampglow" id="lampglow"></div>
+          <svg class="lamp" viewBox="0 0 150 420"><path d="M30 10 H120 L140 110 H10Z" fill="#F7D9A8"/><rect x="70" y="110" width="10" height="280" fill="#5A3824"/><rect x="35" y="390" width="80" height="20" rx="8" fill="#5A3824"/></svg>
+          <div class="sofa"><div class="back"></div><div class="seat"></div></div>
+          <div data-talk="x" style="position:absolute;left:150px;top:400px;width:230px;height:264px">${SUNITA}</div>
+          <div data-talk="x" style="position:absolute;left:690px;top:430px;width:210px;height:241px">${PINKY}</div>
+          <div id="rStand" data-talk="r" style="position:absolute;left:410px;top:360px;width:260px;height:299px">${RAMESH()}</div>
+          <div class="table"></div>
+          <div id="phRing" style="position:absolute;left:640px;top:740px;width:70px;height:120px">${ph(0, 0, -12)}<div class="ring" id="r1" style="left:-25px;top:-5px;width:120px;height:120px"></div><div class="ring" id="r2" style="left:-45px;top:-25px;width:160px;height:160px"></div></div>
+          <div class="tvglow" id="tvglow"></div></div></div>
+          <div class="a tag" data-at="0@0.6" data-fx="pop" data-sfx="ring" style="left:600px;top:1110px">📞 ${T('Unknown number', 'अनजान नंबर')}</div>` },
+        { from: 1, to: 2, html: `<div class="scene"><div class="room"><div class="win"><div class="moon"></div></div><div class="lampglow" id="lampglow2"></div></div>
+          <div data-talk="r" style="position:absolute;left:40px;top:200px;width:420px;height:483px">${RAMESH()}</div>
+          ${ph(370, 330, 14)}
+          <div style="position:absolute;left:560px;top:40px;width:470px;height:440px;border-radius:30px;overflow:hidden;box-shadow:0 0 0 4px #E11D2E,0 30px 60px -20px rgba(0,0,0,.7)"><div class="dark"></div>
+            <div class="screens" style="left:30px;top:40px"><i></i><i></i></div>
+            <div data-talk="s" style="position:absolute;left:110px;top:160px;width:260px;height:260px">${CALLER}</div>
+            <div class="tag" style="left:20px;bottom:20px;background:#E11D2E">${T('Who is really calling', 'असल में कौन बोल रहा है')}</div></div></div>
+          <div class="a tag" data-at="1" data-fx="pop" style="left:60px;top:330px">📞 ${T('“Suresh” · new number +971 50 ••• 4482', '“सुरेश” · नया नंबर +971 50 ••• 4482')}</div>
+          <div class="a sbub l scam" data-at="1+0.3" data-fx="pop" data-sfx="pop" style="left:60px;top:1000px">${T('“Ramesh bhai, it’s me, Suresh! New Dubai number.”', '“रमेश भाई, मैं सुरेश! दुबई वाला नया नंबर।”')}</div>
+          <div class="a sbub l scam" data-at="2+0.2" data-fx="pop" data-sfx="pop" style="left:60px;top:1000px;z-index:2">${T('“Sending <b>₹50,000</b> for Pinky. Just pay the <b>₹5,000</b> bank charge.”', '“पिंकी के लिए <b>₹50,000</b> भेज रहा हूँ। बस <b>₹5,000</b> बैंक चार्ज भर दो।”')}</div>` },
+        { from: 3, to: 3, html: `<div class="scene"><div class="room"><div class="win"><div class="moon"></div></div><div class="sofa"><div class="back"></div><div class="seat"></div></div></div>
+          <div class="phone a" data-at="3" data-fx="up" style="left:80px;top:40px;width:420px;height:760px;border-radius:50px;padding:14px"><div class="notch" style="width:110px;height:26px;margin-left:-55px"></div><div class="scr" style="border-radius:38px;background:#fff">
+            <div style="padding:80px 30px 0;text-align:center"><div class="a" data-at="3+0.6" data-fx="pop" data-sfx="ding" style="position:relative;width:150px;height:150px;margin:0 auto;border-radius:50%;background:#16A34A;color:#fff;display:grid;place-items:center;font-size:90px">${I.check}</div>
+            <div style="font-size:30px;color:#6B7280;margin-top:26px">${T('Paid', 'भेज दिए')}</div><div style="font-size:86px;font-weight:900;letter-spacing:-.03em">₹5,000</div>
+            <div style="font-size:24px;color:#374151;font-family:'IBM Plex Mono',monospace;margin-top:10px">dubai.charges@upi</div></div></div></div>
+          <div class="a" data-at="3@0.4" data-fx="up" data-talk="r" style="left:560px;top:180px;width:400px;height:460px">${RAMESH('smile')}</div>
+          <div class="a sbub r" data-at="3@0.55" data-fx="pop" style="left:520px;top:660px;max-width:480px;text-align:center;font-size:44px">${T('“₹50,000 is coming!” 😊', '“₹50,000 आने वाले हैं!” 😊')}</div>` },
+        { from: 4, to: 5, html: `<div class="scene"><div class="stall"><div class="sun"></div><div class="roof"></div><div class="hut"></div><div class="counter"></div><div class="kettle"></div>
+          <svg style="position:absolute;left:170px;top:300px" width="80" height="100"><path id="steamA" d="M20 90 C5 60 35 50 20 15" stroke="#fff" stroke-width="7" fill="none" opacity=".8" stroke-linecap="round"/><path id="steamB" d="M55 90 C40 60 70 50 55 15" stroke="#fff" stroke-width="7" fill="none" opacity=".8" stroke-linecap="round"/></svg>
+          <div data-talk="r" style="position:absolute;left:150px;top:460px;width:300px;height:345px">${RAMESH()}</div>
+          <div data-talk="f" style="position:absolute;left:620px;top:460px;width:300px;height:345px">${GUPTA}</div>
+          <div class="bench"></div></div>
+          <div class="a tag" data-at="4" data-fx="pop" style="left:60px;top:40px;background:rgba(255,255,255,.85);color:#5B2A1A">☀️ ${T('Next morning', 'अगली सुबह')}</div></div>
+          <div class="a sbub r" data-at="5+0.1" data-fx="pop" data-sfx="pop" style="right:60px;top:340px">${T('“Someone sends you money, but <b>you pay first</b>? Check that number on Verth.”', '“कोई पैसे भेज रहा है, और <b>पहले आप भरें</b>? ये नंबर वर्थ पर चेक करो।”')}</div>` },
+        { from: 6, to: 6, html: `
+          <div class="phone a" data-at="6" data-fx="up" style="left:200px;top:310px;width:680px;height:900px"><div class="notch"></div><div class="scr" style="background:#F6F4FF">
+            <div style="padding:80px 34px 0;display:flex;align-items:center;gap:16px;font-size:32px;font-weight:800;color:#4C1D95">${LOGO.replace('class="logo"', 'class="logo" style="width:64px;height:64px;border-radius:18px;box-shadow:none"')}${T('Verth · Phone number check', 'वर्थ · फ़ोन नंबर चेक')}</div>
+            <div style="margin:30px 34px 0;padding:24px 26px;border-radius:20px;background:#fff;border:3px solid #6B3DF0;font-size:42px;font-family:'IBM Plex Mono',monospace;color:#111"><span id="typed"></span><span id="caret" style="color:#6B3DF0">|</span></div>
+            <div class="a" data-at="6@0.45" data-fx="pop" data-sfx="stamp" style="position:relative;margin:30px 34px 0;padding:30px;border-radius:24px;background:#FDECEE;color:#B42332">
+              <div style="display:flex;align-items:center;gap:18px;font-size:56px;font-weight:900">${I.warn} ${T('Known scam', 'जाना-माना स्कैम')}</div>
+              <div style="font-size:32px;font-weight:700;margin-top:12px;color:#7A1220;line-height:1.3">${T('In Verth’s scam database: rated high risk in 14 earlier checks.', 'वर्थ के स्कैम डेटाबेस में: पहले 14 बार हाई रिस्क पाया गया।')}</div></div>
+            <div class="a" data-at="6@0.6" data-fx="up" style="position:relative;margin:24px 34px 0;font-size:30px;color:#374151;line-height:1.35">${T('Don’t pay, don’t share an OTP, don’t install any app.', 'पैसे मत भेजिए, OTP मत बताइए, कोई ऐप मत डालिए।')}</div>
+          </div></div>` },
+        { from: 7, to: 8, html: `<div class="scene"><div class="dubai"><div class="sky">${[[20, 120, 60], [100, 260, 50], [170, 180, 70], [260, 330, 40], [320, 210, 60]].map(([x, h, w]) => `<i style="left:${x}px;height:${h}px;width:${w}px"></i>`).join('')}</div></div>
+          <div class="a tag" data-at="7" data-fx="pop" style="left:60px;top:40px;background:#6B3DF0">${LOGO.replace('class="logo"', 'class="logo" style="width:40px;height:40px;border-radius:12px;display:inline-block;vertical-align:middle;box-shadow:none"')} ${T('Ask the real person', 'असली व्यक्ति से पूछें')}</div>
+          <div class="a sbub l" data-at="7+0.4" data-fx="left" data-sfx="whoosh" style="left:60px;top:140px;max-width:520px;font-size:36px">${T('Ramesh asks: “Did you call me and ask for ₹5,000?”', 'रमेश पूछ रहे हैं: “क्या आपने फ़ोन करके ₹5,000 माँगे?”')}</div>
+          <div class="a tag" data-at="7@0.6" data-fx="pop" style="left:560px;top:520px;background:rgba(15,118,110,.9)">📍 ${T('Suresh · his own phone · Dubai', 'सुरेश · उनका अपना फ़ोन · दुबई')}</div>
+          <div data-talk="m" class="a" data-at="7@0.5" data-fx="up" style="left:120px;top:440px;width:400px;height:460px">${SURESH}</div></div>
+          <div class="a" data-at="8" data-fx="stamp" data-sfx="stamp" style="left:560px;top:960px;padding:16px 30px;border-radius:20px;background:#DC2626;color:#fff;font-size:40px;font-weight:900;display:flex;gap:12px;align-items:center;transform:rotate(-3deg)">${I.cross} ${T('No, not me', 'नहीं, मैंने नहीं')}</div>
+          <div class="a sbub r" data-at="8+0.4" data-fx="pop" style="left:60px;top:1020px;max-width:560px">${T('“I never called you!”', '“मैंने कोई फ़ोन नहीं किया!”')}</div>` },
+        { from: 9, to: 9, html: `
+          <div class="a" data-at="9" data-fx="zoom" data-sfx="ding" style="left:110px;right:110px;top:380px;padding:40px;border-radius:40px;background:#16A34A;color:#fff;text-align:center;box-shadow:0 30px 70px -25px rgba(0,0,0,.6)">
+            <div style="font-size:44px;font-weight:800">${T('Lost money? Act fast', 'पैसे गए? तुरंत कदम उठाइए')}</div>
+            <div style="font-size:190px;font-weight:900;line-height:1;letter-spacing:-.04em;display:flex;align-items:center;justify-content:center;gap:20px"><span style="font-size:120px">${I.phone}</span>1930</div>
+            <div style="font-size:34px;font-weight:700">${T('Cyber crime helpline · cybercrime.gov.in', 'साइबर क्राइम हेल्पलाइन · cybercrime.gov.in')}</div></div>
+          <div class="a" data-at="9@0.45" data-fx="up" style="left:110px;right:110px;top:860px;padding:30px 36px;border-radius:30px;background:#fff;color:#1F1A17;font-size:40px;font-weight:700;display:flex;gap:20px;align-items:center"><span style="font-size:60px">🏦</span>${T('Tell your bank too. The sooner you report, the better the chance.', 'बैंक को भी बताइए। जितनी जल्दी रिपोर्ट, उतना बेहतर मौका।')}</div>` },
+        { from: 10, to: 10, html: `<div class="scene"><div class="room"><div class="win"><div class="moon"></div></div><div class="frame"></div><div class="lampglow"></div><div class="sofa"><div class="back"></div><div class="seat"></div></div>
+          <div style="position:absolute;left:130px;top:420px;width:220px;height:253px">${SUNITA}</div>
+          <div style="position:absolute;left:720px;top:440px;width:200px;height:230px">${PINKY}</div>
+          <div data-talk="r" style="position:absolute;left:300px;top:250px;width:480px;height:552px">${RAMESH()}</div></div></div>
+          <div class="a" data-at="10@0.45" data-fx="pop" style="left:240px;top:1040px;display:flex;align-items:center;gap:16px;padding:18px 40px;border-radius:999px;background:#fff;color:#5B2A1A;font-size:48px;font-weight:900;box-shadow:0 20px 50px -20px rgba(0,0,0,.6)">verth.in · ${T('link below', 'लिंक नीचे')} 👇</div>` },
+        { from: 11, to: 11, sub: true },
+      ],
+    };
+  },
   sarrest: () => ({
     theme: 'arrest', chip: T('“Digital arrest” scam', '“डिजिटल अरेस्ट” स्कैम'),
     keys: T(['video call', 'digital arrest', 'Transfer', 'crores', 'no such thing', 'never', 'nineteen thirty', 'parents', 'verth.in'], ['वीडियो कॉल', 'डिजिटल अरेस्ट', 'ट्रांसफ़र', 'करोड़ों', 'कोई चीज़', 'कभी', 'उन्नीस सौ तीस', 'माता-पिता', 'वर्थ']),
@@ -400,13 +533,14 @@ function ctaHtml() {
     <div class="fine a" data-at="8@0.6" data-fx="up">${T('Free · Made in India · Follow for more scam stories', 'मुफ़्त · मेड इन इंडिया · ऐसी और कहानियों के लिए फ़ॉलो करें')}</div></div>`;
 }
 function subHtml() {
+  const n = P.lines.length - 1;
   return `<div class="subx">
-    <h2 class="a ${V.theme === 'papa' ? 'serif' : ''}" data-at="9" data-fx="up" data-sfx="whoosh">${T('Want more stories<br>& scam alerts?', 'ऐसी और कहानियाँ<br>और स्कैम अलर्ट?')}</h2>
-    <div class="chan a" data-at="9+0.35" data-fx="pop"><div class="pf">${I.shield}</div><div><b>Verth: Scam Stories</b><small>@verthin</small></div></div>
-    <div class="a" data-at="9@0.35" data-fx="pop" style="margin-right:120px"><div class="sbtn" id="sbtn">${T('Subscribe', 'सब्सक्राइब')}</div><div class="bell" id="bell">${I.bell}</div></div>
-    <div class="a" data-at="9@0.42" data-fx="fade" id="stap" style="position:absolute;left:640px;top:1000px;font-size:120px;color:#fff;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))">${I.hand}</div>
-    <div class="a" data-at="9@0.42+0.75" data-fx="fade" data-sfx="ding" style="position:absolute;width:1px;height:1px"></div>
-    <div class="note a" data-at="9@0.75" data-fx="up">${T('New Shorts every week · Hindi & English', 'हर हफ़्ते नए शॉर्ट्स · हिंदी और इंग्लिश')}</div></div>`;
+    <h2 class="a ${V.theme === 'papa' ? 'serif' : ''}" data-at="${n}" data-fx="up" data-sfx="whoosh">${T('Want more stories<br>& scam alerts?', 'ऐसी और कहानियाँ<br>और स्कैम अलर्ट?')}</h2>
+    <div class="chan a" data-at="${n}+0.35" data-fx="pop"><div class="pf">${I.shield}</div><div><b>Verth: Scam Stories</b><small>@verthin</small></div></div>
+    <div class="a" data-at="${n}@0.35" data-fx="pop" style="margin-right:120px"><div class="sbtn" id="sbtn">${T('Subscribe', 'सब्सक्राइब')}</div><div class="bell" id="bell">${I.bell}</div></div>
+    <div class="a" data-at="${n}@0.42" data-fx="fade" id="stap" style="position:absolute;left:640px;top:1000px;font-size:120px;color:#fff;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))">${I.hand}</div>
+    <div class="a" data-at="${n}@0.42+0.75" data-fx="fade" data-sfx="ding" style="position:absolute;width:1px;height:1px"></div>
+    <div class="note a" data-at="${n}@0.75" data-fx="up">${T('New Shorts every week · Hindi & English', 'हर हफ़्ते नए शॉर्ट्स · हिंदी और इंग्लिश')}</div></div>`;
 }
 window.setup = async (plan) => {
   P = plan; HI = plan.lang === 'hi'; if (HI) document.body.classList.add('hi');
@@ -423,7 +557,7 @@ window.setup = async (plan) => {
 };
 // Sound effects, for the maker script to mix in: when each element with a sound appears.
 window.sfx = () => [...document.querySelectorAll('[data-sfx]')].map((el) => ({ t: +el._t.toFixed(3), kind: el.dataset.sfx }));
-window.turn = () => LS({ boss: 5, papa: 4, qr: 4, arrest: 4 }[V.theme]); // where the story turns from worry to relief
+window.turn = () => LS({ boss: 5, papa: 4, qr: 4, arrest: 4, real: 6 }[V.theme]); // where the story turns from worry to relief
 const SEC_TR = 0.4;
 function secLook(theme, p, dir) { // p 0 shown → 1 gone; dir +1 arriving, -1 leaving
   if (theme === 'boss') return { o: 1 - p, tf: `translateY(${dir * 140 * p}px)`, f: '' };
@@ -458,7 +592,7 @@ window.render = (t) => {
     const s1 = $('steam1'), s2 = $('steam2'); if (s1) { s1.style.transform = `translateY(${-((t * 30) % 20)}px)`; s1.style.opacity = .4 + .3 * Math.sin(t * 3); s2.style.opacity = .4 + .3 * Math.cos(t * 3); }
   } else if (V.theme === 'qr') {
     $('ray').style.transform = `rotate(${t * 8}deg)`;
-  } else {
+  } else if (V.theme === 'arrest') {
     const k = (t * 1.6) % 2, a = k < 1 ? Math.sin(k * Math.PI) : 0, b2 = k >= 1 ? Math.sin((k - 1) * Math.PI) : 0;
     const calm = clamp((t - window.turn()) / 1.5);
     $('sr').style.opacity = (0.25 + 0.75 * a) * (1 - calm * .8); $('sb').style.opacity = (0.25 + 0.75 * b2) * (1 - calm * .8);
@@ -513,6 +647,28 @@ window.render = (t) => {
     st2.style.opacity = t > st2._t + 1.3 ? Math.max(0, 1 - (t - st2._t - 1.3) / 0.3) : st2.style.opacity;
     const bl = $('bell'), bu = t - st2._t - 1.0;
     if (bl) bl.style.transform = bu > 0 && bu < 1.2 ? `rotate(${Math.sin(bu * 28) * 22 * (1 - bu / 1.2)}deg) scale(${1 + 0.15 * Math.sin(Math.min(bu, .3) / .3 * Math.PI)})` : '';
+  }
+  // who is talking: their mouth moves; everyone blinks now and then
+  const cur = L.findIndex((l) => t >= l.start - 0.05 && t <= l.end + 0.05), spk = cur >= 0 ? L[cur].spk : '';
+  document.querySelectorAll('[data-talk]').forEach((el, i) => {
+    const talking = spk && el.dataset.talk === spk && Math.sin(t * 22 + i) + Math.sin(t * 13.7 + i * 2) > 0.1;
+    const mo = el.querySelector('.mo'), mc = el.querySelector('.mc');
+    if (mo) { mo.style.display = talking ? '' : 'none'; mc.style.display = talking ? 'none' : ''; }
+  });
+  document.querySelectorAll('.eye').forEach((e, i) => { const ph = (t + i * 1.37) % 4.1; e.style.transform = ph < 0.13 ? 'scaleY(.12)' : ''; });
+  if (V.speakers) {
+    const sp = $('spk'), nm = cur >= 0 && cur < L.length - 1 ? V.speakers[spk] : '';
+    sp.textContent = nm || ''; sp.style.opacity = nm ? 1 : 0;
+    sp.style.background = spk === 's' ? '#E11D2E' : spk === 'm' ? '#0F766E' : spk === 'f' ? '#4D7C0F' : '#2F5D8A'; sp.style.color = '#fff';
+    // the living room: phone rings, Ramesh gets up, TV light flickers
+    const r1 = $('r1'), r2 = $('r2');
+    if (r1) { const u = (t * 1.4) % 1; r1.style.opacity = t < LS(0) + 1 ? 0 : 1 - u; r1.style.transform = `scale(${0.6 + u * 0.6})`; r2.style.opacity = t < LS(0) + 1 ? 0 : (1 - ((u + .5) % 1)); r2.style.transform = `scale(${0.6 + ((u + .5) % 1) * 0.6})`;
+      $('phRing').style.transform = `rotate(${Math.sin(t * 50) * 4 * (Math.floor(t * 2) % 2)}deg)`;
+      const up = ease((t - (L[0].start + (L[0].end - L[0].start) * 0.7)) / 0.9); $('rStand').style.transform = `translate(${80 * up}px, ${-60 * up}px)`; }
+    const tv = $('tvglow'); if (tv) tv.style.opacity = 0.55 + 0.25 * Math.sin(t * 7) * Math.sin(t * 3.1);
+    document.querySelectorAll('#lampglow,#lampglow2').forEach((g) => (g.style.opacity = 0.85 + 0.1 * Math.sin(t * 1.3)));
+    const sa = $('steamA'); if (sa) { sa.style.opacity = .5 + .3 * Math.sin(t * 2.5); $('steamB').style.opacity = .5 + .3 * Math.cos(t * 2.2); }
+    const ty = $('typed'); if (ty) { const full = '+971 50 ••• 4482', k = Math.max(0, Math.min(full.length, Math.floor((t - L[6].start - 0.3) * 9))); ty.textContent = full.slice(0, k); $('caret').style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0; }
   }
   // captions: the spoken line, words lighting up as they're said
   const cap = $('cap'); let on = -1;
