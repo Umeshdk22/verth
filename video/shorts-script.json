@@ -257,5 +257,70 @@
     "r"
    ]
   ]
+ },
+ "sjob": {
+  "voices": {
+   "n": "Aoede",
+   "s": "Zephyr",
+   "m": "Kore",
+   "a": "Puck"
+  },
+  "lines": [
+   [
+    "For six months, Aman has applied for job after job. Tonight, his phone finally buzzes.",
+    "छह महीने से अमन नौकरी के लिए अप्लाई कर रहा था। आज रात, आखिरकार उसका फ़ोन बजा।",
+    "n"
+   ],
+   [
+    "Congratulations, Aman! You are selected for a work-from-home job at Amazon. Thirty-five thousand rupees a month.",
+    "बधाई हो अमन! आपका सिलेक्शन अमेज़न में वर्क फ्रॉम होम जॉब के लिए हुआ है। पैंतीस हज़ार रुपये महीना।",
+    "s"
+   ],
+   [
+    "Just pay a refundable registration fee of two thousand nine hundred and ninety-nine rupees. Today only.",
+    "बस दो हज़ार नौ सौ निन्यानवे रुपये की रिफ़ंडेबल रजिस्ट्रेशन फ़ीस भर दीजिए। सिर्फ़ आज।",
+    "s"
+   ],
+   [
+    "Aman can't believe it. He runs to the kitchen to tell his mother.",
+    "अमन को यकीन नहीं हुआ। वो दौड़कर रसोई में माँ को बताने गया।",
+    "n"
+   ],
+   [
+    "Beta, a real company never asks you to pay for a job. Let's check it on Verth first.",
+    "बेटा, असली कंपनी नौकरी के लिए कभी पैसे नहीं माँगती। पहले वर्थ पर चेक करते हैं।",
+    "m"
+   ],
+   [
+    "They paste the offer into Verth's job offer check. High risk.",
+    "उन्होंने ऑफ़र वर्थ के जॉब ऑफ़र चेक में डाला। हाई रिस्क।",
+    "n"
+   ],
+   [
+    "It asks you to pay for a job. The recruiter uses a free Gmail address. And you were selected without any interview.",
+    "नौकरी के लिए पैसे माँग रहा है। रिक्रूटर का ईमेल फ़्री जीमेल वाला है। और बिना इंटरव्यू के सिलेक्शन।",
+    "n"
+   ],
+   [
+    "Verth even shows Amazon's only real email addresses, and says, apply only on the official careers page.",
+    "वर्थ ने अमेज़न के असली ईमेल पते भी दिखाए, और कहा, सिर्फ़ ऑफ़िशियल करियर पेज पर ही अप्लाई करें।",
+    "n"
+   ],
+   [
+    "Thank you, Maa. Three thousand rupees saved, and my real job search goes on.",
+    "थैंक यू माँ। तीन हज़ार रुपये बच गए, और मेरी असली नौकरी की तलाश जारी है।",
+    "a"
+   ],
+   [
+    "Looking for a job? Check every offer free at verth dot in, before you pay anything. The link is in the description.",
+    "नौकरी ढूँढ रहे हैं? कोई भी पैसा भरने से पहले, हर ऑफ़र मुफ़्त में वर्थ डॉट इन पर चेक करें। लिंक डिस्क्रिप्शन में है।",
+    "a"
+   ],
+   [
+    "And subscribe, so you hear about the next scam before it reaches you.",
+    "और चैनल सब्सक्राइब कीजिए, ताकि अगला स्कैम आप तक पहुँचे, उससे पहले आपको पता हो।",
+    "a"
+   ]
+  ]
  }
 }
