@@ -111,6 +111,29 @@ body.hi .subx h2{line-height:1.25;letter-spacing:0}
 body.hi .sbub{font-size:42px;line-height:1.4}
 .sbub.l{border-bottom-left-radius:8px}.sbub.r{border-bottom-right-radius:8px}
 .sbub.scam{background:#FFF1F1}
+
+/* fake job story: bedroom, kitchen, browser */
+.bed{position:absolute;inset:0;z-index:0}
+.bed:before{content:'';position:absolute;left:0;right:0;top:-300px;bottom:-700px;z-index:-1;background:linear-gradient(180deg,#2C2F5A 0%,#3B3F73 42%,#4A3B52 42.1%,#2E2433 100%)}
+.bed .win{position:absolute;left:640px;top:60px;width:320px;height:300px;border:12px solid #1D1F3D;border-radius:12px;background:linear-gradient(180deg,#0E1433,#1F2A5C);overflow:hidden}
+.bed .win i{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff}
+.bed .poster{position:absolute;left:90px;top:80px;width:200px;height:260px;border-radius:8px;background:linear-gradient(160deg,#F59E0B,#EF4444);transform:rotate(-4deg)}
+.desk{position:absolute;left:80px;top:690px;width:920px;height:60px;background:#6B4423;border-radius:10px}
+.laptop{position:absolute;left:300px;top:470px;width:480px;height:300px}
+.laptop .lid{position:absolute;left:0;top:0;width:480px;height:280px;border-radius:18px;background:#1F2937;padding:16px}
+.laptop .lid div{width:100%;height:100%;border-radius:8px;background:#E8F0FF;color:#1F2937;padding:22px;font-size:28px;line-height:1.5;font-weight:700}
+.laptop .base{position:absolute;left:-30px;top:270px;width:540px;height:22px;border-radius:0 0 18px 18px;background:#9CA3AF}
+.kitchen{position:absolute;inset:0;z-index:0}
+.kitchen:before{content:'';position:absolute;left:0;right:0;top:-300px;bottom:-700px;z-index:-1;background:linear-gradient(180deg,#FDF2E0 0%,#FBE7C6 50%,#C98B5A 50.1%,#A86F45 100%)}
+.kitchen .tiles{position:absolute;left:0;right:0;top:260px;height:200px;background-image:linear-gradient(#fff 2px,transparent 2px),linear-gradient(90deg,#fff 2px,transparent 2px);background-size:60px 60px;background-color:#BFE3E0;opacity:.8}
+.kitchen .stove{position:absolute;left:560px;top:620px;width:420px;height:120px;background:#4B5563;border-radius:14px}
+.kitchen .pot{position:absolute;left:660px;top:520px;width:200px;height:110px;background:#9CA3AF;border-radius:10px 10px 50px 50px}
+.kitchen .shelf{position:absolute;left:80px;top:120px;width:380px;height:20px;background:#8A5A3C;border-radius:6px}
+.kitchen .jar{position:absolute;top:50px;width:70px;height:72px;border-radius:12px;background:#F4C27A}
+.hook{position:absolute;left:150px;right:150px;top:320px;text-align:center;white-space:nowrap;padding:16px 34px;border-radius:999px;background:#FFD54A;color:#2A1A12;font-size:44px;font-weight:900;box-shadow:0 20px 40px -15px rgba(0,0,0,.6);z-index:5}
+.browser{position:absolute;left:90px;right:90px;top:360px;height:760px;border-radius:30px;background:#fff;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.7)}
+.browser .bar{height:110px;background:#F1F3F4;display:flex;align-items:center;gap:18px;padding:0 26px}
+.browser .bar .url{flex:1;height:70px;border-radius:999px;background:#fff;border:2px solid #DADCE0;display:flex;align-items:center;padding:0 28px;font-size:38px;color:#202124;gap:12px}
 /* ---------- theme: office (fake boss) ---------- */
 .t-boss #bg{background:linear-gradient(170deg,#0A1A33 0%,#0D3550 55%,#0E5560 100%)}
 .t-boss .grid{position:absolute;inset:-200px;background-image:linear-gradient(rgba(255,255,255,.05) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.05) 2px,transparent 2px);background-size:90px 90px}
@@ -472,6 +495,66 @@ const VIDEOS = {
       ],
     };
   },
+
+  sjob: () => {
+    const AMAN = (m = 'smile') => person({ style: 'short', hair: '#1B110C', shirt: '#2563EB', collar: '#DBEAFE', skin: '#D9A07A', mouth: m });
+    const MAA = (m = 'smile') => person({ style: 'bun', hair: '#2A1A12', shirt: '#B45309', collar: '#FDE68A', bindi: true, skin: '#E2A77E', mouth: m });
+    const stars = Array.from({ length: 14 }, (_, i) => `<i style="left:${(i * 67) % 300}px;top:${(i * 41) % 260}px;opacity:${.4 + (i % 3) * .2}"></i>`).join('');
+    const kitchen = (inner) => `<div class="scene"><div class="kitchen"><div class="tiles"></div><div class="shelf"></div><div class="jar" style="left:110px"></div><div class="jar" style="left:220px;background:#E8A0A0"></div><div class="jar" style="left:330px;background:#A0C4E8"></div><div class="stove"></div><div class="pot"></div>
+      <svg style="position:absolute;left:700px;top:420px" width="120" height="110"><path class="stm" d="M30 100 C15 70 45 60 30 20" stroke="#fff" stroke-width="8" fill="none" opacity=".8" stroke-linecap="round"/><path class="stm" d="M80 100 C65 70 95 60 80 20" stroke="#fff" stroke-width="8" fill="none" opacity=".8" stroke-linecap="round"/></svg>${inner}</div></div>`;
+    return {
+      theme: 'real', turnAt: 5, chip: T('A story that happens every day', 'हर दिन होने वाली कहानी'),
+      speakers: { n: '', s: T('💬 “Amazon HR”', '💬 “अमेज़न HR”'), m: T('Maa', 'माँ'), a: T('Aman', 'अमन') },
+      keys: T(['buzzes', 'selected', 'Today only', 'kitchen', 'never', 'High risk', 'pay', 'real', 'saved', 'verth.in', 'subscribe'], ['फ़ोन', 'सिलेक्शन', 'आज', 'माँ', 'कभी', 'हाई', 'पैसे', 'असली', 'बच', 'वर्थ', 'सब्सक्राइब']),
+      bg: '',
+      sections: [
+        { from: 0, to: 0, html: `<div class="scene"><div class="bed"><div class="win">${stars}</div><div class="poster"></div>
+          <div data-talk="a" style="position:absolute;left:390px;top:300px;width:300px;height:345px">${AMAN('worry')}</div>
+          <div class="laptop"><div class="lid"><div>${T('Applications sent: <b>47</b><br>Replies: <b style="color:#DC2626">0</b>', 'भेजे गए आवेदन: <b>47</b><br>जवाब: <b style="color:#DC2626">0</b>')}</div></div><div class="base"></div></div>
+          <div class="desk"></div>
+          <div id="buzz" style="position:absolute;left:830px;top:600px;width:70px;height:110px;border-radius:14px;background:#111;border:4px solid #FFD54A"></div></div></div>
+          <div class="a hook" data-at="0+0.2" data-fx="pop" data-sfx="pop">${T('Would YOU have paid? 👀', 'क्या आप पैसे भर देते? 👀')}</div>` },
+        { from: 1, to: 2, html: `<div class="scene"><div class="bed"><div class="win">${stars}</div></div></div>
+          <div class="phone a" data-at="1" data-fx="up" data-sfx="buzz" style="left:60px;top:330px;width:620px;height:880px"><div class="notch"></div><div class="scr">
+            <div class="chat-h"><div class="av" style="background:#FF9900;display:grid;place-items:center;font-size:40px;font-weight:900;color:#111">a</div><div><b>${T('Amazon HR · Neha', 'Amazon HR · नेहा')}</b><small style="color:#6B7280">hr.amazon.jobs@gmail.com</small></div></div>
+            <div class="bub a" data-at="1+0.3" data-fx="pop" data-sfx="ping" style="top:220px;max-width:540px"><div style="font-size:24px;font-weight:800;color:#16A34A;letter-spacing:.05em">${T('🎉 OFFER LETTER', '🎉 ऑफ़र लेटर')}</div>${T('Selected: <b>Work from home</b><br>Salary: <b>₹35,000/month</b>', 'सिलेक्ट: <b>वर्क फ्रॉम होम</b><br>सैलरी: <b>₹35,000/महीना</b>')}<small>9:41 PM</small></div>
+            <div class="bub a" data-at="2+0.2" data-fx="pop" data-sfx="ping" style="top:500px;max-width:540px;background:#FFF1F1">${T('Pay refundable registration fee <b>₹2,999</b>. <b style="color:#DC2626">Today only ⏰</b>', 'रिफ़ंडेबल रजिस्ट्रेशन फ़ीस <b>₹2,999</b> भरें। <b style="color:#DC2626">सिर्फ़ आज ⏰</b>')}<small>9:42 PM</small></div>
+          </div></div>
+          <div style="position:absolute;left:700px;top:360px;width:330px;height:420px;border-radius:28px;overflow:hidden;box-shadow:0 0 0 4px #E11D2E,0 30px 60px -20px rgba(0,0,0,.7)"><div class="dark"></div>
+            <div class="screens" style="left:20px;top:30px"><i style="width:130px;height:84px"></i><i style="width:130px;height:84px"></i></div>
+            <div data-talk="s" style="position:absolute;left:40px;top:140px;width:250px;height:250px">${CALLER}</div>
+            <div class="tag" style="left:14px;bottom:14px;font-size:24px;background:#E11D2E">${T('Who is really typing', 'असल में कौन लिख रहा है')}</div></div>` },
+        { from: 3, to: 4, html: kitchen(`
+          <div data-talk="m" style="position:absolute;left:560px;top:250px;width:380px;height:437px">${MAA()}</div>
+          <div id="amanRun" data-talk="a" style="position:absolute;left:60px;top:290px;width:340px;height:391px">${AMAN('o')}</div>`) + `
+          <div class="a sbub r" data-at="3+0.4" data-fx="pop" style="left:60px;top:330px;max-width:520px;font-size:44px">${T('“Maa! I got a job at Amazon!” 🎉', '“माँ! अमेज़न में नौकरी लग गई!” 🎉')}</div>
+          <div class="a sbub l" data-at="4+0.1" data-fx="pop" data-sfx="pop" data-until="5" style="left:330px;right:60px;top:1000px;max-width:none;z-index:3">${T('“Beta, a real company <b>never</b> asks you to pay for a job. Let’s check on Verth first.”', '“बेटा, असली कंपनी नौकरी के लिए <b>कभी</b> पैसे नहीं माँगती। पहले वर्थ पर चेक करते हैं।”')}</div>` },
+        { from: 5, to: 7, html: `
+          <div class="phone a" data-at="5" data-fx="up" style="left:150px;top:310px;width:780px;height:910px"><div class="notch"></div><div class="scr" style="background:#F6F4FF">
+            <div style="padding:76px 34px 0;display:flex;align-items:center;gap:16px;font-size:32px;font-weight:800;color:#4C1D95">${LOGO.replace('class="logo"', 'class="logo" style="width:60px;height:60px;border-radius:16px;box-shadow:none"')}${T('Verth · Job offer check', 'वर्थ · जॉब ऑफ़र चेक')}</div>
+            <div class="a" data-at="5@0.55" data-fx="pop" data-sfx="stamp" style="position:relative;margin:22px 34px 0;padding:22px 26px;border-radius:22px;background:#FDECEE;color:#B42332;font-size:50px;font-weight:900;display:flex;gap:16px;align-items:center">${I.warn} ${T('High risk', 'हाई रिस्क')}</div>
+            ${[[T('Asks you to pay for a job', 'नौकरी के लिए पैसे माँगता है'), '6+0.05'], [T('Recruiter uses a free Gmail address', 'रिक्रूटर का ईमेल फ़्री जीमेल वाला'), '6@0.33'], [T('“Selected” without a real interview', 'बिना इंटरव्यू के “सिलेक्ट”'), '6@0.68']].map(([t, at]) => `<div class="a" data-at="${at}" data-fx="right" data-sfx="pop" style="position:relative;margin:14px 34px 0;padding:18px 22px;border-radius:18px;background:#FFF7ED;border-left:10px solid #DC3545;font-size:34px;font-weight:700;display:flex;gap:14px;align-items:center;color:#111"><span style="color:#DC3545">${I.flag}</span>${t}</div>`).join('')}
+            <div class="a" data-at="7" data-fx="up" data-sfx="ding" style="position:relative;margin:18px 34px 0;padding:22px 24px;border-radius:20px;background:#ECFDF5;border:2px solid #34D399;color:#065F46">
+              <div style="font-size:30px;font-weight:800">${T('Amazon: the only real email addresses', 'अमेज़न: सिर्फ़ ये असली ईमेल पते')}</div>
+              <div style="font-size:30px;font-family:'IBM Plex Mono',monospace;margin-top:8px;color:#064E3B">@amazon.com · @amazon.in · @amazon.jobs</div>
+              <div style="font-size:28px;margin-top:8px">${T('Apply only on <b>amazon.jobs</b>', 'सिर्फ़ <b>amazon.jobs</b> पर अप्लाई करें')}</div></div>
+          </div></div>` },
+        { from: 8, to: 8, html: kitchen(`${conf(50, ['#FFD54A', '#34D399', '#60A5FA', '#F472B6', '#fff'], 540, 500, 1300, 7)}
+          <div data-talk="m" style="position:absolute;left:520px;top:250px;width:380px;height:437px">${MAA()}</div>
+          <div data-talk="a" style="position:absolute;left:180px;top:270px;width:380px;height:437px">${AMAN()}</div>`) + `
+          <div class="a stamp" data-at="8@0.45" data-fx="stamp" data-sfx="stamp" style="left:220px;top:1000px;color:#16A34A;background:#fff;font-size:84px;transform:rotate(-5deg)">₹2,999 ${T('saved', 'बचे')}</div>` },
+        { from: 9, to: 9, html: `
+          <div class="a" data-at="9" data-fx="up" style="left:0;right:0;top:330px;text-align:center;font-size:64px;font-weight:900;color:#FFD54A">${T('Try it yourself 👇', 'खुद आज़माइए 👇')}</div>
+          <div class="browser a" data-at="9+0.2" data-fx="zoom" style="top:440px;height:640px"><div class="bar"><div class="url">🔒 <span id="typed2"></span><span id="caret2" style="color:#6B3DF0">|</span></div></div>
+            <div class="a" data-at="9@0.32" data-fx="fade" style="position:relative;padding:44px 50px;color:#16132B;text-align:center">
+              <div style="display:flex;justify-content:center;align-items:center;gap:18px;font-size:46px;font-weight:900">${LOGO.replace('class="logo"', 'class="logo" style="width:80px;height:80px;border-radius:22px;box-shadow:none"')}Verth</div>
+              <div style="font-size:44px;font-weight:800;margin-top:30px;line-height:1.2">${T('Check a job offer, message, link or number', 'जॉब ऑफ़र, मैसेज, लिंक या नंबर चेक करें')}</div>
+              <div class="btn" id="tryBtn" style="margin-top:40px;padding:26px 60px;background:#6B3DF0;color:#fff;font-size:44px">${T('Check it free', 'मुफ़्त में चेक करें')}</div></div></div>
+          <div class="a" data-at="9@0.6" data-fx="pop" data-sfx="ding" style="left:70px;right:70px;top:1100px;text-align:center;padding:16px 24px;border-radius:999px;background:#fff;color:#2A1A12;font-size:36px;font-weight:900;white-space:nowrap">${T('Link in description & pinned comment', 'लिंक डिस्क्रिप्शन और पिन कमेंट में')}</div>` },
+        { from: 10, to: 10, sub: true },
+      ],
+    };
+  },
   sarrest: () => ({
     theme: 'arrest', chip: T('“Digital arrest” scam', '“डिजिटल अरेस्ट” स्कैम'),
     keys: T(['video call', 'digital arrest', 'Transfer', 'crores', 'no such thing', 'never', 'nineteen thirty', 'parents', 'verth.in'], ['वीडियो कॉल', 'डिजिटल अरेस्ट', 'ट्रांसफ़र', 'करोड़ों', 'कोई चीज़', 'कभी', 'उन्नीस सौ तीस', 'माता-पिता', 'वर्थ']),
@@ -557,11 +640,12 @@ window.setup = async (plan) => {
 };
 // Sound effects, for the maker script to mix in: when each element with a sound appears.
 window.sfx = () => [...document.querySelectorAll('[data-sfx]')].map((el) => ({ t: +el._t.toFixed(3), kind: el.dataset.sfx }));
-window.turn = () => LS({ boss: 5, papa: 4, qr: 4, arrest: 4, real: 6 }[V.theme]); // where the story turns from worry to relief
+window.turn = () => LS(V.turnAt ?? { boss: 5, papa: 4, qr: 4, arrest: 4, real: 6 }[V.theme]); // where the story turns from worry to relief
 const SEC_TR = 0.4;
 function secLook(theme, p, dir) { // p 0 shown → 1 gone; dir +1 arriving, -1 leaving
   if (theme === 'boss') return { o: 1 - p, tf: `translateY(${dir * 140 * p}px)`, f: '' };
   if (theme === 'papa') return { o: 1 - p, tf: `scale(${1 + (dir > 0 ? 0.06 : -0.04) * p})`, f: p > .02 ? `blur(${(16 * p).toFixed(1)}px)` : '' };
+  if (theme === 'real') return dir > 0 ? { o: 1, tf: '', f: '', clip: `circle(${((1 - p) * 140).toFixed(1)}% at 50% 42%)` } : { o: 1 - p * 0.3, tf: `scale(${1 + 0.06 * p})`, f: p > .02 ? `blur(${(6 * p).toFixed(1)}px)` : '' };
   if (theme === 'qr') return { o: 1 - p, tf: `translateX(${dir * 700 * p}px) rotate(${dir * 8 * p}deg)`, f: '' };
   const j = p > 0.05 && p < 0.95 ? Math.sin(p * 40) * 26 * (1 - p) : 0; // arrest: glitch jolt
   return { o: 1 - p, tf: `translateX(${j}px) skewX(${j * 0.3}deg)`, f: p > .05 ? `contrast(${1 + p}) hue-rotate(${p * 90}deg)` : '' };
@@ -606,7 +690,7 @@ window.render = (t) => {
     if (t < tin + SEC_TR && a !== 0) st = secLook(V.theme, 1 - ease((t - (tin - SEC_TR)) / (2 * SEC_TR)), 1);
     else if (t > tout - SEC_TR) st = secLook(V.theme, ease((t - (tout - SEC_TR)) / (2 * SEC_TR)), -1);
     else st = { o: 1, tf: '', f: '' };
-    s.style.visibility = 'visible'; s.style.opacity = st.o; s.style.transform = st.tf; s.style.filter = st.f;
+    s.style.visibility = 'visible'; s.style.opacity = st.o; s.style.transform = st.tf; s.style.filter = st.f; s.style.clipPath = st.clip || '';
     // slow push-in while a section is on screen
     const life = clamp((t - Math.max(tin, 0)) / Math.max(1, tout - Math.max(tin, 0)));
     s.style.transform += ` scale(${1 + 0.025 * life})`;
@@ -668,6 +752,10 @@ window.render = (t) => {
     const tv = $('tvglow'); if (tv) tv.style.opacity = 0.55 + 0.25 * Math.sin(t * 7) * Math.sin(t * 3.1);
     document.querySelectorAll('#lampglow,#lampglow2').forEach((g) => (g.style.opacity = 0.85 + 0.1 * Math.sin(t * 1.3)));
     const sa = $('steamA'); if (sa) { sa.style.opacity = .5 + .3 * Math.sin(t * 2.5); $('steamB').style.opacity = .5 + .3 * Math.cos(t * 2.2); }
+    const ar = $('amanRun'); if (ar) { const u = ease((t - LS(3)) / 1.0); ar.style.transform = `translateX(${-420 * (1 - u)}px)`; }
+    document.querySelectorAll('.stm').forEach((e, i) => (e.style.opacity = .45 + .3 * Math.sin(t * 2.4 + i)));
+    const t2 = $('typed2'); if (t2) { const full = 'verth.in', k = Math.max(0, Math.min(full.length, Math.floor((t - L[9].start - 0.4) * 7))); t2.textContent = full.slice(0, k); $('caret2').style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0;
+      const tb = $('tryBtn'); if (tb) tb.style.transform = `scale(${1 + 0.05 * Math.max(0, Math.sin((t - L[9].start) * 5))})`; }
     const ty = $('typed'); if (ty) { const full = '+971 50 ••• 4482', k = Math.max(0, Math.min(full.length, Math.floor((t - L[6].start - 0.3) * 9))); ty.textContent = full.slice(0, k); $('caret').style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0; }
   }
   // captions: the spoken line, words lighting up as they're said
