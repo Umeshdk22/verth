@@ -1,0 +1,46 @@
+{
+ "sbilln": {
+  "voice": {
+   "en": "Aoede",
+   "hi": "Aoede"
+  },
+  "lines": [
+   [
+    "Ten at night. Sharma ji gets an SMS. Your electricity will be cut tonight. Call this officer now.",
+    "रात के दस बजे। शर्मा जी को SMS आया। आज रात आपकी बिजली कट जाएगी। तुरंत इस अफ़सर को कॉल करें।"
+   ],
+   [
+    "Worried, he picks up his phone to call the number.",
+    "घबराकर, उन्होंने उस नंबर पर कॉल करने के लिए फ़ोन उठाया।"
+   ],
+   [
+    "High risk. A power cut threat, rushing you, and asking you to call someone.",
+    "हाई रिस्क। बिजली कटने की धमकी, जल्दबाज़ी, और किसी को कॉल करने को कहना।"
+   ]
+  ]
+ },
+ "sbillr": {
+  "voice": {
+   "en": "Leda",
+   "hi": "Leda"
+  },
+  "lines": [
+   [
+    "Dadu, wait! Let me check this on Verth first.",
+    "दादू, रुकिए! पहले मैं इसे वर्थ पर चेक करती हूँ।"
+   ],
+   [
+    "These callers ask you to install an app, then empty your bank account. Pay bills only in the official app, Dadu.",
+    "ये लोग कोई ऐप डलवाते हैं, फिर बैंक खाता खाली कर देते हैं। बिल सिर्फ़ ऑफ़िशियल ऐप से भरिए, दादू।"
+   ],
+   [
+    "Got a message like this? Check it free at verth dot in. The link is in the description.",
+    "ऐसा कोई मैसेज आया है? मुफ़्त में वर्थ डॉट इन पर चेक कीजिए। लिंक डिस्क्रिप्शन में है।"
+   ],
+   [
+    "And subscribe, so your family stays one step ahead of scammers.",
+    "और चैनल सब्सक्राइब कीजिए, ताकि आपका परिवार ठगों से एक कदम आगे रहे।"
+   ]
+  ]
+ }
+}
