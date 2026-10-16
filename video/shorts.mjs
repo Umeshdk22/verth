@@ -53,7 +53,7 @@ try {
     // Audio: voice, music (ducked under the voice) and sound effects.
     const voice = `${TMP}/voice.wav`, music = `${TMP}/music.wav`, fx = `${TMP}/sfx.wav`, mix = `${TMP}/mix.m4a`;
     ff([...lines.flatMap((l) => ['-i', l.file]), '-filter_complex', `${lines.map((l, i) => `[${i}]adelay=${Math.round(l.start * 1000)}:all=1[a${i}]`).join(';')};${lines.map((_, i) => `[a${i}]`).join('')}amix=inputs=${lines.length}:normalize=0,apad=whole_dur=${total}`, '-ar', '48000', '-ac', '1', voice]);
-    const mood = { sboss: 'boss', spapa: 'papa', sqr: 'qr', sarrest: 'arrest', sreal: 'papa', sjob: 'boss' }[ID];
+    const mood = { sboss: 'boss', spapa: 'papa', sqr: 'qr', sarrest: 'arrest', sreal: 'papa', sjob: 'boss', sbill: 'boss' }[ID];
     execFileSync('python3', ['video/shorts_music.py', 'music', mood, String(total), String(turn), music]);
     writeFileSync(`${TMP}/events.json`, JSON.stringify(events));
     execFileSync('python3', ['video/shorts_music.py', 'sfx', `${TMP}/events.json`, String(total), fx]);
