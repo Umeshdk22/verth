@@ -140,6 +140,28 @@ body.hi .sbub{font-size:42px;line-height:1.4}
 .sms{position:absolute;left:70px;right:70px;padding:28px 32px;border-radius:30px;background:#fff;color:#1F1A17;box-shadow:0 30px 70px -25px rgba(0,0,0,.7);font-size:38px;line-height:1.3}
 body.hi .sms{font-size:40px;line-height:1.4}
 .sms small{display:block;font-size:24px;font-weight:800;color:#6B7280;margin-bottom:8px;letter-spacing:.04em}
+
+/* ---------- theme: pastel ad (soft, warm, hopeful) ---------- */
+.t-pastel #bg{background:#FFF7F0}
+.t-pastel .blob{position:absolute;border-radius:50%;filter:blur(10px)}
+.t-pastel .hrt{position:absolute;color:#FF7A9A;opacity:.0}
+.t-pastel #chip{background:rgba(255,255,255,.8);color:#D9475A;border:2px solid #FFD3DC}
+.t-pastel #cap{color:#2B1A33;font-weight:800;background:rgba(255,255,255,.62);padding:18px 26px;border-radius:32px;box-shadow:0 14px 40px -20px rgba(120,60,90,.4)}
+.t-pastel #cap span{opacity:.32}.t-pastel #cap span.on{opacity:1}
+.t-pastel #cap span.k{color:#E8505B}
+.t-pastel #wm{color:#8A5A7A}
+.t-pastel .serif{font-family:'Rozha One','Hind',serif;font-weight:400;letter-spacing:0}
+.t-pastel .subx{color:#2B1A33}
+.t-pastel .cta .url{background:#2B1A33;color:#fff}
+.glass{position:absolute;border-radius:36px;background:rgba(255,255,255,.78);border:2px solid rgba(255,255,255,.95);box-shadow:0 30px 70px -30px rgba(120,60,90,.45);backdrop-filter:blur(8px);color:#2B1A33}
+.polaroid{position:absolute;background:#fff;padding:18px 18px 60px;border-radius:10px;box-shadow:0 24px 50px -20px rgba(90,40,70,.5);text-align:center;color:#2B1A33}
+.polaroid .ph{width:100%;height:100%;border-radius:4px;overflow:hidden}
+.polaroid b{position:absolute;left:0;right:0;bottom:14px;font-family:'Kalam','Hind',cursive;font-size:34px;font-weight:700}
+#vhs{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:0}
+#vhs .lines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 3px,transparent 3px 7px)}
+#vhs .lbl{position:absolute;left:70px;top:250px;font-family:'IBM Plex Mono',monospace;font-size:64px;font-weight:600;color:#fff;text-shadow:3px 0 #ff2a6d,-3px 0 #05d9e8}
+#vhs .tc{position:absolute;right:70px;top:262px;font-family:'IBM Plex Mono',monospace;font-size:44px;color:#fff;text-shadow:2px 0 #ff2a6d,-2px 0 #05d9e8}
+#vhs .bar{position:absolute;left:0;right:0;height:60px;background:rgba(255,255,255,.12)}
 /* ---------- theme: office (fake boss) ---------- */
 .t-boss #bg{background:linear-gradient(170deg,#0A1A33 0%,#0D3550 55%,#0E5560 100%)}
 .t-boss .grid{position:absolute;inset:-200px;background-image:linear-gradient(rgba(255,255,255,.05) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.05) 2px,transparent 2px);background-size:90px 90px}
@@ -194,6 +216,7 @@ body.hi .wbub{font-size:46px;line-height:1.4}
   <div id="chip"><i></i><span id="chipT"></span></div>
   <div id="wm">verth.in</div>
   <div id="capshade"></div>
+  <div id="vhs"><div class="lines"></div><div class="bar" id="vbar"></div><div class="lbl">⏪ REWIND</div><div class="tc" id="vtc">00:00</div></div>
   <div id="spk"></div>
   <div id="cap"></div>
 </div>
@@ -219,6 +242,7 @@ const I = {
   shield: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1.2 15.6-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7z"/></svg>',
   share: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7c0 .2 0 .4.1.6L8.4 11a3 3 0 1 0 0 4l6.7 3.4c-.1.2-.1.4-.1.6a3 3 0 1 0 3-3z"/></svg>',
   hand: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M21 7a1.5 1.5 0 0 0-3 0v5h-1V3.5a1.5 1.5 0 0 0-3 0V11h-1V2.5a1.5 1.5 0 0 0-3 0V11H9V4.5a1.5 1.5 0 0 0-3 0v10.3l-2.3-2.3a1.6 1.6 0 0 0-2.3 2.2L7 21.3c.9 1 2.2 1.7 3.6 1.7H16a5 5 0 0 0 5-5z"/></svg>',
+  heartb: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 21.35 10.55 20C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z" fill="#FF5C7A"/><path d="M12 5 10 9.5l3 2-2.5 4 2 3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>',
   heart: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35 10.55 20C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z"/></svg>',
   lock: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0z"/></svg>',
   rupee: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 9h12M13 21 6 13h3a5 5 0 0 0 0-10"/></svg>',
@@ -603,6 +627,64 @@ const VIDEOS = {
       ],
     };
   },
+
+  snani: () => {
+    const NANI = (m = 'smile') => person({ style: 'bun', grey: true, shirt: '#C084FC', collar: '#F3E8FF', bindi: true, glasses: true, skin: '#DFA47C', mouth: m });
+    const ROHAN = (m = 'smile') => person({ style: 'short', hair: '#1B110C', shirt: '#38BDF8', collar: '#E0F2FE', skin: '#D9A07A', mouth: m });
+    const pol = (who, label, x, y, w, rot, bg = '#FDE2E4') => `<div class="polaroid" style="left:${x}px;top:${y}px;width:${w}px;height:${w * 1.15 + 42}px;transform:rotate(${rot}deg)"><div class="ph" style="background:${bg};height:${w * 1.15 - 36}px">${who}</div><b>${label}</b></div>`;
+    const msg = (top, extra = '') => `<div class="glass a" data-at="${top.at}" data-fx="pop" data-sfx="${top.sfx || 'ping'}" style="left:80px;right:80px;top:${top.y}px;padding:30px 34px;${extra}">
+      <div style="display:flex;align-items:center;gap:14px;font-size:28px;font-weight:800;color:#8A5A7A">💬 +91 7••••• •219 <span style="font-size:24px;padding:4px 14px;border-radius:999px;background:#FFE4E6;color:#E11D48">${T('New number', 'नया नंबर')}</span></div>
+      <div style="font-size:42px;line-height:1.3;font-weight:650;margin-top:14px">${T('“Nani, it’s Rohan 🙏 I had an accident. In hospital. Send <b>₹15,000</b> now, please.”', '“नानी, मैं रोहन 🙏 एक्सीडेंट हो गया। हॉस्पिटल में हूँ। अभी <b>₹15,000</b> भेजो, प्लीज़।”')}</div></div>`;
+    return {
+      theme: 'pastel', turnAt: 3, rewind: true, chip: T('💞 A story about one small check', '💞 एक छोटे से चेक की कहानी'),
+      speakers: { n: '', r: T('The real Rohan', 'असली रोहन') },
+      keys: T(['hospital', 'heart', 'gone', 'rewind', 'High risk', 'real', 'fine', 'mission', 'verth.in', 'subscribe'], ['हॉस्पिटल', 'दिल', 'गए', 'पीछे', 'हाई', 'असली', 'ठीक', 'मकसद', 'वर्थ', 'सब्सक्राइब']),
+      bg: `<div class="blob" id="b1" style="width:760px;height:760px;background:radial-gradient(circle,#FFC9B9,rgba(255,201,185,0) 70%)"></div><div class="blob" id="b2" style="width:820px;height:820px;background:radial-gradient(circle,#DCCBFF,rgba(220,203,255,0) 70%)"></div><div class="blob" id="b3" style="width:700px;height:700px;background:radial-gradient(circle,#BDEFD9,rgba(189,239,217,0) 70%)"></div>${Array.from({ length: 16 }, (_, i) => `<div class="hrt" data-i="${i}" style="font-size:${30 + (i * 13) % 40}px">${I.heart}</div>`).join('')}`,
+      sections: [
+        { from: 0, to: 0, html: `${pol(NANI('smile'), 'Nani', 330, 330, 420, -3)}${msg({ at: '0+0.5', y: 900 })}` },
+        { from: 1, to: 1, html: `${pol(NANI('worry'), 'Nani', 110, 330, 380, -4)}
+          <div class="a" data-at="1+0.2" data-fx="pop" style="left:560px;top:380px;font-size:300px">${I.heartb}</div>
+          <div class="glass a" data-at="1@0.45" data-fx="up" data-sfx="ding" style="left:200px;right:200px;top:880px;padding:36px;text-align:center"><div style="width:120px;height:120px;margin:0 auto;border-radius:50%;background:#16A34A;color:#fff;display:grid;place-items:center;font-size:76px">${I.check}</div>
+            <div style="font-size:32px;color:#8A5A7A;margin-top:16px">${T('Paid', 'भेज दिए')}</div><div style="font-size:84px;font-weight:900;letter-spacing:-.03em">₹15,000</div></div>` },
+        { from: 2, to: 2, html: `<div style="position:absolute;inset:0;filter:grayscale(1) brightness(.92)">
+          ${pol(ROHAN('smile'), T('Rohan, at college 🏏', 'रोहन, कॉलेज में 🏏'), 560, 360, 380, 4, '#DCFCE7')}
+          ${pol(NANI('worry'), 'Nani', 130, 420, 340, -5)}</div>
+          <div class="a serif" data-at="2@0.45" data-fx="zoom" style="left:0;right:0;top:960px;text-align:center;font-size:120px;color:#2B1A33">₹15,000 <span style="color:#E11D48">${T('gone.', 'गए।')}</span></div>
+          <div class="a" data-at="2@1+0.3" data-fx="fade" data-sfx="rewind" style="left:0;top:0;width:1px;height:1px"></div>` },
+        { from: 3, to: 3, html: `${pol(NANI('smile'), 'Nani', 360, 330, 360, 3)}
+          <div class="a" data-at="3" data-fx="pop" style="left:120px;top:360px;padding:14px 30px;border-radius:999px;background:#2B1A33;color:#fff;font-size:40px;font-weight:800;transform:rotate(-6deg)">${T('Take 2 ✨', 'दोबारा ✨')}</div>
+          ${msg({ at: '3+0.2', y: 820, sfx: 'pop' }, 'opacity:.95')}
+          <div class="a" data-at="3@0.55" data-fx="up" style="left:250px;right:250px;top:1140px;text-align:center;padding:22px;border-radius:999px;background:#6B3DF0;color:#fff;font-size:42px;font-weight:800;box-shadow:0 20px 40px -14px rgba(107,61,240,.6)">🛡️ ${T('Check on Verth', 'वर्थ पर चेक करें')}</div>` },
+        { from: 4, to: 4, html: `
+          <div class="glass a" data-at="4" data-fx="up" style="left:90px;right:90px;top:330px;padding:34px 36px">
+            <div style="display:flex;align-items:center;gap:16px;font-size:34px;font-weight:800;color:#4C1D95">${LOGO.replace('class="logo"', 'class="logo" style="width:64px;height:64px;border-radius:18px;box-shadow:none"')}${T('Verth · Message check', 'वर्थ · मैसेज चेक')}</div>
+            <div class="a" data-at="4+0.25" data-fx="pop" data-sfx="stamp" style="position:relative;margin-top:24px;padding:26px 28px;border-radius:24px;background:#FFE4E6;color:#BE123C;font-size:58px;font-weight:900;display:flex;gap:16px;align-items:center">${I.warn} ${T('High risk', 'हाई रिस्क')}</div>
+            ${[[T('“New number”, asking for money', '“नया नंबर”, पैसों की माँग'), '4@0.3'], [T('Rushes you', 'जल्दबाज़ी करवाता है'), '4@0.55'], [T('Asks you to send money', 'पैसे भेजने को कहता है'), '4@0.78']].map(([t, at]) => `<div class="a" data-at="${at}" data-fx="right" data-sfx="pop" style="position:relative;margin-top:16px;padding:22px 24px;border-radius:20px;background:#FFF7ED;border-left:10px solid #FB7185;font-size:38px;font-weight:700;display:flex;gap:14px;align-items:center"><span style="color:#FB7185">${I.flag}</span>${t}</div>`).join('')}
+          </div>` },
+        { from: 5, to: 6, html: `${pol(NANI('smile'), 'Nani', 80, 340, 330, -5)}${pol(ROHAN('smile'), 'Rohan', 670, 340, 330, 5, '#DCFCE7')}
+          <div class="a" data-at="5@0.3" data-fx="fade" style="left:420px;top:540px;width:240px;height:30px"><svg width="240" height="30"><path d="M8 15 H232" stroke="#FB7185" stroke-width="7" stroke-dasharray="3 18" stroke-linecap="round"/></svg></div>
+          <div class="a" data-at="5@0.3" data-fx="fade" id="hpk" data-sfx="whoosh" style="left:420px;top:500px;font-size:90px;color:#FF5C7A">${I.heart}</div>
+          <div class="glass a" data-at="5+0.2" data-fx="up" style="left:110px;right:110px;top:830px;padding:24px 30px;font-size:36px;font-weight:700;text-align:center">🛡️ ${T('Verth asks Rohan, on his own phone', 'वर्थ ने रोहन से उसके अपने फ़ोन पर पूछा')}</div>
+          <div data-talk="r" class="a" data-at="6" data-fx="zoom" style="left:670px;top:340px;width:330px;height:1px"></div>
+          <div class="a sbub r" data-at="6+0.1" data-fx="pop" data-sfx="ding" style="left:90px;right:90px;top:980px;max-width:none;text-align:center;font-size:50px;background:#fff">${T('“Nani, I’m absolutely fine! ❤️ Don’t send anything.”', '“नानी, मैं बिल्कुल ठीक हूँ! ❤️ कुछ मत भेजना।”')}</div>
+          ${conf(50, ['#FF7A9A', '#FFC9B9', '#C084FC', '#5EEAD4', '#fff'], 540, 700, 1300, 11).replace(/class="conf"/g, 'class="conf" data-at0="6"')}` },
+        { from: 7, to: 7, html: `
+          <div class="a" data-at="7" data-fx="zoom" data-sfx="whoosh" style="left:0;right:0;top:360px;display:grid;place-items:center">${LOGO}</div>
+          <div class="a serif" data-at="7+0.3" data-fx="up" style="left:70px;right:70px;top:560px;text-align:center;font-size:62px;color:#8A5A7A">${T('Verth’s mission', 'वर्थ का मकसद')}</div>
+          <div class="a serif" data-at="7@0.3" data-fx="up" style="left:70px;right:70px;top:660px;text-align:center;font-size:82px;line-height:1.15;color:#2B1A33">${T('Stop online fraud <span style="color:#E8505B">before it reaches your family.</span>', 'ऑनलाइन धोखाधड़ी को <span style="color:#E8505B">आपके परिवार तक पहुँचने से पहले रोकना।</span>')}</div>
+          <div class="a" data-at="7@0.75" data-fx="up" style="left:0;right:0;top:1060px;text-align:center;font-size:36px;font-weight:700;color:#8A5A7A">${T('Free to start · Made in India 🇮🇳', 'मुफ़्त शुरुआत · मेड इन इंडिया 🇮🇳')}</div>` },
+        { from: 8, to: 8, html: `
+          <div class="a serif" data-at="8" data-fx="up" style="left:0;right:0;top:320px;text-align:center;font-size:76px;color:#2B1A33">${T('One check. 💞', 'बस एक चेक। 💞')}</div>
+          <div class="browser a" data-at="8+0.2" data-fx="zoom" style="top:450px;height:600px"><div class="bar"><div class="url">🔒 <span id="typed2" data-line="8"></span><span id="caret2" style="color:#6B3DF0">|</span></div></div>
+            <div class="a" data-at="8@0.3" data-fx="fade" style="position:relative;padding:40px 50px;color:#16132B;text-align:center">
+              <div style="display:flex;justify-content:center;align-items:center;gap:18px;font-size:46px;font-weight:900">${LOGO.replace('class="logo"', 'class="logo" style="width:80px;height:80px;border-radius:22px;box-shadow:none"')}Verth</div>
+              <div style="font-size:42px;font-weight:800;margin-top:26px;line-height:1.2">${T('Check any message, link or number', 'कोई भी मैसेज, लिंक या नंबर चेक करें')}</div>
+              <div class="btn" id="tryBtn" style="margin-top:36px;padding:24px 60px;background:#6B3DF0;color:#fff;font-size:44px">${T('Check it free', 'मुफ़्त में चेक करें')}</div></div></div>
+          <div class="a" data-at="8@0.55" data-fx="pop" data-sfx="ding" style="left:70px;right:70px;top:1090px;text-align:center;padding:16px 24px;border-radius:999px;background:#2B1A33;color:#fff;font-size:36px;font-weight:900;white-space:nowrap">${T('Link in description & pinned comment', 'लिंक डिस्क्रिप्शन और पिन कमेंट में')}</div>` },
+        { from: 9, to: 9, sub: true },
+      ],
+    };
+  },
   sarrest: () => ({
     theme: 'arrest', chip: T('“Digital arrest” scam', '“डिजिटल अरेस्ट” स्कैम'),
     keys: T(['video call', 'digital arrest', 'Transfer', 'crores', 'no such thing', 'never', 'nineteen thirty', 'parents', 'verth.in'], ['वीडियो कॉल', 'डिजिटल अरेस्ट', 'ट्रांसफ़र', 'करोड़ों', 'कोई चीज़', 'कभी', 'उन्नीस सौ तीस', 'माता-पिता', 'वर्थ']),
@@ -693,6 +775,7 @@ const SEC_TR = 0.4;
 function secLook(theme, p, dir) { // p 0 shown → 1 gone; dir +1 arriving, -1 leaving
   if (theme === 'boss') return { o: 1 - p, tf: `translateY(${dir * 140 * p}px)`, f: '' };
   if (theme === 'papa') return { o: 1 - p, tf: `scale(${1 + (dir > 0 ? 0.06 : -0.04) * p})`, f: p > .02 ? `blur(${(16 * p).toFixed(1)}px)` : '' };
+  if (theme === 'pastel') return { o: 1 - p, tf: `translateY(${dir * 90 * p}px) scale(${1 - 0.04 * p})`, f: p > .02 ? `blur(${(10 * p).toFixed(1)}px)` : '' };
   if (theme === 'real') return dir > 0 ? { o: 1, tf: '', f: '', clip: `circle(${((1 - p) * 140).toFixed(1)}% at 50% 42%)` } : { o: 1 - p * 0.3, tf: `scale(${1 + 0.06 * p})`, f: p > .02 ? `blur(${(6 * p).toFixed(1)}px)` : '' };
   if (theme === 'qr') return { o: 1 - p, tf: `translateX(${dir * 700 * p}px) rotate(${dir * 8 * p}deg)`, f: '' };
   const j = p > 0.05 && p < 0.95 ? Math.sin(p * 40) * 26 * (1 - p) : 0; // arrest: glitch jolt
@@ -712,6 +795,24 @@ function fx(el, p, kind) {
   }
 }
 window.render = (t) => {
+  const vh = $('vhs');
+  if (V?.rewind && P.lines[3]) {
+    const r0 = P.lines[2].end + 0.35, r1 = P.lines[3].start - 0.25;
+    if (t > r0 && t < r1) {
+      const u = (t - r0) / (r1 - r0), tv = P.lines[2].end - ease(u) * (P.lines[2].end - P.lines[0].start + 0.3);
+      draw(tv);
+      $('cap').style.opacity = 0; $('spk').style.opacity = 0;
+      vh.style.opacity = 1; $('vbar').style.top = ((t * 900) % 1920) + 'px';
+      const sec = Math.max(0, Math.floor(tv)); $('vtc').textContent = `00:${String(sec).padStart(2, '0')}`;
+      $('st').style.filter = `saturate(.7) contrast(1.15) hue-rotate(${Math.sin(t * 40) * 8}deg)`;
+      $('scenes').style.transform = `translateX(${Math.sin(t * 90) * 8}px) skewX(${Math.sin(t * 13) * 1.5}deg)`;
+      return;
+    }
+  }
+  if (vh) vh.style.opacity = 0; $('st').style.filter = ''; $('scenes').style.transform = '';
+  draw(t);
+};
+function draw(t) {
   const L = P.lines, last = L.length - 1;
   // background motion per theme
   if (V.theme === 'boss') {
@@ -724,6 +825,12 @@ window.render = (t) => {
     const s1 = $('steam1'), s2 = $('steam2'); if (s1) { s1.style.transform = `translateY(${-((t * 30) % 20)}px)`; s1.style.opacity = .4 + .3 * Math.sin(t * 3); s2.style.opacity = .4 + .3 * Math.cos(t * 3); }
   } else if (V.theme === 'qr') {
     $('ray').style.transform = `rotate(${t * 8}deg)`;
+  } else if (V.theme === 'pastel') {
+    $('b1').style.transform = `translate(${-200 + 120 * Math.sin(t * .21)}px, ${120 + 90 * Math.cos(t * .17)}px)`;
+    $('b2').style.transform = `translate(${500 + 110 * Math.cos(t * .15)}px, ${700 + 120 * Math.sin(t * .19)}px)`;
+    $('b3').style.transform = `translate(${-100 + 140 * Math.sin(t * .13 + 1)}px, ${1250 + 90 * Math.cos(t * .23)}px)`;
+    const love = clamp((t - LS(6)) / 1.2) * (1 - clamp((t - LS(8)) / 2));
+    document.querySelectorAll('.hrt').forEach((h) => { const i = +h.dataset.i, y = 1950 - ((t * (40 + i * 6) + i * 140) % 2100); h.style.transform = `translate(${(i * 71) % 1000 + 30 * Math.sin(t + i)}px, ${y}px)`; h.style.opacity = 0.12 + 0.6 * love; });
   } else if (V.theme === 'arrest') {
     const k = (t * 1.6) % 2, a = k < 1 ? Math.sin(k * Math.PI) : 0, b2 = k >= 1 ? Math.sin((k - 1) * Math.PI) : 0;
     const calm = clamp((t - window.turn()) / 1.5);
@@ -752,7 +859,7 @@ window.render = (t) => {
   }
   // confetti
   document.querySelectorAll('.conf').forEach((c) => {
-    const sec = c.closest('section'), t0 = LS(+sec.dataset.from) + 0.05, u = t - t0;
+    const sec = c.closest('section'), t0 = LS(+(c.dataset.at0 ?? sec.dataset.from)) + 0.05, u = t - t0;
     if (u < 0 || u > 3.2) { c.style.opacity = 0; return; }
     const x = +c.dataset.x + +c.dataset.vx * u, y = +c.dataset.y + +c.dataset.vy * u + 900 * u * u;
     c.style.opacity = 1 - clamp((u - 2.4) / .8); c.style.transform = `translate(${x}px, ${y}px) rotate(${+c.dataset.rot * u}deg)`;
@@ -800,6 +907,7 @@ window.render = (t) => {
     const tv = $('tvglow'); if (tv) tv.style.opacity = 0.55 + 0.25 * Math.sin(t * 7) * Math.sin(t * 3.1);
     document.querySelectorAll('#lampglow,#lampglow2').forEach((g) => (g.style.opacity = 0.85 + 0.1 * Math.sin(t * 1.3)));
     const sa = $('steamA'); if (sa) { sa.style.opacity = .5 + .3 * Math.sin(t * 2.5); $('steamB').style.opacity = .5 + .3 * Math.cos(t * 2.2); }
+    const hp = $('hpk'); if (hp && t > hp._t) { const u = ease((t - hp._t) / 1.3); hp.style.left = (400 + 200 * u) + 'px'; hp.style.top = (500 - 60 * Math.sin(u * Math.PI)) + 'px'; }
     const ri = $('riyaIn'); if (ri && V.speakers?.r) { const u = ease((t - LS(2) + 0.2) / 0.8); ri.style.transform = `translateX(${500 * (1 - u)}px)`; }
     const ar = $('amanRun'); if (ar) { const u = ease((t - LS(3)) / 1.0); ar.style.transform = `translateX(${-420 * (1 - u)}px)`; }
     document.querySelectorAll('.stm').forEach((e, i) => (e.style.opacity = .45 + .3 * Math.sin(t * 2.4 + i)));

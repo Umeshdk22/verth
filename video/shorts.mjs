@@ -25,7 +25,7 @@ script.forEach((text, n) => {
   const clean = `${TMP}/v${n + 1}.wav`;
   if (VOICE === 'fake') ff(['-f', 'lavfi', '-i', `anullsrc=r=48000:cl=mono`, '-t', String(Math.max(1.6, text.length / (LANG === 'hi' ? 15 : 16))), clean]);
   else ff(['-i', `${VOICE}/${fileOf[n]}.wav`, '-af', 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse,highpass=f=70,aresample=48000', '-ac', '1', clean]);
-  cursor += GAP[n] ?? 0.45;
+  cursor += (JSON.parse(readFileSync('video/shorts-script.json', 'utf8'))[ID].gaps || {})[n] ?? GAP[n] ?? 0.45;
   const d = dur(clean);
   lines.push({ spk: raw[n][2] || '', text: text.replace(/verth dot in|वर्थ डॉट इन/i, 'verth.in'), file: clean, start: +cursor.toFixed(3), end: +(cursor + d).toFixed(3) });
   cursor += d;
@@ -53,7 +53,7 @@ try {
     // Audio: voice, music (ducked under the voice) and sound effects.
     const voice = `${TMP}/voice.wav`, music = `${TMP}/music.wav`, fx = `${TMP}/sfx.wav`, mix = `${TMP}/mix.m4a`;
     ff([...lines.flatMap((l) => ['-i', l.file]), '-filter_complex', `${lines.map((l, i) => `[${i}]adelay=${Math.round(l.start * 1000)}:all=1[a${i}]`).join(';')};${lines.map((_, i) => `[a${i}]`).join('')}amix=inputs=${lines.length}:normalize=0,apad=whole_dur=${total}`, '-ar', '48000', '-ac', '1', voice]);
-    const mood = { sboss: 'boss', spapa: 'papa', sqr: 'qr', sarrest: 'arrest', sreal: 'papa', sjob: 'boss', sbill: 'boss' }[ID];
+    const mood = { sboss: 'boss', spapa: 'papa', sqr: 'qr', sarrest: 'arrest', sreal: 'papa', sjob: 'boss', sbill: 'boss', snani: 'papa' }[ID];
     execFileSync('python3', ['video/shorts_music.py', 'music', mood, String(total), String(turn), music]);
     writeFileSync(`${TMP}/events.json`, JSON.stringify(events));
     execFileSync('python3', ['video/shorts_music.py', 'sfx', `${TMP}/events.json`, String(total), fx]);

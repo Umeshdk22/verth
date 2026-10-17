@@ -127,6 +127,10 @@ def sfx_sound(kind):
         return out
     if kind == 'tada':
         return np.concatenate([pluck(hz(72), .12, .3, 8), pluck(hz(76), .12, .3, 8), pluck(hz(79), .9, .3, 3)])
+    if kind == 'rewind':  # tape rewinding: a fast whir that slides down, with hiss
+        n = int(1.8 * SR); t = np.arange(n) / SR; f = 1400 * np.exp(-t * 1.1) + 220
+        whir = np.sin(2 * np.pi * np.cumsum(f) / SR) * (0.6 + 0.4 * np.sin(2 * np.pi * 31 * t))
+        return (whir * 0.12 + noise(1.8, 0.4, .05, 3)[:n]) * env(n, .05, .25)
     if kind == 'ring':  # phone ringing
         n = int(1.2 * SR); t = np.arange(n) / SR
         return (np.sin(2 * np.pi * 440 * t) + np.sin(2 * np.pi * 480 * t)) * ((t % .4) < .3) * env(n, .02, .2) * .12
