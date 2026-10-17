@@ -1,0 +1,2684 @@
+{
+ "intro-en": {
+  "ok": true,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "mime": "audio/wav"
+ },
+ "intro-hi": {
+  "ok": true,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "mime": "audio/wav"
+ },
+ "intro-en-1": {
+  "ok": true,
+  "line": "Welcome to Verth. Scammers in India now pretend to be your boss, your bank, or even your own family.",
+  "heard": "Welcome to Verth. Scammers in India now pretend to be your boss, your bank, or even your own family.",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-en-2": {
+  "ok": true,
+  "line": "UPI tells you who you're paying. Verth tells you whether you should.",
+  "heard": "UPI tells you who you're paying. Verve tells you whether you should.",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-en-3": {
+  "ok": true,
+  "line": "Scan checks any message, link, phone number, job offer or screenshot in seconds.",
+  "heard": "Scan checks any message, link, phone number, job offer or screenshot in seconds.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-en-4": {
+  "ok": true,
+  "line": "Verify asks the real person on their own phone, before you pay or share an OTP.",
+  "heard": "Verify asks the real person on their own phone before you pay or share an OTP.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-en-5": {
+  "ok": true,
+  "line": "Your circle keeps family or colleagues together, with private, encrypted chat and safe payments.",
+  "heard": "Your Circle keeps family or colleagues together with private encrypted chat and safe payments.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-en-6": {
+  "ok": true,
+  "line": "And the daily safety check-up keeps your phone locked tight against hackers.",
+  "heard": "And the daily safety check-up keeps your phone locked tight against hackers.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-en-7": {
+  "ok": true,
+  "line": "Your first seven days are completely free. Create your account, and check before you pay.",
+  "heard": "Your first seven days are completely free. Create your account and check before you pay.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "intro-hi-1": {
+  "ok": true,
+  "line": "वर्थ में आपका स्वागत है। आजकल ठग आपके बॉस, आपके बैंक, या आपके अपने परिवार वाले बनकर पैसे माँगते हैं।",
+  "heard": "वर्ड्स में आपका स्वागत है। आजकल ठग आपके बॉस, आपके बैंक या आपके अपने परिवार वाले बनकर पैसे मांगते हैं।",
+  "score": 0.95,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "intro-hi-2": {
+  "ok": true,
+  "line": "UPI आपको बताता है कि आप किसे पैसे भेज रहे हैं। वर्थ बताता है कि आपको भेजने चाहिए या नहीं।",
+  "heard": "UPI आपको बताता है कि आप किसे पैसे भेज रहे हैं। Worth बताता है कि आपको भेजने चाहिए या नहीं।",
+  "score": 0.95,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": false
+ },
+ "intro-hi-3": {
+  "ok": true,
+  "line": "स्कैन से आप कोई भी मैसेज, लिंक, फ़ोन नंबर, नौकरी का ऑफ़र या स्क्रीनशॉट कुछ ही सेकंड में जाँच सकते हैं।",
+  "heard": "Scan से आप कोई भी मैसेज, लिंक, फोन नंबर, नौकरी का ऑफर या स्क्रीनशॉट कुछ ही सेकंड में जांच सकते हैं।",
+  "score": 0.9523809523809523,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": false
+ },
+ "intro-hi-4": {
+  "ok": true,
+  "line": "वेरिफ़ाई से, पैसे भेजने या OTP बताने से पहले, आप असली इंसान से उसके अपने फ़ोन पर पूछ सकते हैं।",
+  "heard": "Verify से पैसे भेजने या OTP बताने से पहले आप असली इंसान से उसके अपने फोन पर पूछ सकते हैं।",
+  "score": 0.95,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": false
+ },
+ "intro-hi-5": {
+  "ok": true,
+  "line": "आपके सर्कल में परिवार या साथ काम करने वाले लोग जुड़े रहते हैं, प्राइवेट और एन्क्रिप्टेड चैट और सुरक्षित पेमेंट के साथ।",
+  "heard": "आपके सर्कल में परिवार या साथ काम करने वाले लोग जुड़े रहते हैं। प्राइवेट और इन्क्रिप्टेड चैट और सुरक्षित पेमेंट के साथ।",
+  "score": 0.9545454545454546,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "intro-hi-6": {
+  "ok": true,
+  "line": "और रोज़ का सेफ़्टी चेक-अप आपके फ़ोन को हैकरों से सुरक्षित रखता है।",
+  "heard": "और रोज का सेफ्टी चेकअप आपके फोन को हैकरों से सुरक्षित रखता है।",
+  "score": 0.8571428571428571,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": false
+ },
+ "intro-hi-7": {
+  "ok": true,
+  "line": "पहले सात दिन बिल्कुल मुफ़्त हैं। अपना अकाउंट बनाइए, और पैसे भेजने से पहले जाँच ज़रूर कीजिए।",
+  "heard": "पहले सात दिन बिल्कुल मुफ्त हैं। अपना अकाउंट बनाइए और पैसे भेजने से पहले जांच जरूर कीजिए।",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "scan-en-1": {
+  "ok": true,
+  "line": "This is Scan. Use it whenever a message, call or offer feels a little off.",
+  "heard": "This is Scan. Use it whenever a message, call, or offer feels a little off.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-en-2": {
+  "ok": true,
+  "line": "First, choose what you want to check: a message, a link, a phone number, a job offer, or a photo.",
+  "heard": "First, choose what you want to check: a message, a link, a phone number, a job offer, or a photo.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-en-3": {
+  "ok": true,
+  "line": "Paste the message here, and tap Check it.",
+  "heard": "Paste the message here, and tap check it.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-en-4": {
+  "ok": true,
+  "line": "Verth shows the risk straight away, and explains every warning sign in simple words.",
+  "heard": "Verit shows the risk straight away and explains every warning sign in simple words.",
+  "score": 0.9285714285714286,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-en-5": {
+  "ok": true,
+  "line": "If it's a scam, Verth adds it to its scam database by itself, so the next person who checks it is warned too.",
+  "heard": "If it's a scam, Verth adds it to its scam database by itself, so the next person who checks it is warned too.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-en-6": {
+  "ok": true,
+  "line": "Your message itself is never uploaded. Only a scrambled fingerprint is saved.",
+  "heard": "Your message itself is never uploaded. Only a scrambled fingerprint is saved.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-en-7": {
+  "ok": true,
+  "line": "Remember: if it looks risky, don't pay, don't click, and never share an OTP.",
+  "heard": "Remember, if it looks risky, don't pay, don't click, and never share an OTP.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "scan-hi-1": {
+  "ok": true,
+  "line": "यह है स्कैन। जब भी कोई मैसेज, कॉल या ऑफ़र थोड़ा भी अजीब लगे, इसका इस्तेमाल कीजिए।",
+  "heard": "ये है स्कैन, जब भी कोई मैसेज, कॉल या ऑफर थोड़ा भी अजीब लगे, इसका इस्तेमाल कीजिए।",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "scan-hi-2": {
+  "ok": true,
+  "line": "पहले चुनिए कि आप क्या जाँचना चाहते हैं: मैसेज, लिंक, फ़ोन नंबर, नौकरी का ऑफ़र, या फ़ोटो।",
+  "heard": "पहले चुनिए कि आप क्या जांचना चाहते हैं मैसेज, लिंक, फ़ोन नंबर, नौकरी का ऑफर या फोटो।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "scan-hi-3": {
+  "ok": true,
+  "line": "मैसेज यहाँ पेस्ट कीजिए, और Check it पर टैप कीजिए।",
+  "heard": "message यहां पेस्ट कीजिए और check it पर tap कीजिए।",
+  "score": 0.8,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "scan-hi-4": {
+  "ok": true,
+  "line": "वर्थ तुरंत खतरा बताता है, और हर चेतावनी को आसान शब्दों में समझाता है।",
+  "heard": "वर्ड तुरंत खतरा बताता है और हर चेतावनी को आसान शब्दों में समझाता है।",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "scan-hi-5": {
+  "ok": true,
+  "line": "अगर यह धोखा है, तो वर्थ खुद इसे अपने स्कैम डेटाबेस में जोड़ देता है, ताकि अगला व्यक्ति भी सावधान हो जाए।",
+  "heard": "अगर यह धोखा है, तो Worth खुद इसे अपने स्कैम डेटाबेस में जोड़ देता है ताकि अगला व्यक्ति भी सावधान हो जाए।",
+  "score": 0.9545454545454546,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "scan-hi-6": {
+  "ok": true,
+  "line": "आपका मैसेज कभी अपलोड नहीं होता। सिर्फ़ एक गुप्त कोड सेव होता है।",
+  "heard": "आपका मैसेज कभी अपलोड नहीं होता। सिर्फ एक गुप्त कोड सेव होता है।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "scan-hi-7": {
+  "ok": true,
+  "line": "याद रखिए: अगर खतरा दिखे, तो न पैसे भेजिए, न लिंक खोलिए, और OTP कभी मत बताइए।",
+  "heard": "याद रखिए, अगर खतरा दिखे, तो ना पैसे भेजिए, ना लिंक खोलिए और OTP कभी मत बताइए।",
+  "score": 0.8823529411764706,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-en-1": {
+  "ok": true,
+  "line": "This is Verify. Got a message from your boss or a family member asking for money? Check with them first.",
+  "heard": "This is Verify. Got a message from your boss or a family member asking for money? Check with them first.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "verify-en-2": {
+  "ok": true,
+  "line": "Choose who the request claims to be from, and where it came from, like WhatsApp or a phone call.",
+  "heard": "Choose who the request claims to be from, and where it came from? Like, WhatsApp or a phone call?",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "verify-en-3": {
+  "ok": true,
+  "line": "Type what they're asking you to do, then tap Send check.",
+  "heard": "Type what they're asking you to do, then tap send check.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "verify-en-4": {
+  "ok": true,
+  "line": "The real person gets the question on their own phone, and answers Yes or No.",
+  "heard": "send check. The real person gets the question on their own phone and answers yes or no.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-en-5": {
+  "ok": true,
+  "line": "If they say No, or don't answer, stop. Someone is pretending to be them.",
+  "heard": "If they say no or don't answer, stop. Someone is pretending to be them.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-en-6": {
+  "ok": true,
+  "line": "On a call or video? Ask for their Verth code. A fake caller or deepfake can't produce it.",
+  "heard": "On a call or video, ask for their birth code. A fake caller or deepfake can't produce it.",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-hi-1": {
+  "ok": true,
+  "line": "यह है वेरिफ़ाई। बॉस या परिवार के किसी सदस्य का पैसे माँगने वाला मैसेज आया है? पहले उनसे पूछिए।",
+  "heard": "ये है वेरीफाई बॉस या परिवार के किसी सदस्य का पैसे मांगने वाला मैसेज आया है पहले उनसे पूछिए",
+  "score": 0.8947368421052632,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-hi-2": {
+  "ok": true,
+  "line": "चुनिए कि माँग किसके नाम से आई है, और कहाँ से आई, जैसे WhatsApp या फ़ोन कॉल।",
+  "heard": "चुनिए कि मांग किसके नाम से आई है और कहां से आई जैसे WhatsApp या फोन कॉल।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-hi-3": {
+  "ok": true,
+  "line": "लिखिए कि वे आपसे क्या करने को कह रहे हैं, फिर Send check पर टैप कीजिए।",
+  "heard": "लिखिए कि वे आपसे क्या करने को कह रहे हैं। फिर सेंड चेक पर टैप कीजिए।",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-hi-4": {
+  "ok": true,
+  "line": "असली व्यक्ति को यह सवाल उसके अपने फ़ोन पर मिलता है, और वह हाँ या ना में जवाब देता है।",
+  "heard": "असली व्यक्ति को यह सवाल उसके अपने फोन पर मिलता है और वो हां या ना में जवाब देता है।",
+  "score": 0.95,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-hi-5": {
+  "ok": true,
+  "line": "अगर वे ना कहें, या जवाब न दें, तो रुक जाइए। कोई उनके नाम से धोखा कर रहा है।",
+  "heard": "अगर वे ना कहें या जवाब ना दें तो रुक जाइए। कोई उनके नाम से धोखा कर रहा है।",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "verify-hi-6": {
+  "ok": true,
+  "line": "कॉल या वीडियो पर हैं? उनसे उनका वर्थ कोड पूछिए। नकली कॉलर या डीपफ़ेक यह कोड नहीं बता सकता।",
+  "heard": "कॉलर या वीडियो पर हैं, उनसे उनका वर्थ कोड पूछिए। नकली कॉलर या डीपफेक यह कोड नहीं बता सकता।",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "chat-en-1": {
+  "ok": true,
+  "line": "This is Chat: a private, end-to-end encrypted chat with people in your circle.",
+  "heard": "This is chat. A private, end-to-end encrypted chat with people in your circle.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "chat-en-2": {
+  "ok": true,
+  "line": "Tap a person to open your chat. Only your two phones can read it. Not even Verth can.",
+  "heard": "Tap a person to open your chat. Only your two phones can read it. Not even Virth can.",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "chat-en-3": {
+  "ok": true,
+  "line": "Send messages, photos and PDF documents, like certificates, safely.",
+  "heard": "Send messages, photos, and PDF documents like certificates safely.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "chat-en-4": {
+  "ok": true,
+  "line": "To send money, tap Pay safely. Verth shows who you're paying, then opens your UPI app.",
+  "heard": "To send money, tap Pay Safely. Veith shows who you're paying, then opens your UPI app.",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "chat-en-5": {
+  "ok": true,
+  "line": "After paying, both of you get a receipt, and it's saved in your payment history.",
+  "heard": "After paying, both of you get a receipt and it's saved in your payment history.",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "chat-en-6": {
+  "ok": true,
+  "line": "The free plan includes twelve messages and three payments a day.",
+  "heard": "The free plan includes 12 messages and three payments a day.",
+  "score": 0.9090909090909091,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "chat-hi-1": {
+  "ok": true,
+  "line": "यह है चैट: आपके सर्कल के लोगों के साथ प्राइवेट, एंड-टू-एंड एन्क्रिप्टेड चैट।",
+  "heard": "ये है चैट, आपके सर्कल के लोगों के साथ प्राइवेट एंड-टू-एंड एनक्रिप्टेड चैट।",
+  "score": 0.8666666666666667,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "chat-hi-2": {
+  "ok": true,
+  "line": "किसी व्यक्ति पर टैप करके चैट खोलिए। इसे सिर्फ़ आप दोनों के फ़ोन पढ़ सकते हैं, वर्थ भी नहीं।",
+  "heard": "किसी व्यक्ति पर टैप करके चैट खोलिए। इसे सिर्फ आप दोनों के फोन पढ़ सकते हैं, वर्थ भी नहीं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "chat-hi-3": {
+  "ok": true,
+  "line": "मैसेज, फ़ोटो और PDF डॉक्यूमेंट, जैसे सर्टिफ़िकेट, सुरक्षित भेजिए।",
+  "heard": "मैसेज फोटो और पीडीएफ डॉक्यूमेंट जैसे सर्टिफिकेट सुरक्षित भेजिए।",
+  "score": 0.8888888888888888,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "chat-hi-4": {
+  "ok": true,
+  "line": "पैसे भेजने के लिए Pay safely पर टैप कीजिए। वर्थ दिखाता है कि पैसे किसे जा रहे हैं, फिर आपका UPI ऐप खोलता है।",
+  "heard": "पैसे भेजने के लिए Pay Safely पर टैप कीजिए। वर दिखाता है कि पैसे किसे जा रहे हैं। फिर आपका UPI ऐप खोलता है।",
+  "score": 0.9583333333333334,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "chat-hi-5": {
+  "ok": true,
+  "line": "पेमेंट के बाद आप दोनों को रसीद मिलती है, और यह आपकी पेमेंट हिस्ट्री में सेव हो जाती है।",
+  "heard": "पेमेंट के बाद आप दोनों को रसीद मिलती है और यह आपकी पेमेंट हिस्ट्री में सेव हो जाती है।",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "chat-hi-6": {
+  "ok": true,
+  "line": "फ़्री प्लान में रोज़ बारह मैसेज और तीन पेमेंट शामिल हैं।",
+  "heard": "फ्री प्लान में रोज 12 मैसेज और तीन पेमेंट शामिल हैं।",
+  "score": 0.9090909090909091,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-en-1": {
+  "ok": true,
+  "line": "This is your Circle: the people you trust, like your family or your team.",
+  "heard": "This is your circle, the people you trust, like your family, or your team.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "circle-en-2": {
+  "ok": true,
+  "line": "Invite people from your contacts, on WhatsApp, or by sharing your invite code.",
+  "heard": "Invite people from your contacts on WhatsApp or by sharing your invite code.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "circle-en-3": {
+  "ok": true,
+  "line": "Nobody gets in without approval. Check their email and phone number, then tap Approve.",
+  "heard": "Nobody gets in without approval. Check their email and phone number, then tap approve.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "circle-en-4": {
+  "ok": true,
+  "line": "Companies can lock the circle to their work email, and ask for two admins to approve.",
+  "heard": "then tap approve. Companies can lock the circle to their work email and ask for two admins to approve.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-en-5": {
+  "ok": true,
+  "line": "If someone moves to a new phone, Verth shows it, so a hacked account can't fool you.",
+  "heard": "If someone moves to a new phone, Verth shows it, so a hacked account can't fool you.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-en-6": {
+  "ok": true,
+  "line": "If your invite code is ever shared by mistake, change it with one tap.",
+  "heard": "If your invite code is ever shared by mistake, change it with one tap.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-hi-1": {
+  "ok": true,
+  "line": "यह है आपका सर्कल: वे लोग जिन पर आप भरोसा करते हैं, जैसे आपका परिवार या आपकी टीम।",
+  "heard": "ये है आपका सर्कल, वे लोग जिन पर आप भरोसा करते हैं। जैसे आपका परिवार या आपकी टीम।",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-hi-2": {
+  "ok": true,
+  "line": "अपने कॉन्टैक्ट्स से, WhatsApp पर, या इनवाइट कोड शेयर करके लोगों को जोड़िए।",
+  "heard": "अपने कॉन्टैक्ट से WhatsApp पर या इनवाइट कोड शेयर करके लोगों को जोड़िए।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-hi-3": {
+  "ok": true,
+  "line": "मंज़ूरी के बिना कोई अंदर नहीं आ सकता। उनका ईमेल और फ़ोन नंबर जाँचिए, फिर Approve पर टैप कीजिए।",
+  "heard": "मंजूरी के बिना कोई अंदर नहीं आ सकता उनका ईमेल और फोन नंबर जानिये फिर अप्रूव पर टैप कीजिये।",
+  "score": 0.8421052631578947,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "circle-hi-4": {
+  "ok": false,
+  "line": "कंपनियाँ सर्कल को अपने ऑफ़िस ईमेल तक सीमित कर सकती हैं, और दो एडमिन की मंज़ूरी ज़रूरी कर सकती हैं।",
+  "error": "gemini-3.8-flash-tts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/ | gemini-3.8-flash-lite-tts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/ | gemini-3.1-flash-tts-preview: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/ | gemini-2.5-flash-preview-tts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/ | gemini-2.5-pro-preview-tts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/"
+ },
+ "circle-hi-5": {
+  "ok": true,
+  "line": "अगर कोई नए फ़ोन पर जाता है, तो वर्थ यह दिखाता है, ताकि हैक हुआ अकाउंट आपको धोखा न दे सके।",
+  "heard": "अगर कोई नए फोन पर जाता है, तो वाल्ट यह दिखाता है ताकि हैक हुआ अकाउंट आपको धोखा ना दे सके।",
+  "score": 0.9047619047619048,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "circle-hi-6": {
+  "ok": true,
+  "line": "अगर आपका इनवाइट कोड गलती से शेयर हो जाए, तो एक टैप में उसे बदल दीजिए।",
+  "heard": "अगर आपका इनवाइट कोड गलती से शेयर हो जाए, तो एक टैप में उसे बदल दीजिए।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "plan-en-1": {
+  "ok": true,
+  "line": "This is Plan. Every new account gets seven days free, with everything unlimited.",
+  "heard": "This is Plan. Every new account gets 7 days free, with everything unlimited.",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "plan-en-2": {
+  "ok": true,
+  "line": "After that, the Free plan stays free forever, for up to five people.",
+  "heard": "After that, the free plan stays free forever for up to five people.",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "plan-en-3": {
+  "ok": true,
+  "line": "Personal, at one hundred and forty-nine rupees a month, gives you unlimited scam checks.",
+  "heard": "Personal, at 149 rupees a month, gives you unlimited scam checks.",
+  "score": 0.6666666666666666,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "plan-en-4": {
+  "ok": false,
+  "line": "Family, at one hundred and ninety-nine, and Team, at two hundred and ninety-nine, protect everyone in your circle.",
+  "heard": "Personal at 149 rupees a month gives you unlimited scam checks. Family at 199 and team at 299 protect everyone in your circle.",
+  "score": 0.6,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole",
+  "error": "cut at the wrong pause; remake line by line"
+ },
+ "plan-en-5": {
+  "ok": true,
+  "line": "Pay with UPI or card through Razorpay, and cancel any time.",
+  "heard": "Pay with UPI or card through Razorpay and cancel anytime.",
+  "score": 0.8181818181818182,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "plan-hi-1": {
+  "ok": true,
+  "line": "यह है प्लान। हर नए अकाउंट को सात दिन मुफ़्त मिलते हैं, सब कुछ अनलिमिटेड।",
+  "heard": "ये है प्लान। हर नए अकाउंट को 7 दिन मुफ़्त मिलते हैं। सब कुछ अनलिमिटेड।",
+  "score": 0.8666666666666667,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "plan-hi-2": {
+  "ok": true,
+  "line": "उसके बाद फ़्री प्लान हमेशा मुफ़्त रहता है, पाँच लोगों तक के लिए।",
+  "heard": "उसके बाद फ्री प्लान हमेशा मुफ्त रहता है 5 लोगों तक के लिए।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "plan-hi-3": {
+  "ok": true,
+  "line": "पर्सनल प्लान, एक सौ उनचास रुपये महीना, आपको अनलिमिटेड स्कैम चेक देता है।",
+  "heard": "पर्सनल प्लान ₹149 महीना आपको अनलिमिटेड स्कैन चेक देता है।",
+  "score": 0.6153846153846154,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": false
+ },
+ "plan-hi-4": {
+  "ok": true,
+  "line": "फ़ैमिली प्लान, एक सौ निन्यानवे रुपये, और टीम प्लान, दो सौ निन्यानवे रुपये, आपके पूरे सर्कल को सुरक्षित रखते हैं।",
+  "heard": "फ़ैमिली प्लान ₹199 और टीम प्लान ₹299 आपके पूरे सर्कल को सुरक्षित रखते हैं।",
+  "score": 0.6,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": false
+ },
+ "plan-hi-5": {
+  "ok": true,
+  "line": "Razorpay से UPI या कार्ड से पेमेंट कीजिए, और जब चाहें कैंसल कीजिए।",
+  "heard": "रेज़रपे से UPI या कार्ड से पेमेंट कीजिए और जब चाहें कैंसल कीजिए।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": false
+ },
+ "log-en-1": {
+  "ok": true,
+  "line": "This is the Verification log: a record of every check in your circle.",
+  "heard": "This is the verification log, a record of every check in your circle.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "log-en-2": {
+  "ok": true,
+  "line": "You can see who asked, who answered, what it was about, and when.",
+  "heard": "You can see who asked, who answered, what it was about, and when.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "log-en-3": {
+  "ok": true,
+  "line": "Green means confirmed. Red means it was stopped, so a scam didn't go through.",
+  "heard": "Green means confirmed. Red means it was stopped. So, a scam didn't go through.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "log-en-4": {
+  "ok": true,
+  "line": "Nobody can edit or delete entries, so there's always a clear record of who approved what.",
+  "heard": "Nobody can edit or delete entries, so there's always a clear record of who approved what.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "log-en-5": {
+  "ok": true,
+  "line": "On paid plans, you can export the log for your accounts team or auditors.",
+  "heard": "On paid plans, you can export the log for your accounts team or auditors.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "log-hi-1": {
+  "ok": true,
+  "line": "यह है वेरिफ़िकेशन लॉग। इसमें आपके सर्कल की हर जाँच का रिकॉर्ड रहता है।",
+  "heard": "ये है वेरिफिकेशन लॉग, इसमें आपके सर्कल की हर जांच का रिकॉर्ड रहता है।",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "log-hi-2": {
+  "ok": true,
+  "line": "आप देख सकते हैं कि किसने पूछा, किसने जवाब दिया, बात किस बारे में थी, और कब।",
+  "heard": "आप देख सकते हैं कि किसने पूछा, किसने जवाब दिया, बात किस बारे में थी और कब?",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "log-hi-3": {
+  "ok": true,
+  "line": "हरा मतलब पुष्टि हो गई। लाल मतलब रोक दिया गया, यानी धोखा कामयाब नहीं हुआ।",
+  "heard": "हरा मतलब पुष्टि हो गई। लाल मतलब रोक दिया गया यानी धोखा कामयाब नहीं हुआ।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "log-hi-4": {
+  "ok": true,
+  "line": "कोई भी एंट्री बदल या मिटा नहीं सकता, इसलिए हमेशा साफ़ रिकॉर्ड रहता है कि किसने क्या मंज़ूर किया।",
+  "heard": "कोई भी एंट्री बदल या मिटा नहीं सकता, इसलिए हमेशा साफ रिकॉर्ड रहता है कि किसने क्या मंजूर किया।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "log-hi-5": {
+  "ok": true,
+  "line": "पेड प्लान में आप यह लॉग अपनी अकाउंट्स टीम या ऑडिटर के लिए डाउनलोड कर सकते हैं।",
+  "heard": "पेड प्लान में आप ये लोग अपनी अकाउंट्स टीम या ऑडिटर के लिए डाउनलोड कर सकते हैं।",
+  "score": 0.8823529411764706,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-en-1": {
+  "ok": true,
+  "line": "This is the daily safety check-up: your phone's security guard.",
+  "heard": "This is the daily safety checkup, your phone's security guard.",
+  "score": 0.8333333333333334,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "guard-en-2": {
+  "ok": true,
+  "line": "It walks you through ten protections, like screen lock, Play Protect, and blocking unknown apps.",
+  "heard": "It walks you through 10 protections like screen lock, play protect, and blocking unknown apps.",
+  "score": 0.9333333333333333,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Kore",
+  "style": true
+ },
+ "guard-en-3": {
+  "ok": true,
+  "line": "Tap an item to see why it matters, and exactly where to tap on your phone.",
+  "heard": "Tap an item to see why it matters and exactly where to tap on your phone.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "guard-en-4": {
+  "ok": true,
+  "line": "When it's done, tick it, and your score goes up.",
+  "heard": "When it's done, ticket, and your score goes up.",
+  "score": 0.9090909090909091,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Kore",
+  "style": true
+ },
+ "guard-en-5": {
+  "ok": true,
+  "line": "The check-up refreshes every day. If nothing changed, confirm everything in one tap.",
+  "heard": "and your score goes up. The checkup refreshes every day. If nothing changed, confirm everything in one tap.",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-en-6": {
+  "ok": true,
+  "line": "Keep your streak going, and read today's safety tip.",
+  "heard": "Keep your streak going and read today's safety tip.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-hi-1": {
+  "ok": true,
+  "line": "यह है रोज़ का सेफ़्टी चेक-अप: आपके फ़ोन का सिक्योरिटी गार्ड।",
+  "heard": "ये है रोज़ का सेफ्टी चेकअप आपके फोन का सिक्योरिटी गार्ड।",
+  "score": 0.75,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-hi-2": {
+  "ok": true,
+  "line": "यह आपको दस सुरक्षा सेटिंग्स से गुज़ारता है, जैसे स्क्रीन लॉक, प्ले प्रोटेक्ट, और अनजान ऐप्स पर रोक।",
+  "heard": "ये आपको 10 सुरक्षा सेटिंग्स से गुज़ारता है, जैसे स्क्रीन लॉक, प्ले प्रोटेक्ट और अनजान ऐप्स पर रोक।",
+  "score": 0.8888888888888888,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-hi-3": {
+  "ok": true,
+  "line": "किसी भी आइटम पर टैप कीजिए, यह जानने के लिए कि यह क्यों ज़रूरी है और फ़ोन में कहाँ टैप करना है।",
+  "heard": "किसी भी आइटम पर टैप कीजिए यह जानने के लिए कि यह क्यों जरूरी है और फोन में कहां टैप करना है।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-hi-4": {
+  "ok": true,
+  "line": "काम हो जाए, तो उस पर टिक कीजिए, और आपका स्कोर बढ़ जाएगा।",
+  "heard": "काम हो जाए, तो उस पर टिक कीजिए और आपका स्कोर बढ़ जाएगा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-hi-5": {
+  "ok": true,
+  "line": "यह चेक-अप हर दिन नया होता है। अगर कुछ नहीं बदला, तो एक टैप में सब कन्फ़र्म कर दीजिए।",
+  "heard": "ये चेकअप हर दिन नया होता है। अगर कुछ नहीं बदला, तो एक टैप में सब कन्फ़र्म कर दीजिए।",
+  "score": 0.85,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "guard-hi-6": {
+  "ok": true,
+  "line": "अपनी स्ट्रीक जारी रखिए, और आज की सेफ़्टी टिप ज़रूर पढ़िए।",
+  "heard": "अपनी स्ट्रीक जारी रखिए और आज की सेफ्टी टिप ज़रूर पढ़िए।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "promo-en-1": {
+  "ok": true,
+  "line": "Every day, someone in India loses money to a message that looked real.",
+  "heard": "Every day, someone in India loses money to a message that looked real.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promo-en-2": {
+  "ok": true,
+  "line": "A bank asking you to update your KYC. A son asking for money from a new number. A job that wants a small fee first.",
+  "heard": "A bank asking you to update your KYC, a son asking for money from a new number, a job that wants a small fee first.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promo-en-3": {
+  "ok": true,
+  "line": "Vurth helps you check, before you pay.",
+  "heard": "Verifi helps you check before you pay.",
+  "score": 0.8571428571428571,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "promo-en-4": {
+  "ok": true,
+  "line": "Paste any message, link, phone number or screenshot, and Vurth shows you the warning signs in seconds.",
+  "heard": "Paste any message, link, phone number, or screenshot, and Verse shows you the warning signs in seconds.",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "promo-en-5": {
+  "ok": true,
+  "line": "If someone asks for money in the name of your family, or your boss, Vurth asks the real person, on their own phone.",
+  "heard": "If someone asks for money in the name of your family, or your boss, Vith asks the real person on their own phone.",
+  "score": 0.9565217391304348,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promo-en-6": {
+  "ok": true,
+  "line": "Your dashboard shows your checks, and your family's safety, at a glance.",
+  "heard": "Your dashboard shows your checks and your family's safety at a glance.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promo-en-7": {
+  "ok": true,
+  "line": "And a one-minute daily check-up keeps your phone safe from common tricks.",
+  "heard": "And a one-minute daily check-up keeps your phone safe from common tricks.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promo-en-8": {
+  "ok": true,
+  "line": "Your messages are checked on your own device. Nothing is uploaded.",
+  "heard": "Your messages are checked on your own device. Nothing is uploaded. Verth",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promo-en-9": {
+  "ok": true,
+  "line": "Vurth. Check before you pay. Try it free at verth dot in.",
+  "heard": "Vidh, check before you pay. Try it free at Vidh.in.",
+  "score": 0.75,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "style": false
+ },
+ "promofix-en-1": {
+  "ok": true,
+  "line": "Vurth helps you check, before you pay.",
+  "heard": "Worth helps you check before you pay.",
+  "score": 0.8571428571428571,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promofix-en-2": {
+  "ok": true,
+  "line": "Paste any message, link, phone number or screenshot, and Vurth shows you the warning signs in seconds.",
+  "heard": "Paste any message, link, phone number, or screenshot and Verto shows you the warning signs in seconds.",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "promofix-en-3": {
+  "ok": true,
+  "line": "Vurth. Check before you pay. Try it free at verth dot in.",
+  "heard": "Word. Check before you pay. Try it free at word.in.",
+  "score": 0.75,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "style": false
+ },
+ "org-en-1": {
+  "ok": true,
+  "line": "Running a business? Make a private group for your office. You approve every person who joins, and you can lock it to your company email.",
+  "heard": "Running a business? Make a private group for your office. You approve every person who joins and you can lock it to your company email.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "org-en-2": {
+  "ok": true,
+  "line": "Inside the group, anyone can chat privately, one to one. Messages and files are locked to your two phones. Not even the admin can read them.",
+  "heard": "Inside the group, anyone can chat privately, one-to-one. Messages and files are locked to your two phones. Not even the admin can read them.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "org-en-3": {
+  "ok": true,
+  "line": "Need to send money? Pay safely uses the UPI ID the person saved in Vurth, never one sent in a message. You pay from your own UPI app, and both of you get a receipt.",
+  "heard": "Need to send money? PaySafely uses a UPI ID the person saved in Varth, never once sent into a message. You pay from your own UPI app and both of you get a receipt.",
+  "score": 0.9142857142857143,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-1": {
+  "ok": true,
+  "line": "Today, scammers pretend to be your boss, a vendor or a family member, and ask for money.",
+  "heard": "Today, scammers pretend to be your boss, a vendor, or a family member, and ask for money.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-2": {
+  "ok": true,
+  "line": "Vurth keeps your office and your family safe.",
+  "heard": "Verifi keeps your office and your family safe.",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-3": {
+  "ok": true,
+  "line": "Create a private group for your office. You approve every person who joins, and you can lock it to your company email.",
+  "heard": "Create a private group for your office. You approve every person who joins, and you can lock it to your company email.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-4": {
+  "ok": true,
+  "line": "If a message asks for money in your boss's name, Vurth asks the real person, on their own phone, before anyone pays.",
+  "heard": "If a message asks for money in your boss's name, Virth asks the real person on their own phone before anyone pays.",
+  "score": 0.9565217391304348,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-5": {
+  "ok": true,
+  "line": "Talk privately, one to one. Messages and files are locked to your two phones. Not even the admin can read them.",
+  "heard": "Talk privately, one-to-one. Messages and files are locked to your two phones. Not even the admin can read them.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-6": {
+  "ok": true,
+  "line": "Need to pay a colleague? Pay safely opens your own UPI app, with the UPI ID they saved in Vurth, never one sent in a message.",
+  "heard": "Need to pay a colleague? PaySafe lets you open your own UPI app with the UPI ID they saved in Verve. Never once sent in a message.",
+  "score": 0.8461538461538461,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wa-en-7": {
+  "ok": true,
+  "line": "You both get a clear receipt to download and share. And if a payment fails, Vurth tells you how your bank returns the money.",
+  "heard": "You both get a clear receipt to download and share. And if a payment fails, Worth tells you how your bank returns the money.",
+  "score": 0.9583333333333334,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wa-en-8": {
+  "ok": true,
+  "line": "And for everyone: paste any message, link, number or screenshot, and Vurth shows the warning signs in seconds.",
+  "heard": "And for everyone, paste any message, link, number or screenshot and verse shows the warning signs in seconds.",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wa-en-9": {
+  "ok": true,
+  "line": "Vurth even reads UPI QR codes. Remember: to receive money, you never scan a QR code or enter your PIN.",
+  "heard": "Birth even reads UPI QR codes. Remember, to receive money, you never scan a QR code or enter your PIN.",
+  "score": 0.95,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-en-10": {
+  "ok": true,
+  "line": "Vurth. Check before you pay. Free to start at verth dot in.",
+  "heard": "Vürth, check before you pay. Free to start at vürth.in.",
+  "score": 0.75,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wa-hi-1": {
+  "ok": true,
+  "line": "आजकल ठग आपके बॉस, किसी वेंडर या परिवार वाले बनकर पैसे माँगते हैं।",
+  "heard": "आजकल ठग आपके बॉस, किसी वेंडर या परिवार वाले बनकर पैसे मांगते हैं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-2": {
+  "ok": true,
+  "line": "Vurth आपके ऑफ़िस और परिवार को सुरक्षित रखता है।",
+  "heard": "Word आपके ऑफिस और परिवार को सुरक्षित रखता है।",
+  "score": 0.8888888888888888,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-3": {
+  "ok": true,
+  "line": "अपने ऑफ़िस के लिए एक प्राइवेट ग्रुप बनाइए। कौन जुड़ेगा, यह आप तय करते हैं, और आप इसे सिर्फ़ कंपनी ईमेल वालों तक सीमित कर सकते हैं।",
+  "heard": "अपने ऑफिस के लिए एक प्राइवेट ग्रुप बनाइए। कौन जुड़ेगा, यह आप तय करते हैं। और आप इसे सिर्फ कंपनी ईमेल वालों तक सीमित कर सकते हैं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-4": {
+  "ok": true,
+  "line": "अगर कोई मैसेज आपके बॉस के नाम पर पैसे माँगे, तो पैसे भेजने से पहले Vurth असली व्यक्ति से, उन्हीं के फ़ोन पर पूछता है।",
+  "heard": "अगर कोई मैसेज आपके बॉस के नाम पर पैसे मांगे तो पैसे भेजने से पहले वर्थ असली व्यक्ति से उन्हीं के फोन पर पूछता है।",
+  "score": 0.96,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-5": {
+  "ok": true,
+  "line": "आपस में प्राइवेट बात कीजिए। मैसेज और फ़ाइलें सिर्फ़ आप दोनों के फ़ोन पर खुलती हैं। एडमिन भी इन्हें नहीं पढ़ सकता।",
+  "heard": "आपस में प्राइवेट बात कीजिए। मैसेज और फाइलें सिर्फ आप दोनों के फोन पर खुलती हैं। एडमिन भी इन्हें नहीं पढ़ सकता।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-6": {
+  "ok": true,
+  "line": "किसी साथी को पैसे भेजने हैं? Pay safely आपका अपना UPI ऐप खोलता है, उसी UPI ID के साथ जो उन्होंने Vurth में सेव की है, मैसेज में भेजी गई ID नहीं।",
+  "heard": "किसी साथी को पैसे भेजने हैं? Pay safely आपका अपना UPI ऐप खोलता है। उसी UPI आईडी के साथ, जो उन्होंने Worth में सेव की है। मैसेज में भेजी गई आईडी नहीं।",
+  "score": 0.90625,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-7": {
+  "ok": true,
+  "line": "आप दोनों को एक साफ़ रसीद मिलती है, जिसे डाउनलोड और शेयर कर सकते हैं। और अगर पेमेंट फ़ेल हो जाए, तो Vurth बताता है कि बैंक आपका पैसा कैसे लौटाता है।",
+  "heard": "आप दोनों को एक साफ रसीद मिलती है जिसे डाउनलोड और शेयर कर सकते हैं और अगर पेमेंट फेल हो जाए तो वर्थ बताता है कि बैंक आपका पैसा कैसे लौट आता है।",
+  "score": 0.9375,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-8": {
+  "ok": true,
+  "line": "और सबके लिए: कोई भी मैसेज, लिंक, नंबर या स्क्रीनशॉट डालिए, और Vurth कुछ ही सेकंड में खतरे के संकेत दिखा देता है।",
+  "heard": "और सबके लिए कोई भी मैसेज, लिंक, नंबर या स्क्रीनशॉट डालिए और Word कुछ ही सेकंड में खतरे के संकेत दिखा देता है।",
+  "score": 0.9565217391304348,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wa-hi-9": {
+  "ok": true,
+  "line": "Vurth UPI QR कोड भी पढ़ लेता है। याद रखिए: पैसे लेने के लिए कभी QR स्कैन नहीं करना पड़ता, और न ही PIN डालना पड़ता है।",
+  "heard": "व्हाट यूपीआई क्यूआर कोड भी पढ़ लेता है, याद रखिए पैसे लेने के लिए कभी क्यूआर स्कैन नहीं करना पड़ता और ना ही पिन डालना पड़ता है।",
+  "score": 0.7777777777777778,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wa-hi-10": {
+  "ok": true,
+  "line": "Vurth. पैसे भेजने से पहले जाँचिए। मुफ़्त शुरू कीजिए, verth डॉट इन पर।",
+  "heard": "Worth, पैसे भेजने से पहले जाँचिए। मुफ़्त शुरू कीजिए, worth.in पर।",
+  "score": 0.6923076923076923,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wafix-en-1": {
+  "ok": true,
+  "line": "Vurth keeps your office and your family safe.",
+  "heard": "Virtue keeps your office and your family safe.",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wafix-en-2": {
+  "ok": true,
+  "line": "Need to pay a colleague? Pay safely opens your own UPI app, with the UPI ID they saved in Vurth, never one sent in a message.",
+  "heard": "Need to pay a colleague? PaySafeley opens your own UPI app with the UPI ID they saved in Vith. Never once sent in a message.",
+  "score": 0.8846153846153846,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wafix-en-3": {
+  "ok": true,
+  "line": "And for everyone: paste any message, link, number or screenshot, and Vurth shows the warning signs in seconds.",
+  "heard": "And for everyone, paste any message, link, number or screenshot and Virth shows the warning signs in seconds.",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wafix-en-4": {
+  "ok": true,
+  "line": "Vurth even reads UPI QR codes. Remember: to receive money, you never scan a QR code or enter your PIN.",
+  "heard": "Worth even reads UPI QR codes. Remember, to receive money, you never scan a QR code or enter your PIN.",
+  "score": 0.95,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wafix-en-5": {
+  "ok": true,
+  "line": "Vurth. Check before you pay. Free to start at verth dot in.",
+  "heard": "Verth, check before you pay. Free to start at verth.in.",
+  "score": 0.8333333333333334,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wafix-hi-1": {
+  "ok": true,
+  "line": "वर्थ आपके ऑफ़िस और परिवार को सुरक्षित रखता है।",
+  "heard": "Word आपके ऑफिस और परिवार को सुरक्षित रखता है।",
+  "score": 0.8888888888888888,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wafix-hi-2": {
+  "ok": true,
+  "line": "किसी साथी को पैसे भेजने हैं? Pay safely आपका अपना UPI ऐप खोलता है, उसी UPI ID के साथ जो उन्होंने वर्थ में सेव की है, मैसेज में भेजी गई ID नहीं।",
+  "heard": "किसी साथी को पैसे भेजने हैं? Pay safely आपका अपना UPI ऐप खोलता है, उसी UPI ID के साथ जो उन्होंने Worth में सेव की है, मैसेज में भेजी गई ID नहीं।",
+  "score": 0.96875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wafix-hi-3": {
+  "ok": true,
+  "line": "और सबके लिए: कोई भी मैसेज, लिंक, नंबर या स्क्रीनशॉट डालिए, और वर्थ कुछ ही सेकंड में खतरे के संकेत दिखा देता है।",
+  "heard": "और सबके लिए, कोई भी मैसेज, लिंक, नंबर या स्क्रीनशॉट डालिए और वोर्थ कुछ ही सेकंड में खतरे के संकेत दिखा देता है।",
+  "score": 0.9565217391304348,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "wafix-hi-4": {
+  "ok": true,
+  "line": "वर्थ UPI QR कोड भी पढ़ लेता है। याद रखिए: पैसे लेने के लिए कभी QR स्कैन नहीं करना पड़ता, और न ही PIN डालना पड़ता है।",
+  "heard": "वर्त्त यूपीआई क्यूआर कोड भी पढ़ लेता है, याद रखिये पैसे लेने के लिए कभी क्यूआर स्कैन नहीं करना पड़ता और नहीं पिन डालना पड़ता है।",
+  "score": 0.7037037037037037,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "wafix-hi-5": {
+  "ok": true,
+  "line": "वर्थ. पैसे भेजने से पहले जाँचिए। मुफ़्त शुरू कीजिए, वर्थ डॉट इन पर।",
+  "heard": "Worth पैसे भेजने से पहले जांचिए मुफ्त शुरू कीजिए worth.in पर।",
+  "score": 0.6923076923076923,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "sboss-en-1": {
+  "ok": true,
+  "line": "Friday evening. Neha gets a message from her boss, Mr. Sharma.",
+  "heard": "Friday evening. Neha gets a message from her boss, Mr. Sharma.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-en-2": {
+  "ok": true,
+  "line": "It's from a new number. He says he's in a meeting and can't talk.",
+  "heard": "It's from a new number. He says he's in a meeting and can't talk.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-en-3": {
+  "ok": true,
+  "line": "Pay this vendor forty-eight thousand rupees, right now. It's urgent.",
+  "heard": "Pay this vendor 48,000 rupees right now. It's urgent.",
+  "score": 0.75,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "style": false
+ },
+ "sboss-en-4": {
+  "ok": true,
+  "line": "Neha is about to pay. But something feels off.",
+  "heard": "Neha is about to pay, but something feels off.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "style": false
+ },
+ "sboss-en-5": {
+  "ok": true,
+  "line": "A new number. Can't talk. Urgent money. These are the three signs of a fake boss scam.",
+  "heard": "A new number, can't talk, urgent money. These are the three signs of a fake boss scam.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-en-6": {
+  "ok": true,
+  "line": "Her office uses Vurth, so she asks the real Mr. Sharma there. The question goes to his own phone.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-en-7": {
+  "ok": true,
+  "line": "His answer comes back in seconds. I never sent this.",
+  "heard": "His answer comes back in seconds. I never sent this.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-en-8": {
+  "ok": true,
+  "line": "Forty-eight thousand rupees, saved.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "sboss-en-9": {
+  "ok": true,
+  "line": "Before you pay anyone, check with the real person. Try Vurth free, at verth dot in.",
+  "heard": "Before you pay anyone, check with the real person. Try Verth free at verth.in.",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-1": {
+  "ok": true,
+  "line": "शुक्रवार की शाम। नेहा को उसके बॉस, शर्मा जी का मैसेज आता है।",
+  "heard": "शुक्रवार की शाम नेहा को उसके बॉस शर्मा जी का मैसेज आता है",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-2": {
+  "ok": true,
+  "line": "नया नंबर है। लिखा है, मीटिंग में हूँ, बात नहीं कर सकता।",
+  "heard": "नया नंबर है, लिखा है, मीटिंग में हूं, बात नहीं कर सकता।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-3": {
+  "ok": true,
+  "line": "इस वेंडर को अभी अड़तालीस हज़ार रुपये भेज दो। बहुत अर्जेंट है।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "sboss-hi-4": {
+  "ok": true,
+  "line": "नेहा पैसे भेजने ही वाली थी। पर कुछ गड़बड़ लगा।",
+  "heard": "नेहा पैसे भेजने ही वाली थी पर कुछ गड़बड़ लगा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-5": {
+  "ok": true,
+  "line": "नया नंबर। बात नहीं कर सकते। और तुरंत पैसे। यही हैं नकली बॉस वाले स्कैम के तीन निशान।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-6": {
+  "ok": true,
+  "line": "उसका ऑफ़िस वर्थ इस्तेमाल करता है। तो उसने वर्थ पर असली शर्मा जी से पूछा। सवाल सीधे उनके अपने फ़ोन पर गया।",
+  "heard": "उसका ऑफिस वर्थ इस्तेमाल करता है तो उसने वर्थ पर असली शर्मा जी से पूछा। सवाल सीधे उनके अपने फोन पर गया।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-7": {
+  "ok": true,
+  "line": "कुछ ही सेकंड में जवाब आया। मैंने ऐसा कोई मैसेज नहीं भेजा।",
+  "heard": "कुछ ही सेकंड में जवाब आया। मैंने ऐसा कोई मैसेज नहीं भेजा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sboss-hi-8": {
+  "ok": true,
+  "line": "अड़तालीस हज़ार रुपये बच गए।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "style": false
+ },
+ "sboss-hi-9": {
+  "ok": true,
+  "line": "किसी को भी पैसे भेजने से पहले, असली व्यक्ति से पूछिए। वर्थ मुफ़्त में आज़माइए, वर्थ डॉट इन पर।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "style": false
+ },
+ "spapa-en-1": {
+  "ok": true,
+  "line": "Ramesh ji is having his evening tea, when his phone buzzes.",
+  "heard": "Ramesh ji is having his evening tea when his phone buzzes.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-2": {
+  "ok": true,
+  "line": "Papa, it's me. My phone broke. This is my new number.",
+  "heard": "Papa, it's me. My phone broke. This is my new number.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-3": {
+  "ok": true,
+  "line": "I need twenty thousand rupees, urgently. Please don't call. I'll explain later.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-4": {
+  "ok": true,
+  "line": "It sounds just like his son. Any father would want to help.",
+  "heard": "It sounds just like his son. Any father would want to help.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-5": {
+  "ok": true,
+  "line": "But his daughter says, Papa, wait. Let's check it first.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-6": {
+  "ok": true,
+  "line": "She pastes the message into Vurth. High risk. A new number, asking for money, in a hurry.",
+  "heard": "She pastes the message into worth. High risk, a new number asking for money in a hurry.",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-7": {
+  "ok": true,
+  "line": "Then they call the son on his old number. He's fine, sitting in his college class.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "spapa-en-8": {
+  "ok": true,
+  "line": "Scammers copy how your family talks. Always call the old number before you pay.",
+  "heard": "Scammers copy how your family talks. Always call the old number before you pay.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-en-9": {
+  "ok": true,
+  "line": "Check any message free, at verth dot in.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-1": {
+  "ok": true,
+  "line": "रमेश जी शाम की चाय पी रहे थे, तभी फ़ोन पर मैसेज आया।",
+  "heard": "रमेश जी शाम की चाय पी रहे थे तभी फोन पर मैसेज आया।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-2": {
+  "ok": true,
+  "line": "पापा, मैं हूँ। मेरा फ़ोन टूट गया। ये मेरा नया नंबर है।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-3": {
+  "ok": true,
+  "line": "मुझे अभी बीस हज़ार रुपये चाहिए। प्लीज़ कॉल मत करना। बाद में बताता हूँ।",
+  "heard": "मुझे अभी ₹20,000 चाहिए। प्लीज कॉल मत करना, बाद में बताता हूं।",
+  "score": 0.7857142857142857,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "spapa-hi-4": {
+  "ok": true,
+  "line": "बिल्कुल बेटे जैसा लगा। कोई भी पिता मदद करना चाहेगा।",
+  "heard": "बिल्कुल बेटे जैसा लगा। कोई भी पिता मदद करना चाहेगा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-5": {
+  "ok": true,
+  "line": "पर बेटी ने कहा, पापा रुको। पहले चेक करते हैं।",
+  "heard": "पर बेटी ने कहा पापा रुको पहले चेक करते हैं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-6": {
+  "ok": true,
+  "line": "उसने मैसेज वर्थ में डाला। हाई रिस्क। नया नंबर, पैसों की माँग, और जल्दबाज़ी।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "spapa-hi-7": {
+  "ok": true,
+  "line": "फिर उन्होंने बेटे को पुराने नंबर पर कॉल किया। वो बिल्कुल ठीक था, कॉलेज की क्लास में बैठा था।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-8": {
+  "ok": true,
+  "line": "ठग आपके परिवार की तरह बात करना सीख लेते हैं। पैसे भेजने से पहले, हमेशा पुराने नंबर पर कॉल कीजिए।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "spapa-hi-9": {
+  "ok": true,
+  "line": "कोई भी मैसेज मुफ़्त में चेक कीजिए, वर्थ डॉट इन पर।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "sqr-en-1": {
+  "ok": true,
+  "line": "Congratulations! You've won four thousand, nine hundred and ninety-nine rupees cashback!",
+  "heard": "",
+  "score": null,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sqr-en-2": {
+  "ok": true,
+  "line": "Just scan this QR code to receive the money. Offer valid for ten minutes.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-3": {
+  "ok": true,
+  "line": "Priya opens her UPI app, scans it, and is about to enter her PIN.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-4": {
+  "ok": true,
+  "line": "Stop! Here's one rule that beats every QR scam.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-5": {
+  "ok": true,
+  "line": "Scanning a QR code and entering your PIN always sends money out. It never brings money in.",
+  "heard": "Scanning a QR code and entering your PIN always sends money out. It never brings money in.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-6": {
+  "ok": true,
+  "line": "To receive money, you never need to scan anything, and you never need your PIN.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-7": {
+  "ok": true,
+  "line": "Not sure? Give the screenshot to Vurth. It reads the QR and tells you plainly, this pays a stranger.",
+  "heard": "Not sure? Give the screenshot to Worth. It reads the QR and tells you plainly, this pays a stranger.",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-8": {
+  "ok": true,
+  "line": "Scan to receive is always a trick. Share this with someone who uses UPI.",
+  "heard": "Scan to receive is always a trick. Share this with someone who uses UPI.",
+  "score": 1,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-en-9": {
+  "ok": true,
+  "line": "Check any QR code free, at verth dot in.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-hi-1": {
+  "ok": true,
+  "line": "बधाई हो! आपने चार हज़ार नौ सौ निन्यानवे रुपये का कैशबैक जीता है!",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-hi-2": {
+  "ok": true,
+  "line": "पैसे पाने के लिए बस ये QR कोड स्कैन कीजिए। ऑफ़र सिर्फ़ दस मिनट के लिए।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sqr-hi-3": {
+  "ok": true,
+  "line": "प्रिया ने UPI ऐप खोला, QR स्कैन किया, और PIN डालने ही वाली थी।",
+  "heard": "प्रिया ने UPI ऐप खोला, QR स्कैन किया और पिन डालने ही वाली थी।",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-hi-4": {
+  "ok": true,
+  "line": "रुकिए! एक नियम याद रखिए, जो हर QR स्कैम से बचाएगा।",
+  "heard": "रुकिए! एक नियम याद रखिए जो हर QR scam से बचाएगा।",
+  "score": 0.9090909090909091,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-hi-5": {
+  "ok": true,
+  "line": "QR स्कैन करके PIN डालने से पैसे हमेशा जाते हैं। कभी आते नहीं।",
+  "heard": "QR स्कैन करके पिन डालने से पैसे हमेशा जाते हैं, कभी आते नहीं।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-hi-6": {
+  "ok": true,
+  "line": "पैसे पाने के लिए ना कुछ स्कैन करना पड़ता है, ना PIN डालना।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Puck",
+  "style": false
+ },
+ "sqr-hi-7": {
+  "ok": true,
+  "line": "शक हो तो स्क्रीनशॉट वर्थ में डालिए। वो QR पढ़कर साफ़ बताएगा, ये पैसे किसी अनजान को भेजेगा।",
+  "heard": "शक हो तो स्क्रीनशॉट वर्थ में डालिए। वो क्यूआर पढ़कर साफ़ बताएगा ये पैसे किसी अनजान को भेजेगा।",
+  "score": 0.9444444444444444,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sqr-hi-8": {
+  "ok": true,
+  "line": "स्कैन करके पैसे पाओ, ये हमेशा धोखा है। UPI चलाने वाले हर किसी को ये बताइए।",
+  "heard": "स्कैन करके पैसे पाओ, यह हमेशा धोखा है। UPI चलाने वाले हर किसी को यह बताइए।",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sqr-hi-9": {
+  "ok": true,
+  "line": "कोई भी QR कोड मुफ़्त में चेक कीजिए, वर्थ डॉट इन पर।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sarrest-en-1": {
+  "ok": true,
+  "line": "A video call. A man in a police uniform. Behind him, something that looks like a police station.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "style": false
+ },
+ "sarrest-en-2": {
+  "ok": true,
+  "line": "Your Aadhaar was used for money laundering. You are under digital arrest.",
+  "heard": "Your Aadhaar was used for money laundering. You are under digital arrest.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Orus",
+  "style": false
+ },
+ "sarrest-en-3": {
+  "ok": true,
+  "line": "Don't tell anyone. Stay on camera. Transfer your savings for verification.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-en-4": {
+  "ok": true,
+  "line": "Frightened people have lost lakhs like this. Some, even crores.",
+  "heard": "frightened people have lost lakhs like this, some even crores.",
+  "score": 1,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Orus",
+  "style": false
+ },
+ "sarrest-en-5": {
+  "ok": true,
+  "line": "Here's the truth. There is no such thing as a digital arrest.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-en-6": {
+  "ok": true,
+  "line": "Real police never arrest anyone on a video call, and never ask you to transfer money.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-en-7": {
+  "ok": true,
+  "line": "If you get this call, hang up. Don't pay. Call nineteen thirty, the cyber crime helpline.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-en-8": {
+  "ok": true,
+  "line": "And tell your parents today. Scammers target them the most.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-en-9": {
+  "ok": true,
+  "line": "Learn to spot every scam, free, at verth dot in.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-1": {
+  "ok": true,
+  "line": "एक वीडियो कॉल। पुलिस की वर्दी में एक आदमी। पीछे जैसे कोई पुलिस स्टेशन।",
+  "heard": "एक वीडियो कॉल। पुलिस की वर्दी में एक आदमी। पीछे जैसे कोई पुलिस स्टेशन।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-2": {
+  "ok": true,
+  "line": "आपके आधार से मनी लॉन्ड्रिंग हुई है। आप डिजिटल अरेस्ट में हैं।",
+  "heard": "आपके आधार से मनी लॉन्ड्रिंग हुई है। आप डिजिटल अरेस्ट में हैं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-3": {
+  "ok": true,
+  "line": "किसी को मत बताइए। कैमरे के सामने रहिए। जाँच के लिए अपने पैसे ट्रांसफ़र कीजिए।",
+  "heard": "किसी को मत बताइए। कैमरे के सामने रहिए। जांच के लिए अपने पैसे ट्रांसफर कीजिए।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-4": {
+  "ok": true,
+  "line": "डरे हुए लोगों ने ऐसे लाखों रुपये गँवाए हैं। कुछ ने तो करोड़ों।",
+  "heard": "डरे हुए लोगों ने ऐसे लाखों रुपए गवाए हैं। कुछ ने तो करोड़ों।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-5": {
+  "ok": true,
+  "line": "सच ये है। डिजिटल अरेस्ट जैसी कोई चीज़ होती ही नहीं।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Orus",
+  "style": false
+ },
+ "sarrest-hi-6": {
+  "ok": true,
+  "line": "असली पुलिस कभी वीडियो कॉल पर गिरफ़्तार नहीं करती, और कभी पैसे ट्रांसफ़र करने को नहीं कहती।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Orus",
+  "style": false
+ },
+ "sarrest-hi-7": {
+  "ok": true,
+  "line": "ऐसी कॉल आए तो फ़ोन काटिए। पैसे मत भेजिए। साइबर क्राइम हेल्पलाइन, उन्नीस सौ तीस पर कॉल कीजिए।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-8": {
+  "ok": true,
+  "line": "और आज ही अपने माता-पिता को बताइए। ठग सबसे ज़्यादा उन्हीं को निशाना बनाते हैं।",
+  "heard": "और आज ही अपने माता-पिता को बताइए। ठग सबसे ज्यादा उन्हीं को निशाना बनाते हैं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "sarrest-hi-9": {
+  "ok": true,
+  "line": "हर तरह का स्कैम पहचानना सीखिए, मुफ़्त में, वर्थ डॉट इन पर।",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "spapa-en-10": {
+  "ok": true,
+  "line": "Want more stories and scam alerts like this? Subscribe to this channel.",
+  "heard": "",
+  "score": null,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "spapa-hi-10": {
+  "ok": true,
+  "line": "ऐसी और कहानियाँ और स्कैम अलर्ट चाहिए? तो इस चैनल को सब्सक्राइब कीजिए।",
+  "heard": "ऐसी और कहानियां और स्कैम अलर्ट्स चाहिए तो इस चैनल को सब्सक्राइब कीजिए।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "sqr-en-10": {
+  "ok": true,
+  "line": "Want more stories and scam alerts like this? Subscribe to this channel.",
+  "heard": "Want more stories and scam alerts like this? Subscribe to this channel.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sqr-hi-10": {
+  "ok": true,
+  "line": "ऐसी और कहानियाँ और स्कैम अलर्ट चाहिए? तो इस चैनल को सब्सक्राइब कीजिए।",
+  "heard": "ऐसी और कहानियां और स्कैम अलर्ट्स चाहिए तो इस चैनल को सब्सक्राइब कीजिए।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "srealn-en-1": {
+  "ok": true,
+  "line": "Sunday evening. Ramesh ji is watching TV with his family, when his phone rings.",
+  "heard": "Sunday evening, Ramesh G is watching TV with his family when his phone rings.",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-en-2": {
+  "ok": false,
+  "line": "Ramesh ji trusts him. He pays five thousand rupees, and happily waits for fifty thousand.",
+  "heard": "Rameshji trusts him. He pays 5,000 rupees and happily waits for 50,000.",
+  "score": 0.6,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-en-3": {
+  "ok": false,
+  "line": "Next morning, over tea, he tells his friend Gupta ji everything.",
+  "heard": "Next morning, over tea, he tells his friend Guptaji everything.",
+  "score": 0.8181818181818182,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-en-4": {
+  "ok": true,
+  "line": "He types the number into Vurth. Known scam. Many earlier checks rated it high risk.",
+  "heard": "He types the number into Vert. Known scam. Many earlier checks rated it high risk.",
+  "score": 0.9333333333333333,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-hi-1": {
+  "ok": true,
+  "line": "रविवार की शाम। रमेश जी परिवार के साथ टीवी देख रहे थे, तभी फ़ोन बजा।",
+  "heard": "रविवार की शाम रमेश जी परिवार के साथ टीवी देख रहे थे तभी फोन बजा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-hi-2": {
+  "ok": false,
+  "line": "रमेश जी ने भरोसा किया। पाँच हज़ार भेज दिए, और खुशी-खुशी पचास हज़ार का इंतज़ार करने लगे।",
+  "heard": "रमेश जी ने भरोसा किया 5000 भेज दिए और खुशी-खुशी 50000 का इंतजार करने लगे",
+  "score": 0.7777777777777778,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-hi-3": {
+  "ok": true,
+  "line": "अगली सुबह, चाय पर, उन्होंने अपने दोस्त गुप्ता जी को सब बताया।",
+  "heard": "अगली सुबह चाय पर उन्होंने अपने दोस्त गुप्ता जी को सब बताया।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "srealn-hi-4": {
+  "ok": true,
+  "line": "उन्होंने नंबर वर्थ में डाला। जाना-माना स्कैम। पहले भी कई लोगों ने इसे हाई रिस्क पाया है।",
+  "heard": "उन्होंने नंबर WhatsApp में डाला जाना माना स्कैम. पहले भी कई लोगों ने इसे हाई रिस्क पाया है.",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sreals-en-1": {
+  "ok": true,
+  "line": "Ramesh bhai, it's me, Suresh! I'm calling from my new Dubai number.",
+  "heard": "Ramesh bhai, it's me, Suresh. I am calling from my new Dubai number.",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sreals-en-2": {
+  "ok": false,
+  "line": "I'm sending fifty thousand rupees for Pinky's birthday. Just pay the five thousand rupee bank charge from your side. I'll return it.",
+  "heard": "I'm sending Rs 50,000 for Pinky's birthday. Just pay the Rs 5,000 bank charge from your side. I'll return it.",
+  "score": 0.76,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sreals-hi-1": {
+  "ok": true,
+  "line": "रमेश भाई, मैं सुरेश! दुबई वाले नए नंबर से बोल रहा हूँ।",
+  "heard": "रमेश भाई मैं सुरेश दुबई वाले नए नंबर से बोल रहा हूं",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sreals-hi-2": {
+  "ok": true,
+  "line": "पिंकी के जन्मदिन के लिए पचास हज़ार भेज रहा हूँ। बस बैंक का पाँच हज़ार चार्ज आप भर दो। मैं लौटा दूँगा।",
+  "heard": "पिंकी के जन्मदिन के लिए पचास हजार भेज रहा हूँ। बस बैंक का पाँच हज़ार चार्ज आप भर दो मैं लौटा दूंगा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "srealf-en-1": {
+  "ok": true,
+  "line": "Wait. Someone is sending you money, but you have to pay first? Check that number on Vurth.",
+  "heard": "Wait, someone is sending you money, but you have to pay first? Check that number on Verif.",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "srealf-en-2": {
+  "ok": true,
+  "line": "Now ask the real Suresh, on Vurth. The question goes to his own phone.",
+  "heard": "Now ask the real Suresh on Verth. The question goes to his own phone.",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "srealf-en-3": {
+  "ok": false,
+  "line": "Call nineteen thirty right now, and tell your bank. The sooner, the better.",
+  "heard": "Call 1930 right now and tell your bank. The sooner, the better.",
+  "score": 0.8461538461538461,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "srealf-hi-1": {
+  "ok": true,
+  "line": "रुको। कोई पैसे भेज रहा है, और पहले आपको भरने पड़े? ये नंबर वर्थ पर चेक करो।",
+  "heard": "रुको, कोई पैसे भेज रहा है और पहले आपको भरने पड़ें? ये नाॉटर वर्थ पर चेक करो।",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "srealf-hi-2": {
+  "ok": true,
+  "line": "अब वर्थ पर असली सुरेश से पूछो। सवाल सीधे उसके अपने फ़ोन पर जाएगा।",
+  "heard": "अब worth पर असली सुरेश से पूछो, सवाल सीधे उसके अपने फोन पर जाएगा।",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "srealf-hi-3": {
+  "ok": false,
+  "line": "अभी उन्नीस सौ तीस पर कॉल करो, और बैंक को बताओ। जितनी जल्दी, उतना अच्छा।",
+  "heard": "अभी 19:30 पर कॉल करो और बैंक को बताओ। जितनी जल्दी, उतना अच्छा।",
+  "score": 0.8,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Orus",
+  "from": "whole"
+ },
+ "srealm-en-1": {
+  "ok": true,
+  "line": "Ramesh bhai, I never called you. I never asked for any money!",
+  "heard": "Ramesh bhai, I never called you, I never asked for any money.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Fenrir",
+  "from": "whole"
+ },
+ "srealm-hi-1": {
+  "ok": true,
+  "line": "रमेश भाई, मैंने तो आपको कोई फ़ोन नहीं किया। कोई पैसे नहीं माँगे!",
+  "heard": "रमेश भाई, मैंने तो आपको कोई फोन नहीं किया, कोई पैसे नहीं मांगे।",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Fenrir",
+  "from": "whole"
+ },
+ "srealr-en-1": {
+  "ok": true,
+  "line": "Don't make my mistake. Before you pay anyone, check on Vurth. The link is in the description.",
+  "heard": "Don't make my mistake. Before you pay anyone, check on Vwth. The link is in the description.",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "srealr-en-2": {
+  "ok": true,
+  "line": "And subscribe, for more stories like this.",
+  "heard": "and subscribe for more stories like this.",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "srealr-hi-1": {
+  "ok": true,
+  "line": "मेरी गलती मत दोहराइए। किसी को भी पैसे भेजने से पहले, वर्थ पर चेक कीजिए। लिंक डिस्क्रिप्शन में है।",
+  "heard": "मेरी गलती मत दोहराइए। किसी को भी पैसे भेजने से पहले Worth पर चेक कीजिए। लिंक डिस्क्रिप्शन में है।",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "srealr-hi-2": {
+  "ok": true,
+  "line": "और ऐसी और कहानियों के लिए, चैनल सब्सक्राइब कीजिए।",
+  "heard": "और ऐसी और कहानियों के लिए चैनल सब्सक्राइब कीजिए।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Charon",
+  "from": "whole"
+ },
+ "sjobn-en-1": {
+  "ok": true,
+  "line": "For six months, Aman has applied for job after job. Tonight, his phone finally buzzes.",
+  "heard": "For six months, Aman has applied for job after job. Tonight, his phone finally buzzes.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-en-2": {
+  "ok": true,
+  "line": "Aman can't believe it. He runs to the kitchen to tell his mother.",
+  "heard": "Aman can't believe it. He runs to the kitchen to tell his mother.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-en-3": {
+  "ok": true,
+  "line": "They paste the offer into Vurth's job offer check. High risk.",
+  "heard": "They paste the offer into Verden's job offer check: high risk.",
+  "score": 0.9166666666666666,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-en-4": {
+  "ok": true,
+  "line": "It asks you to pay for a job. The recruiter uses a free Gmail address. And you were selected without any interview.",
+  "heard": "It asks you to pay for a job. The recruiter uses a free Gmail address, and you are selected without any interview.",
+  "score": 0.9545454545454546,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-en-5": {
+  "ok": true,
+  "line": "Vurth also says: real recruiters email from the company's own website, never Gmail. Find the official careers page yourself, and apply only there.",
+  "heard": "Wirth also says, real recruiters email from the company's own website, never Gmail. Find the official careers page yourself and apply only there.",
+  "score": 0.9583333333333334,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "sjobn-hi-1": {
+  "ok": true,
+  "line": "छह महीने से अमन नौकरी के लिए अप्लाई कर रहा था। आज रात, आखिरकार उसका फ़ोन बजा।",
+  "heard": "छह महीने से अमन नौकरी के लिए अप्लाई कर रहा था, आज रात आखिरकार उसका फोन बजा।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-hi-2": {
+  "ok": true,
+  "line": "अमन को यकीन नहीं हुआ। वो दौड़कर रसोई में माँ को बताने गया।",
+  "heard": "अमन को यकीन नहीं हुआ, वो दौड़ कर रसोई में मां को बताने गया।",
+  "score": 0.9230769230769231,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "sjobn-hi-3": {
+  "ok": true,
+  "line": "उन्होंने ऑफ़र वर्थ के जॉब ऑफ़र चेक में डाला। हाई रिस्क।",
+  "heard": "उन्होंने ऑफरवर्थ के जॉब ऑफर चेक में डाला। हाई रिस्क",
+  "score": 0.9090909090909091,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-hi-4": {
+  "ok": true,
+  "line": "नौकरी के लिए पैसे माँग रहा है। रिक्रूटर का ईमेल फ़्री जीमेल वाला है। और बिना इंटरव्यू के सिलेक्शन।",
+  "heard": "नौकरी के लिए पैसे मांग रहा है। रिक्रूटर का ईमेल फ्री जीमेल वाला है और बिना इंटरव्यू के सिलेक्शन",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sjobn-hi-5": {
+  "ok": true,
+  "line": "वर्थ ने ये भी बताया: असली रिक्रूटर कंपनी की अपनी वेबसाइट वाले ईमेल से लिखते हैं, जीमेल से नहीं। ऑफ़िशियल करियर पेज खुद ढूँढिए, और सिर्फ़ वहीं अप्लाई कीजिए।",
+  "heard": "वर्त्नेय ये बी बताया असली रिक्रूटमेंट कंपनीज अप्लाई वेबसाइट वाली ईमेल लिखते हैं, जीमेल नहीं। ऑफिशियल करियर पेज खुद ढूंढिए और सिर्फ वहीं ये अप्लाई कीजिए।",
+  "score": 0.6551724137931034,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "sjobs-en-1": {
+  "ok": true,
+  "line": "Congratulations, Aman! You are selected for a work-from-home job at XYZ Company. Thirty-five thousand rupees a month.",
+  "heard": "Congratulations Aman. You are selected for a work from home job at XYZ company. 35,000 rupees a month.",
+  "score": 0.85,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Zephyr",
+  "from": "whole"
+ },
+ "sjobs-en-2": {
+  "ok": false,
+  "line": "Just pay a refundable registration fee of two thousand nine hundred and ninety-nine rupees. Today only.",
+  "heard": "Just pay a refundable registration fee of 2,999 rupees today only.",
+  "score": 0.5882352941176471,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Zephyr",
+  "style": false
+ },
+ "sjobs-hi-1": {
+  "ok": true,
+  "line": "बधाई हो अमन! आपका सिलेक्शन XYZ कंपनी में वर्क फ्रॉम होम जॉब के लिए हुआ है। पैंतीस हज़ार रुपये महीना।",
+  "heard": "बधाई हो अमन आपका सिलेक्शन X Y Z कंपनी में वर्क फ्रॉम होम जॉब के लिए हुआ है ₹35,000 महीना।",
+  "score": 0.8,
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Zephyr",
+  "style": false
+ },
+ "sjobs-hi-2": {
+  "ok": true,
+  "line": "बस दो हज़ार नौ सौ निन्यानवे रुपये की रिफ़ंडेबल रजिस्ट्रेशन फ़ीस भर दीजिए। सिर्फ़ आज।",
+  "heard": "बस 2,999 रुपये की रिफंडेबल रजिस्ट्रेशन फीस भर दीजिए, सिर्फ आज।",
+  "score": 0.6666666666666666,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Zephyr",
+  "style": false
+ },
+ "sjobm-en-1": {
+  "ok": true,
+  "line": "Beta, a real company never asks you to pay for a job. Let's check it on Vurth first.",
+  "heard": "Beta, a real company never asks you to pay for a job. Let's check it on Woof first.",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "sjobm-hi-1": {
+  "ok": true,
+  "line": "बेटा, असली कंपनी नौकरी के लिए कभी पैसे नहीं माँगती। पहले वर्थ पर चेक करते हैं।",
+  "heard": "बेटा असली कंपनी नौकरी के लिए कभी पैसे नहीं मांगती। पहले worth पर चेक करते हैं।",
+  "score": 0.9375,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "from": "whole"
+ },
+ "sjoba-en-1": {
+  "ok": true,
+  "line": "Thank you, Maa. Three thousand rupees saved, and my real job search goes on.",
+  "heard": "Thank you, Ma. 3,000 rupees saved and my real job search goes on.",
+  "score": 0.7857142857142857,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sjoba-en-2": {
+  "ok": true,
+  "line": "Looking for a job? Check every offer free at verth dot in, before you pay anything. The link is in the description.",
+  "heard": "Looking for a job? Check every offer free at worth.in before you pay anything. The link is in the description.",
+  "score": 0.9090909090909091,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sjoba-en-3": {
+  "ok": true,
+  "line": "And subscribe, so you hear about the next scam before it reaches you.",
+  "heard": "And subscribe, so you hear about the next scam before it reaches you.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sjoba-hi-1": {
+  "ok": true,
+  "line": "थैंक यू माँ। तीन हज़ार रुपये बच गए, और मेरी असली नौकरी की तलाश जारी है।",
+  "heard": "थैंक यू मां ₹3000 बच गए और मेरी असली नौकरी की तलाश जारी है",
+  "score": 0.8125,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sjoba-hi-2": {
+  "ok": true,
+  "line": "नौकरी ढूँढ रहे हैं? कोई भी पैसा भरने से पहले, हर ऑफ़र मुफ़्त में वर्थ डॉट इन पर चेक करें। लिंक डिस्क्रिप्शन में है।",
+  "heard": "नौकरी ढूंढ रहे हैं? कोई भी पैसा भरने से पहले हर ऑफर मुफ्त में worth.in पर चेक करें। लिंक डिस्क्रिप्शन में है।",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "style": false
+ },
+ "sjoba-hi-3": {
+  "ok": true,
+  "line": "और चैनल सब्सक्राइब कीजिए, ताकि अगला स्कैम आप तक पहुँचे, उससे पहले आपको पता हो।",
+  "heard": "और चैनल सब्सक्राइब कीजिए ताकि अगला स्कैम आप तक पहुंचे उससे पहले आपको पता हो।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "sbilln-en-1": {
+  "ok": true,
+  "line": "Ten at night. Sharma ji gets an SMS. Your electricity will be cut tonight. Call this officer now.",
+  "heard": "Ten at night, Sharmaji gets an SMS. Your electricity will be cut tonight. Call this officer now.",
+  "score": 0.8888888888888888,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sbilln-en-2": {
+  "ok": true,
+  "line": "Worried, he picks up his phone to call the number.",
+  "heard": "Worried, he picks up his phone to call the number.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sbilln-en-3": {
+  "ok": true,
+  "line": "High risk. A power cut threat, rushing you, and asking you to call someone.",
+  "heard": "High risk. A power-cut threat, rushing you, and asking you to call someone.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sbilln-hi-1": {
+  "ok": true,
+  "line": "रात के दस बजे। शर्मा जी को SMS आया। आज रात आपकी बिजली कट जाएगी। तुरंत इस अफ़सर को कॉल करें।",
+  "heard": "रात के 10:00 शर्मा जी को एसएमएस आया, \"आज रात आपकी बिजली कट जाएगी। तुरंत इस अफसर को कॉल करें।\"",
+  "score": 0.8571428571428571,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sbilln-hi-2": {
+  "ok": true,
+  "line": "घबराकर, उन्होंने उस नंबर पर कॉल करने के लिए फ़ोन उठाया।",
+  "heard": "घबराकर उन्होंने उस नंबर पर कॉल करने के लिए फोन उठाया।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "sbilln-hi-3": {
+  "ok": true,
+  "line": "हाई रिस्क। बिजली कटने की धमकी, जल्दबाज़ी, और किसी को कॉल करने को कहना।",
+  "heard": "हाई रिस्क, बिजली कटने की धमकी, जल्दबाजी और किसी को कॉल करने को कहना।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "sbillr-en-1": {
+  "ok": true,
+  "line": "Dadu, wait! Let me check this on Vurth first.",
+  "heard": "Daddy, wait, let me check this on verse first.",
+  "score": 0.7777777777777778,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "style": false
+ },
+ "sbillr-en-2": {
+  "ok": true,
+  "line": "These callers ask you to install an app, then empty your bank account. Pay bills only in the official app, Dadu.",
+  "heard": "These callers ask you to install an app, then empty your bank account. Pay bills only in the official app, dadu.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "from": "whole"
+ },
+ "sbillr-en-3": {
+  "ok": true,
+  "line": "Got a message like this? Check it free at verth dot in. The link is in the description.",
+  "heard": "Got a message like this? Check it free at verth.in. The link is in the description.",
+  "score": 0.9444444444444444,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "from": "whole"
+ },
+ "sbillr-en-4": {
+  "ok": true,
+  "line": "And subscribe, so your family stays one step ahead of scammers.",
+  "heard": "And subscribe, so your family stays one step ahead of scammers.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "from": "whole"
+ },
+ "sbillr-hi-1": {
+  "ok": true,
+  "line": "दादू, रुकिए! पहले मैं इसे वर्थ पर चेक करती हूँ।",
+  "heard": "दादू रुकिए, पहले मैं इसे वर्थ पर चेक करती हूं।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "style": false
+ },
+ "sbillr-hi-2": {
+  "ok": true,
+  "line": "ये लोग कोई ऐप डलवाते हैं, फिर बैंक खाता खाली कर देते हैं। बिल सिर्फ़ ऑफ़िशियल ऐप से भरिए, दादू।",
+  "heard": "ये लोग कोई ऐप डलवाते हैं फिर बैंक खाता खाली कर देते हैं। बिल सिर्फ ऑफिशियल ऐप से भरिए दादू।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "from": "whole"
+ },
+ "sbillr-hi-3": {
+  "ok": true,
+  "line": "ऐसा कोई मैसेज आया है? मुफ़्त में वर्थ डॉट इन पर चेक कीजिए। लिंक डिस्क्रिप्शन में है।",
+  "heard": "ऐसा कोई मैसेज आया है? मुफ़्त में worth.in पर चेक कीजिए। लिंक डिस्क्रिप्शन में है।",
+  "score": 0.8235294117647058,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "style": false
+ },
+ "sbillr-hi-4": {
+  "ok": true,
+  "line": "और चैनल सब्सक्राइब कीजिए, ताकि आपका परिवार ठगों से एक कदम आगे रहे।",
+  "heard": "और चैनल सब्सक्राइब कीजिए ताकि आपका परिवार ठगों से एक कदम आगे रहे।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Leda",
+  "from": "whole"
+ },
+ "snanin-en-1": {
+  "ok": true,
+  "line": "Nani gets a message. It's Rohan, I had an accident. I'm in hospital. Send fifteen thousand rupees, now.",
+  "heard": "Nani gets a message. It's Rohan. \"I had an accident. I'm in hospital. Send 15,000 rupees now.",
+  "score": 0.9,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-en-2": {
+  "ok": true,
+  "line": "Her heart breaks. She sends the money, right away.",
+  "heard": "Her heart breaks. She sends the money right away.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-en-3": {
+  "ok": true,
+  "line": "But Rohan was never in hospital. The money is gone.",
+  "heard": "But Rohan was never in hospital. The money is gone.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-en-4": {
+  "ok": true,
+  "line": "Now, let's rewind. This time, Nani checks on Vurth first.",
+  "heard": "Now let's rewind. This time Nani checks on birth first.",
+  "score": 0.9090909090909091,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-en-5": {
+  "ok": true,
+  "line": "High risk. A new number, asking for money, in a hurry.",
+  "heard": "high risk. A new number, asking for money, in a hurry.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-en-6": {
+  "ok": true,
+  "line": "So she asks the real Rohan, on Vurth.",
+  "heard": "So, she asks the real Rohan on Verth.",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-en-7": {
+  "ok": true,
+  "line": "Vurth was made with one mission: to stop online fraud before it reaches your family.",
+  "heard": "Verifi was made with one mission: to stop online fraud before it reaches your family.",
+  "score": 0.9333333333333333,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-en-8": {
+  "ok": true,
+  "line": "One check is all it takes. Try it free at verth dot in. The link is in the description.",
+  "heard": "One check is all it takes. Try it free at verth.in. The link is in the description.",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-en-9": {
+  "ok": true,
+  "line": "And subscribe, to keep your family one step ahead.",
+  "heard": "and subscribe to keep your family one step ahead.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-hi-1": {
+  "ok": true,
+  "line": "नानी को मैसेज आया। मैं रोहन हूँ, मेरा एक्सीडेंट हो गया। हॉस्पिटल में हूँ। अभी पंद्रह हज़ार रुपये भेजो।",
+  "heard": "नानी को मैसेज आया। मैं रोहन हूं। मेरा एक्सीडेंट हो गया। हॉस्पिटल में हूं। अभी पंद्रह हजार रुपए भेजो।",
+  "score": 0.9473684210526315,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-hi-2": {
+  "ok": true,
+  "line": "उनका दिल बैठ गया। उन्होंने तुरंत पैसे भेज दिए।",
+  "heard": "उनका दिल बैठ गया। उन्होंने तुरंत पैसे भेज दिए।",
+  "score": 1,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-hi-3": {
+  "ok": true,
+  "line": "पर रोहन तो कभी हॉस्पिटल में था ही नहीं। पैसे चले गए।",
+  "heard": "पर रोहन तो कभी हॉस्पिटल में था ही नहीं पैसे चले गए",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-hi-4": {
+  "ok": true,
+  "line": "अब, कहानी पीछे करते हैं। इस बार, नानी पहले वर्थ पर चेक करती हैं।",
+  "heard": "अब कहानी पीछे करते हैं। इस बार नानी पहले Worth पर चेक करती हैं। High risk",
+  "score": 0.9285714285714286,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-hi-5": {
+  "ok": true,
+  "line": "हाई रिस्क। नया नंबर, पैसों की माँग, और जल्दबाज़ी।",
+  "heard": "हाई रिस्क, नया नंबर, पैसों की मांग और जल्दबाजी।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-hi-6": {
+  "ok": true,
+  "line": "तो उन्होंने वर्थ पर असली रोहन से पूछा।",
+  "heard": "तो उन्होंने वध पर असली रोहन से पूछा।",
+  "score": 0.875,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-hi-7": {
+  "ok": true,
+  "line": "वर्थ एक ही मकसद से बना है: ऑनलाइन धोखाधड़ी को आपके परिवार तक पहुँचने से पहले रोकना।",
+  "heard": "Word एक ही मकसद से बना है। ऑनलाइन धोखाधड़ी को आपके परिवार तक पहुंचने से पहले रोकना।",
+  "score": 0.9411764705882353,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanin-hi-8": {
+  "ok": true,
+  "line": "बस एक चेक काफ़ी है। मुफ़्त में आज़माइए, वर्थ डॉट इन पर। लिंक डिस्क्रिप्शन में है।",
+  "heard": "बस एक चेक काफी है, मुफ्त में आजमाइए। Worth Try In Pur, link description में है।",
+  "score": 0.625,
+  "model": "gemini-3.8-flash-lite-tts",
+  "voice": "Aoede",
+  "style": false
+ },
+ "snanin-hi-9": {
+  "ok": true,
+  "line": "और चैनल सब्सक्राइब कीजिए, ताकि आपका परिवार एक कदम आगे रहे।",
+  "heard": "और चैनल सब्सक्राइब कीजिए ताकि आपका परिवार एक कदम आगे रहे।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Aoede",
+  "from": "whole"
+ },
+ "snanir-en-1": {
+  "ok": true,
+  "line": "Nani, I'm absolutely fine! Don't send anything.",
+  "heard": "Nani, I'm absolutely fine. Don't send anything.",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ },
+ "snanir-hi-1": {
+  "ok": true,
+  "line": "नानी, मैं बिल्कुल ठीक हूँ! कुछ मत भेजना।",
+  "heard": "नानी मैं बिल्कुल ठीक हूँ, कुछ मत भेजना।",
+  "score": 1,
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Puck",
+  "from": "whole"
+ }
+}
