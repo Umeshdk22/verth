@@ -16,4 +16,10 @@ for vid, v in S.items():
         if os.path.exists(f):
             r = m.transcribe(f, language=lang, fp16=False, word_timestamps=True)
             out['whole'][f'{vid}-{lang}'] = [{'w': w['word'], 's': round(w['start'], 2), 'e': round(w['end'], 2)} for seg in r['segments'] for w in seg.get('words', [])]
+# Any other clips asked for by name prefix (e.g. ONLY=snani), each line and the whole recordings
+for f in sorted(glob.glob(f'{V}/{os.environ.get("ONLY", "-")}*.wav')):
+    k = os.path.basename(f)[:-4]; lang = 'hi' if '-hi' in k else 'en'
+    r = m.transcribe(f, language=lang, fp16=False, word_timestamps=True)
+    out['clips'][k] = r['text'].strip(); print(k, '|', out['clips'][k], flush=True)
+    if k.count('-') == 1: out['whole'][k] = [{'w': w['word'], 's': round(w['start'], 2), 'e': round(w['end'], 2)} for seg in r['segments'] for w in seg.get('words', [])]
 json.dump(out, open('voice-check.json', 'w'), ensure_ascii=False, indent=1)
