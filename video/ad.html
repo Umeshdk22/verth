@@ -1,0 +1,343 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#0B0920}
+#stage{position:absolute;inset:0;overflow:hidden;font-family:Inter,Hind,sans-serif;color:#fff}
+.hi-lang{font-family:Hind,Inter,sans-serif}
+.kick.hi-lang{letter-spacing:.04em;font-size:42px}
+.blob{position:absolute;border-radius:50%;width:1300px;height:1300px;left:0;top:0}
+.dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff}
+.scene{position:absolute;inset:0;visibility:hidden}
+.c{position:absolute;left:0;right:0;text-align:center}
+.big{font-weight:900;font-size:210px;line-height:1;letter-spacing:-.01em}
+.ref{visibility:hidden}
+.ref span{display:inline-block;line-height:1}
+.L{position:absolute;display:block;line-height:1;will-change:transform}
+.kick{font-size:34px;font-weight:700;letter-spacing:.32em;color:#7FF0DD}
+.h{font-weight:800;font-size:74px;line-height:1.15;padding:0 70px}
+.sub{font-size:44px;font-weight:500;color:rgba(255,255,255,.78);padding:0 80px;line-height:1.35}
+.bar{position:absolute;height:14px;border-radius:7px;transform-origin:left center}
+.bub{position:absolute;width:520px;padding:26px 30px;border-radius:30px 30px 30px 8px;background:rgba(255,255,255,.95);color:#16132B;font-size:33px;line-height:1.3;font-weight:500;box-shadow:0 20px 50px -10px rgba(0,0,0,.5)}
+.bub b{display:block;font-size:24px;color:#DC3545;letter-spacing:.08em;margin-bottom:6px}
+.phone{position:absolute;left:220px;top:520px;width:640px;height:1240px;border-radius:78px;background:#1b1838;padding:22px;box-shadow:0 40px 120px -20px rgba(107,61,240,.7),inset 0 0 0 3px rgba(255,255,255,.12)}
+.screen{position:relative;width:100%;height:100%;border-radius:58px;background:#F6F4FF;overflow:hidden;color:#16132B}
+.card{position:absolute;left:30px;right:30px;border-radius:28px;background:#fff;box-shadow:0 8px 24px -10px rgba(48,24,140,.3)}
+.flag{display:flex;gap:16px;align-items:flex-start;font-size:36px;line-height:1.3;font-weight:600;margin:0 30px 30px}
+.feat{position:absolute;width:450px;height:230px;border-radius:36px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.16);display:flex;flex-direction:column;justify-content:center;padding:0 40px}
+.feat i{font-style:normal;font-size:76px;line-height:1}
+.feat span{font-size:42px;font-weight:700;margin-top:18px}
+.badge{display:inline-block;margin:12px 10px;padding:20px 34px;border-radius:999px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);font-size:36px;font-weight:600}
+.serif{font-family:"Rozha One",serif;font-weight:400}
+#flash{position:absolute;left:-60%;top:-40%;width:60%;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:rotate(18deg);pointer-events:none}
+</style></head>
+<body><div id="stage">
+  <div id="bg"></div>
+  <div id="dots"></div>
+
+  <!-- logo + full form letters live here -->
+  <div id="refA" class="c big ref" style="top:700px;letter-spacing:.02em"><span>V</span><span>E</span><span>R</span><span>T</span><span>H</span></div>
+  <div id="refB1" class="c big ref" style="top:600px"><span>V</span><span>E</span><span>R</span><span>I</span><span>F</span><span>Y</span></div>
+  <div id="refB2" class="c big ref" style="top:860px"><span>T</span><span>R</span><span>U</span><span>T</span><span>H</span></div>
+  <svg id="shield" style="position:absolute;left:440px;top:430px" width="200" height="230" viewBox="0 0 100 115">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9A2FF"/><stop offset="1" stop-color="#4FE3CF"/></linearGradient></defs>
+    <path id="sh1" d="M50 5 L90 20 V55 C90 82 72 100 50 110 C28 100 10 82 10 55 V20 Z" fill="none" stroke="url(#g)" stroke-width="7" stroke-linejoin="round"/>
+    <path id="sh2" d="M31 57 L45 71 L71 42" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div id="letters"></div>
+  <div id="sweep" style="position:absolute;left:0;top:660px;width:1080px;height:300px;overflow:hidden;pointer-events:none"><div id="sweepbar" style="position:absolute;top:-100px;width:160px;height:500px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:rotate(20deg);mix-blend-mode:overlay"></div></div>
+  <div id="streak" style="position:absolute;top:800px;left:540px;height:4px;width:0;background:linear-gradient(90deg,transparent,#fff,transparent);box-shadow:0 0 30px 6px rgba(160,130,255,.8)"></div>
+
+  <!-- S1 tagline -->
+  <div id="s1" class="scene"><div id="tag1" class="c sub" style="top:960px;font-size:52px;font-weight:600"></div></div>
+
+  <!-- S2 full form -->
+  <div id="s2" class="scene">
+    <div id="k2" class="c kick" style="top:470px"></div>
+    <div id="barV" class="bar" style="background:linear-gradient(90deg,#B9A2FF,#8A63FF);box-shadow:0 0 30px #8A63FF"></div>
+    <div id="barT" class="bar" style="background:linear-gradient(90deg,#4FE3CF,#1FB8A4);box-shadow:0 0 30px #1FB8A4"></div>
+    <div id="eq" class="c" style="top:1180px;font-size:96px;font-weight:900"><span id="e1" style="color:#B9A2FF">VER</span> <span id="e2">+</span> <span id="e3" style="color:#4FE3CF">TH</span> <span id="e4">=</span> <span id="e5">VERTH</span></div>
+    <div id="sub2" class="c sub" style="top:1360px"></div>
+  </div>
+
+  <!-- S3 the problem -->
+  <div id="s3" class="scene">
+    <div id="bubs"></div>
+    <div id="h3" class="c h" style="top:860px"></div>
+  </div>
+
+  <!-- S4 the check -->
+  <div id="s4" class="scene">
+    <div id="h4" class="c h" style="top:290px"></div>
+    <div class="phone" id="phone"><div class="screen">
+      <div style="position:absolute;top:44px;left:40px;font-weight:900;font-size:40px;color:#6B3DF0;letter-spacing:.02em">🛡️ VERTH</div>
+      <div class="card" id="msg" style="top:130px;padding:28px">
+        <div id="msgLbl" style="font-size:24px;font-weight:700;color:#5F5A78;letter-spacing:.06em"></div>
+        <div id="msgTxt" style="font-size:31px;line-height:1.35;margin-top:10px"></div>
+        <div id="beam" style="position:absolute;left:0;right:0;height:70px;background:linear-gradient(180deg,transparent,rgba(31,184,164,.45),transparent);border-bottom:3px solid #1FB8A4"></div>
+      </div>
+      <div id="btn" style="position:absolute;left:30px;right:30px;top:440px;height:100px;border-radius:50px;background:#6B3DF0;color:#fff;font-size:36px;font-weight:700;display:flex;align-items:center;justify-content:center"></div>
+      <div class="card" id="res" style="top:440px;bottom:40px;padding-top:34px">
+        <div id="risk" style="margin:0 30px 30px;display:inline-block;padding:16px 32px;border-radius:20px;background:#DC3545;color:#fff;font-size:44px;font-weight:900;letter-spacing:.04em"></div>
+        <div id="flags"></div>
+        <div id="safe" style="position:absolute;left:30px;right:30px;bottom:30px;padding:24px;border-radius:22px;background:rgba(15,157,107,.12);color:#0A855A;font-size:32px;font-weight:700;text-align:center"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- S5 features -->
+  <div id="s5" class="scene">
+    <div id="h5" class="c h" style="top:280px"></div>
+    <div id="feats"></div>
+  </div>
+
+  <!-- S6 mission -->
+  <div id="s6" class="scene">
+    <div id="k6" class="c kick" style="top:470px"></div>
+    <div id="m6" class="c serif" style="top:580px;font-size:98px;line-height:1.25;padding:0 60px"></div>
+    <div id="b6" class="c" style="top:1240px;padding:0 50px"></div>
+  </div>
+
+  <!-- S7 end card -->
+  <div id="s7" class="scene">
+    <div id="tag7" class="c sub" style="top:960px;font-size:52px;font-weight:600;color:#fff"></div>
+    <div id="url" style="position:absolute;left:220px;width:640px;top:1100px;height:120px;border-radius:60px;background:#fff;color:#16132B;font-size:54px;font-weight:700;display:flex;align-items:center;padding:0 46px;gap:20px"><span>🔒</span><span id="urlT"></span><span id="caret" style="width:4px;height:58px;background:#6B3DF0"></span></div>
+    <div id="try" class="c" style="top:1270px"><span style="display:inline-block;padding:30px 70px;border-radius:999px;background:linear-gradient(90deg,#8A63FF,#1FB8A4);font-size:48px;font-weight:800" id="tryT"></span></div>
+    <div id="more" class="c sub" style="top:1460px;font-size:38px"></div>
+    <div id="subWrap" class="c" style="top:1530px"><span id="subBtn" style="display:inline-block;padding:30px 64px;border-radius:999px;background:#E62117;font-size:46px;font-weight:800;letter-spacing:.04em">SUBSCRIBE</span></div>
+    <div id="hand" style="position:absolute;font-size:120px;left:600px;top:1700px">👆</div>
+  </div>
+
+  <div id="flash"></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const eb = (x) => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+
+const TXT = {
+  en: {
+    tag1: 'Your shield against scams',
+    k2: 'WHAT DOES VERTH MEAN?',
+    sub2: 'Verify the truth, before you trust.',
+    h3: 'Every day, <span style="color:#FF6B7A">fake messages</span> reach your family.',
+    bubs: [['BANK?', 'Your KYC expires today. Update now: bank-kyc.top'], ['PRIZE?', 'You won ₹25,00,000! Pay ₹4,999 tax to claim 🎉'],
+      ['JOB?', "You're selected! Pay ₹2,999 joining fee"], ['PARCEL?', 'Parcel on hold. Pay ₹49 now: parcel-hold.top'],
+      ['POLICE?', 'Cyber police here. You are under digital arrest.'], ['FAMILY?', 'Hi Maa, new number. Send ₹10,000 urgently 🙏']],
+    h4: 'Verth checks it in <span style="color:#4FE3CF">seconds.</span>',
+    msgLbl: 'PASTED MESSAGE', msgTxt: 'Your bank KYC expires <b>today</b>. Update now: <u>bank-kyc.top/login</u>',
+    btn: 'Check now', risk: '⚠️ HIGH RISK',
+    flags: ["Fake link, not your bank's website", 'Rushes you: "today"', 'Asks for your bank details'],
+    safe: "✅ Don't click. Delete it.",
+    h5: 'Check <span style="color:#4FE3CF">anything</span> before you trust it',
+    feats: [['💬', 'Messages'], ['🔗', 'Links'], ['📸', 'Screenshots'], ['🔳', 'QR codes'], ['💼', 'Job offers'], ['📞', 'Unknown numbers']],
+    wide: ['📲 Asks the real person', 'on their own phone, before you send money'],
+    k6: 'OUR MISSION',
+    m6: ['Stop online fraud', 'before it reaches', '<span style="color:#FFB3D1">your family.</span>'],
+    b6: ['✓ Free to start', '🔒 Never reads your messages', 'हिंदी · English', '🇮🇳 Made in India'],
+    tag7: 'Check before you trust.', tryT: 'Try it free →', more: 'For more scam alerts 👇',
+  },
+  hi: {
+    tag1: 'धोखे से पहले, पक्का करें',
+    k2: 'VERTH का मतलब?',
+    sub2: 'भरोसा करने से पहले, सच की जाँच।',
+    h3: 'हर दिन, <span style="color:#FF6B7A">नकली मैसेज</span> आपके परिवार तक पहुँचते हैं।',
+    bubs: [['बैंक?', 'आपका KYC आज खत्म हो रहा है। अभी अपडेट करें: bank-kyc.top'], ['इनाम?', 'आपने ₹25,00,000 जीते! ₹4,999 टैक्स भरें 🎉'],
+      ['नौकरी?', 'आपका सिलेक्शन हो गया! ₹2,999 जॉइनिंग फ़ीस भरें'], ['पार्सल?', 'पार्सल रुका है। ₹49 भरें: parcel-hold.top'],
+      ['पुलिस?', 'साइबर पुलिस बोल रहे हैं। आप डिजिटल अरेस्ट में हैं।'], ['परिवार?', 'माँ, ये मेरा नया नंबर है। जल्दी ₹10,000 भेजो 🙏']],
+    h4: 'Verth सेकंडों में <span style="color:#4FE3CF">जाँच</span> करता है।',
+    msgLbl: 'पेस्ट किया मैसेज', msgTxt: 'आपका बैंक KYC <b>आज</b> खत्म हो रहा है। अभी अपडेट करें: <u>bank-kyc.top/login</u>',
+    btn: 'अभी जाँचें', risk: '⚠️ बड़ा खतरा',
+    flags: ['नकली लिंक, बैंक की वेबसाइट नहीं', 'जल्दबाज़ी कराता है: "आज ही"', 'आपकी बैंक जानकारी माँगता है'],
+    safe: '✅ क्लिक न करें। डिलीट करें।',
+    h5: 'भरोसा करने से पहले, <span style="color:#4FE3CF">कुछ भी</span> जाँचें',
+    feats: [['💬', 'मैसेज'], ['🔗', 'लिंक'], ['📸', 'स्क्रीनशॉट'], ['🔳', 'QR कोड'], ['💼', 'नौकरी के ऑफ़र'], ['📞', 'अनजान नंबर']],
+    wide: ['📲 असली इंसान से पूछता है', 'उन्हीं के फ़ोन पर, पैसे भेजने से पहले'],
+    k6: 'हमारा मिशन',
+    m6: ['ऑनलाइन धोखे को', 'आपके परिवार तक', '<span style="color:#FFB3D1">पहुँचने से पहले रोकना।</span>'],
+    b6: ['✓ शुरुआत मुफ़्त', '🔒 आपके मैसेज कभी नहीं पढ़ता', 'हिंदी · English', '🇮🇳 मेड इन इंडिया'],
+    tag7: 'भरोसा करने से पहले, जाँच लें।', tryT: 'मुफ़्त में आज़माएँ →', more: 'ऐसे और अलर्ट के लिए 👇',
+  },
+};
+
+// Scene windows
+const S = { s1: [0, 4.4], s2: [4.0, 10.0], s3: [9.9, 13.9], s4: [13.5, 18.6], s5: [18.4, 22.6], s6: [22.4, 25.8], s7: [25.6, 99] };
+const FLASH = [9.95, 13.5, 18.45, 22.45, 25.6];
+let L = [], dots = [], bubPos = [[50, 270], [510, 470], [50, 1170], [510, 1330], [50, 1490], [510, 1580]], featEls = [], wordEls = [], badgeEls = [], flagEls = [];
+
+window.setup = async ({ lang }) => {
+  const T = TXT[lang];
+  if (lang === 'hi') document.querySelectorAll('.h,.sub,.c.kick,.feat,.badge,.bub').forEach((e) => e.classList.add('hi-lang'));
+  for (const k of ['tag1', 'k2', 'sub2', 'h3', 'h4', 'msgLbl', 'msgTxt', 'btn', 'risk', 'safe', 'h5', 'k6', 'tag7', 'tryT', 'more']) $(k).innerHTML = T[k];
+  // background
+  $('bg').innerHTML = ['#6B3DF0', '#16A897', '#D9498F', '#4B2BC9'].map((c, i) => `<div class="blob" id="b${i}" style="background:radial-gradient(circle, ${c}AA 0%, ${c}33 38%, transparent 68%)"></div>`).join('');
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'dot'; $('dots').appendChild(d); dots.push({ el: d, x: rnd() * 1080, y: rnd() * 1920, v: 20 + rnd() * 60, s: .4 + rnd(), ph: rnd() * 6 }); }
+  // bubbles
+  $('bubs').innerHTML = T.bubs.map(([tag, txt], i) => `<div class="bub" id="bub${i}" style="left:${bubPos[i][0]}px;top:${bubPos[i][1]}px"><b>● ${tag}</b>${txt}</div>`).join('');
+  $('flags').innerHTML = T.flags.map((f, i) => `<div class="flag" id="fl${i}"><span>❌</span><span>${f}</span></div>`).join('');
+  flagEls = T.flags.map((_, i) => $('fl' + i));
+  $('feats').innerHTML = T.feats.map(([ic, lb], i) => `<div class="feat" id="ft${i}" style="left:${i % 2 ? 560 : 70}px;top:${520 + Math.floor(i / 2) * 270}px"><i>${ic}</i><span>${lb}</span></div>`).join('')
+    + `<div class="feat" id="ft6" style="left:70px;top:1340px;width:940px;height:250px;background:linear-gradient(90deg,rgba(138,99,255,.35),rgba(31,184,164,.3))"><span style="margin:0;font-size:52px">${T.wide[0]}</span><span style="font-size:36px;font-weight:500;color:rgba(255,255,255,.85);margin-top:12px">${T.wide[1]}</span></div>`;
+  featEls = [0, 1, 2, 3, 4, 5, 6].map((i) => $('ft' + i));
+  if (lang === 'hi') featEls.forEach((e) => e.classList.add('hi-lang'));
+  $('m6').innerHTML = T.m6.map((line, i) => `<div id="w${i}">${line}</div>`).join('');
+  if (lang === 'hi') $('m6').style.fontSize = '92px';
+  wordEls = T.m6.map((_, i) => $('w' + i));
+  $('b6').innerHTML = T.b6.map((b, i) => `<span class="badge${lang === 'hi' ? ' hi-lang' : ''}" id="bd${i}">${b}</span>`).join('');
+  badgeEls = T.b6.map((_, i) => $('bd' + i));
+  window._url = 'verth.in';
+  await document.fonts.ready;
+  // letters: measure both layouts
+  const rect = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top }; };
+  const A = [...$('refA').children].map(rect), B1 = [...$('refB1').children].map(rect), B2 = [...$('refB2').children].map(rect);
+  const defs = [['V', 'v', A[0], B1[0]], ['E', 'v', A[1], B1[1]], ['R', 'v', A[2], B1[2]], ['T', 't', A[3], B2[3]], ['H', 't', A[4], B2[4]],
+    ['I', null, null, B1[3]], ['F', null, null, B1[4]], ['Y', null, null, B1[5]], ['T', null, null, B2[0]], ['R', null, null, B2[1]], ['U', null, null, B2[2]]];
+  L = defs.map(([ch, hi, a, b], i) => { const el = document.createElement('div'); el.className = 'L big'; el.textContent = ch; el.style.left = '0px'; el.style.top = '0px'; $('letters').appendChild(el); return { el, ch, hi, a: a || b, b, i }; });
+  // bars under VER and TH in the full-form layout
+  const r = (el) => el.getBoundingClientRect();
+  const v0 = r($('refB1').children[0]), v2 = r($('refB1').children[2]), t3 = r($('refB2').children[3]), t4 = r($('refB2').children[4]);
+  Object.assign($('barV').style, { left: v0.left + 'px', width: (v2.right - v0.left) + 'px', top: (v0.bottom + 14) + 'px' });
+  Object.assign($('barT').style, { left: t3.left + 'px', width: (t4.right - t3.left) + 'px', top: (t3.bottom + 14) + 'px' });
+  window.render(0);
+};
+
+function scene(id, t) {
+  const [a, b] = S[id], el = $(id);
+  const i = eo(p(t, a, a + .55)), o = eio(p(t, b - .45, b)), v = Math.min(i, 1 - o);
+  el.style.visibility = v <= .001 ? 'hidden' : 'visible';
+  el.style.opacity = v;
+  el.style.transform = `scale(${lerp(1.08, 1, i) * lerp(1, .93, o)})`;
+  el.style.filter = v < .999 ? `blur(${((1 - v) * 14).toFixed(1)}px)` : 'none';
+  return v;
+}
+const mix = (c1, c2, k) => { const h = (c) => [1, 3, 5].map((j) => parseInt(c.slice(j, j + 2), 16)); const x = h(c1), y = h(c2); return `rgb(${x.map((v, j) => Math.round(lerp(v, y[j], k))).join(',')})`; };
+
+window.render = (t) => {
+  // background drift
+  const bp = [[-200, -200, .13, .09], [300, 900, .1, .12], [-300, 1000, .08, .07], [400, -100, .11, .05]];
+  bp.forEach(([x, y, fx, fy], i) => { $('b' + i).style.transform = `translate(${x + 220 * Math.sin(t * fx * 6 + i)}px, ${y + 260 * Math.cos(t * fy * 6 + i * 2)}px) scale(${1 + .15 * Math.sin(t * .5 + i)})`; });
+  dots.forEach((d) => { const y = ((d.y - t * d.v) % 1960 + 1960) % 1960 - 20; d.el.style.transform = `translate(${d.x}px, ${y}px) scale(${d.s})`; d.el.style.opacity = (.15 + .35 * (.5 + .5 * Math.sin(t * 2 + d.ph))).toFixed(2); });
+
+  // light streak that opens the film
+  const st = p(t, .1, .8), sf = 1 - p(t, .9, 1.4);
+  $('streak').style.width = (900 * eo(st)) + 'px'; $('streak').style.left = (540 - 450 * eo(st)) + 'px'; $('streak').style.opacity = sf;
+
+  // shield: draws in, leaves for the full form, comes back for the end card
+  const shIn = t < 20 ? p(t, 1.3, 2.3) : p(t, 25.9, 26.8), shOut = t < 20 ? p(t, 4.0, 4.4) : 0;
+  const len = 330; $('sh1').style.strokeDasharray = len; $('sh1').style.strokeDashoffset = len * (1 - eio(shIn));
+  $('sh2').style.strokeDasharray = 80; $('sh2').style.strokeDashoffset = 80 * (1 - eo(p(t, t < 20 ? 2.0 : 26.5, t < 20 ? 2.5 : 27)));
+  $('shield').style.opacity = (t < 20 ? clamp(shIn * 3) * (1 - shOut) : clamp(shIn * 3));
+  $('shield').style.transform = `scale(${lerp(.7, 1, eb(shIn))})`;
+
+  // letters
+  const m1 = eio(p(t, 4.4, 5.4)), m2 = eio(p(t, 8.8, 9.6));
+  const morph = m1 * (1 - m2);
+  const grpIn = t < 20 ? 1 : eo(p(t, 25.6, 26.4)), grpOut = t < 20 ? p(t, 9.6, 10.1) : 0;
+  const colK = t < 20 ? eo(p(t, 5.2, 5.9)) : 1;
+  const glowK = t < 20 ? 1 : 1;
+  L.forEach((o) => {
+    let x = lerp(o.a.x, o.b.x, morph), y = lerp(o.a.y, o.b.y, morph), op = 1, blur = 0, sc = 1;
+    if (o.hi) {
+      const i = o.i, k = eo(p(t, .6 + i * .1, 1.25 + i * .1));
+      if (t < 4) { op = k; y += (1 - k) * 90; blur = (1 - k) * 18; x += (i - 2) * 70 * (1 - eo(p(t, .6, 2.0))); }
+      if (t >= 20) { const k2 = eo(p(t, 25.6 + i * .07, 26.3 + i * .07)); op = k2; y += (1 - k2) * -60; blur = (1 - k2) * 16; sc = lerp(1.25, 1, k2); }
+      else op *= 1 - grpOut;
+      const base = o.hi === 'v' ? '#B9A2FF' : '#4FE3CF';
+      o.el.style.color = mix('#ffffff', base, colK);
+      o.el.style.textShadow = `0 0 ${30 + 30 * colK}px ${o.hi === 'v' ? 'rgba(138,99,255,.75)' : 'rgba(31,184,164,.75)'}`;
+    } else {
+      const j = o.i - 5, d = eo(p(t, 5.5 + j * .09, 6.05 + j * .09)) * (1 - p(t, 8.5, 8.9));
+      op = .3 * d * (t < 20 ? 1 : 0); sc = lerp(.5, 1, d); blur = (1 - d) * 10;
+      o.el.style.color = '#fff';
+    }
+    if (t >= 10.1 && t < 25.6) op = 0;
+    o.el.style.opacity = op.toFixed(3);
+    o.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+    o.el.style.filter = blur > .2 ? `blur(${blur.toFixed(1)}px)` : 'none';
+  });
+  // light sweeps across the logo
+  const sw = t < 20 ? p(t, 2.0, 2.7) : p(t, 26.6, 27.3);
+  $('sweepbar').style.left = (lerp(-300, 1300, sw)) + 'px'; $('sweep').style.opacity = sw > 0 && sw < 1 ? 1 : 0;
+
+  // S1
+  scene('s1', t); const tg = eo(p(t, 2.4, 3.1)); $('tag1').style.transform = `translateY(${(1 - tg) * 30}px)`; $('tag1').style.opacity = tg;
+
+  // S2
+  scene('s2', t);
+  $('k2').style.opacity = eo(p(t, 4.6, 5.1));
+  const bk = eo(p(t, 6.0, 6.6)) * (1 - p(t, 8.5, 8.9));
+  $('barV').style.transform = `scaleX(${bk})`; $('barT').style.transform = `scaleX(${eo(p(t, 6.2, 6.8)) * (1 - p(t, 8.5, 8.9))})`;
+  ['e1', 'e2', 'e3', 'e4', 'e5'].forEach((id, i) => { const k = eb(p(t, 6.8 + i * .16, 7.25 + i * .16)); $(id).style.display = 'inline-block'; $(id).style.opacity = clamp(k); $(id).style.transform = `scale(${lerp(.3, 1, k)})`; });
+  const s2s = eo(p(t, 7.7, 8.3)); $('sub2').style.opacity = s2s; $('sub2').style.transform = `translateY(${(1 - s2s) * 24}px)`;
+  const eqOut = p(t, 8.6, 9.0); $('eq').style.opacity = 1 - eqOut; $('sub2').style.opacity = s2s * (1 - eqOut); $('k2').style.opacity *= 1 - eqOut;
+
+  // S3
+  scene('s3', t);
+  const suck = eio(p(t, 13.0, 13.7));
+  bubPos.forEach(([bx, by], i) => {
+    const k = eb(p(t, 10.3 + i * .33, 10.75 + i * .33)), fl = Math.sin(t * 1.6 + i) * 10;
+    const dx = (540 - (bx + 260)) * suck, dy = (1100 - (by + 80)) * suck;
+    const el = $('bub' + i); el.style.opacity = clamp(k) * (1 - suck);
+    el.style.transform = `translate(${dx}px, ${fl + dy}px) scale(${lerp(.2, 1, k) * lerp(1, .15, suck)}) rotate(${(i % 2 ? 2 : -2) * (1 - suck)}deg)`;
+  });
+  const h3 = eo(p(t, 10.2, 10.8)); $('h3').style.opacity = h3 * (1 - p(t, 12.9, 13.3)); $('h3').style.transform = `scale(${lerp(.9, 1, h3)})`;
+
+  // S4
+  scene('s4', t);
+  const ph = eb(p(t, 13.5, 14.2)); $('phone').style.transform = `translateY(${(1 - clamp(ph)) * 200}px) scale(${lerp(.85, 1, ph)})`;
+  const press = p(t, 14.45, 14.7); $('btn').style.transform = `scale(${1 - .06 * Math.sin(Math.PI * press)})`;
+  $('btn').style.opacity = 1 - p(t, 15.8, 16.0);
+  const sc = p(t, 14.75, 15.9); $('beam').style.top = (-70 + ((sc * 2) % 1) * 330) + 'px'; $('beam').style.opacity = sc > 0 && sc < 1 ? 1 : 0;
+  const rs = eo(p(t, 15.9, 16.3)); $('res').style.opacity = rs; $('res').style.transform = `translateY(${(1 - rs) * 60}px)`;
+  const rk = eb(p(t, 16.0, 16.35)); $('risk').style.transform = `scale(${lerp(2.2, 1, clamp(rk, 0, 1.2))}) rotate(${lerp(-8, -2, clamp(rk))}deg)`; $('risk').style.opacity = clamp(rk * 2);
+  flagEls.forEach((e, i) => { const k = eo(p(t, 16.5 + i * .4, 16.85 + i * .4)); e.style.opacity = k; e.style.transform = `translateX(${(1 - k) * -60}px)`; });
+  const sf2 = eb(p(t, 17.75, 18.1)); $('safe').style.opacity = clamp(sf2); $('safe').style.transform = `scale(${lerp(.7, 1, sf2)})`;
+  const h4 = eo(p(t, 13.7, 14.2)); $('h4').style.opacity = h4;
+
+  // S5
+  scene('s5', t);
+  const h5 = eo(p(t, 18.5, 19.0)); $('h5').style.opacity = h5; $('h5').style.transform = `translateY(${(1 - h5) * 30}px)`;
+  featEls.forEach((e, i) => { const k = eb(p(t, 18.9 + i * .2, 19.35 + i * .2)); e.style.opacity = clamp(k); e.style.transform = `scale(${lerp(.4, 1, k)}) translateY(${Math.sin(t * 1.5 + i) * 5}px)`; });
+
+  // S6
+  scene('s6', t);
+  $('k6').style.opacity = eo(p(t, 22.6, 23.0));
+  wordEls.forEach((e, i) => { const k = eo(p(t, 22.9 + i * .38, 23.5 + i * .38)); e.style.opacity = k; e.style.transform = `translateY(${(1 - k) * 50}px)`; e.style.filter = k < .99 ? `blur(${(1 - k) * 12}px)` : 'none'; });
+  badgeEls.forEach((e, i) => { const k = eb(p(t, 24.2 + i * .16, 24.6 + i * .16)); e.style.opacity = clamp(k); e.style.transform = `scale(${lerp(.4, 1, k)})`; });
+
+  // S7
+  scene('s7', t);
+  const t7 = eo(p(t, 26.2, 26.7)); $('tag7').style.opacity = t7; $('tag7').style.transform = `translateY(${(1 - t7) * 24}px)`;
+  const ui = eb(p(t, 26.5, 26.9)); $('url').style.opacity = clamp(ui); $('url').style.transform = `scale(${lerp(.6, 1, ui)})`;
+  const n = Math.floor(8 * p(t, 26.9, 27.6)); $('urlT').textContent = window._url.slice(0, n + (n >= 8 ? 1 : 0)) ; $('caret').style.opacity = (Math.floor(t * 3) % 2 || t < 27.6) ? 1 : 0;
+  const tr = eb(p(t, 27.6, 28.0)); $('try').style.opacity = clamp(tr); $('try').style.transform = `scale(${lerp(.5, 1, tr)})`;
+  const mo = eo(p(t, 28.0, 28.4)); $('more').style.opacity = mo;
+  const sb = eb(p(t, 28.1, 28.5)); $('subWrap').style.opacity = clamp(sb); $('subWrap').style.transform = `scale(${lerp(.5, 1, sb)})`;
+  const hd = eio(p(t, 28.5, 29.0)), tap = p(t, 29.05, 29.3);
+  $('hand').style.opacity = clamp(hd * 3) * (1 - p(t, 29.8, 30.2));
+  $('hand').style.transform = `translate(${(1 - hd) * 200}px, ${(1 - hd) * 220 - 30 * Math.sin(Math.PI * tap)}px)`;
+  const subd = t >= 29.18;
+  $('subBtn').textContent = subd ? 'SUBSCRIBED 🔔' : 'SUBSCRIBE';
+  $('subBtn').style.background = subd ? '#3A3550' : '#E62117';
+  $('subBtn').style.transform = `scale(${1 - .08 * Math.sin(Math.PI * tap)})`;
+
+  // white sweep at each scene change
+  let fl = -1; for (const f of FLASH) if (t >= f - .05 && t < f + .55) fl = p(t, f - .05, f + .55);
+  $('flash').style.display = fl < 0 ? 'none' : 'block'; $('flash').style.left = lerp(-70, 120, fl) + '%';
+};
+
+window.total = () => 30.6;
+window.sfx = () => {
+  const e = [['whoosh', .15], ['stamp', 1.5], ['ding', 2.05], ['whoosh', 4.35], ['pop', 6.0], ['pop', 6.2], ['tada', 6.9], ['whoosh', 8.8],
+    ['whoosh', 9.9], ...[0, 1, 2, 3, 4, 5].map((i) => ['ping', 10.35 + i * .33]), ['whoosh', 12.95], ['pop', 14.5], ['tick', 14.75], ['stamp', 16.05],
+    ...[0, 1, 2].map((i) => ['pop', 16.55 + i * .4]), ['ding', 17.8], ['whoosh', 18.4], ...[0, 1, 2, 3, 4, 5, 6].map((i) => ['pop', 18.95 + i * .2]),
+    ['whoosh', 22.4], ['ding', 24.2], ['whoosh', 25.55], ['stamp', 26.0], ['sparkle', 26.6], ['pop', 27.65], ['pop', 29.15], ['tada', 29.25]];
+  return e.map(([kind, t]) => ({ kind, t }));
+};
+</script></body></html>

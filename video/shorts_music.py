@@ -47,6 +47,7 @@ MOODS = {
     'boss': dict(bpm=100, a=[[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], b=[[48, 52, 55, 59], [55, 59, 62], [57, 60, 64], [53, 57, 60, 64]], inst='pluck'),
     'papa': dict(bpm=76, a=[[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], b=[[48, 52, 55, 60], [55, 59, 62, 67], [57, 60, 64, 69], [53, 57, 60, 65]], inst='piano'),
     'qr': dict(bpm=122, a=[[60, 64, 67], [65, 69, 72], [67, 71, 74], [60, 64, 67]], b=[[60, 64, 67, 72], [57, 60, 64, 69], [65, 69, 72, 77], [67, 71, 74, 79]], inst='pop'),
+    'ad': dict(bpm=112, a=[[60, 64, 67], [55, 59, 62], [57, 60, 64], [53, 57, 60]], b=[[60, 64, 67, 72], [55, 59, 62, 67], [57, 60, 64, 69], [53, 57, 60, 65]], inst='ad'),
     'arrest': dict(bpm=84, a=[[50, 53, 57], [50, 53, 58], [50, 53, 57], [49, 52, 57]], b=[[50, 54, 57, 62], [55, 59, 62, 67], [57, 61, 64, 69], [50, 54, 57, 62]], inst='dark'),
 }
 def music(mood, seconds, turn, out):
@@ -83,6 +84,20 @@ def music(mood, seconds, turn, out):
             for s in range(8 if after else 4):
                 step = bar / (8 if after else 4)
                 add(buf, pluck(hz(ch[s % len(ch)] + 12), step * 1.5, .06, 7), t0 + s * step, .3 if s % 2 else -.3)
+        elif inst == 'ad':  # soft intro, then an uplifting beat with a sparkling arpeggio
+            for s in range(8):
+                note = ch[[0, 1, 2, 1, 2, 1, 0, 2][s]] + 12
+                add(buf, piano(hz(note), 1.6, .05 if not after else .06), t0 + s * beat / 2, .3 if s % 2 else -.3)
+            if after:
+                for s in range(4):
+                    add(buf, kick(.3, 48), t0 + s * beat)
+                    if s in (1, 3): add(buf, clap(.1), t0 + s * beat, .1)
+                    add(buf, noise(.05, 80, .025), t0 + s * beat + beat / 2, -.3)
+                    add(buf, bass(root * (2 if s == 3 else 1), beat * .95, .15), t0 + s * beat)
+                for s in range(8):
+                    add(buf, pluck(hz(ch[s % len(ch)] + 24), beat * .6, .025, 8), t0 + s * beat / 2 + beat / 4, .4 if s % 2 else -.4)
+            else:
+                add(buf, bass(root, bar, .1), t0)
         else:  # dark
             if not after:
                 for s in range(4):  # heartbeat
@@ -131,6 +146,8 @@ def sfx_sound(kind):
         n = int(1.8 * SR); t = np.arange(n) / SR; f = 1400 * np.exp(-t * 1.1) + 220
         whir = np.sin(2 * np.pi * np.cumsum(f) / SR) * (0.6 + 0.4 * np.sin(2 * np.pi * 31 * t))
         return (whir * 0.12 + noise(1.8, 0.4, .05, 3)[:n]) * env(n, .05, .25)
+    if kind == 'sparkle':  # quick rising shimmer
+        return mix(*[np.concatenate([np.zeros(int(k * .05 * SR)), pluck(hz(84 + [0, 4, 7, 12, 16, 19][k]), .5, .12, 7)]) for k in range(6)])
     if kind == 'ring':  # phone ringing
         n = int(1.2 * SR); t = np.arange(n) / SR
         return (np.sin(2 * np.pi * 440 * t) + np.sin(2 * np.pi * 480 * t)) * ((t % .4) < .3) * env(n, .02, .2) * .12
