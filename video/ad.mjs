@@ -14,7 +14,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 try {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
   const errs = []; page.on('pageerror', (e) => errs.push(e.message));
-  await page.goto(`http://127.0.0.1:${port}/video/ad.html`);
+  await page.goto(`http://127.0.0.1:${port}/video/${process.env.PAGE || 'ad'}.html`);
   await page.evaluate((lang) => window.setup({ lang }), LANG);
   if (errs.length) throw new Error(errs.join('\n'));
   const total = await page.evaluate(() => window.total());
@@ -23,7 +23,7 @@ try {
     for (const [k, t] of process.argv[4].split(',').map(Number).entries()) { await page.evaluate((x) => window.render(x), t); await page.screenshot({ path: `${process.env.STILLS}/${LANG}-${String(k).padStart(2, '0')}.jpg`, type: 'jpeg', quality: 80 }); }
   } else {
     const music = `${TMP}/music.wav`, fx = `${TMP}/sfx.wav`, mix = `${TMP}/mix.m4a`;
-    execFileSync('python3', ['video/shorts_music.py', 'music', 'ad', String(total), '4.2', music]);
+    execFileSync('python3', ['video/shorts_music.py', 'music', process.env.MOOD || 'ad', String(total), process.env.TURN || '4.2', music]);
     writeFileSync(`${TMP}/events.json`, JSON.stringify(await page.evaluate(() => window.sfx())));
     execFileSync('python3', ['video/shorts_music.py', 'sfx', `${TMP}/events.json`, String(total), fx]);
     ff(['-i', music, '-i', fx, '-filter_complex', `[0]volume=0.8,afade=t=out:st=${(total - 1.6).toFixed(2)}:d=1.6[m];[1]volume=0.6[s];[m][s]amix=inputs=2:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=9,alimiter=limit=0.84:level=false`,

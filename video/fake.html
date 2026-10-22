@@ -1,0 +1,206 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#0A0F2C}
+#stage{position:absolute;inset:0;overflow:hidden;font-family:Inter,Hind,sans-serif;color:#fff}
+.hi-lang{font-family:Hind,Inter,sans-serif}
+.spot{position:absolute;top:-200px;width:700px;height:2300px;transform-origin:50% 0;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 75%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);mix-blend-mode:screen}
+.glow{position:absolute;border-radius:50%;width:1200px;height:1200px}
+.scene{position:absolute;inset:0;visibility:hidden}
+.c{position:absolute;left:0;right:0;text-align:center}
+.pill{display:inline-block;padding:16px 36px;border-radius:999px;font-weight:800;font-size:36px;letter-spacing:.06em}
+.card{position:absolute;left:70px;width:940px;min-height:330px;border-radius:40px;background:#fff;color:#16132B;padding:40px 44px 40px 150px;box-shadow:0 30px 70px -20px rgba(0,0,0,.6)}
+.card .lab{position:absolute;left:34px;top:40px;width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:#fff}
+.card .from{font-size:28px;font-weight:700;color:#5F5A78;letter-spacing:.04em;margin-bottom:12px}
+.card .txt{font-size:40px;line-height:1.38;font-weight:500}
+.stamp{position:absolute;right:34px;top:-34px;padding:14px 30px;border-radius:18px;font-size:48px;font-weight:900;letter-spacing:.05em;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.reason{position:absolute;left:90px;right:90px;top:1420px;padding:34px 40px;border-radius:32px;background:rgba(255,214,10,.14);border:3px solid #FFD60A;font-size:42px;line-height:1.35;font-weight:700;text-align:center}
+.timer{position:absolute;left:390px;top:1380px;width:300px;height:300px}
+.dots{position:absolute;left:0;right:0;top:220px;text-align:center}
+.dots i{display:inline-block;width:26px;height:26px;border-radius:50%;margin:0 10px;background:rgba(255,255,255,.2)}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+</style></head>
+<body><div id="stage">
+  <div id="bg"></div>
+  <div class="spot" id="sp0" style="left:-180px"></div>
+  <div class="spot" id="sp1" style="left:560px"></div>
+  <div id="rounds"></div>
+
+  <div id="hook" class="scene">
+    <div id="hk1" class="c" style="top:560px;font-size:150px;font-weight:900;line-height:1.05"></div>
+    <div id="hk2" class="c" style="top:960px;font-size:56px;font-weight:700;color:#FFD60A"></div>
+    <div id="hk3" class="c" style="top:1080px;font-size:44px;font-weight:500;color:rgba(255,255,255,.8)"></div>
+  </div>
+
+  <div id="score" class="scene">
+    <div id="sc1" class="c" style="top:560px;font-size:84px;font-weight:900;line-height:1.15;padding:0 60px"></div>
+    <div id="sc2" class="c" style="top:880px"></div>
+    <div id="sc3" class="c" style="top:1120px;font-size:50px;font-weight:700;color:#FFD60A"></div>
+  </div>
+
+  <div id="cta" class="scene">
+    <div id="ct1" class="c" style="top:470px;font-size:76px;font-weight:900;line-height:1.15;padding:0 70px"></div>
+    <div id="ct2" class="c" style="top:760px;font-size:44px;font-weight:500;color:rgba(255,255,255,.85);padding:0 90px;line-height:1.35"></div>
+    <div id="url" style="position:absolute;left:200px;width:680px;top:960px;height:130px;border-radius:65px;background:#fff;color:#16132B;font-size:60px;font-weight:800;display:flex;align-items:center;padding:0 50px;gap:22px"><span>🛡️</span><span id="urlT"></span><span id="caret" style="width:5px;height:62px;background:#6B3DF0"></span></div>
+    <div id="ct3" class="c" style="top:1150px;font-size:40px;font-weight:600;color:#7FF0DD"></div>
+    <div id="subWrap" class="c" style="top:1320px"><span id="subBtn" style="display:inline-block;padding:32px 70px;border-radius:999px;background:#E62117;font-size:50px;font-weight:800;letter-spacing:.04em">SUBSCRIBE</span></div>
+    <div id="hand" style="position:absolute;font-size:120px;left:600px;top:1490px">👆</div>
+  </div>
+  <div id="flash"></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const eb = (x) => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+
+const TXT = {
+  en: {
+    hk1: 'Which one<br>is <span style="color:#FF4D6D">FAKE?</span> 🤔', hk2: '3 rounds. 3 seconds each.', hk3: 'Count your score 👇',
+    round: 'ROUND', q: 'Which one is FAKE?', fake: 'FAKE ❌', real: 'REAL ✅',
+    rounds: [
+      { fake: 1, a: ['BANK', 'Rs 500 debited from a/c XX1234 at a store. Not you? Call the number on the back of your card.'],
+        b: ['BANK', 'Your account will be BLOCKED today! Update KYC now: bank-kyc-update.top'],
+        why: 'Real banks never send KYC links. "Blocked today" = pressure.' },
+      { fake: 0, a: ['COURIER', 'Parcel on hold. Address incomplete. Pay ₹25 to redeliver: parcel-help.top'],
+        b: ['COURIER', 'Your parcel is out for delivery today. Track it in the official app.'],
+        why: 'Couriers don\'t ask for small fees through random links.' },
+      { fake: 1, a: ['Riya 💛', 'Reached home safely! Will call you after dinner 🙂'],
+        b: ['+91 9•••• ••417', 'Hi it\'s me, this is my new number. Urgent! Send ₹5,000, I\'ll return it tonight 🙏'],
+        why: 'New number + urgent money = call the old number first.' },
+    ],
+    sc1: 'How many did<br>you get right?', sc3: 'Comment your score 👇',
+    ct1: 'Not sure about<br>a message?', ct2: 'Check it on Verth. Free, in Hindi & English, in seconds.', ct3: 'Link in description & pinned comment',
+  },
+  hi: {
+    hk1: 'इनमें से <span style="color:#FF4D6D">नकली</span><br>कौन सा? 🤔', hk2: '3 राउंड। हर राउंड 3 सेकंड।', hk3: 'अपना स्कोर गिनिए 👇',
+    round: 'राउंड', q: 'कौन सा नकली है?', fake: 'नकली ❌', real: 'असली ✅',
+    rounds: [
+      { fake: 1, a: ['बैंक', 'आपके खाते XX1234 से ₹500 कटे। आपने नहीं किया? कार्ड के पीछे लिखे नंबर पर कॉल करें।'],
+        b: ['बैंक', 'आपका खाता आज ही बंद हो जाएगा! अभी KYC अपडेट करें: bank-kyc-update.top'],
+        why: 'असली बैंक KYC का लिंक नहीं भेजते। "आज ही बंद" = डर दिखाना।' },
+      { fake: 0, a: ['कूरियर', 'पार्सल रुका है। पता अधूरा है। दोबारा डिलीवरी के लिए ₹25 भरें: parcel-help.top'],
+        b: ['कूरियर', 'आपका पार्सल आज डिलीवर होगा। ऑफ़िशियल ऐप में ट्रैक करें।'],
+        why: 'कूरियर वाले किसी अनजान लिंक से छोटी फ़ीस नहीं माँगते।' },
+      { fake: 1, a: ['रिया 💛', 'घर पहुँच गई! खाने के बाद फ़ोन करती हूँ 🙂'],
+        b: ['+91 9•••• ••417', 'हाय, मैं हूँ, ये मेरा नया नंबर है। जल्दी ₹5,000 भेजो, रात को लौटा दूँगी 🙏'],
+        why: 'नया नंबर + जल्दी पैसे = पहले पुराने नंबर पर कॉल करें।' },
+    ],
+    sc1: 'आपके कितने<br>सही हुए?', sc3: 'कमेंट में अपना स्कोर लिखिए 👇',
+    ct1: 'किसी मैसेज पर<br>शक है?', ct2: 'Verth पर जाँचिए। मुफ़्त, हिंदी और English में, सेकंडों में।', ct3: 'लिंक डिस्क्रिप्शन और पिन कमेंट में',
+  },
+};
+
+const R0 = [2.8, 10.4, 18.0], RL = 7.6;
+const S = { hook: [0, 3.0], score: [25.5, 28.5], cta: [28.3, 99] };
+const FLASH = [2.8, 10.4, 18.0, 25.5, 28.3];
+const BLUE = '#3A86FF', ORANGE = '#FF8C42';
+let T;
+
+window.setup = async ({ lang }) => {
+  T = TXT[lang];
+  const H = lang === 'hi' ? ' hi-lang' : '';
+  $('bg').innerHTML = [['#3A0CA3', -250, -200], ['#F72585', 500, 1100], ['#4361EE', -300, 1300]].map(([c, x, y], i) => `<div class="glow" id="g${i}" style="left:${x}px;top:${y}px;background:radial-gradient(circle, ${c}99 0%, ${c}22 40%, transparent 68%)"></div>`).join('');
+  $('rounds').innerHTML = T.rounds.map((r, i) => `
+    <div class="scene${H}" id="r${i}">
+      <div class="dots">${[0, 1, 2].map((k) => `<i style="${k <= i ? 'background:#FFD60A' : ''}"></i>`).join('')}</div>
+      <div class="c" id="r${i}h" style="top:280px"><span class="pill" style="background:#FFD60A;color:#16132B">${T.round} ${i + 1}/3</span></div>
+      <div class="c" id="r${i}q" style="top:400px;font-size:68px;font-weight:900">${T.q}</div>
+      ${['a', 'b'].map((s, k) => `<div class="card${H}" id="r${i}${s}" style="top:${k ? 1000 : 560}px">
+        <div class="lab" style="background:${k ? ORANGE : BLUE}">${k ? 'B' : 'A'}</div>
+        <div class="from">💬 ${r[s][0]}</div><div class="txt">${r[s][1]}</div>
+        <div class="stamp" id="r${i}${s}st" style="background:${r.fake === k ? '#E5383B' : '#2DC653'}">${r.fake === k ? T.fake : T.real}</div></div>`).join('')}
+      <svg class="timer" id="r${i}t" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.15)" stroke-width="6"/>
+        <circle id="r${i}ring" cx="50" cy="50" r="44" fill="none" stroke="#FFD60A" stroke-width="6" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="276.5"/>
+        <text id="r${i}n" x="50" y="64" text-anchor="middle" font-size="42" font-weight="900" fill="#fff" font-family="Inter">3</text></svg>
+      <div class="reason${H}" id="r${i}w">💡 ${r.why}</div>
+    </div>`).join('');
+  for (const k of ['hk1', 'hk2', 'hk3', 'sc1', 'sc3', 'ct1', 'ct2', 'ct3']) { $(k).innerHTML = T[k]; if (H) $(k).classList.add('hi-lang'); }
+  $('sc2').innerHTML = ['0/3', '1/3', '2/3', '3/3'].map((s, i) => `<span class="pill" id="sp${i}x" style="margin:0 10px;font-size:54px;padding:22px 34px;background:${['#E5383B', '#FF8C42', '#3A86FF', '#2DC653'][i]}">${s}</span>`).join('');
+  await document.fonts.ready;
+  window.render(0);
+};
+
+function scene(el, t, a, b) {
+  const i = eo(p(t, a, a + .45)), o = eio(p(t, b - .4, b)), v = Math.min(i, 1 - o);
+  el.style.visibility = v <= .001 ? 'hidden' : 'visible';
+  el.style.opacity = v;
+  el.style.transform = `translateX(${(1 - i) * 140 - o * 140}px) scale(${lerp(1.04, 1, i)})`;
+  return v;
+}
+const pop = (el, t, a, d = .4, from = .3) => { const k = eb(p(t, a, a + d)); el.style.opacity = clamp(k * 2); el.style.transform = `scale(${lerp(from, 1, k)})`; return k; };
+
+window.render = (t) => {
+  [[0, 180, 120], [1, -200, 160], [2, 160, -140]].forEach(([i, ax, ay]) => { $('g' + i).style.transform = `translate(${ax * Math.sin(t * .5 + i)}px, ${ay * Math.cos(t * .4 + i)}px)`; });
+  $('sp0').style.transform = `rotate(${-18 + 10 * Math.sin(t * .8)}deg)`; $('sp1').style.transform = `rotate(${18 + 10 * Math.sin(t * .8 + 2)}deg)`;
+
+  // hook
+  scene($('hook'), t, S.hook[0], S.hook[1]);
+  const h1 = eb(p(t, .15, .7)); $('hk1').style.transform = `scale(${lerp(2.2, 1, clamp(h1, 0, 1.3))}) rotate(${(1 - clamp(h1)) * -6}deg)`; $('hk1').style.opacity = clamp(h1 * 2);
+  $('hk1').style.textShadow = `0 0 ${40 + 20 * Math.sin(t * 6)}px rgba(247,37,133,.6)`;
+  const h2 = eo(p(t, .9, 1.3)); $('hk2').style.opacity = h2; $('hk2').style.transform = `translateY(${(1 - h2) * 30}px)`;
+  const h3 = eo(p(t, 1.4, 1.8)); $('hk3').style.opacity = h3;
+
+  // rounds
+  R0.forEach((r, i) => {
+    const el = $('r' + i), f = T.rounds[i].fake;
+    scene(el, t, r, r + RL);
+    pop($(`r${i}h`), t, r + .1);
+    const q = eo(p(t, r + .9, 1.25 + r)); $(`r${i}q`).style.opacity = q * (1 - .4 * p(t, r + 4.5, r + 4.8));
+    ['a', 'b'].forEach((s, k) => {
+      const c = $(`r${i}${s}`), ki = eb(p(t, r + .3 + k * .3, r + .75 + k * .3));
+      const rev = t >= r + 4.5, isFake = f === k, shake = rev && isFake ? Math.sin((t - r - 4.5) * 60) * 14 * (1 - p(t, r + 4.5, r + 5.0)) : 0;
+      c.style.opacity = clamp(ki * 2) * (rev && !isFake ? lerp(1, .75, p(t, r + 4.6, r + 5)) : 1);
+      c.style.transform = `translateX(${(1 - clamp(ki)) * (k ? 1100 : -1100) + shake}px) scale(${rev && isFake ? 1 + .04 * eo(p(t, r + 4.5, r + 4.8)) : 1})`;
+      c.style.outline = rev && isFake ? '8px solid #E5383B' : 'none';
+      const st = $(`r${i}${s}st`), sk = eb(p(t, r + 4.5 + (isFake ? 0 : .25), r + 4.85 + (isFake ? 0 : .25)));
+      st.style.opacity = clamp(sk * 2); st.style.transform = `scale(${lerp(2.4, 1, clamp(sk, 0, 1.2))}) rotate(${isFake ? -6 : 4}deg)`;
+    });
+    // countdown 3-2-1
+    const cd = p(t, r + 1.4, r + 4.4), tm = $(`r${i}t`);
+    $(`r${i}ring`).style.strokeDashoffset = 276.5 * cd;
+    $(`r${i}n`).textContent = String(Math.max(1, 3 - Math.floor(cd * 3)));
+    const beat = (cd * 3) % 1;
+    tm.style.opacity = eo(p(t, r + 1.2, r + 1.5)) * (1 - p(t, r + 4.4, r + 4.6));
+    tm.style.transform = `scale(${1 + .12 * Math.max(0, 1 - beat * 4) * (cd > 0 && cd < 1)})`;
+    const w = eb(p(t, r + 5.0, r + 5.45)); $(`r${i}w`).style.opacity = clamp(w * 2); $(`r${i}w`).style.transform = `translateY(${(1 - clamp(w)) * 80}px) scale(${lerp(.8, 1, w)})`;
+  });
+
+  // score
+  scene($('score'), t, S.score[0], S.score[1]);
+  const s1 = eo(p(t, 25.7, 26.2)); $('sc1').style.opacity = s1; $('sc1').style.transform = `translateY(${(1 - s1) * 40}px)`;
+  [0, 1, 2, 3].forEach((i) => { const k = pop($(`sp${i}x`), t, 26.2 + i * .15); $(`sp${i}x`).style.display = 'inline-block'; if (i === 3 && t > 27) $(`sp${i}x`).style.transform = `scale(${1 + .08 * Math.sin((t - 27) * 8)})`; });
+  const s3 = eo(p(t, 27.0, 27.4)); $('sc3').style.opacity = s3;
+
+  // cta
+  scene($('cta'), t, S.cta[0], S.cta[1]);
+  const c1 = eo(p(t, 28.5, 29.0)); $('ct1').style.opacity = c1; $('ct1').style.transform = `translateY(${(1 - c1) * 40}px)`;
+  const c2 = eo(p(t, 29.0, 29.4)); $('ct2').style.opacity = c2;
+  pop($('url'), t, 29.3);
+  const n = Math.floor(9 * p(t, 29.7, 30.4)); $('urlT').textContent = 'verth.in'.slice(0, n); $('caret').style.opacity = (t < 30.4 || Math.floor(t * 3) % 2) ? 1 : 0;
+  const c3 = eo(p(t, 30.5, 30.9)); $('ct3').style.opacity = c3;
+  pop($('subWrap'), t, 30.9);
+  const hd = eio(p(t, 31.3, 31.8)), tap = p(t, 31.85, 32.1);
+  $('hand').style.opacity = clamp(hd * 3) * (1 - p(t, 32.6, 33.0));
+  $('hand').style.transform = `translate(${(1 - hd) * 200}px, ${(1 - hd) * 220 - 30 * Math.sin(Math.PI * tap)}px)`;
+  const subd = t >= 31.98;
+  $('subBtn').textContent = subd ? 'SUBSCRIBED 🔔' : 'SUBSCRIBE'; $('subBtn').style.background = subd ? '#3A3550' : '#E62117';
+  $('subBtn').style.transform = `scale(${1 - .08 * Math.sin(Math.PI * tap)})`;
+
+  let fl = 0; for (const f of FLASH) if (t >= f - .05 && t < f + .3) fl = .35 * (1 - p(t, f - .05, f + .3));
+  $('flash').style.opacity = fl;
+};
+
+window.total = () => 33.4;
+window.sfx = () => {
+  const e = [['whoosh', .05], ['stamp', .5], ['pop', 1.0], ['pop', 1.5]];
+  R0.forEach((r) => e.push(['whoosh', r - .1], ['pop', r + .15], ['ping', r + .35], ['ping', r + .65], ['tick', r + 1.4], ['tick', r + 3.0], ['stamp', r + 4.5], ['ding', r + 4.8], ['pop', r + 5.05]));
+  e.push(['whoosh', 25.45], ...[0, 1, 2, 3].map((i) => ['pop', 26.2 + i * .15]), ['tada', 27.0], ['whoosh', 28.25], ['sparkle', 29.3], ['pop', 30.9], ['pop', 31.95], ['tada', 32.05]);
+  return e.map(([kind, t]) => ({ kind, t }));
+};
+</script></body></html>
