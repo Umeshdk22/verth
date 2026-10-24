@@ -10,9 +10,9 @@ const ff = (a) => execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'er
 const port = 8700 + Math.floor(Math.random() * 90);
 const server = spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 800));
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 try {
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
+  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: Number(process.env.DSF || 1) });
   const errs = []; page.on('pageerror', (e) => errs.push(e.message));
   await page.goto(`http://127.0.0.1:${port}/video/${process.env.PAGE || 'ad'}.html`);
   await page.evaluate((lang) => window.setup({ lang }), LANG);
