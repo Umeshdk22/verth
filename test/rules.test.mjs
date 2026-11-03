@@ -316,7 +316,7 @@ test('family members get unlimited scam checks through their circle', async () =
   const f = db('priya'), ref = doc(f, 'users/priya/usage', today());
   await assertFails(setDoc(ref, { scans: 1, at: serverTimestamp() }));
   await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp(), via: 'c1' }));
-  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'nope' }));
   await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
   await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
 });

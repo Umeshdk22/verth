@@ -289,7 +289,7 @@ ${m.paras.map((x) => `<p>${x}</p>`).join('')}
 <p>${btn(m.openUrl, 'Open Verth')}${m.installed ? '' : btn(m.installUrl, '📲 Install on my phone', '#16132B')}</p>
 <p>Stay safe,<br><b>Umesh</b><br><span style="color:#5F5A78">Founder, Verth</span></p>
 <p style="font-size:12px;color:#5F5A78;margin-top:24px">You’re getting this because you have a Verth account. Verth will never ask for your OTP, PIN or password. <a href="${m.unsubUrl}" style="color:#5F5A78">Unsubscribe from these emails</a>.</p></div></div>`;
-      const text = `${m.heading}\n\n${m.paras.map((x) => x.replace(/<[^>]+>/g, '')).join('\n\n')}\n\nScam tip: ${m.tip}\n\nOpen Verth: ${m.openUrl}\n${m.installed ? '' : `Install on your phone: ${m.installUrl}\n`}\nStay safe,\nUmesh, Founder, Verth\n\nUnsubscribe: ${m.unsubUrl}`;
+      const text = `${m.heading}\n\n${m.paras.map((x) => x.replaceAll('<b>', '').replaceAll('</b>', '')).join('\n\n')}\n\nScam tip: ${m.tip}\n\nOpen Verth: ${m.openUrl}\n${m.installed ? '' : `Install on your phone: ${m.installUrl}\n`}\nStay safe,\nUmesh, Founder, Verth\n\nUnsubscribe: ${m.unsubUrl}`;
       const r = await fetchFn('https://api.brevo.com/v3/smtp/email', {
         method: 'POST', headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
         body: JSON.stringify({ sender: { name: 'Umesh from Verth', email: env.MAIL_FROM }, to: [{ email: to }], subject: m.subject, htmlContent: html, textContent: text, tags: ['comeback'],
