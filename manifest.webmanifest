@@ -55,6 +55,40 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "description": "Private chat with your family or team",
+      "url": "./app.html#chat",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Phone safety check-up",
+      "short_name": "Check-up",
+      "url": "./app.html#guard",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Verify a request",
+      "short_name": "Verify",
+      "url": "./app.html#verify",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

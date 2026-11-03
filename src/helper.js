@@ -115,7 +115,7 @@ export const TOPICS = [
   {
     id: 'photo', q: 'How do I check a screenshot or photo?',
     keys: ['screenshot', 'screen shot', 'photo', 'image', 'picture', 'pic', 'upload', 'camera', 'gallery', 'ss', 'photo check', 'click photo', 'photo kaise'],
-    a: 'You don’t need to copy anything. Just use a picture:\n• Take a screenshot of the message (press Power + Volume-down together on most phones).\n• Open Scam check and tap Photo or screenshot.\n• Tap the big box and choose the screenshot from your gallery, or take a photo of the screen.\n• Tap Check it. Verth reads the words and any QR code and tells you if it’s a scam.\nYour picture stays on your phone. Free accounts get 5 photo checks; paid plans get unlimited.\nOn Android you can also open the screenshot and tap Share → Verth.',
+    a: 'You don’t need to copy anything. Just use a picture:\n• Take a screenshot of the message (press Power + Volume-down together on most phones).\n• Open Scam check and tap Photo or screenshot.\n• Tap the big box and choose the screenshot from your gallery, or take a photo of the screen.\n• Tap Check it. Verth reads the words and any QR code and tells you if it’s a scam.\nYour picture stays on your phone. Photo checks are free for the first 7 days; after that they need a plan.\nOn Android you can also open the screenshot and tap Share → Verth.',
     go: [['📷 Check a screenshot now', 'scan-image']],
   },
   {
@@ -131,15 +131,15 @@ export const TOPICS = [
     go: [['Check a job offer', 'scan-job']],
   },
   {
-    id: 'limit', q: 'Why can I only do 2 scam checks?',
-    keys: ['limit', '2 per day', 'two per day', 'daily limit', 'free checks', 'used todays', 'no checks left', 'more checks', 'unlimited', 'reset', 'photo limit', '5 photos', 'free photo'],
-    a: 'Free accounts get 2 scam checks a day (they reset at midnight, India time) and 5 photo or screenshot checks in total.\n• The Personal plan (₹149 a month) gives unlimited scam and photo checks; Family and Team include them for everyone.\n• Verify checks are separate: free circles get 20 a month.',
+    id: 'limit', q: 'Why can’t I check messages any more?',
+    keys: ['limit', 'trial ended', 'trial over', 'cant check', 'plan needed', '2 per day', 'two per day', 'daily limit', 'free checks', 'used todays', 'no checks left', 'more checks', 'unlimited', 'reset', 'photo limit', '5 photos', 'free photo'],
+    a: 'Every new account can check messages, links, numbers, job offers and screenshots free for 7 days. After the free trial, scam and photo checks need a plan.\n• The Personal plan (₹149 a month) gives unlimited scam and photo checks; Family and Team include them for everyone.\n• Verify checks are separate: free circles get 20 a month.',
     go: [['See plans', 'plan']],
   },
   {
     id: 'plans', q: 'What do the plans cost?',
     keys: ['price', 'pricing', 'plan', 'plans', 'cost', 'subscription', 'pay', 'payment', 'upgrade', 'premium', 'paid', 'free plan', 'kitna', 'kitne ka', 'free trial', 'trial', '7 days', 'seven days', 'trial over', 'trial ended', 'charges', 'buy', 'subscribe'],
-    a: 'Every new account gets 7 days with everything unlimited, free. Then:\n• Free: up to 5 people, 20 verify checks a month, 2 scam checks a day, 5 photo checks.\n• Personal ₹149/month: unlimited scam and photo checks, App X-ray and Phone Doctor for you.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks for everyone, the family phone-safety board, and log export.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, staff phone-safety board, log export, faster email support (reply within 1 working day).\nFree also includes the daily phone check-up, 1 App X-ray and 3 Phone Doctor questions a day; Personal, Family and Team make them unlimited.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
+    a: 'Every new account gets 7 days with everything unlimited, free. Then:\n• Free: up to 5 people and 20 verify checks a month. Scam and photo checks need a paid plan after the 7-day trial.\n• Personal ₹149/month: unlimited scam and photo checks, App X-ray and Phone Doctor for you.\n• Family ₹199/month: up to 10 people, unlimited checks and photo checks for everyone, the family phone-safety board, and log export.\n• Team ₹299/month for the whole organisation: everything unlimited, no limit on people, staff phone-safety board, log export, faster email support (reply within 1 working day).\nThe phone safety check-up (score out of 10), App X-ray and Phone Doctor are free for the first 7 days; after that they come with Personal, Family and Team.\nPay in the Plan tab with UPI Autopay or a card through Razorpay. Verth never sees your card or UPI PIN. Cancel any time from the Plan tab; you keep the plan until the end of the month you paid for.',
     go: [['See plans', 'plan']],
   },
   {

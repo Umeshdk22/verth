@@ -14,9 +14,16 @@ PLAN_FAMILY = "plan_REPLACE_FAMILY"
 PLAN_TEAM = "plan_REPLACE_TEAM"
 # The address sign-in codes come from (verified as a sender in Brevo).
 MAIL_FROM = "REPLACE_WITH_SENDER_EMAIL"
+# Reminder notifications: public VAPID key (same as src/config.js PUSH.publicKey).
+VAPID_PUBLIC_KEY = "BAUtyo84fLR3vgVwW1dSyTVRpTSZOx3c0l17WUcLPMc-3qoU_CLrNL3_gxILsmKU7JmSiSAgA7Z9_6SWkJJWAyE"
 
 # Secrets are NOT stored here. Add them with `npx wrangler secret put NAME` or in the dashboard
 # (Worker → Settings → Variables and Secrets → type "Secret"):
 #   RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT,
 #   BREVO_API_KEY (Brevo → SMTP & API → API keys), OTP_SECRET (any long random text),
 #   GEMINI_API_KEY (optional, aistudio.google.com → Get API key) for AI answers in Verth Helper
+#   VAPID_PRIVATE_KEY (optional) for reminder notifications
+
+# Every 5 minutes: reminders, announcements and "come back" emails (runNudges in src/index.js).
+[triggers]
+crons = ["*/5 * * * *"]

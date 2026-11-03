@@ -14,7 +14,8 @@ export const firebaseConfig = {
 // Plans. Limits on the free plan are checked in the app; paid plans unlock once
 // Razorpay subscriptions are connected.
 export const PLANS = {
-  free: { name: 'Free', maxMembers: 5, checksPerMonth: 20, scansPerDay: 2, photoChecks: 5 },
+  // Scam and photo checks are free only during the 7-day trial (src/app.js TRIAL_DAYS, firestore.rules canCheck).
+  free: { name: 'Free', maxMembers: 5, checksPerMonth: 20, scansPerDay: 0, photoChecks: 0 },
   personal: { name: 'Personal', price: '₹149 / month', maxMembers: 5, checksPerMonth: 20, scansPerDay: Infinity, photoChecks: Infinity },
   family: { name: 'Family', price: '₹199 / month', maxMembers: 10, checksPerMonth: Infinity, scansPerDay: Infinity, photoChecks: Infinity },
   team: { name: 'Team', price: '₹299 / month', maxMembers: 2000, checksPerMonth: Infinity, scansPerDay: Infinity, photoChecks: Infinity },
@@ -37,3 +38,10 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAFMGGhM-8jOnLVGE';
 // Put its address here after deploying it, e.g. 'https://verth-pay.yourname.workers.dev'.
 // While empty, paid plans show "Notify me" and nobody can be charged.
 export const PAYMENTS = { api: 'https://verth-pay.umeshdk22.workers.dev' };
+
+// Reminders and alerts (Web Push). The public key is public by design; its private half is the
+// VAPID_PRIVATE_KEY secret in the Verth worker, which sends the notifications.
+// Who may send announcements to everyone (Profile → Send an announcement). The server checks too (ADMIN_EMAILS).
+export const ADMIN_EMAILS = ['umeshdk22@gmail.com'];
+
+export const PUSH = { publicKey: 'BAUtyo84fLR3vgVwW1dSyTVRpTSZOx3c0l17WUcLPMc-3qoU_CLrNL3_gxILsmKU7JmSiSAgA7Z9_6SWkJJWAyE' };

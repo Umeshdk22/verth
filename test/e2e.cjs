@@ -52,6 +52,12 @@ const SLOW = process.env.CI ? 3 : 1;
     S.profile.createdAt = old;
     const d = JSON.parse(localStorage.getItem('fakefs')); d['users/' + S.user.uid].createdAt = { __ts: old }; localStorage.setItem('fakefs', JSON.stringify(d));
   });
+  // Gives an account its free trial back (signed up yesterday).
+  const startTrial = (p) => p.evaluate(() => {
+    const S = window.__verth.S, d0 = Date.now() - 864e5;
+    S.profile.createdAt = d0;
+    const d = JSON.parse(localStorage.getItem('fakefs')); d['users/' + S.user.uid].createdAt = { __ts: d0 }; localStorage.setItem('fakefs', JSON.stringify(d));
+  });
   const poke = (p) => p.evaluate(() => new BroadcastChannel('fakefire').postMessage('x'));
 
   // A stand-in for the Verth server's email codes. The code in the "email" is always 482913.
@@ -95,6 +101,9 @@ const SLOW = process.env.CI ? 3 : 1;
   // The bank name behind a UPI ID (the server asks Razorpay).
   await ctx.route('**/upi/name', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH })
     : r.fulfill({ headers: corsH, json: JSON.parse(r.request().postData() || '{}').vpa === 'priya.nair@okaxis' ? { valid: true, name: 'PRIYA NAIR' } : { valid: false } })));
+  // Alerts to the other person's phone (new message / check waiting): the server is faked here.
+  const alerts = [];
+  await ctx.route('**/push/alert', (r) => { if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH }); alerts.push(JSON.parse(r.request().postData() || '{}')); return r.fulfill({ headers: corsH, json: { sent: 1 } }); });
   // New people sign up with Google, then finish their profile and see the welcome screen.
   // popup: '' (Google window works), or an error code the Google window gives on some phones.
   const googleSignup = async (p, email, name, phone, popup = '') => {
@@ -522,7 +531,12 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Scam check: a KYC scam SMS is flagged high risk', async () => {
     await B.click('nav >> text=Scan');
-    await B.getByText('2 of 2 free checks left today').waitFor({ timeout: 5000 * SLOW });
+    // B's free trial has ended: scam checks now need a plan.
+    await B.getByRole('heading', { name: '⏳ Your 7-day free trial has ended' }).waitFor({ timeout: 5000 * SLOW });
+    if (await B.locator('#s-message').count()) throw new Error('check form still offered after the trial');
+    await shot(B, '09b-B-plan-wall');
+    await startTrial(B); await B.click('nav >> text=Home'); await B.click('nav >> text=Scan');
+    await B.locator('.pill.ok', { hasText: 'Free trial · 6 days left' }).waitFor({ timeout: 5000 * SLOW });
     await vs(B, 'scan-top', '.kinds', 0);
     await B.fill('#s-message', 'Dear Customer, your SBI YONO account will be blocked today. Update PAN KYC immediately: http://sbi-yono-kyc.xyz/update');
     await vs(B, 'scan-filled', 'button:has-text("Check it")');
@@ -559,6 +573,7 @@ const SLOW = process.env.CI ? 3 : 1;
     if (db.includes('sbi-yono-kyc')) throw new Error('reported content stored in database');
   });
   await step('Scam database: someone else checking the same scam link is warned', async () => {
+    await startTrial(A); // checks need the trial (or a plan)
     await A.click('nav >> text=Scan');
     await A.click('.kinds >> text=Link');
     await A.fill('#s-link', 'http://sbi-yono-kyc.xyz/update');
@@ -567,6 +582,7 @@ const SLOW = process.env.CI ? 3 : 1;
     await shot(A, '10b-A-scam-db'); await vs(A, 'scan-db2', null, '.community');
     await A.click('text=Check something else');
     await A.click('nav >> text=Home');
+    await endTrial(A);
   });
   await step('Scam check: phone number analysis', async () => {
     await B.click('text=Check something else');
@@ -576,9 +592,11 @@ const SLOW = process.env.CI ? 3 : 1;
     await B.getByText('Marketing number', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
     await shot(B, '11-B-scan-phone');
   });
-  await step('Scam check: third check of the day hits the free limit', async () => {
+  await step('Scam check: when the trial ends, checks need a plan', async () => {
+    await endTrial(B);
     await B.click('text=Check something else');
-    await B.getByRole('heading', { name: 'You’ve used today’s free checks' }).waitFor({ timeout: 5000 * SLOW });
+    await B.getByRole('heading', { name: '⏳ Your 7-day free trial has ended' }).waitFor({ timeout: 5000 * SLOW });
+    await B.getByRole('button', { name: 'Choose a plan' }).waitFor();
     await shot(B, '12-B-scan-limit');
   });
   await step('Scan-only account, share-to-Verth and job offer check', async () => {
@@ -591,7 +609,6 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByText('There’s no Verth account for that Google account yet').waitFor({ timeout: 5000 * SLOW });
     if (await C.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('fakeauth') || '{}')).includes('kamla@family.in'))) throw new Error('the stray Google account was not removed');
     await googleSignup(C, 'kamla@family.in', 'Kamla Devi', '9988776655', 'auth/popup-blocked');
-    await endTrial(C);
     await C.click('text=Skip the tour');
     await C.click('text=Just check something suspicious');
     await C.getByRole('heading', { name: 'Scam check', exact: true }).waitFor({ timeout: 5000 * SLOW });
@@ -644,12 +661,12 @@ const SLOW = process.env.CI ? 3 : 1;
     await C.getByText('@tcs.com', { exact: false }).first().waitFor();
     await shot(C, '14-C-job-check');
     if (VS) { await C.locator('#scan-result').first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70)).catch(() => {}); await vs(C, 'slide-job', null, null); }
-    // Photo and screenshot checks: read on the device, 5 free, then the plan screen.
+    // Photo and screenshot checks: read on the device, free during the trial, then the plan screen.
     const FIX = require('node:path').join(__dirname, 'fixtures');
     await C.click('text=Check something else');
     await C.click('.kinds >> text=Photo or screenshot');
     await C.getByText('Tap here to add a screenshot or photo').waitFor();
-    await C.getByText('5 of 5 free photo checks left').waitFor();
+    await C.locator('.pill.ok', { hasText: 'Free trial' }).first().waitFor();
     await C.setInputFiles('#s-image', FIX + '/scam-sms.png');
     await C.locator('.photo-pick img').waitFor();
     await C.click('button:has-text("Check it")');
@@ -680,10 +697,11 @@ const SLOW = process.env.CI ? 3 : 1;
       await C.click('button:has-text("Check it")');
       await C.getByRole('heading', { name: 'High risk: this looks like a scam' }).waitFor({ timeout: 60000 * SLOW });
     }
+    await endTrial(C);
     await C.click('text=Check something else');
     await C.click('.kinds >> text=Photo or screenshot');
-    await C.getByRole('heading', { name: 'You’ve used your 5 free photo checks' }).waitFor();
-    if (await C.locator('#s-image').count()) throw new Error('photo upload still offered after the free limit');
+    await C.getByRole('heading', { name: '⏳ Your 7-day free trial has ended' }).waitFor();
+    if (await C.locator('#s-image').count()) throw new Error('photo upload still offered after the trial');
     await shot(C, '14c-C-photo-limit');
     // "Not sure?" opens the helper with big start buttons.
     await C.click('.kinds >> text=Not sure? Ask for help');
@@ -1027,8 +1045,8 @@ const SLOW = process.env.CI ? 3 : 1;
     await G.locator('#circle-switch').waitFor({ timeout: 8000 * SLOW });
     await G.selectOption('#circle-switch', { label: 'Kaur Family' });
     await G.locator('.circle-pick .tag', { hasText: 'Family' }).waitFor({ timeout: 6000 * SLOW });
-    // Free first: the daily scam-check limit applies.
-    await G.click('nav >> text=Scan'); await G.getByText('free checks left today', { exact: false }).first().waitFor({ timeout: 5000 * SLOW });
+    // Free, trial over: scam checks need a plan.
+    await G.click('nav >> text=Scan'); await G.getByRole('heading', { name: '⏳ Your 7-day free trial has ended' }).waitFor({ timeout: 5000 * SLOW });
     // Personal plan: unlimited for this person.
     await G.click('nav >> text=Plan');
     await G.click('.plan:has(h3:text-is("Personal")) >> button:has-text("Subscribe")');
@@ -1051,6 +1069,10 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');
+  });
+  await step('Alerts: sending a check or a message tells the other person’s phone', async () => {
+    // (Only A's page talks to the faked server in this test, so A's chat messages are what we see.)
+    if (!alerts.some((x) => x.kind === 'chat' && x.circleId && x.toUid)) throw new Error('no alert for a chat message');
   });
   console.log('errors:', JSON.stringify(errors));
   if (process.env.CI && errors.length) console.log(`::error title=Page errors::${JSON.stringify(errors).slice(0, 600)}`);
