@@ -13,3 +13,10 @@ ALLOWED_ORIGIN = "https://verth.in,https://www.verth.in,https://umeshdk22.github
 # Razorpay's website review is finished, so its test login is switched off for good.
 # (To use it again, put the address back here and set the REVIEW_CODE secret in Cloudflare.)
 REVIEW_EMAIL = ""
+# Reminder notifications (Web Push): the public half of the VAPID key, the same as PUSH.publicKey in
+# src/config.js. The private half is the VAPID_PRIVATE_KEY secret (Cloudflare → Variables and Secrets).
+VAPID_PUBLIC_KEY = "BAUtyo84fLR3vgVwW1dSyTVRpTSZOx3c0l17WUcLPMc-3qoU_CLrNL3_gxILsmKU7JmSiSAgA7Z9_6SWkJJWAyE"
+
+# Every hour: reminder notifications at each person's chosen time, and "come back" emails at 6 pm India time.
+[triggers]
+crons = ["0 * * * *"]

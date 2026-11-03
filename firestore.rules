@@ -48,6 +48,24 @@ service cloud.firestore {
       let u = get(/databases/$(database)/documents/users/$(uid)).data;
       return u.get('createdAt', null) is timestamp && request.time < u.createdAt + duration.value(7, 'd');
     }
+    // Scam and photo checks: during the trial, on a paid plan, or through a paid circle.
+    function canCheck(uid, via) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
+        || inTrial(uid)
+        || paidCircleFor(uid, via);
+    }
+    // Daily streak and reminder choices (src/app.js touchEngage). The day must be today (India
+    // time) and the streak can only grow by one a day, so it can't be faked.
+    function validEngage(e) {
+      let old = resource.data.get('engage', {});
+      return e is map && e.keys().hasOnly(['day', 'streak', 'best', 'installed', 'freq', 'hour'])
+        && e.day is int && e.day == int(todayIST())
+        && e.streak is int && e.streak >= 1 && e.streak <= old.get('streak', 0) + 1
+        && e.best is int && e.best >= e.streak && e.best <= old.get('best', 0) + 1
+        && e.installed is bool
+        && e.freq in ['daily', 'alt', 'weekly', 'off']
+        && e.hour is int && e.hour >= 0 && e.hour <= 23;
+    }
     function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
     function onlyChanges(keys) { return changed().hasOnly(keys); }
     function text(v, n) { return v is string && v.size() > 0 && v.size() <= n; }
@@ -125,7 +143,8 @@ service cloud.firestore {
         && request.resource.data.onboarded == false
         && request.resource.data.createdAt == request.time;
       allow update: if signedIn() && me() == uid
-        && onlyChanges(['name', 'phone', 'gender', 'dob', 'country', 'photo', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest'])
+        && onlyChanges(['name', 'phone', 'gender', 'dob', 'country', 'photo', 'circles', 'activeCircle', 'onboarded', 'upgradeInterest', 'engage'])
+        && (!changed().hasAny(['engage']) || validEngage(request.resource.data.engage))
         && validPerson(request.resource.data)
         && validPhoto(request.resource.data.get('photo', null))
         && (!('phone' in request.resource.data) || validPhone(request.resource.data.phone))
@@ -135,39 +154,48 @@ service cloud.firestore {
       allow delete: if false;
 
       // Daily scam-check counter. The document name must be today's date (India time), so it
-      // can't be reset by writing a different day, and free accounts stop at 2 a day.
+      // can't be reset by writing a different day. Scam checks are free during the 7-day trial;
+      // after that they need a paid plan (your own, or a Family or Team circle named in "via").
       match /usage/{day} {
         allow get: if signedIn() && me() == uid;
         allow create: if signedIn() && me() == uid && day == todayIST()
-          && request.resource.data.keys().hasOnly(['scans', 'at'])
+          && request.resource.data.keys().hasOnly(['scans', 'at', 'via'])
           && request.resource.data.scans == 1
-          && request.resource.data.at == request.time;
+          && request.resource.data.at == request.time
+          && canCheck(uid, request.resource.data.get('via', null));
         allow update: if signedIn() && me() == uid && day == todayIST()
           && onlyChanges(['scans', 'at', 'via'])
           && request.resource.data.scans == resource.data.scans + 1
           && request.resource.data.at == request.time
-          && (request.resource.data.scans <= 2
-              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
-              || inTrial(uid)
-              || paidCircleFor(uid, request.resource.data.get('via', null)));
+          && canCheck(uid, request.resource.data.get('via', null));
       }
 
-      // Photo and screenshot checks: 5 free in total, then unlimited on a paid plan (your own,
-      // or a Family or Team circle you're an active member of). Counts only go up by one.
+      // This person's phones that agreed to get Verth reminders (Web Push). Only the Verth server
+      // reads them to send notifications; the name is a hash of the push address.
+      match /push/{id} {
+        allow get, delete: if signedIn() && me() == uid;
+        allow create, update: if signedIn() && me() == uid && id.matches('^[0-9a-f]{32}$')
+          && request.resource.data.keys().hasOnly(['endpoint', 'p256dh', 'auth', 'at'])
+          && request.resource.data.endpoint is string && request.resource.data.endpoint.size() <= 1000
+          && request.resource.data.endpoint.matches('^https://[^ ]+$')
+          && text(request.resource.data.p256dh, 200) && text(request.resource.data.auth, 64)
+          && request.resource.data.at == request.time;
+      }
+
+      // Photo and screenshot checks: free during the 7-day trial, then a paid plan (your own, or
+      // a Family or Team circle you're an active member of). Counts only go up by one.
       match /meters/{meter} {
         allow get: if signedIn() && me() == uid;
         allow create: if signedIn() && me() == uid && meter == 'photos'
-          && request.resource.data.keys().hasOnly(['count', 'at'])
+          && request.resource.data.keys().hasOnly(['count', 'at', 'via'])
           && request.resource.data.count == 1
-          && request.resource.data.at == request.time;
+          && request.resource.data.at == request.time
+          && canCheck(uid, request.resource.data.get('via', null));
         allow update: if signedIn() && me() == uid && meter == 'photos'
           && onlyChanges(['count', 'at', 'via'])
           && request.resource.data.count == resource.data.count + 1
           && request.resource.data.at == request.time
-          && (request.resource.data.count <= 5
-              || get(/databases/$(database)/documents/users/$(uid)).data.plan != 'free'
-              || inTrial(uid)
-              || paidCircleFor(uid, request.resource.data.get('via', null)));
+          && canCheck(uid, request.resource.data.get('via', null));
         allow delete: if false;
       }
       // Daily allowance for private chat (12 messages) and Pay safely (3 payments) on the free

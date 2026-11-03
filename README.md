@@ -55,7 +55,7 @@ Paste a suspicious **SMS, WhatsApp message, email, link or phone number** and Ve
 - **Messages and emails:** requests for OTP/PIN (but not genuine "do not share" OTP SMS), "digital arrest" and police threats, screen-sharing apps, "scan QR to receive money", "new number" family scams, KYC updates, prizes and refunds, task-job and investment scams, parcel and electricity threats, spoofed email senders and reply-to tricks. Links and numbers inside the message are checked too.
 - Every result links to **Sanchar Saathi (Chakshu)**, the **1930** helpline and **cybercrime.gov.in**.
 - Checks run on the device. **Community reports** store only a SHA-256 fingerprint, never the content.
-- Free accounts get **2 checks a day**, enforced by the database rules (the counter is keyed to today's date in India time and can only go up by one).
+- Scam checks are free for the **first 7 days** (the trial); after that they need a paid plan, enforced by the database rules (the counter is keyed to today's date in India time and can only go up by one).
 
 ## Job & exam offer check (new)
 
@@ -108,6 +108,15 @@ Monthly subscriptions (UPI Autopay or card) through Razorpay Checkout, with a sm
 - Policy pages Razorpay requires: [Pricing](pricing.html), [Terms](terms.html), [Privacy](privacy.html), [Refunds](refunds.html), [Shipping](shipping.html), [Contact](contact.html).
 
 Setup: [PAYMENTS-SETUP.md](PAYMENTS-SETUP.md).
+
+## Free trial, streaks and reminders
+
+- **7-day free trial:** every new account can check messages, links, numbers, job offers and screenshots free for 7 days. After that, scam and photo checks need a plan (Personal ₹149, Family ₹199, Team ₹299). The database rules enforce it (`canCheck` in `firestore.rules`).
+- **Daily streak:** each day someone opens Verth counts towards a 🔥 streak, with a new scam tip every day. The day and streak are saved on the profile (`engage`), and the rules only let the streak grow by one a day.
+- **Install nudge:** people who opened Verth in a browser see an "Install Verth on your phone" card (snoozes for 3 days when closed).
+- **Reminders (Web Push):** people can turn on reminders and choose how often (every day, every other day, weekly, off) and when (9 am, 1 pm, 7 pm, 9 pm). The worker's hourly cron sends one notification at that time to anyone who hasn't opened Verth that day: keep your streak, trial ending, install Verth, or today's scam tip. Dead phones are forgotten automatically.
+- **"Come back" emails:** people with no phone set up for reminders who haven't opened Verth for 2, 5, 12 or 30 days get a short email (at most 4, ever), each with a one-tap unsubscribe.
+- Setup: add the **`VAPID_PRIVATE_KEY`** secret to the Cloudflare worker (its public half is already in `src/config.js` and `worker/wrangler.ci.toml`). Emails use the existing Brevo settings.
 
 ## Install on your phone
 

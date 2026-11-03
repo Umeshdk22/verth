@@ -643,6 +643,22 @@ body.no-tabs .vh-panel{order:1}
 .trial-banner.ended .grow span{color:rgba(255,255,255,.85)}
 .trial-banner.ended .btn{background:#fff;color:var(--accent)}
 
+/* Daily streak, today's tip and nudges (install, reminders) */
+.eg-row{display:flex;align-items:center;gap:10px;margin:10px 0 0;flex-wrap:wrap}
+.eg-streak{display:inline-flex;align-items:baseline;gap:4px;padding:6px 12px;border-radius:999px;font-weight:800;font-size:17px;color:#7A2E00;background:linear-gradient(135deg,#FFE1B8,#FFB866);box-shadow:0 8px 18px -12px rgba(200,90,0,.9)}
+.eg-streak small{font-size:12px;font-weight:700}
+.eg-streak.cold{filter:grayscale(.6);opacity:.85}
+.eg-tip{flex:1;min-width:220px;font-size:13.5px;color:var(--muted)}
+.eg-tip b{color:var(--ink)}
+.eg-nudge{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.eg-nudge .eg-ic{font-size:24px}
+.eg-nudge .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
+.eg-nudge .grow span{font-size:13px;color:var(--muted)}
+.eg-nudge .btn{flex:none;background:var(--accent);color:#fff;border-color:transparent}
+.eg-nudge .x{flex:none;border:0;background:none;font-size:22px;line-height:1;color:var(--muted);padding:4px 6px;cursor:pointer}
+.reminders label{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-weight:600}
+.plan-wall .pw-list{list-style:none;padding:0;margin:8px 0 12px;display:flex;flex-direction:column;gap:6px}
+
 /* "Welcome to Verth" greeting (assets/splash.js) */
 .splash{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;color:#fff;cursor:pointer;
   background:radial-gradient(700px 420px at 70% 15%,rgba(139,92,246,.55),transparent 60%),radial-gradient(600px 500px at 15% 85%,rgba(91,47,219,.5),transparent 60%),linear-gradient(160deg,#12082F,#2A137A 50%,#4B23C9);

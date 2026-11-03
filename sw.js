@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-76831aad8f';
-const SHELL = ['app.html', './', 'assets/verth.css?v=22c9daa1a2', 'assets/fonts.css?v=9f9a884557', 'assets/app.js?v=6aa43539ec', 'assets/helper.js?v=6814649656', 'assets/site.js?v=8970b7f594', 'assets/splash.js?v=ac6ee4088b', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-675e6146c0';
+const SHELL = ['app.html', './', 'assets/verth.css?v=5b2de9cb0f', 'assets/fonts.css?v=9f9a884557', 'assets/app.js?v=ca614b22bf', 'assets/helper.js?v=f22ccd6813', 'assets/site.js?v=8970b7f594', 'assets/splash.js?v=ac6ee4088b', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   // 'reload' skips the browser's own short-term cache, so the saved copies are really the new ones.
@@ -49,4 +49,24 @@ self.addEventListener('fetch', (e) => {
       .then((res) => res || caches.match(req, { ignoreSearch: true }).then((hit) => hit || fromNetwork(req)))
       .catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then((r) => r || caches.match('app.html')))
   );
+});
+
+// Reminders and alerts sent by the Verth server (Web Push). Only Verth's own pages are opened.
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(String(d.title || 'Verth').slice(0, 80), {
+    body: String(d.body || 'Check before you pay.').slice(0, 240), icon: 'assets/icon-192.png', badge: 'assets/icon-192.png',
+    tag: String(d.tag || 'verth'), renotify: false, data: { url: String(d.url || 'app.html') },
+  }));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  let url = new URL('app.html', self.registration.scope).href;
+  try { const u = new URL(e.notification.data?.url || 'app.html', self.registration.scope); if (u.origin === self.location.origin) url = u.href; } catch {}
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((ws) => {
+    const w = ws.find((c) => c.url.startsWith(self.registration.scope) && 'focus' in c);
+    if (w) return w.focus().then((f) => (f && 'navigate' in f ? f.navigate(url) : f)).catch(() => self.clients.openWindow(url));
+    return self.clients.openWindow(url);
+  }));
 });

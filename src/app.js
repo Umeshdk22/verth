@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { makeServerAI } from './ai-client.js';
-import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY } from './config.js';
+import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY, PUSH } from './config.js';
 import { passkeySupported, deviceUnlockAvailable, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
@@ -665,7 +665,7 @@ function renderMain() {
     <main class="content">
       ${thisDeviceActive() ? '' : `<div class="warn strong"><b>Verth is set up on another device${me()?.device?.label ? ` (${esc(me().device.label)})` : ''}.</b> Answers and codes only work there. If you’ve switched phones, move Verth here. Everyone in your circle will be told you changed device.
         <button class="btn small" data-act="move-device">Use this device instead</button></div>`}
-      ${S.tab === 'chat' && S.chatWith ? '' : trialBanner()}
+      ${S.tab === 'chat' && S.chatWith ? '' : trialBanner() + (S.tab === 'home' ? engageStrip() : '')}
       ${waiting ? `<div class="banner accent"><span><b>${waiting} ${waiting > 1 ? 'people are' : 'person is'} waiting</b> for your approval to join.</span><button class="btn small" data-act="tab" data-tab="circle">Review</button></div>` : ''}
       ${body}
     </main>
@@ -947,6 +947,8 @@ function viewGuide() {
 const IST_MS = 19800000, DAY_MS = 86400000;
 const todayKey = () => String(Math.floor((Date.now() + IST_MS) / DAY_MS));
 const circlePaid = () => ['family', 'team'].includes(S.circle?.plan);
+// Members of a Family or Team circle name it on each check, so the database can see they're covered.
+const viaCircle = () => (circlePaid() && S.profile?.plan === 'free' && !inTrial() ? { via: S.circleId } : {});
 // 7-day free trial: everything unlimited for a week from sign-up. The database rules enforce the
 // same week from the profile's createdAt, so it can't be extended from the app.
 const TRIAL_DAYS = 7;
@@ -961,12 +963,119 @@ function trialBanner() {
   if (paid) return '';
   if (inTrial()) {
     const d = trialDaysLeft();
-    return `<div class="trial-banner"><span class="tb-ic">✨</span><span class="grow"><b>Free trial: ${d <= 1 ? 'last day' : `${d} days left`}</b><span>Everything is unlimited until ${new Date(trialEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}. Then you’re on the Free plan, or choose a plan you like.</span></span><button class="btn small" data-act="tab" data-tab="plan">See plans</button></div>`;
+    return `<div class="trial-banner"><span class="tb-ic">✨</span><span class="grow"><b>Free trial: ${d <= 1 ? 'last day' : `${d} days left`}</b><span>Scam checks are free until ${new Date(trialEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}. After that, checking messages needs a plan (from ₹149 a month).</span></span><button class="btn small" data-act="tab" data-tab="plan">See plans</button></div>`;
   }
   if (Date.now() - trialEnd() < 5 * 864e5 && !store.get('verth-trial-seen')) {
-    return `<div class="trial-banner ended"><span class="tb-ic">⏳</span><span class="grow"><b>Your 7-day free trial has ended</b><span>You’re on the Free plan now: everything still works, with daily limits. Upgrade to keep it unlimited.</span></span><button class="btn small" data-act="trial-plans">See plans</button></div>`;
+    return `<div class="trial-banner ended"><span class="tb-ic">⏳</span><span class="grow"><b>Your 7-day free trial has ended</b><span>To keep checking messages, links, numbers and screenshots, choose a plan. It starts at ₹149 a month.</span></span><button class="btn small" data-act="trial-plans">See plans</button></div>`;
   }
   return '';
+}
+/* ---------- daily streak, install nudge and reminders ---------- */
+// Every day someone opens Verth counts towards their streak (like Duolingo). The day, streak,
+// whether Verth is installed and their reminder choices are saved on the profile ("engage"), so
+// the Verth server can send a reminder at the time they chose, and a "come back" email to people
+// who haven't opened Verth for a while.
+const REMIND_FREQ = [['daily', 'Every day'], ['alt', 'Every other day'], ['weekly', 'Once a week'], ['off', 'Off']];
+const REMIND_HOUR = [[9, 'Morning (9 am)'], [13, 'Afternoon (1 pm)'], [19, 'Evening (7 pm)'], [21, 'Night (9 pm)']];
+const SCAM_TIPS = [
+  'Banks never ask for your OTP, PIN or CVV. Not on call, not on WhatsApp.',
+  'To receive money you never enter your UPI PIN. Scan-to-receive is always a scam.',
+  '“Your electricity will be cut tonight” messages are fake. Pay only in your official app.',
+  'Real companies never charge a fee for a job exam, interview or offer letter.',
+  'Police never arrest anyone on a video call. “Digital arrest” is always a scam.',
+  'Never install an app (APK) from a link someone sends you.',
+  'A new number saying “Hi Mom/Papa, this is my new number” wants money. Call the old number first.',
+  'KYC update links by SMS are fake. Banks don’t block accounts over a text.',
+  'Too-good returns (“double your money in 7 days”) are always a trap.',
+  'Screen-sharing apps like AnyDesk give a stranger your phone. Never install them on request.',
+  'Lost money? Call 1930 at once. The first hour matters most.',
+  'Customs parcel, courier or FedEx “drugs found” calls are scams. Hang up.',
+  'Lottery or KBC prize that needs a “fee” first? It’s a scam.',
+  'Check before you click: paste any link into Verth first.',
+];
+const istDayNum = () => Math.floor((Date.now() + IST_MS) / DAY_MS);
+const isInstalled = () => IN_ANDROID || (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch { return false; } })();
+const engage = () => S.profile?.engage || {};
+const streakNow = () => { const e = engage(); return e.day === istDayNum() || e.day === istDayNum() - 1 ? e.streak || 0 : 0; };
+const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const pushOn = () => pushOk() && Notification.permission === 'granted' && !!store.get('verth-push');
+// Counts today's visit (once a day), keeps the "installed" flag up to date, and refreshes this
+// phone's push address so reminders keep arriving.
+async function touchEngage() {
+  if (!S.profile || !S.user || EMU && !params.has('engage')) return;
+  const e = engage(), today = istDayNum(), inst = isInstalled() || !!e.installed;
+  if (e.day === today && !!e.installed === inst) return;
+  const streak = e.day === today ? e.streak || 1 : e.day === today - 1 ? (e.streak || 0) + 1 : 1;
+  const next = { day: today, streak, best: Math.max(e.best || 0, streak), installed: inst, freq: e.freq || 'alt', hour: Number.isInteger(e.hour) ? e.hour : 19 };
+  const firstToday = e.day !== today;
+  S.profile.engage = next;
+  try { await updateDoc(doc(db, 'users', S.user.uid), { engage: next }); } catch { return; }
+  if (firstToday) {
+    if (pushOn()) savePush().catch(() => {});
+    setTimeout(() => toast(streak >= 2 ? `🔥 ${streak}-day streak! ${[3, 7, 14, 30, 50, 100].includes(streak) ? 'Amazing, keep it going.' : 'Come back tomorrow to keep it going.'}` : '🔥 Day 1 of your safety streak. Open Verth tomorrow to keep it going.'), 1200);
+  }
+}
+async function saveEngage(change) {
+  const e = { ...engage(), ...change };
+  if (e.day !== istDayNum()) return touchEngage().then(() => saveEngage(change));
+  S.profile.engage = e;
+  await updateDoc(doc(db, 'users', S.user.uid), { engage: e });
+}
+const b64uBytes = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (s.length % 4)) % 4)), (c) => c.charCodeAt(0));
+async function savePush() {
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uBytes(PUSH.publicKey) });
+  const j = sub.toJSON();
+  const id = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(j.endpoint)))].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('');
+  await setDoc(doc(db, 'users', S.user.uid, 'push', id), { endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, at: serverTimestamp() });
+  store.set('verth-push', id);
+}
+// Turns on reminders on this phone. Browsers only allow notifications after the person says yes.
+async function enableReminders() {
+  if (!pushOk()) return toast(/iPhone|iPad/.test(navigator.userAgent) ? 'On iPhone, first add Verth to your Home Screen (Share → Add to Home Screen), then open it from there and turn reminders on.' : 'This browser can’t show notifications. Install Verth on your phone, then turn reminders on.', 'bad');
+  let perm = Notification.permission;
+  if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch {} }
+  if (perm !== 'granted') return toast('Notifications are blocked. Allow them for verth.in in your browser settings, then try again.', 'bad');
+  try {
+    await savePush();
+    if (engage().freq === 'off') await saveEngage({ freq: 'alt' });
+    toast('🔔 Reminders are on. You can change how often below.', 'ok');
+  } catch { toast('Couldn’t turn on reminders on this phone. Try again in a minute.', 'bad'); }
+  rerender();
+}
+// A dismissed nudge comes back after 3 days.
+const hiddenFor = (k) => Date.now() - (Number(store.get('verth-nudge-' + k)) || 0) > 3 * DAY_MS;
+// The strip under the header: streak, and one helpful nudge (install, or turn on reminders).
+function engageStrip() {
+  if (!S.profile) return '';
+  const n = streakNow(), doneToday = engage().day === istDayNum();
+  const chip = n ? `<span class="eg-streak${doneToday ? '' : ' cold'}" title="Days in a row you opened Verth">🔥 ${n}<small>${n === 1 ? 'day' : 'days'}</small></span>` : '';
+  let nudge = '';
+  if (!isInstalled() && hiddenFor('install')) nudge = `<div class="eg-nudge"><span class="eg-ic">📲</span><span class="grow"><b>Install Verth on your phone</b><span>Open it in one tap from your home screen, check messages with Share → Verth, and get reminders.</span></span><button class="btn small" data-act="go-install">Install</button><button class="x" data-act="nudge-hide" data-k="install" aria-label="Not now">×</button></div>`;
+  else if (pushOk() && !pushOn() && Notification.permission !== 'denied' && hiddenFor('remind')) nudge = `<div class="eg-nudge"><span class="eg-ic">🔔</span><span class="grow"><b>Turn on reminders</b><span>A daily scam tip and a nudge to keep your ${n > 1 ? `${n}-day ` : ''}streak. Change how often any time.</span></span><button class="btn small" data-act="remind-on">Turn on</button><button class="x" data-act="nudge-hide" data-k="remind" aria-label="Not now">×</button></div>`;
+  const tip = SCAM_TIPS[istDayNum() % SCAM_TIPS.length];
+  return `${chip ? `<div class="eg-row">${chip}<span class="eg-tip"><b>Today’s tip:</b> ${esc(tip)}</span></div>` : ''}${nudge}`;
+}
+// Profile card: reminder settings.
+function remindersCard() {
+  const e = engage(), freq = e.freq || 'alt', hour = Number.isInteger(e.hour) ? e.hour : 19, on = pushOn();
+  return `<section class="card reminders"><h2>🔔 Reminders</h2>
+    <p class="muted small">${on ? 'Reminders are on for this phone.' : 'Get a daily scam tip and a reminder to keep your streak going.'} Your streak: <b>🔥 ${streakNow()}</b> · best ${e.best || streakNow()}.</p>
+    ${on ? '' : `<button class="btn primary" data-act="remind-on">Turn on reminders</button>`}
+    <label>How often<select id="remind-freq" data-keep="no">${REMIND_FREQ.map(([v, t]) => `<option value="${v}" ${v === freq ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+    <label>What time<select id="remind-hour" data-keep="no">${REMIND_HOUR.map(([v, t]) => `<option value="${v}" ${v === hour ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+    <p class="muted small">If you don’t turn on notifications, Verth may send an occasional email instead. Every email has a one-tap unsubscribe link.</p></section>`;
+}
+const paidAny = () => (S.profile?.plan && S.profile.plan !== 'free') || circlePaid();
+// Shown instead of the check form once the free trial is over and there's no plan.
+function planWall(kind) {
+  const what = kind === 'photo' ? 'photo and screenshot checks' : 'scam checks';
+  return `<section class="card attention plan-wall"><h2>⏳ Your 7-day free trial has ended</h2>
+    <p>Thanks for trying Verth! To keep using ${what} (messages, links, numbers, job offers and screenshots), choose a plan.</p>
+    <ul class="pw-list"><li>✅ <b>Personal</b> · ₹149 a month · unlimited checks for you</li><li>✅ <b>Family</b> · ₹199 a month · unlimited checks for up to 10 people</li></ul>
+    ${IN_ANDROID ? '<p class="muted small">Plans can’t be bought inside the Android app. Open verth.in in Chrome, log in with this account and choose a plan there. It works here straight away.</p>' : `<button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">Choose a plan</button>`}
+    <p class="muted small">Lost money already? Call <b>1930</b> or report at cybercrime.gov.in. That’s always free.</p></section>`;
 }
 const photoLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() || inTrial() ? Infinity : PLANS.free.photoChecks);
 const photoRef = () => doc(db, 'users', S.user.uid, 'meters', 'photos');
@@ -978,10 +1087,10 @@ async function loadPhotoUsage() {
 async function usePhoto() {
   const ref = photoRef();
   if (!S.photoUsed) {
-    try { await setDoc(ref, { count: 1, at: serverTimestamp() }); S.photoUsed = 1; return; }
+    try { await setDoc(ref, { count: 1, at: serverTimestamp(), ...viaCircle() }); S.photoUsed = 1; return; }
     catch (e) { const s = await getDoc(ref).catch(() => null); if (!s?.exists()) throw e; S.photoUsed = s.data().count; }
   }
-  await updateDoc(ref, { count: increment(1), at: serverTimestamp(), ...(circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {}) });
+  await updateDoc(ref, { count: increment(1), at: serverTimestamp(), ...viaCircle() });
   S.photoUsed += 1;
 }
 const scanLimit = () => ((S.profile?.plan && S.profile.plan !== 'free') || circlePaid() || inTrial() ? Infinity : PLANS.free.scansPerDay);
@@ -993,11 +1102,11 @@ async function loadUsage() {
 async function useScan() {
   const ref = doc(db, 'users', S.user.uid, 'usage', todayKey());
   if (!S.scanUsed) {
-    try { await setDoc(ref, { scans: 1, at: serverTimestamp() }); S.scanUsed = 1; return; }
+    try { await setDoc(ref, { scans: 1, at: serverTimestamp(), ...viaCircle() }); S.scanUsed = 1; return; }
     catch (e) { const s = await getDoc(ref).catch(() => null); if (!s?.exists()) throw e; S.scanUsed = s.data().scans; }
   }
   // Members of a Family or Team circle name it, so the database can see they're covered.
-  await updateDoc(ref, { scans: increment(1), at: serverTimestamp(), ...(circlePaid() && S.profile?.plan === 'free' ? { via: S.circleId } : {}) });
+  await updateDoc(ref, { scans: increment(1), at: serverTimestamp(), ...viaCircle() });
   S.scanUsed += 1;
 }
 // Shared scam database. When a check finds a scam (high risk), this phone records it for everyone:
@@ -1251,14 +1360,10 @@ function viewScan() {
       <datalist id="company-list">${Object.keys(COMPANIES).map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>`
     : k === 'link' ? `<label>Paste the link<input id="s-link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="2000" placeholder="e.g. sbi-kyc-update.xyz/login" value="${pre}"></label>`
       : `<label>Enter the phone number that called or messaged you<input id="s-phone" inputmode="tel" autocomplete="off" maxlength="25" placeholder="e.g. +91 98765 43210" value="${pre}"></label>`;
-  const counter = lim === Infinity ? `<span class="pill ok">Unlimited${img ? ' photo checks' : ''}</span>` : `<span class="muted small">${left} of ${lim} free ${img ? 'photo checks left' : 'checks left today'}</span>`;
+  const counter = lim === Infinity ? (inTrial() && !paidAny() ? `<span class="pill ok">Free trial · ${trialDaysLeft() <= 1 ? 'last day' : `${trialDaysLeft()} days left`}</span>` : `<span class="pill ok">Unlimited${img ? ' photo checks' : ''}</span>`) : `<span class="pill wait">Trial ended · plan needed</span>`;
   const limitCard = img
-    ? `<section class="card attention"><h2>You’ve used your ${lim} free photo checks</h2>
-      <p class="muted">Photo and screenshot checks are unlimited on every paid plan, from ₹149 a month. You can still type or paste the message and check it free.</p>
-      <div class="row gap">${IN_ANDROID ? '' : `<button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button>`}<button class="btn ghost" data-act="scan-kind" data-kind="message">Type the message instead</button></div></section>`
-    : `<section class="card attention"><h2>You’ve used today’s free checks</h2>
-      <p class="muted">Free accounts get ${lim} scam checks a day. They reset at midnight (India time). Upgrade for unlimited checks for you, or your whole family.</p>
-      ${IN_ANDROID ? '' : `<button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">See plans</button>`}</section>`;
+    ? planWall('photo')
+    : planWall('scan');
   const banner = S.prefill ? `<div class="banner accent"><span><b>${S.prefill.from === 'helper' ? 'From Verth Helper.' : S.prefill.from === 'chat' ? 'From a private chat.' : 'Shared to Verth.'}</b> Check it below before you reply, click or pay.</span></div>` : '';
   return `${banner}<section class="card"><div class="split"><h2>Scam check</h2>${counter}</div>
       <p class="muted">What do you want to check? Tap one.</p>
@@ -1504,7 +1609,7 @@ function renderScanOnly() {
   paint(`<div class="app solo">
     <header class="top">${brand}<div class="circle-pick"><b>${esc(String(S.profile?.name || S.user.displayName || 'My Verth').split(/\s+/)[0])}’s Verth</b><span class="tag">${esc(S.user.email)}</span></div>${headAvatar()}</header>
     <main class="content">
-      ${trialBanner()}
+      ${trialBanner()}${tab === 'home' ? engageStrip() : ''}
       ${(views[tab] || views.home)()}
     </main>
     <nav class="tabs" aria-label="Sections">${TABS.map(([id, label, ic]) => `<button class="${tab === id ? 'on' : ''}" data-act="tab" data-tab="${id}" aria-current="${tab === id ? 'page' : 'false'}">${ic}<span>${label}</span></button>`).join('')}
@@ -1552,11 +1657,11 @@ function viewPlan() {
       ${checkLimit() === Infinity ? 'Unlimited checks.' : `${used} of ${checkLimit()} checks used this month.`} ${cp === 'team' ? `${count} people, no limit.` : `${count} of ${memberLimit()} places used.`}</p></section>
     ${circlePaid() && S.circle.billing ? billingCard(S.circle.billing, 'circle') : ''}
     ${personal && S.profile.billing ? billingCard(S.profile.billing, 'user') : ''}
-    ${inTrial() && !(S.profile?.plan && S.profile.plan !== 'free') && !circlePaid() ? `<section class="card trial-card"><h2>✨ Free trial</h2><p>Everything is unlimited for <b>${trialDaysLeft() <= 1 ? 'today only' : `${trialDaysLeft()} more days`}</b> (until ${new Date(trialEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })}). After that you’re on the Free plan, unless you choose a plan below. Nothing is charged automatically.</p></section>` : ''}
-    <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? 'Unlimited scam checks.' : `${Math.min(S.scanUsed ?? 0, scanLimit())} of ${scanLimit()} free scam checks used today. They reset at midnight (India time).`}</p>
-      <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : `${Math.min(S.photoUsed ?? 0, photoLimit())} of ${photoLimit()} free photo checks used. Paid plans make them unlimited.`}</p></section>
+    ${inTrial() && !(S.profile?.plan && S.profile.plan !== 'free') && !circlePaid() ? `<section class="card trial-card"><h2>✨ Free trial</h2><p>Everything is unlimited for <b>${trialDaysLeft() <= 1 ? 'today only' : `${trialDaysLeft()} more days`}</b> (until ${new Date(trialEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })}). After that, scam and photo checks need a plan below. Nothing is charged automatically.</p></section>` : ''}
+    <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? (inTrial() && !paidAny() ? `Unlimited scam checks during your free trial (${trialDaysLeft() <= 1 ? 'last day' : `${trialDaysLeft()} days left`}).` : 'Unlimited scam checks.') : 'Your free trial has ended. Choose a plan below to keep checking messages, links and numbers.'}</p>
+      <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : 'Photo and screenshot checks need a plan after the free trial.'}</p></section>
     <div class="plans">
-      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', '2 scam checks a day', '5 free photo checks', '12 private messages and 3 Pay safely payments a day', 'Daily phone check-up, 1 App X-ray and 3 Phone Doctor questions a day', 'Signed push checks and rolling codes'])}
+      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', 'Scam and photo checks free for the first 7 days', '12 private messages and 3 Pay safely payments a day', 'Daily phone check-up, 1 App X-ray and 3 Phone Doctor questions a day', 'Signed push checks and rolling codes'])}
       ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Unlimited App X-ray and AI Phone Doctor', 'Unlimited private chat and Pay safely for you', 'Everything in Free'])}
       ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Family phone-safety board: see everyone’s daily score', 'Unlimited App X-ray and AI Phone Doctor for everyone', 'Unlimited private chat and Pay safely', 'Log export'])}
       ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Staff phone-safety board', 'Admin controls: company email lock, staff list, two-admin approval', 'Faster email support: reply within 1 working day', 'Everything in every plan'])}
@@ -1856,6 +1961,7 @@ async function afterSignIn(preferId) {
   }
   S.authFlow = ''; S.signupInfo = null;
   S.profile = s.data();
+  touchEngage();
   remember(S.profile.name, u.email);
   try { if (photoOf(S.profile)) localStorage.setItem('verth-photo', S.profile.photo); else localStorage.removeItem('verth-photo'); } catch {} // for the home page's "Open my Verth"
 
@@ -2042,7 +2148,10 @@ const actions = {
   goverify: (el) => { if (!S.circle) { S.soloTab = 'verify'; renderScanOnly(); window.scrollTo(0, 0); return; } S.tab = 'verify'; S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   vmode: (el) => { S.verifyMode = el.dataset.mode; S.codeResult = null; renderMain(); },
   newcheck: () => { S.lastSentId = null; renderMain(); },
-  notify: async () => { try { await Notification.requestPermission(); } catch {} renderMain(); },
+  notify: () => enableReminders(),
+  'remind-on': () => enableReminders(),
+  'go-install': () => { location.href = './#install'; },
+  'nudge-hide': (el) => { store.set('verth-nudge-' + el.dataset.k, Date.now()); rerender(); },
   copy: async (el) => {
     try { await navigator.clipboard.writeText(el.dataset.text); toast('Copied'); }
     catch { toast('Couldn’t copy automatically. Select the text and copy it.'); }
@@ -3257,6 +3366,7 @@ function viewProfile() {
       ${payHistoryCard()}` : ''}
     <section class="card"><h2>Your circles</h2>
       ${Object.keys(S.circles || {}).length ? `<ul class="list">${Object.entries(S.circles).map(([id, ci]) => `<li><span class="avatar">${initials(ci.name)}</span><span class="grow"><b>${esc(ci.name)}</b><span class="muted small">${ci.type === 'family' ? 'Family' : 'Organisation'} · ${esc((PLANS[ci.plan] || PLANS.free).name)} plan${ci.domain ? ' · Verified company' : ''}</span></span></li>`).join('')}</ul>` : '<p class="muted">You’re not in a circle yet.</p>'}</section>
+    ${remindersCard()}
     ${accountCard()}`;
 }
 
@@ -3468,6 +3578,10 @@ root.addEventListener('change', (e) => {
     document.querySelector('.composer')?.classList.add('has-file');
   }
   if (e.target.id === 'circle-switch') openCircle(e.target.value);
+  if (e.target.id === 'remind-freq' || e.target.id === 'remind-hour') {
+    const v = e.target.id === 'remind-freq' ? { freq: e.target.value } : { hour: Number(e.target.value) };
+    saveEngage(v).then(() => toast(v.freq === 'off' ? 'Reminders are off.' : 'Saved. Reminders will follow your choice.', 'ok')).catch(() => toast('Couldn’t save that. Try again.', 'bad'));
+  }
   if (e.target.id === 'code-for') { S.codeFor = e.target.value; lastCodeKey = ''; tick(); }
   if (e.target.id === 's-image') setPhoto(e.target.files?.[0]);
   if (e.target.id === 'xray-file') runXray(e.target.files?.[0]);

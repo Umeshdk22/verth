@@ -271,13 +271,19 @@ test('the log can never be deleted', async () => {
 
 /* ---------- scam checks: daily limit ---------- */
 const today = () => String(Math.floor((Date.now() + 19800000) / 86400000));
-test('free accounts get two scam checks a day, then the database refuses', async () => {
+const inTrialNow = (uid) => env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'users/' + uid), { createdAt: Timestamp.fromMillis(Date.now() - 2 * 86400000) }));
+test('after the 7-day trial, free accounts can’t do scam checks', async () => {
+  const f = db('priya'), ref = doc(f, 'users/priya/usage', today());
+  await assertFails(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+});
+test('during the 7-day trial, scam checks are unlimited', async () => {
+  await inTrialNow('priya');
   const f = db('priya'), ref = doc(f, 'users/priya/usage', today());
   await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
-  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
-  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  for (let i = 0; i < 4; i++) await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
 });
 test('the scan counter can’t be reset, skipped, or written for another day', async () => {
+  await inTrialNow('priya');
   const f = db('priya');
   await assertFails(setDoc(doc(f, 'users/priya/usage', String(Number(today()) + 1)), { scans: 1, at: serverTimestamp() }));
   await assertFails(setDoc(doc(f, 'users/priya/usage', today()), { scans: 0, at: serverTimestamp() }));
@@ -308,8 +314,8 @@ test('nobody but the payments server can set plans, seats or billing', async () 
 test('family members get unlimited scam checks through their circle', async () => {
   await asServer('circles/c1', { plan: 'family', seats: 10 });
   const f = db('priya'), ref = doc(f, 'users/priya/usage', today());
-  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
-  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
+  await assertFails(setDoc(ref, { scans: 1, at: serverTimestamp() }));
+  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp(), via: 'c1' }));
   await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
   await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
   await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
@@ -318,16 +324,13 @@ test('ATTACK: pending members and outsiders can’t borrow a paid circle', async
   await asServer('circles/c1', { plan: 'team', seats: 20 });
   for (const uid of ['mallory', 'outsider']) {
     const ref = doc(db(uid), `users/${uid}/usage`, today());
-    await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
-    await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
-    await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
+    await assertFails(setDoc(ref, { scans: 1, at: serverTimestamp(), via: 'c1' }));
+    await assertFails(setDoc(ref, { scans: 1, at: serverTimestamp() }));
   }
 });
 test('a free circle doesn’t unlock scans', async () => {
   const ref = doc(db('priya'), 'users/priya/usage', today());
-  await assertSucceeds(setDoc(ref, { scans: 1, at: serverTimestamp() }));
-  await assertSucceeds(updateDoc(ref, { scans: increment(1), at: serverTimestamp() }));
-  await assertFails(updateDoc(ref, { scans: increment(1), at: serverTimestamp(), via: 'c1' }));
+  await assertFails(setDoc(ref, { scans: 1, at: serverTimestamp(), via: 'c1' }));
 });
 test('a Team circle has no practical limit on people (2,000)', async () => {
   await asServer('circles/c1', { plan: 'team', seats: 2000, memberCount: 600 });
@@ -343,13 +346,15 @@ test('a Family circle can hold 10 people', async () => {
 
 /* ---------- photo checks ---------- */
 const photos = (uid) => doc(db(uid), `users/${uid}/meters/photos`);
-test('free accounts get 5 photo checks in total, then the database refuses', async () => {
+test('photo checks are free during the trial and need a plan after it', async () => {
+  await assertFails(setDoc(photos('rajesh'), { count: 1, at: serverTimestamp() }));
+  await inTrialNow('priya');
   const ref = photos('priya');
   await assertSucceeds(setDoc(ref, { count: 1, at: serverTimestamp() }));
-  for (let i = 2; i <= 5; i++) await assertSucceeds(updateDoc(ref, { count: increment(1), at: serverTimestamp() }));
-  await assertFails(updateDoc(ref, { count: increment(1), at: serverTimestamp() }));
+  for (let i = 2; i <= 7; i++) await assertSucceeds(updateDoc(ref, { count: increment(1), at: serverTimestamp() }));
 });
 test('the photo counter can’t be reset, skipped, deleted or used by others', async () => {
+  await inTrialNow('priya');
   const ref = photos('priya');
   await assertFails(setDoc(ref, { count: 0, at: serverTimestamp() }));
   await assertSucceeds(setDoc(ref, { count: 1, at: serverTimestamp() }));
@@ -367,14 +372,10 @@ test('paid plans and paid circles unlock unlimited photo checks', async () => {
   for (let i = 2; i <= 7; i++) await assertSucceeds(updateDoc(r, { count: increment(1), at: serverTimestamp() }));
   await asServer('circles/c1', { plan: 'family', seats: 10 });
   const p = photos('priya');
-  await assertSucceeds(setDoc(p, { count: 1, at: serverTimestamp() }));
-  for (let i = 2; i <= 5; i++) await assertSucceeds(updateDoc(p, { count: increment(1), at: serverTimestamp() }));
-  await assertFails(updateDoc(p, { count: increment(1), at: serverTimestamp() }));
+  await assertFails(setDoc(p, { count: 1, at: serverTimestamp() }));
+  await assertSucceeds(setDoc(p, { count: 1, at: serverTimestamp(), via: 'c1' }));
   await assertSucceeds(updateDoc(p, { count: increment(1), at: serverTimestamp(), via: 'c1' }));
-  const m = photos('mallory');
-  await assertSucceeds(setDoc(m, { count: 1, at: serverTimestamp() }));
-  for (let i = 2; i <= 5; i++) await assertSucceeds(updateDoc(m, { count: increment(1), at: serverTimestamp() }));
-  await assertFails(updateDoc(m, { count: increment(1), at: serverTimestamp(), via: 'c1' }));
+  await assertFails(setDoc(photos('mallory'), { count: 1, at: serverTimestamp(), via: 'c1' }));
 });
 
 /* ---------- community scam reports ---------- */
@@ -661,4 +662,36 @@ test('the live counter goes up by exactly one, only together with a new scam rec
   let s; await env.withSecurityRulesDisabled(async (c) => { s = (await getDoc(doc(c.firestore(), 'stats', day))).data(); });
   if (s.n !== 2 || s.message !== 1 || s.link !== 1) throw new Error(JSON.stringify(s));
   await assertFails(setDoc(doc(d, 'stats', '1'), { n: 1, message: 1, last: 'c'.repeat(64) }));                // another day
+});
+
+/* ---------- daily streak and reminders ---------- */
+const eng = (over = {}) => ({ day: Number(today()), streak: 1, best: 1, installed: false, freq: 'alt', hour: 19, ...over });
+test('the daily streak can be saved for today only, and grows by at most one a day', async () => {
+  const ref = doc(db('priya'), 'users/priya');
+  await assertFails(updateDoc(ref, { engage: eng({ day: Number(today()) + 1 }) }));
+  await assertFails(updateDoc(ref, { engage: eng({ streak: 5, best: 5 }) }));
+  await assertSucceeds(updateDoc(ref, { engage: eng() }));
+  await assertSucceeds(updateDoc(ref, { engage: eng({ streak: 2, best: 2 }) }));
+  await assertFails(updateDoc(ref, { engage: eng({ streak: 9, best: 9 }) }));
+  await assertFails(updateDoc(ref, { engage: eng({ streak: 2, best: 2, freq: 'hourly' }) }));
+  await assertFails(updateDoc(ref, { engage: eng({ streak: 2, best: 2, hour: 30 }) }));
+  await assertFails(updateDoc(ref, { engage: { ...eng({ streak: 2, best: 2 }), admin: true } }));
+  await assertSucceeds(updateDoc(ref, { engage: eng({ streak: 2, best: 2, freq: 'off', hour: 9 }) }));
+  await assertSucceeds(updateDoc(ref, { activeCircle: 'c1' }));
+  await assertFails(updateDoc(doc(db('rajesh'), 'users/priya'), { engage: eng() }));
+});
+test('only you can save your phone for reminders, and only a push address', async () => {
+  const id = 'a'.repeat(32), sub = { endpoint: 'https://fcm.googleapis.com/fcm/send/abc', p256dh: 'BKey', auth: 'auth', at: serverTimestamp() };
+  await assertSucceeds(setDoc(doc(db('priya'), 'users/priya/push', id), sub));
+  await assertSucceeds(getDoc(doc(db('priya'), 'users/priya/push', id)));
+  await assertFails(getDoc(doc(db('rajesh'), 'users/priya/push', id)));
+  await assertFails(setDoc(doc(db('rajesh'), 'users/priya/push', 'b'.repeat(32)), sub));
+  await assertFails(setDoc(doc(db('priya'), 'users/priya/push', 'b'.repeat(32)), { ...sub, endpoint: 'http://evil.test/x' }));
+  await assertFails(setDoc(doc(db('priya'), 'users/priya/push', 'not-a-hash'), sub));
+  await assertFails(setDoc(doc(db('priya'), 'users/priya/push', 'b'.repeat(32)), { ...sub, extra: 1 }));
+  await assertSucceeds(deleteDoc(doc(db('priya'), 'users/priya/push', id)));
+});
+test('the reminder server’s records are off-limits to the app', async () => {
+  await assertFails(getDoc(doc(db('priya'), 'nudges/priya')));
+  await assertFails(setDoc(doc(db('priya'), 'nudges/priya'), { mailOff: false }));
 });
