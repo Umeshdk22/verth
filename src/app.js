@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { makeServerAI } from './ai-client.js';
-import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY, PUSH } from './config.js';
+import { firebaseConfig, PLANS, CHECK_TTL_SECONDS, appCheckSiteKey, AI_HELPER, PAYMENTS, TURNSTILE_SITE_KEY, PUSH, ADMIN_EMAILS } from './config.js';
 import { passkeySupported, deviceUnlockAvailable, registerPasskey, loginWithPasskey, passkeyError } from './passkey.js';
 import { mountHelper, looksSensitive } from './helper.js';
 import qrcode from 'qrcode-generator';
@@ -646,9 +646,10 @@ function renderMain() {
     guide: ['Guide', 'How Verth keeps you safe', 'Real examples of when to check, and how.', 'heart', 'teal'],
   }[S.tab];
   const vid = ['scan', 'verify', 'circle', 'log', 'plan', 'guard'].includes(S.tab) || (S.tab === 'chat' && !S.chatWith) ? videoCard(S.tab) : S.tab === 'home' && inTrial() ? videoCard('intro') : '';
-  const body = (HEAD ? pageHead(...HEAD) : '') + vid + { home: viewHome, scan: viewScan, verify: viewVerify, guard: () => viewGuard(guardOpts()), profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
+  const body = (HEAD ? pageHead(...HEAD) : '') + vid + { home: viewHome, scan: viewScan, verify: viewVerify, guard: guardView, profile: viewProfile, chat: viewChat, circle: viewCircle, log: viewLog, guide: viewGuide, plan: viewPlan }[S.tab]();
   const waiting = isAdmin() ? S.members.filter((m) => m.status === 'pending').length : 0;
   const unread = unreadCount();
+  setBadge(unread + S.checks.filter((c) => c.toUid === S.user.uid && c.kind === 'push' && statusOf(c) === 'pending').length);
   // Keep the chat scrolled to the newest message, unless the person scrolled up to read.
   const box = document.getElementById('chat-scroll');
   const keepPos = box ? { top: box.scrollTop, stick: box.scrollHeight - box.scrollTop - box.clientHeight < 90, who: S.chatShown } : null;
@@ -1067,12 +1068,40 @@ function remindersCard() {
     <label>What time<select id="remind-hour" data-keep="no">${REMIND_HOUR.map(([v, t]) => `<option value="${v}" ${v === hour ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     <p class="muted small">If you don’t turn on notifications, Verth may send an occasional email instead. Every email has a one-tap unsubscribe link.</p></section>`;
 }
+// The number on the Verth icon (installed app): unread chats plus checks waiting for an answer.
+function setBadge(n) {
+  try { if (!('setAppBadge' in navigator)) return; n > 0 ? navigator.setAppBadge(n).catch(() => {}) : navigator.clearAppBadge().catch(() => {}); } catch {}
+}
+// Tells the other person's phone (if they turned on notifications) that something is waiting.
+function alertPeer(kind, toUid) {
+  if (!PAY_API || !S.circleId || !toUid) return;
+  payApi('/push/alert', { circleId: S.circleId, toUid, kind }).catch(() => {});
+}
+// Profile card for the Verth admin only: send an announcement to everyone with reminders on.
+const isVerthAdmin = () => !!S.user?.email && ADMIN_EMAILS.includes(String(S.user.email).toLowerCase());
+const BC_URLS = [['app.html', 'Open Verth'], ['app.html#scan', 'Scam check'], ['app.html#guard', 'Safety check-up'], ['app.html#plan', 'Plans'], ['./#install', 'Install page'], ['pricing.html', 'Pricing page']];
+function adminCard() {
+  if (!isVerthAdmin() || !PAY_API) return '';
+  const st = S.bcStatus;
+  return `<section class="card reminders"><h2>📣 Send an announcement</h2>
+    <p class="muted small">Goes as a notification to everyone who turned on reminders (not to people who switched them off). It’s sent a few phones every 5 minutes. Up to 3 a day.</p>
+    <form data-form="broadcast"><label>Title<input id="bc-title" maxlength="60" placeholder="e.g. 🎉 New: check job offers in Hindi" data-keep="no"></label>
+    <label>Message<textarea id="bc-body" rows="3" maxlength="180" placeholder="e.g. Paste any job offer and Verth tells you if it’s fake. Try it now!" data-keep="no"></textarea></label>
+    <label>Opens<select id="bc-url" data-keep="no">${BC_URLS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>
+    <p class="err" id="bc-err" role="alert"></p>
+    <button class="btn primary" type="submit">Send to everyone</button></form>
+    ${st?.id ? `<p class="muted small">Last announcement: <b>${esc(st.title || '')}</b> · ${Number(st.sent) || 0} phones so far${st.done ? ' · finished' : ' · sending'}.</p>` : ''}
+    <button class="link small" data-act="bc-status">Refresh status</button></section>`;
+}
 const paidAny = () => (S.profile?.plan && S.profile.plan !== 'free') || circlePaid();
 // Shown instead of the check form once the free trial is over and there's no plan.
+// The phone safety check-up (score out of 10, App X-ray, Phone Doctor) is part of the trial and the paid plans.
+const guardLocked = () => !!S.profile && !inTrial() && !paidAny();
+const guardView = () => (guardLocked() ? `${pageHead('Phone safety check-up', 'Is your phone safe?', 'Your daily score out of 10, App X-ray and the AI Phone Doctor.', 'shield', 'red')}${planWall('guard')}` : viewGuard(guardOpts()));
 function planWall(kind) {
-  const what = kind === 'photo' ? 'photo and screenshot checks' : 'scam checks';
+  const what = kind === 'photo' ? 'photo and screenshot checks' : kind === 'guard' ? 'the phone safety check-up (your daily score out of 10), App X-ray and Phone Doctor' : 'scam checks';
   return `<section class="card attention plan-wall"><h2>⏳ Your 7-day free trial has ended</h2>
-    <p>Thanks for trying Verth! To keep using ${what} (messages, links, numbers, job offers and screenshots), choose a plan.</p>
+    <p>Thanks for trying Verth! To keep using ${what}${kind === 'guard' ? '' : ' (messages, links, numbers, job offers and screenshots)'}, choose a plan.</p>
     <ul class="pw-list"><li>✅ <b>Personal</b> · ₹149 a month · unlimited checks for you</li><li>✅ <b>Family</b> · ₹199 a month · unlimited checks for up to 10 people</li></ul>
     ${IN_ANDROID ? '<p class="muted small">Plans can’t be bought inside the Android app. Open verth.in in Chrome, log in with this account and choose a plan there. It works here straight away.</p>' : `<button class="btn primary" data-act="${S.scanOnly || !S.circle ? 'upgrade' : 'tab'}" data-plan="personal" data-tab="plan">Choose a plan</button>`}
     <p class="muted small">Lost money already? Call <b>1930</b> or report at cybercrime.gov.in. That’s always free.</p></section>`;
@@ -1569,6 +1598,7 @@ function setupCircleCard(title, text) {
     </div></section>`;
 }
 function renderScanOnly() {
+  setBadge(0);
   S.scanOnly = true; stopListeners(); S.circle = null; S.circleId = null;
   if (S.profileOpen) { S.soloTab = 'profile'; S.profileOpen = false; }
   if (S.guardOpen) { S.soloTab = 'guard'; S.guardOpen = false; }
@@ -1603,7 +1633,7 @@ function renderScanOnly() {
       <section class="card"><h2>Family and Team plans</h2><p class="muted">Family (₹199 a month, up to 10 people) and Team (₹299 a month, no limit) protect everyone in a circle. Set up a circle to choose one.</p>
         <div class="row gap"><button class="btn ghost grow" data-act="setup" data-type="family">Family circle</button><button class="btn ghost grow" data-act="setup" data-type="org">Organisation</button></div></section>
       ${accountCard()}`,
-    guard: () => `${videoCard('guard')}${viewGuard(guardOpts())}`,
+    guard: () => `${videoCard('guard')}${guardView()}`,
     profile: () => viewProfile(),
   };
   paint(`<div class="app solo">
@@ -1661,7 +1691,7 @@ function viewPlan() {
     <section class="card"><h2>Scam checks</h2><p>${scanLimit() === Infinity ? (inTrial() && !paidAny() ? `Unlimited scam checks during your free trial (${trialDaysLeft() <= 1 ? 'last day' : `${trialDaysLeft()} days left`}).` : 'Unlimited scam checks.') : 'Your free trial has ended. Choose a plan below to keep checking messages, links and numbers.'}</p>
       <p>${photoLimit() === Infinity ? 'Unlimited photo and screenshot checks.' : 'Photo and screenshot checks need a plan after the free trial.'}</p></section>
     <div class="plans">
-      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', 'Scam and photo checks free for the first 7 days', '12 private messages and 3 Pay safely payments a day', 'Daily phone check-up, 1 App X-ray and 3 Phone Doctor questions a day', 'Signed push checks and rolling codes'])}
+      ${card('free', 'Free', '₹0', ['Up to 5 people', '20 verification checks a month', 'Scam and photo checks free for the first 7 days', '12 private messages and 3 Pay safely payments a day', 'Phone safety check-up, App X-ray and Phone Doctor free for the first 7 days', 'Signed push checks and rolling codes'])}
       ${card('personal', 'Personal', '₹149 <small>/ month</small>', ['Unlimited scam checks for you', 'Unlimited photo and screenshot checks', 'Unlimited App X-ray and AI Phone Doctor', 'Unlimited private chat and Pay safely for you', 'Everything in Free'])}
       ${card('family', 'Family', '₹199 <small>/ month</small>', ['Up to 10 people', 'Unlimited checks', 'Unlimited scam and photo checks for everyone', 'Family phone-safety board: see everyone’s daily score', 'Unlimited App X-ray and AI Phone Doctor for everyone', 'Unlimited private chat and Pay safely', 'Log export'])}
       ${card('team', 'Team', '₹299 <small>/ month</small>', ['Your whole organisation: no limit on people', 'Unlimited checks, scam and photo checks', 'Unlimited private chat and Pay safely', 'Log export for auditors', 'Staff phone-safety board', 'Admin controls: company email lock, staff list, two-admin approval', 'Faster email support: reply within 1 working day', 'Everything in every plan'])}
@@ -1988,6 +2018,9 @@ async function afterSignIn(preferId) {
   }
   const wantScan = takeShared();
   if (wantScan) S.tab = 'scan';
+  // Opened from a notification or a home-screen shortcut (app.html#chat, #guard, #verify, #plan).
+  const hashTab = wantScan ? '' : (location.hash.match(/^#(chat|guard|verify|plan|profile)$/) || [])[1] || '';
+  if (hashTab) { S.tab = hashTab; S.soloTab = hashTab; history.replaceState(null, '', location.pathname + location.search); }
   if (!ids.length) {
     if (wantScan) { S.soloTab = 'scan'; return renderScanOnly(); }
     if (S.pending.length) return renderPending();
@@ -2150,6 +2183,7 @@ const actions = {
   newcheck: () => { S.lastSentId = null; renderMain(); },
   notify: () => enableReminders(),
   'remind-on': () => enableReminders(),
+  'bc-status': async () => { S.bcStatus = await payApi('/admin/broadcast', { status: true }).catch(() => null); rerender(); },
   'go-install': () => { location.href = './#install'; },
   'nudge-hide': (el) => { store.set('verth-nudge-' + el.dataset.k, Date.now()); rerender(); },
   copy: async (el) => {
@@ -2310,6 +2344,14 @@ async function removeMember(uid, word) {
 }
 
 const forms = {
+  broadcast: async (f) => {
+    const title = f.querySelector('#bc-title').value.trim(), body = f.querySelector('#bc-body').value.trim(), url = f.querySelector('#bc-url').value;
+    if (!title || !body) return setErr('bc-err', 'Write a title and a message.');
+    if (!confirm('Send this notification to everyone who turned on reminders?')) return;
+    busy(f, true);
+    try { await payApi('/admin/broadcast', { title, body, url }); toast('📣 Announcement queued. It goes out over the next few minutes.', 'ok'); S.bcStatus = await payApi('/admin/broadcast', { status: true }).catch(() => null); rerender(); }
+    catch (e) { setErr('bc-err', e.message); busy(f, false); }
+  },
   doctor: (f) => { const t = f.querySelector('#doc-q'); const q = t?.value || ''; if (!q.trim()) { t?.focus(); return; } if (!looksSensitive(q)) t.value = ''; askDoctor(q); },
   scan: async (f) => {
     if (S.scanKind === 'image') return scanPhoto(f);
@@ -2486,6 +2528,7 @@ const forms = {
         expiresAt: Timestamp.fromMillis(Date.now() + CHECK_TTL_SECONDS * 1000),
       });
       S.lastSentId = ref.id;
+      alertPeer('check', toUid);
       f.querySelector('#v-what').value = '';
       renderMain();
     } catch (e) { setErr('v-err', friendlyError(e)); busy(f, false); }
@@ -2809,6 +2852,7 @@ async function sendChat({ kind, payload, file }) {
     throw e;
   }
   done();
+  alertPeer(kind === 'p' ? 'pay' : 'chat', uid);
   return ref.id;
 }
 
@@ -3367,6 +3411,7 @@ function viewProfile() {
     <section class="card"><h2>Your circles</h2>
       ${Object.keys(S.circles || {}).length ? `<ul class="list">${Object.entries(S.circles).map(([id, ci]) => `<li><span class="avatar">${initials(ci.name)}</span><span class="grow"><b>${esc(ci.name)}</b><span class="muted small">${ci.type === 'family' ? 'Family' : 'Organisation'} · ${esc((PLANS[ci.plan] || PLANS.free).name)} plan${ci.domain ? ' · Verified company' : ''}</span></span></li>`).join('')}</ul>` : '<p class="muted">You’re not in a circle yet.</p>'}</section>
     ${remindersCard()}
+    ${adminCard()}
     ${accountCard()}`;
 }
 

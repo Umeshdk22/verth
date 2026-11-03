@@ -1,7 +1,7 @@
 // Verth service worker: makes Verth installable and gives a friendly offline page.
 // It never caches account data; only the app shell is stored.
-const CACHE = 'verth-shell-675e6146c0';
-const SHELL = ['app.html', './', 'assets/verth.css?v=5b2de9cb0f', 'assets/fonts.css?v=9f9a884557', 'assets/app.js?v=ca614b22bf', 'assets/helper.js?v=f22ccd6813', 'assets/site.js?v=8970b7f594', 'assets/splash.js?v=ac6ee4088b', 'assets/icon-192.png'];
+const CACHE = 'verth-shell-dd04402ce7';
+const SHELL = ['app.html', './', 'assets/verth.css?v=5b2de9cb0f', 'assets/fonts.css?v=9f9a884557', 'assets/app.js?v=49d97249c4', 'assets/helper.js?v=47fd463a76', 'assets/site.js?v=8970b7f594', 'assets/splash.js?v=ac6ee4088b', 'assets/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   // 'reload' skips the browser's own short-term cache, so the saved copies are really the new ones.
@@ -55,6 +55,8 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
+  // A message or check waiting: a dot on the Verth icon (the app shows the exact number when opened).
+  if (/^(chat|check)/.test(String(d.tag || ''))) { try { self.navigator.setAppBadge?.().catch(() => {}); } catch {} }
   e.waitUntil(self.registration.showNotification(String(d.title || 'Verth').slice(0, 80), {
     body: String(d.body || 'Check before you pay.').slice(0, 240), icon: 'assets/icon-192.png', badge: 'assets/icon-192.png',
     tag: String(d.tag || 'verth'), renotify: false, data: { url: String(d.url || 'app.html') },

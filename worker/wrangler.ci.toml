@@ -17,6 +17,6 @@ REVIEW_EMAIL = ""
 # src/config.js. The private half is the VAPID_PRIVATE_KEY secret (Cloudflare → Variables and Secrets).
 VAPID_PUBLIC_KEY = "BAUtyo84fLR3vgVwW1dSyTVRpTSZOx3c0l17WUcLPMc-3qoU_CLrNL3_gxILsmKU7JmSiSAgA7Z9_6SWkJJWAyE"
 
-# Every hour: reminder notifications at each person's chosen time, and "come back" emails at 6 pm India time.
+# Every 5 minutes: reminders at each person’s chosen time, alerts and announcements, and "come back" emails at 6 pm India time.
 [triggers]
-crons = ["0 * * * *"]
+crons = ["*/5 * * * *"]

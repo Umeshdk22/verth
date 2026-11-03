@@ -24,6 +24,6 @@ VAPID_PUBLIC_KEY = "BAUtyo84fLR3vgVwW1dSyTVRpTSZOx3c0l17WUcLPMc-3qoU_CLrNL3_gxIL
 #   GEMINI_API_KEY (optional, aistudio.google.com → Get API key) for AI answers in Verth Helper
 #   VAPID_PRIVATE_KEY (optional) for reminder notifications
 
-# Every hour: reminder notifications and "come back" emails (runNudges in src/index.js).
+# Every 5 minutes: reminders, announcements and "come back" emails (runNudges in src/index.js).
 [triggers]
-crons = ["0 * * * *"]
+crons = ["*/5 * * * *"]

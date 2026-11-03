@@ -101,6 +101,9 @@ const SLOW = process.env.CI ? 3 : 1;
   // The bank name behind a UPI ID (the server asks Razorpay).
   await ctx.route('**/upi/name', (r) => (r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: corsH })
     : r.fulfill({ headers: corsH, json: JSON.parse(r.request().postData() || '{}').vpa === 'priya.nair@okaxis' ? { valid: true, name: 'PRIYA NAIR' } : { valid: false } })));
+  // Alerts to the other person's phone (new message / check waiting): the server is faked here.
+  const alerts = [];
+  await ctx.route('**/push/alert', (r) => { if (r.request().method() === 'OPTIONS') return r.fulfill({ status: 204, headers: corsH }); alerts.push(JSON.parse(r.request().postData() || '{}')); return r.fulfill({ headers: corsH, json: { sent: 1 } }); });
   // New people sign up with Google, then finish their profile and see the welcome screen.
   // popup: '' (Google window works), or an error code the Google window gives on some phones.
   const googleSignup = async (p, email, name, phone, popup = '') => {
@@ -1066,6 +1069,10 @@ const SLOW = process.env.CI ? 3 : 1;
   });
   await step('Home screen renders', async () => {
     await A.click('nav >> text=Home'); await shot(A, '09-A-home');
+  });
+  await step('Alerts: sending a check or a message tells the other person’s phone', async () => {
+    // (Only A's page talks to the faked server in this test, so A's chat messages are what we see.)
+    if (!alerts.some((x) => x.kind === 'chat' && x.circleId && x.toUid)) throw new Error('no alert for a chat message');
   });
   console.log('errors:', JSON.stringify(errors));
   if (process.env.CI && errors.length) console.log(`::error title=Page errors::${JSON.stringify(errors).slice(0, 600)}`);

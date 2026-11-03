@@ -2,7 +2,7 @@
 // encrypted and signed exactly as browsers expect (RFC 8291 / RFC 8292).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pickPush, pickMail, encryptPush, vapidAuth, sendPush, runNudges, unsubToken, istDayOf, handle } from '../worker/src/index.js';
+import { pickPush, pickMail, encryptPush, vapidAuth, sendPush, runNudges, unsubToken, istDayOf, handle, pushAlert, adminBroadcast } from '../worker/src/index.js';
 
 const enc = new TextEncoder(), b64u = (b) => Buffer.from(b).toString('base64url'), unb64u = (s) => new Uint8Array(Buffer.from(s, 'base64url'));
 const DAY = 86400000, IST = 19800000;
@@ -93,8 +93,15 @@ function fakeDb(docs) {
     get: async (p) => (db[p] ? structuredClone(db[p]) : null),
     set: async (p, d) => { db[p] = structuredClone(d); },
     remove: async (p) => { delete db[p]; },
+    getMany: async (ps) => Object.fromEntries(ps.map((p) => [p, db[p] ? structuredClone(db[p]) : null])),
+    docName: (p) => 'projects/x/databases/(default)/documents/' + p,
     list: async (col) => Object.keys(db).filter((p) => p.startsWith(col + '/') && !p.slice(col.length + 1).includes('/')).map((p) => ({ id: p.split('/').pop(), data: db[p] })),
     query: async (q) => {
+      if (q.from[0].allDescendants) {
+        const all = Object.keys(db).filter((p) => /^users\/[^/]+\/push\/[^/]+$/.test(p)).sort();
+        const after = q.startAt ? q.startAt.values[0].referenceValue.split('/documents/')[1] : '';
+        return all.filter((p) => p > after).slice(0, q.limit).map((p) => ({ id: p.split('/').pop(), path: p, data: structuredClone(db[p]) }));
+      }
       const users = Object.keys(db).filter((p) => /^users\/[^/]+$/.test(p));
       const test1 = (p, f) => { const v = val(p, f.field.fieldPath), w = Object.values(f.value)[0]; const x = v instanceof Date ? v.getTime() : v, y = f.value.timestampValue ? new Date(w).getTime() : f.value.integerValue ? Number(w) : w;
         return x !== undefined && ({ EQUAL: x === y, GREATER_THAN_OR_EQUAL: x >= y, LESS_THAN: x < y })[f.op]; };
@@ -117,13 +124,13 @@ test('hourly run: notifies people at their chosen time, forgets dead phones, ema
   });
   const calls = [];
   const fetchFn = async (url) => { calls.push(url); return new Response('', { status: url.endsWith('gone') ? 410 : 201 }); };
-  const r = await runNudges(env, { now: now19, fs: f.fs, fetch: fetchFn, mail: f.mail });
+  const r = await runNudges(env, { now: now19, fs: f.fs, fetch: fetchFn, mail: f.mail, budget: 1000 });
   assert.deepEqual({ hour: r.hour, pushed: r.pushed, gone: r.gone }, { hour: 19, pushed: 1, gone: 1 });
   assert.equal(f.db['users/a/push/p2'], undefined);
   assert.equal(f.db['nudges/a'].lastPush, T);
   assert.ok(f.db['users/b/push/p1']);
   // Same hour again: already sent today.
-  assert.equal((await runNudges(env, { now: now19 + 60000, fs: f.fs, fetch: fetchFn, mail: f.mail })).pushed, 0);
+  assert.equal((await runNudges(env, { now: now19 + 60000, fs: f.fs, fetch: fetchFn, mail: f.mail, budget: 1000 })).pushed, 0);
 });
 
 test('6 pm run: "come back" emails go to people away 2/5/12/30 days without push, once, until they unsubscribe', async () => {
@@ -136,13 +143,13 @@ test('6 pm run: "come back" emails go to people away 2/5/12/30 days without push
     'users/d': { name: 'Old Timer', email: 'd@x.in', plan: 'free', createdAt: new Date(six - 12 * DAY) }, // joined 12 days ago, never back
     'users/e': user({ day: T - 2, hour: 9 }), 'nudges/e': { mailOff: true }, // unsubscribed
   });
-  const r = await runNudges(env, { now: six, fs: f.fs, fetch: async () => new Response('', { status: 201 }), mail: f.mail });
+  const r = await runNudges(env, { now: six, fs: f.fs, fetch: async () => new Response('', { status: 201 }), mail: f.mail, budget: 1000 });
   assert.equal(r.mailed, 2);
   assert.deepEqual(f.mails.map((x) => x.to).sort(), ['d@x.in', 'p@x.in']);
   const m = f.mails.find((x) => x.to === 'p@x.in').m;
   assert.match(m.unsubUrl, /\/unsub\?u=a&t=[0-9a-f]{64}$/);
   assert.equal(f.db['nudges/a'].mails, 1);
-  assert.equal((await runNudges(env, { now: six + 60000, fs: f.fs, fetch: async () => new Response(''), mail: f.mail })).mailed, 0, 'not twice a day');
+  assert.equal((await runNudges(env, { now: six + 60000, fs: f.fs, fetch: async () => new Response(''), mail: f.mail, budget: 1000 })).mailed, 0, 'not twice a day');
   // The unsubscribe link works, and a forged one doesn't.
   const bad = await handle(new Request('https://w.test/unsub?u=a&t=00'), env, { fs: f.fs });
   assert.match(await bad.text(), /isn’t valid/);
@@ -150,4 +157,52 @@ test('6 pm run: "come back" emails go to people away 2/5/12/30 days without push
   assert.match(await good.text(), /won’t get any more/);
   assert.equal(f.db['nudges/a'].mailOff, true);
   assert.equal(await unsubToken(env, 'a'), m.unsubUrl.split('t=')[1]);
+});
+
+test('the day the trial ends: one notification (or one email if push can’t reach them)', async () => {
+  const ended = user({ day: T - 1, streak: 1, hour: 19 }, { createdAt: new Date(now19 - 7 * DAY - 3600000) });
+  const m = pickPush(ended, null, now19);
+  assert.match(m.title, /free trial has ended/); assert.equal(m.once, 'trialEnd');
+  assert.notEqual(pickPush(ended, { trialEnd: true }, now19)?.once, 'trialEnd');
+  assert.notEqual(pickPush({ ...ended, plan: 'personal' }, null, now19)?.once, 'trialEnd');
+  const f = fakeDb({ 'users/a': ended, 'users/a/push/p1': pushSub('ok') });
+  await runNudges(env, { now: now19, fs: f.fs, fetch: async () => new Response('', { status: 201 }), mail: f.mail, budget: 1000 });
+  assert.equal(f.db['nudges/a'].trialEnd, true);
+  const six = at(T, 18);
+  const g = fakeDb({ 'users/b': { name: 'Ravi K', email: 'r@x.in', plan: 'free', createdAt: new Date(six - 7 * DAY), engage: { day: T - 1, streak: 1, best: 1, freq: 'alt', hour: 9 } } });
+  await runNudges(env, { now: six, fs: g.fs, fetch: async () => new Response('', { status: 201 }), mail: g.mail, budget: 1000 });
+  assert.equal(g.mails.length, 1); assert.match(g.mails[0].m.subject, /free trial has ended/);
+});
+
+test('announcements: only the admin can send them; the cron delivers a few phones at a time and skips people who turned reminders off', async () => {
+  const f = fakeDb({ 'users/a': user(), 'users/b': user({ freq: 'off' }), 'users/c': user() });
+  for (const u of ['a', 'b', 'c']) for (let i = 0; i < 6; i++) f.db[`users/${u}/push/p${i}`] = pushSub(u + i);
+  await assert.rejects(adminBroadcast({ title: 'Hi', body: 'There' }, { uid: 'x', email: 'someone@x.in' }, env, f.fs, {}, now19), /Not allowed/);
+  await assert.rejects(adminBroadcast({ title: 'Hi', body: 'There', url: 'https://evil.test' }, { uid: 'x', email: 'umeshdk22@gmail.com' }, env, f.fs, {}, now19), /Choose where/);
+  assert.equal((await adminBroadcast({ title: '🎉 New feature', body: 'Check job offers now', url: 'app.html#scan' }, { uid: 'x', email: 'UmeshDK22@gmail.com' }, env, f.fs, {}, now19)).queued, true);
+  let got = [], runs = 0;
+  const fetchFn = async (url, o) => { got.push(url); return new Response('', { status: 201 }); };
+  while (!f.db['nudges/_broadcast'].done && runs++ < 10) await runNudges(env, { now: at(T, 3) + runs * 300000, fs: f.fs, fetch: fetchFn, mail: f.mail, budget: 1000 });
+  assert.equal(f.db['nudges/_broadcast'].done, true);
+  assert.equal(got.length, 12, 'a and c, 6 phones each; b turned reminders off');
+  assert.ok(runs >= 2, 'spread over several runs');
+  assert.ok(!got.some((u) => /\/b\d$/.test(u)));
+});
+
+test('alerts between circle members: only active members, short notice, chat alerts at most once a minute', async () => {
+  const f = fakeDb({
+    'circles/c1/members/me': { status: 'active', name: 'Priya Nair' }, 'circles/c1/members/boss': { status: 'active', name: 'Rajesh' }, 'circles/c1/members/new': { status: 'pending', name: 'New' },
+    'users/boss/push/p1': pushSub('boss'),
+  });
+  let sent = [];
+  const deps = { fetch: async (url, o) => { sent.push({ url, body: o.body }); return new Response('', { status: 201 }); } };
+  assert.equal((await pushAlert({ circleId: 'c1', toUid: 'boss', kind: 'check' }, { uid: 'me' }, env, f.fs, deps, now19)).sent, 1);
+  assert.match(await browserDecrypt(new Uint8Array(sent[0].body)), /Priya Nair is checking with you/);
+  assert.equal((await pushAlert({ circleId: 'c1', toUid: 'boss', kind: 'chat' }, { uid: 'me' }, env, f.fs, deps, now19)).sent, 1);
+  assert.equal((await pushAlert({ circleId: 'c1', toUid: 'boss', kind: 'chat' }, { uid: 'me' }, env, f.fs, deps, now19 + 5000)).sent, 0, 'not again within a minute');
+  const chat = await browserDecrypt(new Uint8Array(sent[1].body));
+  assert.match(chat, /New message from Priya Nair/); assert.match(chat, /app.html#chat/);
+  await assert.rejects(pushAlert({ circleId: 'c1', toUid: 'boss', kind: 'chat' }, { uid: 'new' }, env, f.fs, deps, now19), /Not allowed/);
+  await assert.rejects(pushAlert({ circleId: 'c1', toUid: 'boss', kind: 'chat' }, { uid: 'stranger' }, env, f.fs, deps, now19), /Not allowed/);
+  await assert.rejects(pushAlert({ circleId: 'c1', toUid: 'boss', kind: 'spam' }, { uid: 'me' }, env, f.fs, deps, now19), /Bad request/);
 });

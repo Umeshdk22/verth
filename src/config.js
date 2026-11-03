@@ -41,4 +41,7 @@ export const PAYMENTS = { api: 'https://verth-pay.umeshdk22.workers.dev' };
 
 // Reminders and alerts (Web Push). The public key is public by design; its private half is the
 // VAPID_PRIVATE_KEY secret in the Verth worker, which sends the notifications.
+// Who may send announcements to everyone (Profile → Send an announcement). The server checks too (ADMIN_EMAILS).
+export const ADMIN_EMAILS = ['umeshdk22@gmail.com'];
+
 export const PUSH = { publicKey: 'BAUtyo84fLR3vgVwW1dSyTVRpTSZOx3c0l17WUcLPMc-3qoU_CLrNL3_gxILsmKU7JmSiSAgA7Z9_6SWkJJWAyE' };
