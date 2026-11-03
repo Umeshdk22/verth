@@ -2019,7 +2019,7 @@ async function afterSignIn(preferId) {
   const wantScan = takeShared();
   if (wantScan) S.tab = 'scan';
   // Opened from a notification or a home-screen shortcut (app.html#chat, #guard, #verify, #plan).
-  const hashTab = wantScan ? '' : (location.hash.match(/^#(chat|guard|verify|plan|profile)$/) || [])[1] || '';
+  const hashTab = wantScan ? '' : ['chat', 'guard', 'verify', 'plan', 'profile'].find((t) => location.hash === '#' + t) || '';
   if (hashTab) { S.tab = hashTab; S.soloTab = hashTab; history.replaceState(null, '', location.pathname + location.search); }
   if (!ids.length) {
     if (wantScan) { S.soloTab = 'scan'; return renderScanOnly(); }

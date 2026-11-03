@@ -185,7 +185,7 @@ export function firestore(env, fetchFn = fetch) {
     // Reads many documents in one request → { path: data or null }.
     async getMany(paths) {
       if (!paths.length) return {};
-      const root = base.replace(/^https:\/\/firestore.googleapis.com\/v1\//, '');
+      const root = `projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/`;
       const r = await fetchFn(base.replace(/\/$/, '') + ':batchGet', {
         method: 'POST', headers: { authorization: 'Bearer ' + (await googleAccessToken(sa, fetchFn)), 'content-type': 'application/json' },
         body: JSON.stringify({ documents: paths.map((p) => root + p) }),
@@ -195,7 +195,7 @@ export function firestore(env, fetchFn = fetch) {
       for (const x of await r.json()) if (x.found) out[x.found.name.split('/documents/')[1]] = fromFs({ mapValue: { fields: x.found.fields || {} } });
       return out;
     },
-    docName: (path) => base.replace(/^https:\/\/firestore.googleapis.com\/v1\//, '') + path,
+    docName: (path) => `projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/` + path,
     // The documents in a (small) collection → [{ id, data }].
     async list(path) {
       const d = await call('GET', path + '?pageSize=50');
